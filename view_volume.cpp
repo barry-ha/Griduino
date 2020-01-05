@@ -81,6 +81,9 @@ typedef struct {
 } Button;
 
 // ========== globals =================================
+int gVolIndex = 5;          // init to middle value
+int gPrevVolIndex = -1;     // remembers previous volume setting to avoid erase/write the same value
+
 const int numLabels = 5;
 Label volLabels[numLabels] = {
   {"Audio",  labelX, yRow1, cLABEL},
@@ -89,7 +92,7 @@ Label volLabels[numLabels] = {
 
 const int nVolButtons = 3;
 const int margin = 10;      // slight margin between button border and edge of screen
-const int radius = 10;
+const int radius = 10;      // rounded corners
 Button volButtons[nVolButtons] = {
   // text      x,y           w,h        r      color
   {"",       160, margin,  152, 106,  radius, cBUTTONLABEL, volUp  }, // Up
@@ -112,7 +115,6 @@ int volLevel[11] = {
 };
 
 // ========== helpers =================================
-int gVolIndex = 5;    // init to middle value
 void setVolume(int volIndex) {
   // set digital potentiometer
   // @param wiperPosition = 0..10
@@ -173,6 +175,7 @@ void startVolumeScreen() {
   yy = volButtons[1].y + volButtons[1].h/2;
   tft.fillTriangle(xx-sz,yy,  xx+sz,yy,  xx,yy+sz, cVALUE);  // arrow DOWN
 
+  gPrevVolIndex = -1;
   updateVolumeScreen();             // fill in values immediately, don't wait for loop() to eventually get around to it
 
   // ----- label this view in upper left corner
@@ -180,19 +183,20 @@ void startVolumeScreen() {
   //delay(4000);                    // no delay - the controller handles the schedule
   //tft.fillScreen(cBACKGROUND);    // no clear - this screen is visible until the next view clears it
 }
-int gPrevVolIndex;                    // remembers previous volume setting to avoid erase/write the same value
+
 void updateVolumeScreen() {
   // ----- volume
-  initFontSizeBig();
   if (gVolIndex != gPrevVolIndex) {
+    initFontSizeBig();
     erasePrintProportionalText(labelX+16, yRow3, 116, String(gVolIndex), cVALUE);
   
-    tft.setTextColor(cLABEL);
     initFontSizeSmall();
+    tft.setTextColor(cLABEL);
     tft.print(" of 10");
     gPrevVolIndex = gVolIndex;
   }
 }
+
 bool onTouchVolume(Point touch) {
   bool handled = false;             // assume a touch target was not hit
   for (int ii=0; ii<nVolButtons; ii++) {
