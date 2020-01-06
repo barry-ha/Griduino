@@ -120,6 +120,7 @@ void setVolume(int volIndex) {
   // @param wiperPosition = 0..10
   int wiperPosition = volLevel[ volIndex ];
   volume.setWiperPosition( wiperPosition );
+  //Serial.print("Set wiper position "); Serial.println(wiperPosition);
 }
 void changeVolume(int diff) {
   gVolIndex += diff;
