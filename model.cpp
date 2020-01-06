@@ -12,10 +12,10 @@
 // ---------- global variables ----------
 // prefix 'g' for global, 'gs' for global string, 'ga' for global array
 
-
 // ------------ typedef's
 
 // ------------ definitions
+//#define ECHO_GPS                  // keep this to resend GPS sentences to IDE console
 
 // ========== extern ==================================
 extern Adafruit_GPS GPS;
@@ -129,7 +129,7 @@ class Model {
         Serial.print("Prev grid: "); Serial.print(sPrevGrid4);
         Serial.print(" New grid: "); Serial.println(gsGridName);
         sPrevGrid4 = newGrid4;
-        grid4dirty = true;      // 'dirty' flag set by model, cleared by view
+        grid4dirty = true;      // 'dirty' flags are set by model, cleared by view
         grid6dirty = true;
         return true;
       } else {
@@ -170,11 +170,12 @@ class Model {
     }
 
     // Pre-formatted GMT date "Jan 12, 2020"
-    void getDate(char* result) {
-      // result = char[15] = string buffer to modify
+    void getDate(char* result, int maxlen) {
+      // @param result = char[15] = string buffer to modify
+      // @param maxlen = string buffer length
       char sDay[3];       // "12"
       char sYear[5];      // "2020"
-      char aMonth[][4] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+      char aMonth[][4] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "err" };
 
       uint8_t yy = GPS.year;
       int year;
@@ -187,16 +188,17 @@ class Model {
         // we will display it as-is so operator knows it's bogus
         year = yy;
       }
-      int mo = GPS.month - 1;   // GPS is 1..12, our array is 0..11
+      int mo = GPS.month - 1;   // GPS is 1-based, our array is 0-based
       if (mo < 0 || mo > 11) {
         Serial.print("!!! GPS month out of range ("); Serial.print(mo); Serial.println(")");
+        mo = 12;          // index of error message
       }
       int dd = GPS.day;
-      snprintf(result, 12, "%s %d, %d",
+      snprintf(result, maxlen, "%s %d, %d",
                    aMonth[mo], dd, year);
     }
     
-    // Provide pre-formatted GMT date/time for messages
+    // Provide pre-formatted GMT date/time "2019-12-31  10:11:12"
     void getDateTime(char* result) {
       // result = char[25] = string buffer to modify
       //if (GPS.fix) {
@@ -220,23 +222,25 @@ class Model {
 
   private:
     void echoGPSinfo() {
-      // send GPS statistics to serial console for desktop debugging
-      char sDate[20];         // strlen("0000-00-00 hh:mm:ss") = 19
-      getDateTime(sDate);
-      Serial.print("Model: ");
-      Serial.print(sDate);
-      Serial.print("  Fix("); Serial.print((int)GPS.fix); Serial.println(")");
-
-      if (GPS.fix) {
-        Serial.print("   Loc("); Serial.print(gsLatitude); Serial.print(","); Serial.print(gsLongitude);
-        //Serial.print(") Quality("); Serial.print((int)GPS.fixquality);
-        Serial.print(") Sats("); Serial.print((int)GPS.satellites);
-        Serial.print(") Speed("); Serial.print(GPS.speed); Serial.print(" knots");
-        Serial.print(") Angle("); Serial.print(GPS.angle);
-        Serial.print(") Alt("); Serial.print(GPS.altitude);
-        Serial.println(")");
-      }
-  }
+      #ifdef ECHO_GPS
+        // send GPS statistics to serial console for desktop debugging
+        char sDate[20];         // strlen("0000-00-00 hh:mm:ss") = 19
+        getDateTime(sDate);
+        Serial.print("Model: ");
+        Serial.print(sDate);
+        Serial.print("  Fix("); Serial.print((int)GPS.fix); Serial.println(")");
+  
+        if (GPS.fix) {
+          Serial.print("   Loc("); Serial.print(gsLatitude); Serial.print(","); Serial.print(gsLongitude);
+          //Serial.print(") Quality("); Serial.print((int)GPS.fixquality);
+          Serial.print(") Sats("); Serial.print((int)GPS.satellites);
+          Serial.print(") Speed("); Serial.print(GPS.speed); Serial.print(" knots");
+          Serial.print(") Angle("); Serial.print(GPS.angle);
+          Serial.print(") Alt("); Serial.print(GPS.altitude);
+          Serial.println(")");
+        }
+      #endif
+    }
 };
 
 #endif // _GRIDUINO_MODEL_CPP
