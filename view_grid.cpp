@@ -265,6 +265,6 @@ void startGridScreen() {
   updateGridScreen();
 }
 bool onTouchGrid(Point touch) {
-  Serial.println("->->-> Touched grid detail screen.");
+  //Serial.println("->->-> Touched grid detail screen.");
   return false;                     // ignore touch, let controller handle with default action
 }

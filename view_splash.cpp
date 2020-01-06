@@ -92,6 +92,6 @@ void updateSplashScreen() {
   // nothing to do in the main loop - this screen has no dynamic items
 }
 bool onTouchSplash(Point touch) {
-  Serial.println("->->-> Touched splash screen.");
+  //Serial.println("->->-> Touched splash screen.");
   return false;                     // ignore touch, let controller handle with default action
 }

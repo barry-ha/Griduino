@@ -85,6 +85,6 @@ void updateHelpScreen() {
   // nothing to do in the main loop - this screen has no dynamic items
 }
 bool onTouchHelp(Point touch) {
-  Serial.println("->->-> Touched help screen.");
+  //Serial.println("->->-> Touched help screen.");
   return false;                     // ignore touch, let controller handle with default action
 }
