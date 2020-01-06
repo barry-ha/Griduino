@@ -140,8 +140,8 @@ void updateStatusScreen() {
   printProportionalText(valueX, yRow1, sTime, cVALUE);
 
   // ----- GMT date
-  char sDate[15];         // strlen("Jan 12, 2020") = 12
-  model.getDate(sDate);
+  char sDate[15];         // strlen("Jan 12, 2020") = 13
+  model.getDate(sDate, 15);
   printProportionalText(valueX, yRow2, sDate, cVALUE);
 
   // ----- grid square
@@ -203,6 +203,6 @@ void updateStatusScreen() {
   ***** */
 }
 bool onTouchStatus(Point touch) {
-  Serial.println("->->-> Touched status screen.");
+  //Serial.println("->->-> Touched status screen.");
   return false;                     // ignore touch, let controller handle with default action
 }
