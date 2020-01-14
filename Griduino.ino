@@ -1,67 +1,67 @@
 /*
   Griduino -- Grid Square Navigator with GPS
 
-  Date:    2019-12-20 created v9
-           2019-12-30 created v9.2
-           2020-01-01 created v9.3
-           2020-01-02 created v9.4
+  Date:     2019-12-20 created v9
+            2019-12-30 created v9.2
+            2020-01-01 created v9.3
+            2020-01-02 created v9.4
 
   Changelog: v9 generates sound by synthesized sine wave intended
-           for decent fidelity from a small speaker. The hardware goal is to 
-           have an audio chain sufficient for possible future spoken-word output.
-           All files are renamed to use underscore (_) instead of hyphen (-)
-           for compatibility on Mac and Linux.
+            for decent fidelity from a small speaker. The hardware goal is to 
+            have an audio chain sufficient for possible future spoken-word output.
+            All files are renamed to use underscore (_) instead of hyphen (-)
+            for compatibility on Mac and Linux.
 
-           This version 9 is converging on our final hardware, and is 
-           written while Barry powers up a new soldered breadboard, new
-           Feather processor, new audio amp, and refining the software.
+            This version 9 is converging on our final hardware, and is 
+            written while Barry powers up a new soldered breadboard, new
+            Feather processor, new audio amp, and refining the software.
 
-           v9.2 adds Morse Code announcements via generated audio waveform on DAC.
-           v9.3 makes the Morse Code actually work, and replaces view_stat_screen
-           v9.4 adds a new view for controlling audio volume
+            v9.2 adds Morse Code announcements via generated audio waveform on DAC.
+            v9.3 makes the Morse Code actually work, and replaces view_stat_screen
+            v9.4 adds a new view for controlling audio volume
 
   Software: Barry Hansen, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
 
-  Purpose: This program runs a GPS display for your vehicle's dashboard to 
-           show your position in your Maidenhead Grid Square, with distances 
-           to nearby squares. This is intended for ham radio rovers. 
-           Read about Maidenhead Locator System (grid squares) 
-           at https://en.wikipedia.org/wiki/Maidenhead_Locator_System
+  Purpose:  This program runs a GPS display for your vehicle's dashboard to 
+            show your position in your Maidenhead Grid Square, with distances 
+            to nearby squares. This is intended for ham radio rovers. 
+            Read about Maidenhead Locator System (grid squares) 
+            at https://en.wikipedia.org/wiki/Maidenhead_Locator_System
 
-           +---------------------------------------+
-           |              CN88  30.1 mi            |
-           |      +-------------------------+      |
-           |      |                      *  |      |
-           | CN77 |      CN87               | CN97 |
-           | 61.2 |                         | 37.1 |
-           |      |                         |      |
-           |      +-------------------------+      |
-           |               CN86  39.0 mi           |
-           |            47.5644, -122.0378         |
-           +---------------------------------------+
+            +---------------------------------------+
+            |              CN88  30.1 mi            |
+            |      +-------------------------+      |
+            |      |                      *  |      |
+            | CN77 |      CN87               | CN97 |
+            | 61.2 |                         | 37.1 |
+            |      |                         |      |
+            |      +-------------------------+      |
+            |               CN86  39.0 mi           |
+            |            47.5644, -122.0378         |
+            +---------------------------------------+
 
   Tested with:
-        1. Arduino Mega 2560 Rev3 (16 MHz ATmega2560)
-           Spec: https://www.adafruit.com/product/191
-       -OR- 
-           Arduino Feather M4 Express (120 MHz SAMD51)
-           Spec: https://www.adafruit.com/product/3857
+         1. Arduino Mega 2560 Rev3 (16 MHz ATmega2560)
+            Spec: https://www.adafruit.com/product/191
+        -OR- 
+            Arduino Feather M4 Express (120 MHz SAMD51)
+            Spec: https://www.adafruit.com/product/3857
 
-        2. Adafruit 3.2" TFT color LCD display ILI-9341
-           Spec: http://adafru.it/1743
-           How to: https://learn.adafruit.com/adafruit-2-dot-8-color-tft-touchscreen-breakout-v2
-           SPI Wiring: https://learn.adafruit.com/adafruit-2-dot-8-color-tft-touchscreen-breakout-v2/spi-wiring-and-test
-           Touchscreen: https://learn.adafruit.com/adafruit-2-dot-8-color-tft-touchscreen-breakout-v2/resistive-touchscreen
+         2. Adafruit 3.2" TFT color LCD display ILI-9341
+            Spec: http://adafru.it/1743
+            How to: https://learn.adafruit.com/adafruit-2-dot-8-color-tft-touchscreen-breakout-v2
+            SPI Wiring: https://learn.adafruit.com/adafruit-2-dot-8-color-tft-touchscreen-breakout-v2/spi-wiring-and-test
+            Touchscreen: https://learn.adafruit.com/adafruit-2-dot-8-color-tft-touchscreen-breakout-v2/resistive-touchscreen
 
-        3. Adafruit Ultimate GPS
-           Spec: http://www.adafruit.com/product/746
+         3. Adafruit Ultimate GPS
+            Spec: http://www.adafruit.com/product/746
 
-        4. One-transistor audio amplifier, digital potentiometer and mini speaker
-           This is a commodity item and many similar devices are available.
-           We also tried a piezo speaker but they're tuned for a narrow frequency.
-           Here is a breadboard-friendly speaker from Adafruit.
-           Spec: https://www.adafruit.com/product/1898
+         4. One-transistor audio amplifier, digital potentiometer and mini speaker
+            This is a commodity item and many similar devices are available.
+            We also tried a piezo speaker but they're tuned for a narrow frequency.
+            Here is a breadboard-friendly speaker from Adafruit.
+            Spec: https://www.adafruit.com/product/1898
 
   Source Code Outline:
         1. Hardware Wiring  (pin definitions)
