@@ -3,6 +3,15 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
+##### Barry's additions, mostly binaries/non-text files
+# because fu*kn github marks ALL files by default
+# and github jeniuses don't wanna give us the option
+# https://github.com/desktop/desktop/issues/1788
+*.psd 
+*.xlsx
+*.zip
+work_in_progress/
+
 # User-specific files
 *.rsuser
 *.suo
