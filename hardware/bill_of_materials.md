@@ -7,7 +7,12 @@ GPS display for vehicle dashboard showing position in the Maidenhead Locator Sys
 | Adafruit    | 3857            |                  | Feather M4 Expr | 1     | 22.95 |  22.95 | Microcontroller Board |
 | Adafruit    | 746             |                  | GPS             | 1     | 39.95 |  39.95 | Ultimate GPS, 66 channel |
 | Adafruit    | 1898            |                  | LS1             | 1     |  1.85 |   1.85 | 8-ohm Mini Speaker, PCB mount |
-| AMP         | 6-535541-8      | A32926-ND        | J4              | 1     |  3.73 |   3.73 | CONN RCPT 20POS 0.1 Gold PCB |
+| AMP         | 6-535541-8      | S7018-ND         | J4              | 1     |  x.xx |   x.xx | Connector 20-pos 0.1 Tin (LCD) |
+| AMP         |                 | S7014-ND         |                 | 1     |  x.xx |   x.xx | Connector 16-pos 0.1 Tin (CPU) |
+| AMP         |                 | S7012-ND         |                 | ?     |  x.xx |   x.xx | Connector 14-pos 0.1 Tin |
+| AMP         |                 | S6100-ND         |                 | 1     |  x.xx |   x.xx | Connector 12-pos 0.1 Tin (CPU) |
+| AMP         |                 | S7007-ND         |                 | 2     |  x.xx |   x.xx | Connector 9-pos 0.1 Tin (GPS) |
+| AMP         |                 | S7006-ND         |                 | 2     |  x.xx |   x.xx | Connector 8-pos 0.1 Tin (Barom) |
 | AVX Corp    | TAP476K016SCS   | 478-1911-ND      | C1, C4, C5, C7  | 4     |  2.67 |  10.68 | CAP Tantalum 47UF 10% 16V radial |
 | CUI Devices | PJ-102A         | CP-102A-ND       | J1              | 1     |  0.64 |   0.64 | CONN PWR Jack 2X5.5 mm |
 | KEMET       | C320C104K5R5TA  | 399-4264-ND      | C2, C3, C6      | 3     |  0.22 |   0.66 | CAP CER 0.1UF 50V X7R radial |
