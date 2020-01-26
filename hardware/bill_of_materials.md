@@ -3,16 +3,17 @@ GPS display for vehicle dashboard showing position in the Maidenhead Locator Sys
 
 | Mfr         | Mfr Part No     | Digi-Key Part No | Reference       | Qty   | USD$  | Ext$   | Description  |
 | ----------- | --------------- | ---------------- | --------------- | :---: | ----- | ------ | ------------ |
-| Adafruit    | 1743            |                  | Display         | 1     | 29.96 |  29.96 | TFT Display  |
-| Adafruit    | 3857            |                  | Feather M4 Expr | 1     | 22.95 |  22.95 | Microcontroller Board |
-| Adafruit    | 746             |                  | GPS             | 1     | 39.95 |  39.95 | Ultimate GPS, 66 channel |
+| Adafruit    | 1743            | 1528-2614-ND     | Display         | 1     | 29.96 |  29.96 | TFT Display  |
+| Adafruit    | 3857            | 1528-2648-ND     | Feather M4 Expr | 1     | 22.95 |  22.95 | Microcontroller Board |
+| Adafruit    | 746             | 1528-4279-ND     | GPS             | 1     | 39.95 |  39.95 | Ultimate GPS, 66 channel |
 | Adafruit    | 1898            |                  | LS1             | 1     |  1.85 |   1.85 | 8-ohm Mini Speaker, PCB mount |
-| AMP         | 6-535541-8      | S7018-ND         | J4              | 1     |  x.xx |   x.xx | Connector 20-pos 0.1 Tin (LCD) |
-| AMP         |                 | S7014-ND         |                 | 1     |  x.xx |   x.xx | Connector 16-pos 0.1 Tin (CPU) |
-| AMP         |                 | S7012-ND         |                 | ?     |  x.xx |   x.xx | Connector 14-pos 0.1 Tin |
-| AMP         |                 | S6100-ND         |                 | 1     |  x.xx |   x.xx | Connector 12-pos 0.1 Tin (CPU) |
-| AMP         |                 | S7007-ND         |                 | 2     |  x.xx |   x.xx | Connector 9-pos 0.1 Tin (GPS) |
-| AMP         |                 | S7006-ND         |                 | 2     |  x.xx |   x.xx | Connector 8-pos 0.1 Tin (Barom) |
+| AMP         | 6-535541-8      | S7018-ND         | J4              | 1     |  1.23 |   1.23 | Connector 20-pos 0.1 Tin (LCD) |
+| AMP         |                 | S7014-ND         |                 | 1     |  0.98 |   0.98 | Connector 16-pos 0.1 Tin (CPU) |
+| AMP         |                 | S7012-ND         |                 | ?     |  0.91 |   0.91 | Connector 14-pos 0.1 Tin |
+| AMP         |                 | S6100-ND         |                 | 1     |  0.78 |   0.78 | Connector 12-pos 0.1 Tin (CPU) |
+| AMP         |                 | S7007-ND         |                 | 2     |  0.71 |   1.42 | Connector 9-pos 0.1 Tin (GPS) |
+| AMP         |                 | S7006-ND         |                 | 2     |  0.65 |   1.30 | Connector 8-pos 0.1 Tin (Barom) |
+| AMP         |                 |                  |                 | 2     |  x.xx |   x.xx | 8-pin DIP chip socket |
 | AVX Corp    | TAP476K016SCS   | 478-1911-ND      | C1, C4, C5, C7  | 4     |  2.67 |  10.68 | CAP Tantalum 47UF 10% 16V radial |
 | CUI Devices | PJ-102A         | CP-102A-ND       | J1              | 1     |  0.64 |   0.64 | CONN PWR Jack 2X5.5 mm |
 | KEMET       | C320C104K5R5TA  | 399-4264-ND      | C2, C3, C6      | 3     |  0.22 |   0.66 | CAP CER 0.1UF 50V X7R radial |
@@ -27,4 +28,4 @@ GPS display for vehicle dashboard showing position in the Maidenhead Locator Sys
 | Yageo       | HHV-25JR-52-22K | 22KAACT-ND       | R2              | 1     |  0.34 |   0.34 | RES 22K 1/4W 5% axial |
 | Yageo       | MFR-25FBF52-1K  | 1.00KXBK-ND      | R3              | 1     |  0.10 |   0.10 | RES 1K 1/4W 1% axial |
 | Yageo       | MFR-25FBF52-10R | 10.0XBK-ND       | R4              | 1     |  0.10 |   0.10 | RES 10-ohm 1/4W 1% axial |
-|             |                 |                  |                 |       | **total** | **169.50** |     |
+|             |                 |                  |                 |       | **total** | **172.39** |     |
