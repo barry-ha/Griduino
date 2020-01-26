@@ -4,8 +4,9 @@ GPS display for vehicle dashboard showing position in the Maidenhead Locator Sys
 | Mfr         | Mfr Part No     | Digi-Key Part No | Reference       | Qty   | USD$  | Ext$   | Description  |
 | ----------- | --------------- | ---------------- | --------------- | :---: | ----- | ------ | ------------ |
 | Adafruit    | 1743            | 1528-2614-ND     | Display         | 1     | 29.96 |  29.96 | TFT Display  |
-| Adafruit    | 3857            | 1528-2648-ND     | Feather M4 Expr | 1     | 22.95 |  22.95 | Microcontroller Board |
+| Adafruit    | 3857            | 1528-2648-ND     | Feather M4 Express | 1  | 22.95 |  22.95 | Microcontroller Board |
 | Adafruit    | 746             | 1528-4279-ND     | GPS             | 1     | 39.95 |  39.95 | Ultimate GPS, 66 channel |
+| Adafruit    | 3966            |                  | Barometer       | 1     |  9.95 |   9.95 | BMP-388 Barometric Pressure |
 | Adafruit    | 1898            |                  | LS1             | 1     |  1.85 |   1.85 | 8-ohm Mini Speaker, PCB mount |
 | AMP         | 6-535541-8      | S7018-ND         | J4              | 1     |  1.23 |   1.23 | Connector 20-pos 0.1 Tin (LCD) |
 | AMP         |                 | S7014-ND         |                 | 1     |  0.98 |   0.98 | Connector 16-pos 0.1 Tin (CPU) |
@@ -28,4 +29,4 @@ GPS display for vehicle dashboard showing position in the Maidenhead Locator Sys
 | Yageo       | HHV-25JR-52-22K | 22KAACT-ND       | R2              | 1     |  0.34 |   0.34 | RES 22K 1/4W 5% axial |
 | Yageo       | MFR-25FBF52-1K  | 1.00KXBK-ND      | R3              | 1     |  0.10 |   0.10 | RES 1K 1/4W 1% axial |
 | Yageo       | MFR-25FBF52-10R | 10.0XBK-ND       | R4              | 1     |  0.10 |   0.10 | RES 10-ohm 1/4W 1% axial |
-|             |                 |                  |                 |       | **total** | **172.39** |     |
+|             |                 |                  |                 |       | **total** | **182.34** |     |
