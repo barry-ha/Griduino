@@ -231,13 +231,13 @@ class Model {
         Serial.print("  Fix("); Serial.print((int)GPS.fix); Serial.println(")");
   
         if (GPS.fix) {
-          Serial.print("   Loc("); Serial.print(gsLatitude); Serial.print(","); Serial.print(gsLongitude);
-          //Serial.print(") Quality("); Serial.print((int)GPS.fixquality);
-          Serial.print(") Sats("); Serial.print((int)GPS.satellites);
-          Serial.print(") Speed("); Serial.print(GPS.speed); Serial.print(" knots");
-          Serial.print(") Angle("); Serial.print(GPS.angle);
-          Serial.print(") Alt("); Serial.print(GPS.altitude);
-          Serial.println(")");
+          //~Serial.print("   Loc("); //~Serial.print(gsLatitude); //~Serial.print(","); //~Serial.print(gsLongitude);
+          //Serial.print(") Quality("); //~Serial.print((int)GPS.fixquality);
+          //~Serial.print(") Sats("); //~Serial.print((int)GPS.satellites);
+          //~Serial.print(") Speed("); //~Serial.print(GPS.speed); //~Serial.print(" knots");
+          //~Serial.print(") Angle("); //~Serial.print(GPS.angle);
+          //~Serial.print(") Alt("); //~Serial.print(GPS.altitude);
+          //~Serial.println(")");
         }
       #endif
     }

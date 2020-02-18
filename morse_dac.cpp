@@ -260,13 +260,14 @@ void DACMorseSender::sendBlocking() {
 
 void DACMorseSender::dump() {
   // dump our guts to the IDE console for debugging
-  Serial.println("Begin dump:");
   char msg[256];
   char sFloat[16];
   if (dacSampleTime < 1) {
     // note "delayMicroseconds()" only works reliably down to 3 usec
     Serial.println("!!! DAC dacSampleTime < 1 usec. Did you call setup()?");
   }
+  #ifdef RUN_UNIT_TESTS
+  Serial.println("Begin dump:");
   snprintf(msg, 256, ". DAC sizeWavetable(%d)", sizeWavetable);   Serial.println(msg);
   snprintf(msg, 256, ". DAC dacPin(%d)", dacPin);                 Serial.println(msg);
   snprintf(msg, 256, ". DAC dacAmplitude(%d)", dacAmplitude);     Serial.println(msg);
@@ -290,4 +291,5 @@ void DACMorseSender::dump() {
   snprintf(msg, 256, ". Morse cyclesPerDit(%d)", cyclesPerDit);   Serial.println(msg);
   snprintf(msg, 256, ". Morse cyclesPerDah(%d)", cyclesPerDah);   Serial.println(msg);
   Serial.println("End dump.");
+  #endif
 }

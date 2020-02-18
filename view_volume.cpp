@@ -26,6 +26,7 @@
 #include "model.cpp"              // "Model" portion of model-view-controller
 #include "morse_dac.h"            // morse code
 #include "DS1804.h"               // DS1804 digital potentiometer library
+#include "save_restore.h"         // save volume control settings
 
 // ========== extern ===========================================
 extern Adafruit_ILI9341 tft;      // Griduino.ino
@@ -34,14 +35,18 @@ extern void erasePrintProportionalText(int xx, int yy, int ww, String text, uint
 extern DACMorseSender dacMorse;   // morse code (so we can send audio samples)
 extern DS1804 volume;             // digital potentiometer
 
-void updateVolumeScreen();        // forward reference in this same .cpp file
+void showNameOfView(String sName, uint16_t fgd, uint16_t bkg);  // Griduino.ino
+void initFontSizeSmall();         // Griduino.ino
+void initFontSizeBig();           // Griduino.ino
+int getOffsetToCenterText(String text); // Griduino.ino
+
+// ========== forward reference ================================
+void updateVolumeScreen();
 void volUp();
 void volDown();
 void volMute();
-void showNameOfView(String sName, uint16_t fgd, uint16_t bkg);  // Griduino.ino
-void initFontSizeSmall();           // Griduino.ino
-void initFontSizeBig();             // Griduino.ino
-int getOffsetToCenterText(String text); // Griduino.ino
+int loadConfigVolume();
+void saveConfigVolume();
 
 // ------------ typedef's
 typedef struct {
@@ -120,7 +125,8 @@ void setVolume(int volIndex) {
   // @param wiperPosition = 0..10
   int wiperPosition = volLevel[ volIndex ];
   volume.setWiperPosition( wiperPosition );
-  //Serial.print("Set wiper position "); Serial.println(wiperPosition);
+  //~Serial.print("Set wiper position "); Serial.println(wiperPosition);
+  saveConfigVolume();     // non-volatile storage
 }
 void changeVolume(int diff) {
   gVolIndex += diff;
@@ -140,6 +146,27 @@ void volMute() {
   gVolIndex = 0;
   setVolume(gVolIndex);
   updateVolumeScreen();
+}
+
+// ========== load/save volume setting =========================
+#define VOLUME_CONFIG_FILE    CONFIG_FOLDER "/volume.cfg"
+#define CONFIG_VOLUME_VERSION "Volume v01"
+
+// ----- load from SDRAM -----
+int loadConfigVolume() {
+  SaveRestore config(VOLUME_CONFIG_FILE, CONFIG_VOLUME_VERSION);
+  int result = config.readConfig();
+  if (result) {
+    gVolIndex = constrain( config.intSetting, 0, 10);
+    setVolume( gVolIndex );
+    Serial.print(". Loaded volume setting: "); Serial.println(gVolIndex);
+  }
+  return result;
+}
+// ----- save to SDRAM -----
+void saveConfigVolume() {
+  SaveRestore config(VOLUME_CONFIG_FILE, CONFIG_VOLUME_VERSION, gVolIndex);
+  config.writeConfig();
 }
 
 // ========== volume screen view ===============================

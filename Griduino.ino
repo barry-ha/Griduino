@@ -7,10 +7,8 @@
             2020-01-02 created v9.4
 
   Changelog: v9 generates sound by synthesized sine wave intended
-            for decent fidelity from a small speaker. The hardware goal is to 
+            for decent fidelity from a small speaker. Our hardware goal is to 
             have an audio chain sufficient for possible future spoken-word output.
-            All files are renamed to use underscore (_) instead of hyphen (-)
-            for compatibility on Mac and Linux.
 
             This version 9 is converging on our final hardware, and is 
             written while Barry powers up a new soldered breadboard, new
@@ -19,14 +17,16 @@
             v9.2 adds Morse Code announcements via generated audio waveform on DAC.
             v9.3 makes the Morse Code actually work, and replaces view_stat_screen
             v9.4 adds a new view for controlling audio volume
+            v9.5,6,7 is regression test of GPS readings for stability
+            v9.8 adds saving settings in 2MB RAM
 
-  Software: Barry Hansen, barry@k7bwh.com, Seattle, WA
+  Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
 
   Purpose:  This program runs a GPS display for your vehicle's dashboard to 
             show your position in your Maidenhead Grid Square, with distances 
-            to nearby squares. This is intended for ham radio rovers. 
-            Read about Maidenhead Locator System (grid squares) 
+            to nearby squares. This is designed for ham radio rovers. 
+            Read about the Maidenhead Locator System (grid squares) 
             at https://en.wikipedia.org/wiki/Maidenhead_Locator_System
 
             +---------------------------------------+
@@ -42,10 +42,7 @@
             +---------------------------------------+
 
   Tested with:
-         1. Arduino Mega 2560 Rev3 (16 MHz ATmega2560)
-            Spec: https://www.adafruit.com/product/191
-        -OR- 
-            Arduino Feather M4 Express (120 MHz SAMD51)
+         1. Arduino Feather M4 Express (120 MHz SAMD51)
             Spec: https://www.adafruit.com/product/3857
 
          2. Adafruit 3.2" TFT color LCD display ILI-9341
@@ -64,13 +61,13 @@
             Spec: https://www.adafruit.com/product/1898
 
   Source Code Outline:
-        1. Hardware Wiring  (pin definitions)
-        2. Helper Functions (touchscreen, fonts, grids, distance, etc)
-        3. Model
-        4. Views
-        5. Controller
-        6. setup()
-        7. loop()
+         1. Hardware Wiring  (pin definitions)
+         2. Helper Functions (touchscreen, fonts, grids, distance, etc)
+         3. Model
+         4. Views
+         5. Controller
+         6. setup()
+         7. loop()
 */
 
 #include "SPI.h"                  // Serial Peripheral Interface
@@ -80,9 +77,7 @@
 #include "TouchScreen.h"          // Touchscreen built in to 3.2" Adafruit TFT display
 #include "constants.h"            // Griduino constant declarations
 #include "DS1804.h"               // DS1804 digital potentiometer library
-
-// ------- Select features ---------
-//efine RUN_UNIT_TESTS            // comment out to save boot-up time
+#include "save_restore.h"         // save/restore configuration data to SDRAM
 
 // ---------- Hardware Wiring ----------
 /*                                Arduino       Adafruit
@@ -120,23 +115,15 @@ Audio Out:
 Digital potentiometer:
    VINC - volume increment        - n/a         - D6
    VUD  - volume up/down          - n/a         - A2
-   CS   - volume chip select       - n/a        - A1
+   CS   - volume chip select      - n/a         - A1
 On-board lights:
    LED  - red activity led        - Digital 13  - D13             - reserved for onboard LED
    NP   - NeoPixel                - n/a         - D6              - reserved for onboard NeoPixel !! no, NeoPixel is ONLY using pin 8 !!
-   NP   - NeoPixel                - n/a         - D8              - reserved for onboard NeoPixel
 */
 
 // TFT display and SD card share the hardware SPI interface, and have
 // separate 'select' pins to identify the active device on the bus.
-#if defined(ARDUINO_AVR_MEGA2560)
-  #define TFT_BL   6    // TFT backlight
-  #define SD_CCS   7    // SD card select pin - Mega
-  #define SD_CD    8    // SD card detect pin - Mega
-  #define TFT_DC   9    // TFT display/command pin
-  #define TFT_CS  10    // TFT select pin
-
-#elif defined(SAMD_SERIES)
+#if defined(SAMD_SERIES)
   // Adafruit Feather M4 Express pin definitions
   // To compile for Feather M0/M4, install "additional boards manager"
   // https://learn.adafruit.com/adafruit-feather-m4-express-atsamd51/setup
@@ -147,6 +134,13 @@ On-board lights:
 
   #define SD_CD   10    // SD card detect pin - Feather
   #define SD_CCS  11    // SD card select pin - Feather
+
+#elif defined(ARDUINO_AVR_MEGA2560)
+  #define TFT_BL   6    // TFT backlight
+  #define SD_CCS   7    // SD card select pin - Mega
+  #define SD_CD    8    // SD card detect pin - Mega
+  #define TFT_DC   9    // TFT display/command pin
+  #define TFT_CS  10    // TFT select pin
 
 #else
   // todo: Unknown platform
@@ -168,12 +162,16 @@ Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
   #define PIN_XM  A4    // Touchscreen X- must be an analog pin, use "An" notation
   #define PIN_YP  A5    // Touchscreen Y+ must be an analog pin, use "An" notation
   #define PIN_YM   9    // Touchscreen Y- can be a digital pin
-#else
+#elif defined(ARDUINO_AVR_MEGA2560)
   // Arduino Mega 2560 and others
   #define PIN_XP   4    // Touchscreen X+ can be a digital pin
   #define PIN_XM  A3    // Touchscreen X- must be an analog pin, use "An" notation
   #define PIN_YP  A2    // Touchscreen Y+ must be an analog pin, use "An" notation
   #define PIN_YM   5    // Touchscreen Y- can be a digital pin
+#else
+  // todo: Unknown platform
+  #warning You need to define pins for your hardware
+
 #endif
 TouchScreen ts = TouchScreen(PIN_XP, PIN_YP, PIN_XM, PIN_YM, 295);
 
@@ -181,7 +179,7 @@ TouchScreen ts = TouchScreen(PIN_XP, PIN_YP, PIN_XM, PIN_YM, 295);
 #define RED_LED 13    // diagnostics RED LED
 
 // ---------- GPS ----------
-/* "Ultimate GPS" pin wiring uses its own dedicated hardware serial port
+/* "Ultimate GPS" pin wiring is connected to a dedicated hardware serial port
     available on an Arduino Mega, Arduino Feather and others.
 
     The GPS' LED indicates status:
@@ -203,7 +201,7 @@ Adafruit_GPS GPS(&Serial1);
 
 // ctor         DS1804( ChipSel pin,Incr pin,  U/D pin,  maxResistance (K) )
 DS1804 volume = DS1804( PIN_VCS,    PIN_VINC,  PIN_VUD,  DS1804_TEN );
-int gVolume = 15;             // initial digital potentiometer wiper position, 0..99
+int gWiper = 15;             // initial digital potentiometer wiper position, 0..99
 int gFrequency = 1100;        // initial Morse code sidetone pitch
 int gWordsPerMinute = 18;     // initial Morse code sending speed
 
@@ -238,15 +236,32 @@ DACMorseSender dacMorse(DAC_PIN, gFrequency, gWordsPerMinute);
 //  18);            // wpm
 
 // ========== extern ===========================================
-void updateGridScreen();    void startGridScreen();   bool onTouchGrid(Point touch);    // view_grid.cpp
-void updateStatusScreen();  void startStatScreen();   bool onTouchStatus(Point touch);  // view_status.cpp
-void updateVolumeScreen();  void startVolumeScreen(); bool onTouchVolume(Point touch);  // view_volume.cpp
-void updateSplashScreen();  void startSplashScreen(); bool onTouchSplash(Point touch);  // view_splash.cpp
-void updateHelpScreen();    void startHelpScreen();   bool onTouchHelp(Point touch);    // view_help.cpp
+void updateGridScreen();                // view_grid.cpp
+void startGridScreen();
+bool onTouchGrid(Point touch);
+
+void updateStatusScreen();              // view_status.cpp
+void startStatScreen();
+bool onTouchStatus(Point touch);
+
+void updateVolumeScreen();              // view_volume.cpp
+void startVolumeScreen();
+bool onTouchVolume(Point touch);
+int loadConfigVolume();
+void saveConfigVolume();
+
+void updateSplashScreen();              // view_splash.cpp
+void startSplashScreen();
+bool onTouchSplash(Point touch);
+
+void updateHelpScreen();                // view_help.cpp
+void startHelpScreen();
+bool onTouchHelp(Point touch);
 
 // 2. Helper Functions
 // ============== touchscreen helpers ==========================
 
+/***** */
 bool gTouching = false;             // keep track of previous state
 bool newScreenTap(Point* pPoint) {
   // find leading edge of a screen touch
@@ -280,12 +295,9 @@ bool newScreenTap(Point* pPoint) {
   //delay(100);   // no delay: code above completely handles debouncing without blocking the loop
   return result;
 }
+/* *****/
 
-// Software reset
-void SoftwareReset(void)
-{
-}
-
+/********** */
 void mapTouchToScreen(TSPoint touch, Point* screen) {
   // convert from X+,Y+ resistance measurements to screen coordinates
   // param touch = resistance readings from touchscreen
@@ -309,6 +321,7 @@ void mapTouchToScreen(TSPoint touch, Point* screen) {
   screen->y = map(touch.x, 900, 100,  0, tft.height());
   return;
 }
+/* **********/
 
 // ========== font management routines =========================
 /* Using fonts: https://learn.adafruit.com/adafruit-gfx-graphics-library/using-fonts
@@ -433,40 +446,40 @@ float nextGridLineSouth(float latitudeDegrees) {
 void testNextGridLineEast(float fExpected, double fLongitude) {
   // unit test helper for finding grid line crossings
   float result = nextGridLineEast(fLongitude);
-  Serial.print("Grid Crossing East: given = "); Serial.print(fLongitude);
-  Serial.print(", expected = "); Serial.print(fExpected);
-  Serial.print(", result = "); Serial.print(result);
+  //~Serial.print("Grid Crossing East: given = "); //~Serial.print(fLongitude);
+  //~Serial.print(", expected = "); //~Serial.print(fExpected);
+  //~Serial.print(", result = "); //~Serial.print(result);
   if (result == fExpected) {
-    Serial.println("");
+    //~Serial.println("");
   }
   else {
-    Serial.println(" <-- Unequal");
+    //~Serial.println(" <-- Unequal");
   }
 }
 void testNextGridLineWest(float fExpected, double fLongitude) {
   // unit test helper for finding grid line crossings
   float result = nextGridLineWest(fLongitude);
-  Serial.print("Grid Crossing West: given = "); Serial.print(fLongitude);
-  Serial.print(", expected = "); Serial.print(fExpected);
-  Serial.print(", result = "); Serial.print(result);
+  //~Serial.print("Grid Crossing West: given = "); //~Serial.print(fLongitude);
+  //~Serial.print(", expected = "); //~Serial.print(fExpected);
+  //~Serial.print(", result = "); //~Serial.print(result);
   if (result == fExpected) {
-    Serial.println("");
+    //~Serial.println("");
   }
   else {
-    Serial.println(" <-- Unequal");
+    //~Serial.println(" <-- Unequal");
   }
 }
 void testCalcLocator(String sExpected, double lat, double lon) {
   // unit test helper function to display results
   String sResult;
   sResult = calcLocator(lat, lon);
-  Serial.print("Test: expected = "); Serial.print(sExpected);
-  Serial.print(", gResult = "); Serial.print(sResult);
+  //~Serial.print("Test: expected = "); //~Serial.print(sExpected);
+  //~Serial.print(", gResult = "); //~Serial.print(sResult);
   if (sResult == sExpected) {
-    Serial.println("");
+    //~Serial.println("");
   }
   else {
-    Serial.println(" <-- Unequal");
+    //~Serial.println(" <-- Unequal");
   }
 }
 #endif // RUN_UNIT_TESTS
@@ -549,6 +562,7 @@ String calcDistanceLong(double lat, double fromLong, double toLong) {
   }
   return sDistance;
 }
+
 #ifdef RUN_UNIT_TESTS
 void testDistanceLat(String sExpected, double fromLat, double toLat) {
   // unit test helper function to calculate N-S distances
@@ -629,8 +643,8 @@ void runUnitTest() {
   
   Serial.print("\nStarting dits\n");
   for (int ii=1; ii<=40; ii++) {
-    Serial.print(ii); Serial.print(" ");
-    if (ii%10 == 0) Serial.print("\n");
+    //~Serial.print(ii); //~Serial.print(" ");
+    if (ii%10 == 0) //~Serial.print("\n");
     dacMorse.send_dit();
   }
   Serial.print("Finished dits\n");
@@ -639,13 +653,34 @@ void runUnitTest() {
   // ----- test dit-dah
   Serial.print("\nStarting dit-dah\n");
   for (int ii=1; ii<=20; ii++) {
-    Serial.print(ii); Serial.print(" ");
-    if (ii%10 == 0) Serial.print("\n");
+    //~Serial.print(ii); //~Serial.print(" ");
+    if (ii%10 == 0) //~Serial.print("\n");
     dacMorse.send_dit();
     dacMorse.send_dah();  
   }
   dacMorse.send_word_space();
   Serial.print("Finished dit-dah\n");
+
+  // ----- test save/restore settings in SDRAM
+  #define TEST_CONFIG_FILE    CONFIG_FOLDER "/test.cfg"
+  #define TEST_CONFIG_VERSION "Test v01"
+  #define TEST_CONFIG_VALUE   5
+
+  // sample data to read/write
+  SaveRestore configWrite(TEST_CONFIG_FILE, TEST_CONFIG_VERSION, TEST_CONFIG_VALUE);
+  SaveRestore configRead(TEST_CONFIG_FILE, TEST_CONFIG_VERSION);
+
+  if (configWrite.writeConfig()) {  // test writing data to SDRAM -- be sure to watch serial console log
+    Serial.println("Success, config stored to SDRAM");
+  } else {
+    Serial.println("ERROR! Unable to save config to SDRAM");
+  }
+
+  if (configRead.readConfig()) {    // test reading same data back from SDRAM
+    Serial.println("Success, configuration restored from SDRAM");
+  } else {
+    Serial.println("ERROR! Unable to restore from SDRAM");
+  }
 
   // ----- writing proportional font
   // visual test: if this code works correctly, each string will exactly erase the previous one
@@ -826,7 +861,7 @@ void setup() {
   //GPS.sendCommand(PGCMD_ANTENNA);             // Request updates on whether antenna is connected or not (comment out to keep quiet)
 
   // ----- query GPS
-  Serial.print("Sending command to query GPS Firmware: ");
+  Serial.print("Sending command to query GPS Firmware version");
   Serial.println(PMTK_Q_RELEASE);     // Echo query to console
   GPS.sendCommand(PMTK_Q_RELEASE);    // Send query to GPS unit
                                       // expected reply: $PMTK705,AXN_2.10...
@@ -834,8 +869,14 @@ void setup() {
                                       // expected reply: $PGTOP,11,...
 
   // ----- init digital potentiometer
-  volume.setWiperPosition( gVolume );
-  Serial.print("Set wiper position = "); Serial.println(gVolume);
+  volume.setWiperPosition( gWiper );  // set default volume in digital pot
+
+  if (loadConfigVolume()) {           // view_volume.cpp
+    Serial.println("Successfully loaded Volume control settings");
+  } else {
+    Serial.println("Failed to load Volume control settings, re-initializing config file");
+    saveConfigVolume();
+  }
 
   // ----- init DAC for audio/morse code
   #if defined(SAMD_SERIES)
@@ -861,6 +902,7 @@ void setup() {
   // ----- unit tests (if allowed by RUN_UNIT_TESTS)
   runUnitTest();
 
+  // ----- announce ourselves
   startSplashScreen();
 
   // at 18 wpm, it takes 12 seconds to send "de k7bwh es km7o" 
@@ -874,6 +916,7 @@ void setup() {
   // ----- select opening view screen
   gaStartView[gViewIndex]();          // start current view, eg, startGridScreen()
   gaUpdateView[gViewIndex]();         // update current view, eg, updateGridScreen()
+
 }
 
 //=========== main work loop ===================================
@@ -895,6 +938,7 @@ void loop() {
   //}
 
   GPS.read();   // if you can, read the GPS serial port every millisecond in an interrupt
+
   if (GPS.newNMEAreceived()) {
     // sentence received -- verify checksum, parse it
     // a tricky thing here is if we print the NMEA sentence, or data
@@ -907,11 +951,11 @@ void loop() {
       // this also sets the newNMEAreceived() flag to false
       return;
     } else {
-      Serial.print(GPS.lastNMEA());   // debug
+      //~Serial.print(GPS.lastNMEA());   // debug
     }
   }
 
-  // periodically, ask the model to process and save our current location
+  // periodically, ask the model to process and save the current GPS location
   if (millis() - prevTimeGPS > GPS_PROCESS_INTERVAL) {
     prevTimeGPS = millis();           // restart another interval
 

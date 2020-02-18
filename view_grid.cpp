@@ -1,4 +1,5 @@
-/* File: view_grid_screen.cpp
+/*
+  File: view_grid_screen.cpp
 
   This sketch runs a GPS display for your vehicle's dashboard to show
   your position in the Maidenhead Grid Square, with distances to
@@ -83,7 +84,7 @@ void drawGridName(String newGridName) {
   int rectX, rectY, rectWidth, rectHeight;
   initFontSizeBig();
 
-  //Serial.print("drawGridName("); Serial.print(newGridName); Serial.println(")");  // debug
+  //~Serial.print("drawGridName("); Serial.print(newGridName); Serial.println(")");  // debug
 
   // --- line 1 ---
   int stringlen = 4;     // = strlen(gsGridName)
@@ -255,7 +256,7 @@ void startGridScreen() {
   // called once when view becomes active
   initFontSizeSmall();
 
-  tft.fillScreen(ILI9341_BLACK);
+  tft.fillScreen(ILI9341_BLACK);    // clear screen
   drawGridOutline();                // box outline around grid
   //tft.drawRect(0, 0, gScreenWidth, gScreenHeight, ILI9341_BLUE);  // debug: border around screen
   model.grid4dirty = true;          // reset the "previous grid" to trigger the new one to show
