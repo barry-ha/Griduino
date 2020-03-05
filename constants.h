@@ -3,7 +3,7 @@
 
 // ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE   "Griduino"
-#define PROGRAM_VERSION "v0.9.8"
+#define PROGRAM_VERSION "v0.10.0"
 #define PROGRAM_LINE1   "Barry K7BWH"
 #define PROGRAM_LINE2   "John KM7O"
 
@@ -17,7 +17,8 @@
 #define mphPerKnots   1.15078
 
 // ------- Select features ---------
-//#define RUN_UNIT_TESTS              // comment out to save boot-up time
+//#define RUN_UNIT_TESTS            // comment out to save boot-up time
+//#define ECHO_GPS                  // use this to resend GPS sentences to IDE console for debug
 
 // ----- load/save configuration using SDRAM
 //#define EXTERNAL_FLASH_USE_QSPI   // 2020-02-11 added by BarryH, since it seems to be missing from 

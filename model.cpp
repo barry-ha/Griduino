@@ -15,7 +15,6 @@
 // ------------ typedef's
 
 // ------------ definitions
-//#define ECHO_GPS                  // keep this to resend GPS sentences to IDE console
 
 // ========== extern ==================================
 extern Adafruit_GPS GPS;
