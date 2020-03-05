@@ -18,8 +18,8 @@
 #include <Arduino.h>
 #include "constants.h"            // Griduino constants and colors
 #include "save_restore.h"         // class definition
-#include <SPI.h>
-#include <SdFat.h>
+#include "SPI.h"                  // Serial Peripheral Interface
+#include <SdFat.h>                // SDRAM File Allocation Table filesystem
 #include <Adafruit_SPIFlash.h>
 
 // ------------ forward references in this same .cpp file
