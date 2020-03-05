@@ -141,7 +141,7 @@ void updateStatusScreen() {
 
   // ----- GMT date
   char sDate[15];         // strlen("Jan 12, 2020") = 13
-  model.getDate(sDate, 15);
+  model.getDate(sDate, sizeof(sDate));
   printProportionalText(valueX, yRow2, sDate, cVALUE);
 
   // ----- grid square

@@ -158,7 +158,7 @@ class Model {
       gsLongitude = INIT_LONG;
     }
 
-    // Pre-formatted GMT time
+    // Formatted GMT time
     void getTime(char* result) {
       // result = char[10] = string buffer to modify
         int hh = GPS.hour;
@@ -168,33 +168,42 @@ class Model {
                                hh,  mm,  ss);
     }
 
-    // Pre-formatted GMT date "Jan 12, 2020"
+    // Does the GPS report a valid date?
+    bool isDateValid(int yy, int mm, int dd) {
+      if (yy < 19) {
+        return false;
+      }
+      if (mm < 1 || mm > 12) {
+        return false;
+      }
+      if (dd < 1 || dd > 31) {
+        return false;
+      }
+      return true;
+    }
+
+    // Formatted GMT date "Jan 12, 2020"
     void getDate(char* result, int maxlen) {
       // @param result = char[15] = string buffer to modify
       // @param maxlen = string buffer length
+      // Note that GPS can have a valid date without a position; we can't rely on GPS.fix()
+      // to know if the date is correct or not. So we deduce it from the y/m/d values.
       char sDay[3];       // "12"
       char sYear[5];      // "2020"
       char aMonth[][4] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "err" };
 
       uint8_t yy = GPS.year;
-      int year;
-      if (yy >= 19) {
-        // convert two-digit year into four-digit integer
-        year = yy + 2000;
-      } else {
-        // the real-time GPS reported a date before (20)19,
-        // so it probably doesn't have a satellite fix yet
-        // we will display it as-is so operator knows it's bogus
-        year = yy;
-      }
-      int mo = GPS.month - 1;   // GPS is 1-based, our array is 0-based
-      if (mo < 0 || mo > 11) {
-        Serial.print("!!! GPS month out of range ("); Serial.print(mo); Serial.println(")");
-        mo = 12;          // index of error message
-      }
+      int mm = GPS.month;
       int dd = GPS.day;
-      snprintf(result, maxlen, "%s %d, %d",
-                   aMonth[mo], dd, year);
+
+      if (isDateValid(yy,mm,dd)) {
+        int year = yy + 2000;     // convert two-digit year into four-digit integer
+        int month = mm - 1;       // GPS month is 1-based, our array is 0-based
+        snprintf(result, maxlen, "%s %d, %4d", aMonth[month], dd, year);
+      } else {
+        // GPS does not have a valid date, we will display it as "0000-00-00"
+        snprintf(result, maxlen, "0000-00-00");
+      }
     }
     
     // Provide pre-formatted GMT date/time "2019-12-31  10:11:12"
