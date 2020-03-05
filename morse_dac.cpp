@@ -267,7 +267,7 @@ void DACMorseSender::dump() {
     Serial.println("!!! DAC dacSampleTime < 1 usec. Did you call setup()?");
   }
   #ifdef RUN_UNIT_TESTS
-  Serial.println("Begin dump:");
+  Serial.println("Begin DAC Morse settings:");
   snprintf(msg, 256, ". DAC sizeWavetable(%d)", sizeWavetable);   Serial.println(msg);
   snprintf(msg, 256, ". DAC dacPin(%d)", dacPin);                 Serial.println(msg);
   snprintf(msg, 256, ". DAC dacAmplitude(%d)", dacAmplitude);     Serial.println(msg);
@@ -290,6 +290,6 @@ void DACMorseSender::dump() {
   snprintf(msg, 256, ". Morse wordSpace int (%d msec)", msec);    Serial.println(msg);
   snprintf(msg, 256, ". Morse cyclesPerDit(%d)", cyclesPerDit);   Serial.println(msg);
   snprintf(msg, 256, ". Morse cyclesPerDah(%d)", cyclesPerDah);   Serial.println(msg);
-  Serial.println("End dump.");
+  Serial.println("End settings.");
   #endif
 }
