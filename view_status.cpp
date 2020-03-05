@@ -203,6 +203,6 @@ void updateStatusScreen() {
   ***** */
 }
 bool onTouchStatus(Point touch) {
-  //Serial.println("->->-> Touched status screen.");
+  Serial.println("->->-> Touched status screen.");
   return false;                     // ignore touch, let controller handle with default action
 }
