@@ -5,9 +5,10 @@
             2019-12-30 created v9.2
             2020-01-01 created v9.3
             2020-01-02 created v9.4
+            2020-03-05 created v10.0
 
   Changelog: v9 generates sound by synthesized sine wave intended
-            for decent fidelity from a small speaker. Our hardware goal is to 
+            for decent fidelity from a small speaker. The hardware goal is to 
             have an audio chain sufficient for possible future spoken-word output.
 
             This version 9 is converging on our final hardware, and is 
@@ -19,13 +20,14 @@
             v9.4 adds a new view for controlling audio volume
             v9.5,6,7 is regression test of GPS readings for stability
             v9.8 adds saving settings in 2MB RAM
+            v10.0 adds altimeter
 
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
 
   Purpose:  This program runs a GPS display for your vehicle's dashboard to 
             show your position in your Maidenhead Grid Square, with distances 
-            to nearby squares. This is designed for ham radio rovers. 
+            to nearby squares. This is optimized for ham radio rovers. 
             Read about the Maidenhead Locator System (grid squares) 
             at https://en.wikipedia.org/wiki/Maidenhead_Locator_System
 
@@ -56,7 +58,8 @@
 
          4. One-transistor audio amplifier, digital potentiometer and mini speaker
             This is a commodity item and many similar devices are available.
-            We also tried a piezo speaker but they're tuned for a narrow frequency.
+            We tested a piezo speaker but they're tuned for a narrow frequency and 
+            unsatisfactory for anything but a single pitch.
             Here is a breadboard-friendly speaker from Adafruit.
             Spec: https://www.adafruit.com/product/1898
 
@@ -295,9 +298,7 @@ bool newScreenTap(Point* pPoint) {
   //delay(100);   // no delay: code above completely handles debouncing without blocking the loop
   return result;
 }
-/* *****/
 
-/********** */
 void mapTouchToScreen(TSPoint touch, Point* screen) {
   // convert from X+,Y+ resistance measurements to screen coordinates
   // param touch = resistance readings from touchscreen
@@ -321,7 +322,6 @@ void mapTouchToScreen(TSPoint touch, Point* screen) {
   screen->y = map(touch.x, 900, 100,  0, tft.height());
   return;
 }
-/* **********/
 
 // ========== font management routines =========================
 /* Using fonts: https://learn.adafruit.com/adafruit-gfx-graphics-library/using-fonts
@@ -916,7 +916,6 @@ void setup() {
   // ----- select opening view screen
   gaStartView[gViewIndex]();          // start current view, eg, startGridScreen()
   gaUpdateView[gViewIndex]();         // update current view, eg, updateGridScreen()
-
 }
 
 //=========== main work loop ===================================
