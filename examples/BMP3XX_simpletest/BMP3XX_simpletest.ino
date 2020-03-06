@@ -1,6 +1,5 @@
 /***************************************************************************
-  This is a library for the BMP3XX temperature & pressure sensor
-  
+  This is an example program for the BMP3XX temperature & pressure sensor
 
   Designed specifically to work with the Adafruit BMP388 Breakout
   ----> http://www.adafruit.com/products/3966
@@ -14,15 +13,13 @@
   Written by Limor Fried & Kevin Townsend for Adafruit Industries.
   BSD license, all text above must be included in any redistribution
   
-  From:    https://raw.githubusercontent.com/adafruit/Adafruit_BMP3XX/master/examples/bmp3xx_simpletest/bmp3xx_simpletest.ino
+  From:    https://github.com/adafruit/Adafruit_BMP3XX, see: examples/bmp3xx_simpletest
   Updated: Barry Hansen, K7BWH, barry@k7bwh.com
   Date:    March 5, 2020
   Tested:  Arduino Feather M4 Express (120 MHz SAMD51)
   Spec:    https://www.adafruit.com/product/3857
+  Used in: https://github.com/barry-ha/Griduino
 
-  Pressure Conversions:
-  https://www.weather.gov/media/epz/wxcalc/pressureConversion.pdf
-  
  ***************************************************************************/
 
 #include <Wire.h>
@@ -41,7 +38,12 @@
 Adafruit_BMP3XX bmp(BMP_CS);   // hardware SPI
 
 // ------------ definitions
-#define SEALEVELPRESSURE_HPA (1038.0)
+// At my home in the Seattle metro area:
+//    Get current barometric readings from
+//    https://forecast.weather.gov/data/obhistory/KSEA.html
+//    Results in altimeter readings of 16.9 - 18.1 feet ASL over 5-minute interval
+
+#define SEALEVELPRESSURE_HPA (1016.5)   // at 6am PST Mar 6, 2020
 
 //=========== setup ============================================
 void setup() {
@@ -68,22 +70,31 @@ void setup() {
 
 //=========== main work loop ===================================
 void loop() {
+  // Read all sensors in the BMP3XX in blocking mode
   if (! bmp.performReading()) {
     Serial.println("Failed to perform reading :(");
     return;
   }
+  float temperature = bmp.temperature;  // celsius
+  float pressure = bmp.pressure / 100.0;  // hectoPascal
+  float altitude = bmp.readAltitude(SEALEVELPRESSURE_HPA);  // meters
+  
+  Serial.println();
   Serial.print("Temperature = ");
-  Serial.print(bmp.temperature);
-  Serial.println(" *C");
+  Serial.print(temperature, 1);
+  Serial.print(" C = ");
+  Serial.print(temperature*9/5+32, 1);
+  Serial.println(" F");
 
   Serial.print("Pressure = ");
-  Serial.print(bmp.pressure / 100.0);
+  Serial.print(pressure / 100.0);
   Serial.println(" hPa");
 
-  Serial.print("Approx. Altitude = ");
-  Serial.print(bmp.readAltitude(SEALEVELPRESSURE_HPA));
-  Serial.println(" m");
-
-  Serial.println();
-  delay(2000);
+  Serial.print("Apprx Altitude = ");
+  Serial.print(altitude);
+  Serial.print(" m = ");
+  Serial.print(altitude*3.28084, 1);
+  Serial.println(" ft");
+  
+  delay(2500);
 }
