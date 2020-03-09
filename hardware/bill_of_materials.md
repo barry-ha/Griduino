@@ -16,16 +16,16 @@ GPS display for vehicle dashboard showing position in the Maidenhead Locator Sys
 ## Passive Components
 | Mfr         | Mfr Part No     | Digi-Key Part No  | Reference          |  Qty   | USD$  | Ext$   | Description  |
 | ----------- | --------------- | ----------------- | ------------------ | :----: | ----- | ------ | ------------ |
-| Adafruit    | 1898            | n/a               | LS1                |   1    |  1.85 |   1.85 | 8-ohm Mini Speaker, PCB mount, 0.2W |
-| KEMET       | C320C104K5R5TA  | 399-4264-ND       | C2, C3, C6, C9     |   4    |  0.22 |   0.88 | CAP Ceramic 0.1UF 50V X7R radial |
-| AVX Corp    | TAP476K016SCS   | 478-1911-ND       | C1, C4, C5, C7, C8 |   5    |  2.67 |  13.35 | CAP Tantalum 47UF 10% 16V radial |
-| ON Semi     | 1N4001G         | 1N4001GOS-ND      | D1, D2, D3         |   3    |  0.21 |   0.63 | Gen Purpose Diode 50V 1A |
-| Yageo       | RSF100JB-73-22R | 22W-1-ND ?        | R1                 |   2?   |       |        | RES 22-ohm 1W 5% axial |
-| Yageo       | RSF100JB-73-20R | 20W-1-ND ?        | R1                 |   2?   |  0.32 |   0.64 | RES 20-ohm 1W 5% axial |
-| Yageo       | HHV-25JR-52-82K? | HHV-25JR-52-82K-ND | R2               |   1    |  0.34 |   0.34 | RES 82K 1/4W 5% axial |
-| Yageo       | MFR-25FBF52-1K  | 1.00KXBK-ND       | R3, R5             |   2    |  0.10 |   0.20 | RES 1K 1/4W 1% axial |
-| Yageo       | MFR-25FBF52-10R | 10.0XBK-ND        | R4                 |   1    |  0.10 |   0.10 | RES 10-ohm 1/4W 1% axial |
-|             |                 |                   | **total**          | **16** |       | **17.97** |     |
+| Adafruit    | 1898            | n/a               | LS1                |    1   |  1.85 |   1.85 | 8-ohm Mini Speaker, PCB mount, 0.2W |
+| KEMET       | C320C104K5R5TA  | 399-4264-ND       | C2, C3, C6, C9     |    4   |  0.22 |   0.88 | CAP Ceramic 0.1UF 50V X7R radial |
+| AVX Corp    | TAP476K016SCS   | 478-1911-ND       | C1, C4, C5, C7, C8 |    5   |  2.67 |  13.35 | CAP Tantalum 47UF 10% 16V radial |
+| ON Semi     | 1N4001G         | 1N4001GOS-ND      | D1, D2, D3         |    3   |  0.21 |   0.63 | Gen Purpose Diode 50V 1A |
+| Yageo       | FKN2WSJT-73-22R | 22AUCT-ND         | R1                 |    1   |  0.39 |   0.39 | RES 22-ohm 2W 5% axial |
+| Yageo       | HHV-25JR-52-82K? | HHV-25JR-52-82K-ND | R2               |    1   |  0.34 |   0.34 | RES 82K 1/4W 5% axial |
+| Yageo       | MFR-25FBF52-1K  | 1.00KXBK-ND       | R3, R5             |    2   |  0.10 |   0.20 | RES 1K 1/4W 1% axial |
+| Yageo       | MFR-25FBF52-10R | 10.0XBK-ND        | R4                 |    1   |  0.10 |   0.10 | RES 10-ohm 1/4W 1% axial |
+| Vishay      | 1.5KE18CA       | 1.5KE18CA-E3/51GI-ND | CR1             |    1   |  1.21 |   1.21 | Zener Diode 25.2v Clamp |
+|             |                 |                   | **total**          | **16** |       | **19.57** |     |
 
 ## Hardware
 | Mfr         | Mfr Part No     | Digi-Key Part No | Reference       |  Qty  | USD$  | Ext$   | Description  |
