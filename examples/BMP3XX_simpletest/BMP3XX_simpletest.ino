@@ -38,10 +38,9 @@
 Adafruit_BMP3XX bmp(BMP_CS);   // hardware SPI
 
 // ------------ definitions
-// At my home in the Seattle metro area:
-//    Get current barometric readings from
+// In Seattle, get current barometric readings from
 //    https://forecast.weather.gov/data/obhistory/KSEA.html
-//    Results in altimeter readings of 16.9 - 18.1 feet ASL over 5-minute interval
+//    At my home, it results in altimeter readings of 16.9 - 18.1 feet ASL over 5-minute interval
 
 #define SEALEVELPRESSURE_HPA (1016.5)   // at 6am PST Mar 6, 2020
 
@@ -49,13 +48,14 @@ Adafruit_BMP3XX bmp(BMP_CS);   // hardware SPI
 void setup() {
 
   // ----- init serial monitor
-  Serial.begin(115200);
+  Serial.begin(115200);           // init for debuggging in the Arduino IDE
   while (!Serial);
 
   Serial.println(PROGRAM_TITLE " " PROGRAM_VERSION);  // Report our program name to console
   Serial.println("Compiled " __DATE__ " " __TIME__);  // Report our compiled date
   Serial.println(__FILE__);                           // Report our source code file name
 
+  // ----- init barometer
   if (!bmp.begin()) {
     Serial.println("Error, unable to initialize BMP388, check your wiring");
     while (1);
@@ -72,7 +72,7 @@ void setup() {
 void loop() {
   // Read all sensors in the BMP3XX in blocking mode
   if (! bmp.performReading()) {
-    Serial.println("Failed to perform reading :(");
+    Serial.println("Error, failed to get reading from barometric sensor");
     return;
   }
   float temperature = bmp.temperature;  // celsius
