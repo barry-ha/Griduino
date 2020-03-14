@@ -31,7 +31,7 @@
 
 // ------- Identity for console
 #define PROGRAM_TITLE   "Barograph Demo"
-#define PROGRAM_VERSION "v0.2"
+#define PROGRAM_VERSION "v1.0"
 #define PROGRAM_LINE1   "Barry K7BWH"
 #define PROGRAM_LINE2   "John KM7O"
 
