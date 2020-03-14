@@ -29,7 +29,7 @@
 
 // ------- Identity for console
 #define PROGRAM_TITLE   "BMP388 Simple Test"
-#define PROGRAM_VERSION "v0.1"
+#define PROGRAM_VERSION "v1.0"
 
 // ---------- Hardware Wiring ----------
 #define BMP_CS   13            // BMP388 sensor, chip select
