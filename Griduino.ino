@@ -54,7 +54,7 @@
             Touchscreen: https://learn.adafruit.com/adafruit-2-dot-8-color-tft-touchscreen-breakout-v2/resistive-touchscreen
 
          3. Adafruit Ultimate GPS
-            Spec: http://www.adafruit.com/product/746
+            Spec: https://www.adafruit.com/product/746
 
          4. One-transistor audio amplifier, digital potentiometer and mini speaker
             This is a commodity item and many similar devices are available.
@@ -158,7 +158,7 @@ Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 // For touch point precision, we need to know the resistance
 // between X+ and X- Use any multimeter to read it
 // This sketch has only two touch areas to make it easy for operator to select
-// "top half" and "bottom half" without looking. Exact precision is not essential.
+// "top half" and "bottom half" without looking. Touch target precision is not essential.
 #if defined(SAMD_SERIES)
   // Adafruit Feather M4 Express pin definitions
   #define PIN_XP  A3    // Touchscreen X+ can be a digital pin
@@ -187,7 +187,7 @@ TouchScreen ts = TouchScreen(PIN_XP, PIN_YP, PIN_XM, PIN_YM, 295);
 
     The GPS' LED indicates status:
         1-sec blink = searching for satellites
-        10-sec blink = position fix found
+        15-sec blink = position fix found
 */
 
 // Hardware serial port for GPS
@@ -264,7 +264,6 @@ bool onTouchHelp(Point touch);
 // 2. Helper Functions
 // ============== touchscreen helpers ==========================
 
-/***** */
 bool gTouching = false;             // keep track of previous state
 bool newScreenTap(Point* pPoint) {
   // find leading edge of a screen touch
@@ -950,7 +949,7 @@ void loop() {
       // this also sets the newNMEAreceived() flag to false
       return;
     } else {
-      //~Serial.print(GPS.lastNMEA());   // debug
+      Serial.print(GPS.lastNMEA());   // debug
     }
   }
 
