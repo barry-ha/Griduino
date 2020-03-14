@@ -54,18 +54,6 @@ typedef struct {
   int y;
 } Point;
 
-// ========== constants ===============================
-const int yRow1 = 32;
-const int yRow2 = yRow1 + 32;
-const int yRow3 = yRow2 + 48;
-//nst int yRow4 = yRow3 + 44;
-//nst int yRow5 = yRow4 + 44;
-//nst int yRow6 = yRow5 + 44;
-
-const int labelX = 8;       // indent labels, slight margin to left edge of screen
-const int valueX = 124;     // indent values
-
-// ------------ typedef's
 typedef struct {
   char text[26];
   int x;
@@ -82,8 +70,18 @@ typedef struct {
   int radius;
   uint16_t color;
   simpleFunction function;
-  
 } Button;
+
+// ========== constants ===============================
+const int yRow1 = 32;
+const int yRow2 = yRow1 + 32;
+const int yRow3 = yRow2 + 48;
+//nst int yRow4 = yRow3 + 44;
+//nst int yRow5 = yRow4 + 44;
+//nst int yRow6 = yRow5 + 44;
+
+const int labelX = 8;       // indent labels, slight margin to left edge of screen
+const int valueX = 124;     // indent values
 
 // ========== globals =================================
 int gVolIndex = 5;          // init to middle value
@@ -218,8 +216,8 @@ void updateVolumeScreen() {
     initFontSizeBig();
     erasePrintProportionalText(labelX+16, yRow3, 116, String(gVolIndex), cVALUE);
   
-    initFontSizeSmall();
     tft.setTextColor(cLABEL);
+    initFontSizeSmall();
     tft.print(" of 10");
     gPrevVolIndex = gVolIndex;
   }
