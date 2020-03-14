@@ -19,9 +19,6 @@
          3. Adafruit BMP388 - Precision Barometric Pressure and Altimeter
             Spec: https://www.adafruit.com/product/3966
 
-  Conversions:
-  https://www.weather.gov/media/epz/wxcalc/pressureConversion.pdf
-  
 */
 
 #include <Wire.h>
