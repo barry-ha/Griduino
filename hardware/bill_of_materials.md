@@ -17,7 +17,7 @@ GPS display for vehicle dashboard showing position in the Maidenhead Locator Sys
 | Mfr         | Mfr Part No     | Digi-Key Part No     | Reference          |  Qty   | USD$  | Ext$   | Description  |
 | ----------- | --------------- | -------------------- | ------------------ | :----: | ----- | ------ | ------------ |
 | Adafruit    | 1898            | n/a                  | LS1                |    1   |  1.85 |   1.85 | 8-ohm Mini Speaker, PCB mount, 0.2W |
-| AVX Corp    |                 |                      | C1, C2, C3, C6, C9 |    5   |  2.67 |  13.35 | CAP Tantalum 47UF 10% 25v radial |
+| AVX Corp    |                 |                      | C1, C2, C3, C6, C9 |    5   |  2.67 |  13.35 | CAP Electrolytic 47UF 10% 25v radial |
 | KEMET       | C320C104K5R5TA  | 399-4264-ND          | C2, C3, C6, C9     |    4   |  0.22 |   0.88 | CAP Ceramic 0.1UF 50V X7R radial |
 | ON Semi     | 1N4001G         | 1N4001GOS-ND         | D1, D2, D3         |    3   |  0.21 |   0.63 | Gen Purpose Diode 50V 1A |
 | Yageo       | FKN2WSJT-73-22R | 22AUCT-ND            | R1                 |    1   |  0.39 |   0.39 | RES 22-ohm 2W 5% axial |
