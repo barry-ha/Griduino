@@ -204,7 +204,7 @@ Adafruit_GPS GPS(&Serial1);
 
 // ctor         DS1804( ChipSel pin,Incr pin,  U/D pin,  maxResistance (K) )
 DS1804 volume = DS1804( PIN_VCS,    PIN_VINC,  PIN_VUD,  DS1804_TEN );
-int gWiper = 15;             // initial digital potentiometer wiper position, 0..99
+int gWiper = 15;              // initial digital potentiometer wiper position, 0..99
 int gFrequency = 1100;        // initial Morse code sidetone pitch
 int gWordsPerMinute = 18;     // initial Morse code sending speed
 
@@ -515,11 +515,12 @@ String calcLocator(double lat, double lon) {
   result[6] = (char)0;
   return (String)result;
 }
+
 // ----- console Serial port helper
 void waitForSerial(int howLong) {
   // Adafruit Feather M4 Express takes awhile to restore its USB connx to the PC
   // and the operator takes awhile to restart the console (Tools > Serial Monitor)
-  // so give them a few seconds for all this to settle before sending messages to IDE
+  // so give them a few seconds for this to settle before sending messages to IDE
   unsigned long targetTime = millis() + howLong*1000;
   while (millis() < targetTime) {
     if (Serial) break;

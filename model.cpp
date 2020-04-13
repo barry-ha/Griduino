@@ -206,7 +206,7 @@ class Model {
       }
     }
     
-    // Provide pre-formatted GMT date/time "2019-12-31  10:11:12"
+    // Provide formatted GMT date/time "2019-12-31  10:11:12"
     void getDateTime(char* result) {
       // result = char[25] = string buffer to modify
       //if (GPS.fix) {
@@ -240,7 +240,7 @@ class Model {
   
         if (GPS.fix) {
           //~Serial.print("   Loc("); //~Serial.print(gsLatitude); //~Serial.print(","); //~Serial.print(gsLongitude);
-          //Serial.print(") Quality("); //~Serial.print((int)GPS.fixquality);
+          //~Serial.print(") Quality("); //~Serial.print((int)GPS.fixquality);
           //~Serial.print(") Sats("); //~Serial.print((int)GPS.satellites);
           //~Serial.print(") Speed("); //~Serial.print(GPS.speed); //~Serial.print(" knots");
           //~Serial.print(") Angle("); //~Serial.print(GPS.angle);

@@ -60,7 +60,9 @@ typedef struct {
   int y;
   uint16_t color;
 } Label;
+
 typedef void (*simpleFunction)();
+
 typedef struct {
   char text[26];
   int x;

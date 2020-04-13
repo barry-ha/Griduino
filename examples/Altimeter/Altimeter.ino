@@ -582,7 +582,7 @@ void loop() {
   if (millis() - prevTimer1 > READ_BAROMETER_INTERVAL) {
     getBaroData();
     getGPSData();
-    
+
     showReadings();
     prevTimer1 = millis();
   }
