@@ -128,7 +128,7 @@ void startStatScreen() {
 
   updateStatusScreen();               // fill in values immediately, don't wait for loop() to eventually get around to it
 
-  //delay(4000);                    // no delay - the controller handles the schedule
+  //delay(4000);                     // no delay - the controller handles the schedule
   //tft.fillScreen(cBACKGROUND);     // no clear - this screen is visible until the next view clears it
 }
 void updateStatusScreen() {
