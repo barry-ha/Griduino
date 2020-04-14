@@ -9,7 +9,7 @@
 
 class SaveRestore {
   public:
-    char fqFilename[64];      // fully qualified filename, e.g. "/Griduino Settings/volume.config"
+    char fqFilename[64];      // fully qualified filename, e.g. "/Settings/volume.cfg" (strictly 8.3 names)
     char sVersion[16];        // ID string, detects if settings are actually written
     int intSetting;           // general-purpose integer
 
