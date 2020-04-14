@@ -5,7 +5,7 @@
 
   This design serializes the C++ object by reading and writing a series
   of fixed-length buffers in the config file. There is one config file
-  per C++ object; files are cheap and we don't share files for different
+  per C++ object; files are cheap so we don't share files for different
   types of settings.
 
   'SaveRestore' object is a base class. You can extend it by deriving
@@ -32,6 +32,7 @@ FatFileSystem gFatfs;          // file system object from SdFat
 
 // ========== helpers =================================
 static void dumpHex(const char * text, char * buff, int len) {
+  // debug helper to put data on console
   #ifdef RUN_UNIT_TESTS
     char sout[128];
     snprintf(sout, sizeof(sout), ". %s [%d] : '%s' : ", text, len, buff);
@@ -51,7 +52,10 @@ int SaveRestore::readConfig() {
   Serial.println("Starting to read config from SDRAM...");
     
   result = openFlash();       // open file system
-  if (!result) { return 0; }
+  if (!result) {
+    Serial.print("error, failed to open Flash file system");
+    return 0;
+  }
 
   // open config file
   File readFile = gFatfs.open(fqFilename, FILE_READ);
