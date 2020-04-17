@@ -32,12 +32,13 @@ For hobbyist developers:
 Connect power: Griduino can be powered from two sources:
 1. Connect USB to a computer for normal operation or programming, or
 1. Attach 10- to 15-vdc source (automotive power) to the 5.5 mm barrel connector. The on-board regulator drops out at 9.8v. It seems to run okay with a 9v transistor battery for 30 minutes or more. 
+The speaker is louder with automotive power than with USB power, because the audio amplifier uses whichever power source has higher voltage. 
 
 Connect speaker:
 1. Connect a small speaker to the 3.5 mm stereo jack.
 It produces one-channel (mono) output. You can use a stereo speaker and both L and R output will have the same signal.
 
-Place Griduino face up, preferably with a view of the sky to improve GPS satellite reception. The GPS receiver is very sensitive and will most likely work indoors.
+Place Griduino face up, preferably with a view of the sky to improve GPS satellite reception. The GPS receiver is very sensitive and will often work indoors.
 
 ## Operation
 On power-up, Griduino shows credits (a splash screen) and plays Morse code callsigns of the authors.
