@@ -26,7 +26,7 @@ float nextGridLineWest(float longitudeDegrees);
 float nextGridLineSouth(float latitudeDegrees);
 
 // ========== constants =======================
-// These initial values are displayed until GPS gets its position lock.
+// These initial values are displayed until GPS gets comes up with better info.
 
 #define INIT_GRID6 "CN77tt";   // initialize to a nearby grid for demo but not
 #define INIT_GRID4 "CN77";     // to my home grid CN87, so that GPS lock will announce where we are in Morse code
@@ -69,6 +69,20 @@ class Model {
   public:
     // Constructor - create and initialize member variables
     Model() { }
+
+    // save current GPS state to non-volatile memory
+    int save() {
+      // returns 1=success, 0=failure
+      // todo
+      return 0;                       // return failure
+    }
+
+    // restore current GPS state to non-volatile memory
+    int restore() {
+      // returns 1=success, 0=failure
+      // todo
+      return 0;                       // return failure
+    }
 
     // the Model will update its internal state on a schedule determined by the Controller
     void processGPS() {
