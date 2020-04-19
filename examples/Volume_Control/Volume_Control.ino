@@ -202,6 +202,7 @@ void showVolumeSetting(int vol) {
 
 int getRectangleID(int x, int y) {
   // given the screen coordinates of a touch, 
+  // and a lookup table of rectangles on the screen,
   // return the index of what button contains it, 
   // or -1 if not found
   int id = -1;
