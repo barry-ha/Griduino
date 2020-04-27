@@ -62,7 +62,6 @@ typedef struct {
 } Label;
 
 typedef void (*simpleFunction)();
-
 typedef struct {
   char text[26];
   int x;
@@ -85,16 +84,11 @@ const int yRow3 = yRow2 + 48;
 const int labelX = 8;       // indent labels, slight margin to left edge of screen
 const int valueX = 124;     // indent values
 
-// ========== globals =================================
-int gVolIndex = 5;          // init to middle value
-int gPrevVolIndex = -1;     // remembers previous volume setting to avoid erase/write the same value
-
 const int numLabels = 5;
 Label volLabels[numLabels] = {
   {"Audio",  labelX, yRow1, cLABEL},
   {"Volume", labelX, yRow2, cLABEL},
 };
-
 const int nVolButtons = 3;
 const int margin = 10;      // slight margin between button border and edge of screen
 const int radius = 10;      // rounded corners
@@ -118,6 +112,11 @@ int volLevel[11] = {
   /* 9 */ 75,   // 47.417 * 1.585 = 75.155
   /*10 */ 99,   // max allowed wiper position
 };
+
+// ========== globals =================================
+int gVolIndex = 5;          // init to middle value
+int gPrevVolIndex = -1;     // remembers previous volume setting to avoid erase/write the same value
+
 
 // ========== helpers =================================
 void setVolume(int volIndex) {
