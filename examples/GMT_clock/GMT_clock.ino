@@ -7,7 +7,7 @@
   Hardware: John Vanderbeck, KM7O, Seattle, WA
 
   Purpose:  This program offers a bright colorful GMT clock for your shack
-            or dashboard. After all, once a rover arrives at their destination
+            or dashboard. After all, once a rover arrives at a destination
             they no longer need grid square navigation.
 
   Tested with:
@@ -131,9 +131,9 @@ const int xLabel = 8;             // indent labels, slight margin on left edge o
 #define yRow3   yRow2 + 20        // author line 1
 #define yRow4   yRow3 + 20        // author line 2
 
-#define yGMTTime    40
+#define yGMTTime     40
 #define yGMTDate    100
-#define xGMTDate    110
+#define xGMTDate     90
 #define yLocalTime  216
 #define xLocalTime  116
 #define yButton     206
@@ -178,8 +178,84 @@ Button timeButtons[nTimeButtons] = {
 // ============== GPS helpers ==================================
 void processGPS() {
   // todo
+
+  // debug: for now, generate a random time from the Arduino system clock
+  
 }
+
+  // Formatted GMT time
+  void getTime(char* result) {
+    // result = char[10] = string buffer to modify
+      int hh = GPS.hour;
+      int mm = GPS.minute;
+      int ss = GPS.seconds;
+      snprintf(result, 10, "%02d:%02d:%02d",
+                             hh,  mm,  ss);
+  }
+
+  // Did the GPS report a valid date?
+  bool isDateValid(int yy, int mm, int dd) {
+    if (yy < 19) {
+      return false;
+    }
+    if (mm < 1 || mm > 12) {
+      return false;
+    }
+    if (dd < 1 || dd > 31) {
+      return false;
+    }
+    return true;
+  }
+
+  // Formatted GMT date "Jan 12, 2020"
+  void getDate(char* result, int maxlen) {
+    // @param result = char[15] = string buffer to modify
+    // @param maxlen = string buffer length
+    // Note that GPS can have a valid date without a position; we can't rely on GPS.fix()
+    // to know if the date is correct or not. So we deduce it from the y/m/d values.
+    char sDay[3];       // "12"
+    char sYear[5];      // "2020"
+    char aMonth[][4] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "err" };
+
+    uint8_t yy = GPS.year;
+    int mm = GPS.month;
+    int dd = GPS.day;
+
+    if (isDateValid(yy,mm,dd)) {
+      int year = yy + 2000;     // convert two-digit year into four-digit integer
+      int month = mm - 1;       // GPS month is 1-based, our array is 0-based
+      snprintf(result, maxlen, "%s %d, %4d", 
+                    aMonth[month], dd, year);
+    } else {
+      // GPS does not have a valid date, we will display it as "0000-00-00"
+      snprintf(result, maxlen, "0000-00-00");
+    }
+  }
     
+  // Provide formatted GMT date/time "2019-12-31  10:11:12"
+  /*
+  void getDateTime(char* result) {
+    // result = char[25] = string buffer to modify
+    //if (GPS.fix) {
+      int yy = GPS.year;
+      if (yy >= 19) {
+        // if GPS reports a date before 19, then it's bogus
+        // and it's displayed as-is
+        yy += 2000;
+      }
+      int mo = GPS.month;
+      int dd = GPS.day;
+      int hh = GPS.hour;
+      int mm = GPS.minute;
+      int ss = GPS.seconds;
+      snprintf(result, 25, "%04d-%02d-%02d  %02d:%02d:%02d",
+                            yy,  mo,  dd,  hh,  mm,  ss);
+    //} else {
+    //  strncpy(result, "0000-00-00 hh:mm:ss GMT", 25);
+    //}
+  }
+  */
+
 // ============== touchscreen helpers ==========================
 
 bool gTouching = false;             // keep track of previous state
@@ -302,19 +378,28 @@ void updateView() {
   +-------+-------------------------+-------+
 */  
   tft.setTextSize(6);
+
+  // GMT Time
+  char sTime[10];         // strlen("19:54:14") = 8
+  getTime(sTime);
   tft.setTextColor(cVALUE, cBACKGROUND);
   tft.setCursor(xLabel, yRow2);
-  tft.print("01:23:45");        // todo
+  tft.print(sTime);
 
   tft.setTextSize(2);
 
+  // GMT Date
+  char sDate[15];         // strlen("Jan 12, 2020") = 13
+  getDate(sDate, sizeof(sDate));
   tft.setCursor(xGMTDate, yGMTDate);
   tft.setTextColor(cVALUE, cBACKGROUND);
-  tft.print("1960-01-01");      // todo
+  tft.print(sDate);       // todo
 
+  // Local Time
+  getTime(sTime);
   tft.setCursor(xLocalTime, yLocalTime);
   tft.setTextColor(cTEXTCOLOR, cBACKGROUND);
-  tft.println("09:23:45");
+  tft.println(sTime);
 }
 
 /* Using fonts: https://learn.adafruit.com/adafruit-gfx-graphics-library/using-fonts
