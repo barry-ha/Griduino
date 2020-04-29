@@ -6,6 +6,7 @@
             2020-01-01 created v9.3
             2020-01-02 created v9.4
             2020-03-05 created v10.0
+            2020-04-12 created v10.1
 
   Changelog: v9 generates sound by synthesized sine wave intended
             for decent fidelity from a small speaker. The hardware goal is to 
@@ -20,7 +21,8 @@
             v9.4 adds a new view for controlling audio volume
             v9.5,6,7 is regression test of GPS readings for stability
             v9.8 adds saving settings in 2MB RAM
-            v10.0 adds altimeter
+            v10.0 add altimeter
+            v10.1 add GPS save/restore to visually power up in the same place as previous
 
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
@@ -215,12 +217,13 @@ typedef struct {
 } Point;
 
 // ------------ definitions
+const int howLongToWait = 6;  // max number of seconds at startup waiting for Serial port to console
+
+// ------------ global scope
 const int gNumViews = 5;      // total number of different views (screens) we've implemented
 int gViewIndex = 0;           // selects which view to show
                               // init to a safe value, override in setup()
-const int howLongToWait = 8;  // max number of seconds at startup waiting for Serial port to console
 
-// ------------ global scope
 int gTextSize;                          // no such function as "tft.getTextSize()" so remember it on our own
 int gUnitFontWidth, gUnitFontHeight;    // character cell size for TextSize(1)
 int gCharWidth, gCharHeight;            // character cell size for TextSize(n)
@@ -296,6 +299,33 @@ bool newScreenTap(Point* pPoint) {
   }
   //delay(100);   // no delay: code above completely handles debouncing without blocking the loop
   return result;
+}
+
+// 2019-11-12 barry@k7bwh.com 
+// "isTouching()" was not implemented 
+// Here's a function provided by https://forum.arduino.cc/index.php?topic=449719.0
+bool TouchScreen::isTouching(void) {
+  uint16_t nTouchCount = 0, nTouch = 0;
+  for (uint8_t nI = 0; nI < 4; nI++)  {
+    //read current pressure level
+    nTouch = pressure();
+    // Minimum and maximum pressure we consider true pressing
+    if (nTouch > 100 && nTouch < 900) {
+      nTouchCount++;
+    }
+    delay(2);     // 2019-12-20 bwh: added for Feather M4 Express
+  }
+  // Clean the touchScreen settings after function is used
+  // Because LCD may use the same pins
+  pinMode(_xm, OUTPUT);
+  digitalWrite(_xm, LOW);
+  pinMode(_yp, OUTPUT);
+  digitalWrite(_yp, HIGH);
+  pinMode(_ym, OUTPUT);
+  digitalWrite(_ym, LOW);
+  pinMode(_xp, OUTPUT);
+  digitalWrite(_xp, HIGH);
+  return nTouchCount > 3;
 }
 
 void mapTouchToScreen(TSPoint touch, Point* screen) {
@@ -426,6 +456,10 @@ void showNameOfView(String sName, uint16_t fgd, uint16_t bkg) {
   tft.setTextColor(fgd, bkg);
   tft.setCursor(1,1);
   tft.print(sName);
+}
+
+void clearScreen() {
+  tft.fillScreen(ILI9341_BLACK);  // (cBACKGROUND);
 }
 
 // ============== grid helpers =================================
@@ -606,6 +640,7 @@ void testDistanceLong(String sExpected, double lat, double fromLong, double toLo
 
 // create an instance of the model
 Model model;
+//model.restore();      // get prev location from non-volatile memory, if available
 
 //==============================================================
 //
@@ -661,8 +696,8 @@ void runUnitTest() {
   dacMorse.send_word_space();
   Serial.print("Finished dit-dah\n");
 
-  // ----- test save/restore settings in SDRAM
-  #define TEST_CONFIG_FILE    CONFIG_FOLDER "/test.cfg"
+  // ----- test save/restore Volume settings in SDRAM
+  #define TEST_CONFIG_FILE    CONFIG_FOLDER "/test.cfg"   // strictly 8.3 names
   #define TEST_CONFIG_VERSION "Test v01"
   #define TEST_CONFIG_VALUE   5
 
@@ -682,6 +717,25 @@ void runUnitTest() {
     Serial.println("ERROR! Unable to restore from SDRAM");
   }
 
+  // ----- test save/restore GPS model state in SDRAM
+  #define TEST_GPS_STATE_FILE    CONFIG_FOLDER "/test_gps.cfg"   // strictly 8.3 naming
+  #define TEST_GPS_STATE_VERSION "Test v01"
+  
+  // sample data to read/write
+  Model gpsmodel;
+
+  if (gpsmodel.save()) {
+    Serial.println("Success, GPS model stored to SDRAM");
+  } else {
+    Serial.println("ERROR! Failed to save GPS model to SDRAM");
+  }
+
+  if (gpsmodel.restore()) {    // test reading same data back from SDRAM
+    Serial.println("Success, GPS model restored from SDRAM");
+  } else {
+    Serial.println("ERROR! Failed to retrieve GPS model from SDRAM");
+  }
+  
   // ----- writing proportional font
   // visual test: if this code works correctly, each string will exactly erase the previous one
   initFontSizeBig();
@@ -765,7 +819,7 @@ void (*gaUpdateView[])() = {
     updateHelpScreen,
 };
 void (*gaStartView[])() = {
-    startGridScreen,      // first entry is the first view displayed
+    startGridScreen,      // first entry is the first view displayed after setup()
     startStatScreen,
     startVolumeScreen,
     startSplashScreen,
@@ -897,9 +951,9 @@ void setup() {
   // ----- init TFT display
   tft.begin();                        // initialize TFT display
   tft.setRotation(1);                 // landscape (default is portrait)
-  tft.fillScreen(ILI9341_BLACK);      // clear screen
+  clearScreen();
 
-  // ----- unit tests (if allowed by RUN_UNIT_TESTS)
+  // ----- run unit tests, if allowed by "#define RUN_UNIT_TESTS"
   runUnitTest();
 
   // ----- announce ourselves
