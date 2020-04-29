@@ -129,7 +129,7 @@ const int howLongToWait = 4;  // max number of seconds at startup waiting for Se
 #define gScreenHeight 240     // pixels high
 
 // ------------ global scope
-int gAddHours = 7;                      // todo: save/restore this value from nonvolatile memory
+int gAddHours = -7;                     // todo: save/restore this value from nonvolatile memory
 int gTextSize;                          // no such function as "tft.getTextSize()" so remember it on our own
 int gUnitFontWidth, gUnitFontHeight;    // character cell size for TextSize(1)
 int gCharWidth, gCharHeight;            // character cell size for TextSize(n)
