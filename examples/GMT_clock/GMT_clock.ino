@@ -294,8 +294,11 @@ bool newScreenTap(Point* pPoint) {
 // "isTouching()" was not implemented 
 // Here's a function provided by https://forum.arduino.cc/index.php?topic=449719.0
 bool TouchScreen::isTouching(void) {
+  return false;     // debug - temporarily remove the touch function
+  
+  #define TOUCHCOUNT    4
   uint16_t nTouchCount = 0, nTouch = 0;
-  for (uint8_t nI = 0; nI < 4; nI++)  {
+  for (uint8_t nI = 0; nI < TOUCHCOUNT; nI++)  {  // debug this - does it drastically slow down the main routine?
     //read current pressure level
     nTouch = pressure();
     // Minimum and maximum pressure we consider true pressing
@@ -306,15 +309,12 @@ bool TouchScreen::isTouching(void) {
   }
   // Clean the touchScreen settings after function is used
   // Because LCD may use the same pins
-  pinMode(_xm, OUTPUT);
-  digitalWrite(_xm, LOW);
-  pinMode(_yp, OUTPUT);
-  digitalWrite(_yp, HIGH);
-  pinMode(_ym, OUTPUT);
-  digitalWrite(_ym, LOW);
-  pinMode(_xp, OUTPUT);
-  digitalWrite(_xp, HIGH);
-  return nTouchCount > 3;
+  pinMode(_xm, OUTPUT);     digitalWrite(_xm, LOW);
+  pinMode(_yp, OUTPUT);     digitalWrite(_yp, HIGH);
+  pinMode(_ym, OUTPUT);     digitalWrite(_ym, LOW);
+  pinMode(_xp, OUTPUT);     digitalWrite(_xp, HIGH);
+
+  return nTouchCount >= TOUCHCOUNT;
 }
 
 void mapTouchToScreen(TSPoint touch, Point* screen) {
