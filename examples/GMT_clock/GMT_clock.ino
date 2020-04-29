@@ -1,7 +1,8 @@
 /*
   GMT_clock - bright colorful Greenwich Mean Time based on GPS
 
-  Date:     2020-04-22 created v0.01
+  Date:     2020-04-22 created
+            2020-04-29 added touch adjustment
 
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
@@ -30,7 +31,7 @@
 #include "Adafruit_ILI9341.h"     // TFT color display library
 #include "Adafruit_GPS.h"         // Ultimate GPS library
 #include "TouchScreen.h"          // Touchscreen built in to 3.2" Adafruit TFT display
-#include "Adafruit_BMP3XX.h"      // Precision barometric sensor
+#include "Adafruit_BMP3XX.h"      // Precision barometric and temperature sensor
 
 // ------- Identity for console
 #define PROGRAM_TITLE   "Griduino GMT Clock"
@@ -101,6 +102,9 @@ TouchScreen ts = TouchScreen(PIN_XP, PIN_YP, PIN_XM, PIN_YM, 295);
 // ---------- Barometric and Temperature Sensor
 Adafruit_BMP3XX baro(BMP_CS); // hardware SPI
 
+// ---------- Onboard LED
+#define RED_LED 13    // diagnostics RED LED
+
 // ---------- GPS ----------
 /* "Ultimate GPS" pin wiring is connected to a dedicated hardware serial port
     available on an Arduino Mega, Arduino Feather and others.
@@ -132,12 +136,15 @@ int gCharWidth, gCharHeight;            // character cell size for TextSize(n)
 
 // ----- screen layout
 // using default fonts - screen pixel coordinates will identify top left of character cell
+
+// splash screen layout
 const int xLabel = 8;             // indent labels, slight margin on left edge of screen
 #define yRow1   0                 // program title: "Griduino GMT Clock"
 #define yRow2   yRow1 + 40        // program version
 #define yRow3   yRow2 + 20        // author line 1
 #define yRow4   yRow3 + 20        // author line 2
 
+// main screen layout
 const Point gmtTime   = {  16, 44 };            // "01:23:45"
 const Point gmtDate   = {  90, gmtTime.y+58 };  // "Apr 29, 2020"
 const Point xyTemp    = { 126, gmtDate.y+30 };  // "78.9 F"
@@ -190,13 +197,22 @@ void processGPS() {
 }
 
 // Formatted GMT time
-void getTime(char* result) {
+void getTime(char* result, int len) {
   // result = char[10] = string buffer to modify
-  int hh = GPS.hour;
+  int hh = GPS.hour;                      // 24-hour clock, 0..23
   int mm = GPS.minute;
   int ss = GPS.seconds;
-  snprintf(result, 10, "%02d:%02d:%02d",
+  snprintf(result, len, "%02d:%02d:%02d",
                          hh,  mm,  ss);
+}
+// Formatted Local time
+void getTimeLocal(char* result, int len) {
+  // result = char[10] = string buffer to modify
+  int hh = (GPS.hour + gAddHours) % 24;   // 24-hour clock, to match GMT time
+  int mm = GPS.minute;
+  int ss = GPS.seconds;
+  snprintf(result, len, "%02d:%02d:%02d",
+                          hh,  mm,  ss);
 }
 
 // Did the GPS report a valid date?
@@ -272,6 +288,33 @@ bool newScreenTap(Point* pPoint) {
   }
   //delay(100);   // no delay: code above completely handles debouncing without blocking the loop
   return result;
+}
+
+// 2019-11-12 barry@k7bwh.com 
+// "isTouching()" was not implemented 
+// Here's a function provided by https://forum.arduino.cc/index.php?topic=449719.0
+bool TouchScreen::isTouching(void) {
+  uint16_t nTouchCount = 0, nTouch = 0;
+  for (uint8_t nI = 0; nI < 4; nI++)  {
+    //read current pressure level
+    nTouch = pressure();
+    // Minimum and maximum pressure we consider true pressing
+    if (nTouch > 100 && nTouch < 900) {
+      nTouchCount++;
+    }
+    delay(2);     // 2019-12-20 bwh: added for Feather M4 Express
+  }
+  // Clean the touchScreen settings after function is used
+  // Because LCD may use the same pins
+  pinMode(_xm, OUTPUT);
+  digitalWrite(_xm, LOW);
+  pinMode(_yp, OUTPUT);
+  digitalWrite(_yp, HIGH);
+  pinMode(_ym, OUTPUT);
+  digitalWrite(_ym, LOW);
+  pinMode(_xp, OUTPUT);
+  digitalWrite(_xp, HIGH);
+  return nTouchCount > 3;
 }
 
 void mapTouchToScreen(TSPoint touch, Point* screen) {
@@ -375,7 +418,7 @@ void updateView() {
 
   // GMT Time
   char sTime[10];         // strlen("19:54:14") = 8
-  getTime(sTime);
+  getTime(sTime, sizeof(sTime));
   tft.setTextColor(cVALUE, cBACKGROUND);
   tft.setCursor(gmtTime.x, gmtTime.y);
   tft.print(sTime);
@@ -404,9 +447,13 @@ void updateView() {
   }
   tft.print(gAddHours);
   tft.print("h");
+  if (gAddHours >-10 && gAddHours < 10) {
+    // erase possible leftover trailing character
+    tft.print(" ");
+  }
 
   // Local Time
-  getTime(sTime);
+  getTimeLocal(sTime, sizeof(sTime));
   tft.setCursor(localTime.x, localTime.y);
   tft.setTextColor(cTEXTCOLOR, cBACKGROUND);
   tft.print(sTime);
@@ -441,10 +488,18 @@ void waitForSerial(int howLong) {
 
 //=========== time helpers =====================================
 void timePlus() {
-  // todo
+  gAddHours++;
+  if (gAddHours > 12) {
+    gAddHours = -11;
+  }
+  updateView();
 }
 void timeMinus() {
-  // todo
+  gAddHours--;
+  if (gAddHours < -12) {
+    gAddHours = 11;
+  }
+  updateView();
 }
 
 //=========== distance helpers =================================
@@ -487,6 +542,9 @@ void setup() {
   Serial.println(PMTK_Q_RELEASE);     // Echo query to console
   GPS.sendCommand(PMTK_Q_RELEASE);    // Send query to GPS unit
                                       // expected reply: $PMTK705,AXN_2.10...
+  // ----- init onboard LED
+  pinMode(RED_LED, OUTPUT);           // diagnostics RED LED
+  
   // ----- init TFT backlight
   pinMode(TFT_BL, OUTPUT);
   analogWrite(TFT_BL, 255);           // start at full brightness
@@ -548,6 +606,16 @@ void loop() {
 
     processGPS();                     // update GMT time
     updateView();                     // update current screen
+  }
+
+  // if there's touchscreen input, handle it
+  Point touch;
+  if (newScreenTap(&touch)) {
+    if (touch.x < gScreenWidth / 2) {
+      timePlus();                     // left half screen
+    } else {
+      timeMinus();                    // right half screen
+    }
   }
 
   // make a small progress bar crawl along bottom edge
