@@ -30,10 +30,11 @@
 #include "Adafruit_ILI9341.h"     // TFT color display library
 #include "Adafruit_GPS.h"         // Ultimate GPS library
 #include "TouchScreen.h"          // Touchscreen built in to 3.2" Adafruit TFT display
+#include "Adafruit_BMP3XX.h"      // Precision barometric sensor
 
 // ------- Identity for console
 #define PROGRAM_TITLE   "Griduino GMT Clock"
-#define PROGRAM_VERSION "v0.01"
+#define PROGRAM_VERSION "v0.03"
 #define PROGRAM_LINE1   "Barry K7BWH"
 #define PROGRAM_LINE2   "John KM7O"
 
@@ -55,12 +56,14 @@ void timeMinus();
   #define TFT_BL   4    // TFT backlight
   #define TFT_CS   5    // TFT select pin
   #define TFT_DC  12    // TFT display/command pin
+  #define BMP_CS  13    // BMP388 sensor, chip select
 
 #elif defined(ARDUINO_AVR_MEGA2560)
   #define TFT_BL   6    // TFT backlight
   #define SD_CCS   7    // SD card select pin - Mega
   #define SD_CD    8    // SD card detect pin - Mega
   #define TFT_DC   9    // TFT display/command pin
+  #define BMP_CS  13    // BMP388 sensor, chip select
 
 #else
   // todo: Unknown platform
@@ -95,6 +98,9 @@ Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 #endif
 TouchScreen ts = TouchScreen(PIN_XP, PIN_YP, PIN_XM, PIN_YM, 295);
 
+// ---------- Barometric and Temperature Sensor
+Adafruit_BMP3XX baro(BMP_CS); // hardware SPI
+
 // ---------- GPS ----------
 /* "Ultimate GPS" pin wiring is connected to a dedicated hardware serial port
     available on an Arduino Mega, Arduino Feather and others.
@@ -119,6 +125,7 @@ const int howLongToWait = 4;  // max number of seconds at startup waiting for Se
 #define gScreenHeight 240     // pixels high
 
 // ------------ global scope
+int gAddHours = 7;                      // todo: save/restore this value from nonvolatile memory
 int gTextSize;                          // no such function as "tft.getTextSize()" so remember it on our own
 int gUnitFontWidth, gUnitFontHeight;    // character cell size for TextSize(1)
 int gCharWidth, gCharHeight;            // character cell size for TextSize(n)
@@ -131,13 +138,13 @@ const int xLabel = 8;             // indent labels, slight margin on left edge o
 #define yRow3   yRow2 + 20        // author line 1
 #define yRow4   yRow3 + 20        // author line 2
 
-#define yGMTTime     40
-#define yGMTDate    100
-#define xGMTDate     90
-#define yLocalTime  216
-#define xLocalTime  116
-#define yButton     206
-//#define yAdjust     235
+const Point gmtTime   = {  16, 44 };            // "01:23:45"
+const Point gmtDate   = {  90, gmtTime.y+58 };  // "Apr 29, 2020"
+const Point xyTemp    = { 126, gmtDate.y+30 };  // "78.9 F"
+const Point addHours  = {   6, 214 };           // "+8 hr"
+const Point localTime = { 116, 214 };           // "09:23:45"
+const Point buttonPlus = {  58, 206 };          // [ + ]
+const Point buttonMinus= { 232, 206 };          // [ - ]
 
 // ----- color scheme
 #define cBACKGROUND     0x00A     // a little darker than ILI9341_NAVY, but not black
@@ -170,91 +177,66 @@ const int btnRadius = 4;          // rounded corners
 const int btnWidth = 36;          // small and inconspicuous 
 const int btnHeight = 30;
 Button timeButtons[nTimeButtons] = {
-  // text   x,y                w,h              r       color       function
-  {"+",     60,yButton,  btnWidth,btnHeight, btnRadius, cTEXTCOLOR, timePlus  }, // Up
-  {"-",    230,yButton,  btnWidth,btnHeight, btnRadius, cTEXTCOLOR, timeMinus },  // Down
+  // text           x,y                     w,h              r       color       function
+  {"+",  buttonPlus.x,buttonPlus.y,  btnWidth,btnHeight, btnRadius, cTEXTCOLOR, timePlus  },  // Up
+  {"-", buttonMinus.x,buttonMinus.y, btnWidth,btnHeight, btnRadius, cTEXTCOLOR, timeMinus },  // Down
 };
 
 // ============== GPS helpers ==================================
 void processGPS() {
-  // todo
-
-  // debug: for now, generate a random time from the Arduino system clock
-  
+  // todo - something? anything?
+  // is there anything to do if we don't use NMEA sentences?
+  // IF the GPS has a battery, then for all practical purposes the time is always right.
 }
 
-  // Formatted GMT time
-  void getTime(char* result) {
-    // result = char[10] = string buffer to modify
-      int hh = GPS.hour;
-      int mm = GPS.minute;
-      int ss = GPS.seconds;
-      snprintf(result, 10, "%02d:%02d:%02d",
-                             hh,  mm,  ss);
-  }
+// Formatted GMT time
+void getTime(char* result) {
+  // result = char[10] = string buffer to modify
+  int hh = GPS.hour;
+  int mm = GPS.minute;
+  int ss = GPS.seconds;
+  snprintf(result, 10, "%02d:%02d:%02d",
+                         hh,  mm,  ss);
+}
 
-  // Did the GPS report a valid date?
-  bool isDateValid(int yy, int mm, int dd) {
-    if (yy < 19) {
-      return false;
-    }
-    if (mm < 1 || mm > 12) {
-      return false;
-    }
-    if (dd < 1 || dd > 31) {
-      return false;
-    }
-    return true;
+// Did the GPS report a valid date?
+bool isDateValid(int yy, int mm, int dd) {
+  if (yy < 19) {
+    return false;
   }
-
-  // Formatted GMT date "Jan 12, 2020"
-  void getDate(char* result, int maxlen) {
-    // @param result = char[15] = string buffer to modify
-    // @param maxlen = string buffer length
-    // Note that GPS can have a valid date without a position; we can't rely on GPS.fix()
-    // to know if the date is correct or not. So we deduce it from the y/m/d values.
-    char sDay[3];       // "12"
-    char sYear[5];      // "2020"
-    char aMonth[][4] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "err" };
-
-    uint8_t yy = GPS.year;
-    int mm = GPS.month;
-    int dd = GPS.day;
-
-    if (isDateValid(yy,mm,dd)) {
-      int year = yy + 2000;     // convert two-digit year into four-digit integer
-      int month = mm - 1;       // GPS month is 1-based, our array is 0-based
-      snprintf(result, maxlen, "%s %d, %4d", 
-                    aMonth[month], dd, year);
-    } else {
-      // GPS does not have a valid date, we will display it as "0000-00-00"
-      snprintf(result, maxlen, "0000-00-00");
-    }
+  if (mm < 1 || mm > 12) {
+    return false;
   }
-    
-  // Provide formatted GMT date/time "2019-12-31  10:11:12"
-  /*
-  void getDateTime(char* result) {
-    // result = char[25] = string buffer to modify
-    //if (GPS.fix) {
-      int yy = GPS.year;
-      if (yy >= 19) {
-        // if GPS reports a date before 19, then it's bogus
-        // and it's displayed as-is
-        yy += 2000;
-      }
-      int mo = GPS.month;
-      int dd = GPS.day;
-      int hh = GPS.hour;
-      int mm = GPS.minute;
-      int ss = GPS.seconds;
-      snprintf(result, 25, "%04d-%02d-%02d  %02d:%02d:%02d",
-                            yy,  mo,  dd,  hh,  mm,  ss);
-    //} else {
-    //  strncpy(result, "0000-00-00 hh:mm:ss GMT", 25);
-    //}
+  if (dd < 1 || dd > 31) {
+    return false;
   }
-  */
+  return true;
+}
+
+// Formatted GMT date "Jan 12, 2020"
+void getDate(char* result, int maxlen) {
+  // @param result = char[15] = string buffer to modify
+  // @param maxlen = string buffer length
+  // Note that GPS can have a valid date without a position; we can't rely on GPS.fix()
+  // to know if the date is correct or not. So we deduce it from the y/m/d values.
+  char sDay[3];       // "12"
+  char sYear[5];      // "2020"
+  char aMonth[][4] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "err" };
+
+  uint8_t yy = GPS.year;
+  int mm = GPS.month;
+  int dd = GPS.day;
+
+  if (isDateValid(yy,mm,dd)) {
+    int year = yy + 2000;     // convert two-digit year into four-digit integer
+    int month = mm - 1;       // GPS month is 1-based, our array is 0-based
+    snprintf(result, maxlen, "%s %d, %4d", 
+                  aMonth[month], dd, year);
+  } else {
+    // GPS does not have a valid date, we will display it as "0000-00-00"
+    snprintf(result, maxlen, "0000-00-00");
+  }
+}
 
 // ============== touchscreen helpers ==========================
 
@@ -316,6 +298,17 @@ void mapTouchToScreen(TSPoint touch, Point* screen) {
   return;
 }
 
+// ======== barometer and temperature helpers ==================
+float getTemperature() {
+  // returns temperature in Farenheight
+  if (!baro.performReading()) {
+    Serial.println("Error, failed to read barometer");
+  }
+  // continue anyway, for demo
+  float tempF = baro.temperature * 9 / 5 + 32;
+  return tempF;
+}
+
 // ========== screen helpers ===================================
 void startSplashScreen() {
   tft.setTextSize(2);
@@ -369,7 +362,8 @@ void updateView() {
   |  HHHHH HHHH  :  MMMM MMMM  : SSSS SSSS  |
   |  HHHHH HHHH  :  MMMM MMMM  : SSSS SSSS  |
   |  HHHHH HHHH  :  MMMM MMMM  : SSSS SSSS  |
-  |  GMT Date: 2020-04-22                   |... yGMTDate
+  |  GMT Date: Apr 29, 2020                 |... yGMTDate
+  |  Temp:  101.7 F                         |... yTemperature
   |                                         |
   |  Local: HH : MM : SS                    |... yLocalTime
   |                                         |
@@ -383,7 +377,7 @@ void updateView() {
   char sTime[10];         // strlen("19:54:14") = 8
   getTime(sTime);
   tft.setTextColor(cVALUE, cBACKGROUND);
-  tft.setCursor(xLabel, yRow2);
+  tft.setCursor(gmtTime.x, gmtTime.y);
   tft.print(sTime);
 
   tft.setTextSize(2);
@@ -391,15 +385,31 @@ void updateView() {
   // GMT Date
   char sDate[15];         // strlen("Jan 12, 2020") = 13
   getDate(sDate, sizeof(sDate));
-  tft.setCursor(xGMTDate, yGMTDate);
+  tft.setCursor(gmtDate.x, gmtDate.y);
   tft.setTextColor(cVALUE, cBACKGROUND);
   tft.print(sDate);       // todo
 
+  // Temperature
+  float t = getTemperature();
+  tft.setCursor(xyTemp.x, xyTemp.y);
+  tft.setTextColor(cVALUE, cBACKGROUND);
+  tft.print(t, 1);
+  tft.print(" F");
+
+  // Hours to add/subtract from GMT for local time
+  tft.setCursor(addHours.x, addHours.y);
+  tft.setTextColor(cTEXTCOLOR, cBACKGROUND);
+  if (gAddHours >= 0) {
+    tft.print("+");
+  }
+  tft.print(gAddHours);
+  tft.print("h");
+
   // Local Time
   getTime(sTime);
-  tft.setCursor(xLocalTime, yLocalTime);
+  tft.setCursor(localTime.x, localTime.y);
   tft.setTextColor(cTEXTCOLOR, cBACKGROUND);
-  tft.println(sTime);
+  tft.print(sTime);
 }
 
 /* Using fonts: https://learn.adafruit.com/adafruit-gfx-graphics-library/using-fonts
@@ -485,6 +495,19 @@ void setup() {
   tft.begin();                        // initialize TFT display
   tft.setRotation(1);                 // landscape (default is portrait)
   clearScreen();
+
+  // ----- init barometer
+  if (!baro.begin()) {
+    Serial.println("Error, unable to initialize BMP388, check your wiring");
+    tft.setCursor(0, 80);
+    tft.setTextColor(cWARN);
+    tft.setTextSize(3);
+    tft.println("Error!\n Unable to init\n  BMP388 sensor\n   check wiring");
+    delay(4000);
+  }
+
+  // Set up BMP388 oversampling and filter initialization
+  // baro.setTemperatureOversampling(BMP3_OVERSAMPLING_2X);
 
   // ----- announce ourselves
   startSplashScreen();
