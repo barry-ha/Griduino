@@ -77,7 +77,7 @@ class Model {
       return 0;                       // return failure
     }
 
-    // restore current GPS state to non-volatile memory
+    // restore current GPS state from non-volatile memory
     int restore() {
       // returns 1=success, 0=failure
       // todo
