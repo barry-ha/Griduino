@@ -26,14 +26,15 @@
 #define CONFIG_FOLDER  "/Griduino"
 
 // ----- color scheme
-#define BACKGROUND     0x00A            // a little darker than ILI9341_NAVY
-#define cBACKGROUND    0x00A            // a little darker than ILI9341_NAVY
-#define cLABEL         ILI9341_GREEN
-#define cVALUE         ILI9341_YELLOW
-#define cHIGHLIGHT     ILI9341_WHITE
-#define cBUTTONFILL    ILI9341_NAVY
-#define cBUTTONOUTLINE ILI9341_CYAN
-#define cBUTTONLABEL   ILI9341_YELLOW
-#define cWARN          0xF844           // a little brighter than ILI9341_RED
+// RGB 565 color code: http://www.barth-dev.de/online/rgb565-color-picker/
+#define BACKGROUND      0x00A             // a little darker than ILI9341_NAVY
+#define cBACKGROUND     0x00A             // 0,   0,  10 = darker than ILI9341_NAVY, but not black
+#define cLABEL          ILI9341_GREEN
+#define cVALUE          ILI9341_YELLOW
+#define cHIGHLIGHT      ILI9341_WHITE
+#define cBUTTONFILL     ILI9341_NAVY
+#define cBUTTONOUTLINE  ILI9341_CYAN
+#define cBUTTONLABEL    ILI9341_YELLOW
+#define cWARN           0xF844            // brighter than ILI9341_RED but not pink
 
 #endif // _GRIDUINO_CONSTANTS_H
