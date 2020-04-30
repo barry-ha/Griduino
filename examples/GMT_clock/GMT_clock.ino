@@ -130,6 +130,7 @@ const int howLongToWait = 4;  // max number of seconds at startup waiting for Se
 
 // ------------ global scope
 int gAddHours = -7;                     // todo: save/restore this value from nonvolatile memory
+int gSatellites = 0;                    // number of satellites
 int gTextSize;                          // no such function as "tft.getTextSize()" so remember it on our own
 int gUnitFontWidth, gUnitFontHeight;    // character cell size for TextSize(1)
 int gCharWidth, gCharHeight;            // character cell size for TextSize(n)
@@ -148,21 +149,23 @@ const int xLabel = 8;             // indent labels, slight margin on left edge o
 const Point gmtTime   = {  16, 44 };            // "01:23:45"
 const Point gmtDate   = {  90, gmtTime.y+58 };  // "Apr 29, 2020"
 const Point xyTemp    = { 126, gmtDate.y+30 };  // "78.9 F"
-const Point addHours  = {   6, 214 };           // "+8 hr"
-const Point localTime = { 116, 214 };           // "09:23:45"
-const Point buttonPlus = {  58, 206 };          // [ + ]
-const Point buttonMinus= { 232, 206 };          // [ - ]
+const Point addHours  = {   8, 212 };           // "+8 hr"
+const Point localTime = { 116, 212 };           // "09:23:45"
+const Point buttonPlus = {  64, 204 };          // [ + ]
+const Point buttonMinus= { 226, 204 };          // [ - ]
+const Point birds     = { 286, 212 };           // "3 satellites"
 
 // ----- color scheme
-#define cBACKGROUND     0x00A     // a little darker than ILI9341_NAVY, but not black
-#define cSCALECOLOR     0xF844    // color picker: http://www.barth-dev.de/online/rgb565-color-picker/
-#define cTEXTCOLOR      ILI9341_CYAN
+// RGB 565 color code: http://www.barth-dev.de/online/rgb565-color-picker/
+#define cBACKGROUND     0x00A             // 0,   0,  10 = darker than ILI9341_NAVY, but not black
+#define cTEXTCOLOR      ILI9341_CYAN      // 0, 255, 255
+#define cTEXTFAINT      0x514             // 0, 160, 160 = blue, between CYAN and DARKCYAN
 #define cLABEL          ILI9341_GREEN
 #define cVALUE          ILI9341_YELLOW
 #define cINPUT          ILI9341_WHITE
 #define cBUTTONFILL     ILI9341_NAVY
-#define cBUTTONOUTLINE  ILI9341_BLUE    // a little darker than cyan
-#define cWARN           0xF844    // a little brighter than ILI9341_RED
+#define cBUTTONOUTLINE  ILI9341_BLUE      // 0,   0, 255 = darker than cyan
+#define cWARN           0xF844            // brighter than ILI9341_RED but not pink
 
 typedef void (*simpleFunction)();
 typedef struct {
@@ -191,9 +194,12 @@ Button timeButtons[nTimeButtons] = {
 
 // ============== GPS helpers ==================================
 void processGPS() {
-  // todo - something? anything?
-  // is there anything to do if we don't use NMEA sentences?
-  // IF the GPS has a battery, then for all practical purposes the time is always right.
+  // keep track of number of GPS satellites in view as a confidence indicator
+  gSatellites = GPS.satellites;
+
+  // this sketch doesn't use GPS position, so we don't read NMEA sentences
+  // IF the GPS has a battery, then its realtime clock remembers the time
+  // and for all practical purposes the GMT reading is always right.
 }
 
 // Formatted GMT time
@@ -291,12 +297,14 @@ bool newScreenTap(Point* pPoint) {
 }
 
 // 2019-11-12 barry@k7bwh.com 
-// "isTouching()" was not implemented 
+// "isTouching()" is not included in Adafruit's TouchScreen library
 // Here's a function provided by https://forum.arduino.cc/index.php?topic=449719.0
 bool TouchScreen::isTouching(void) {
-  return false;     // debug - temporarily remove the touch function
+  //return false;     // debug - temporarily remove the touch function
+                      // warning - this implementation can cause GPS instability problems, probably
+                      // because it takes so long (4 loops * 2 msec = 8 msec total)
   
-  #define TOUCHCOUNT    4
+  #define TOUCHCOUNT    3
   uint16_t nTouchCount = 0, nTouch = 0;
   for (uint8_t nI = 0; nI < TOUCHCOUNT; nI++)  {  // debug this - does it drastically slow down the main routine?
     //read current pressure level
@@ -305,7 +313,7 @@ bool TouchScreen::isTouching(void) {
     if (nTouch > 100 && nTouch < 900) {
       nTouchCount++;
     }
-    delay(2);     // 2019-12-20 bwh: added for Feather M4 Express
+    delay(1);     // 2019-12-20 bwh: added for Feather M4 Express
   }
   // Clean the touchScreen settings after function is used
   // Because LCD may use the same pins
@@ -441,7 +449,7 @@ void updateView() {
 
   // Hours to add/subtract from GMT for local time
   tft.setCursor(addHours.x, addHours.y);
-  tft.setTextColor(cTEXTCOLOR, cBACKGROUND);
+  tft.setTextColor(cTEXTFAINT, cBACKGROUND);
   if (gAddHours >= 0) {
     tft.print("+");
   }
@@ -457,6 +465,12 @@ void updateView() {
   tft.setCursor(localTime.x, localTime.y);
   tft.setTextColor(cTEXTCOLOR, cBACKGROUND);
   tft.print(sTime);
+
+  // Satellite Count
+  tft.setCursor(birds.x, birds.y);
+  tft.setTextColor(cTEXTFAINT, cBACKGROUND);
+  tft.print(gSatellites);
+  tft.print("#");
 }
 
 /* Using fonts: https://learn.adafruit.com/adafruit-gfx-graphics-library/using-fonts
