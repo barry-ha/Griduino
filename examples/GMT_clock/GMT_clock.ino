@@ -35,7 +35,7 @@
 
 // ------- Identity for console
 #define PROGRAM_TITLE   "Griduino GMT Clock"
-#define PROGRAM_VERSION "v0.03"
+#define PROGRAM_VERSION "v0.04"
 #define PROGRAM_LINE1   "Barry K7BWH"
 #define PROGRAM_LINE2   "John KM7O"
 
@@ -297,7 +297,7 @@ bool newScreenTap(Point* pPoint) {
 }
 
 // 2019-11-12 barry@k7bwh.com 
-// "isTouching()" is not included in Adafruit's TouchScreen library
+// "isTouching()" is defined in touch.h but not implemented Adafruit's TouchScreen library
 // Here's a function provided by https://forum.arduino.cc/index.php?topic=449719.0
 bool TouchScreen::isTouching(void) {
   //return false;     // debug - temporarily remove the touch function
@@ -313,7 +313,11 @@ bool TouchScreen::isTouching(void) {
     if (nTouch > 100 && nTouch < 900) {
       nTouchCount++;
     }
-    delay(1);     // 2019-12-20 bwh: added for Feather M4 Express
+
+    // pause between samples, but not after the last sample
+    if (nI < (TOUCHCOUNT-1)) {
+      delay(1);     // 2019-12-20 bwh: added for Feather M4 Express
+    }
   }
   // Clean the touchScreen settings after function is used
   // Because LCD may use the same pins
@@ -434,8 +438,9 @@ void updateView() {
   tft.setTextSize(2);
 
   // GMT Date
-  char sDate[15];         // strlen("Jan 12, 2020") = 13
+  char sDate[16];         // strlen("Jan 12, 2020 ") = 14
   getDate(sDate, sizeof(sDate));
+  strcat(sDate, " "); // append blank to erase possible trailing character on month rollover
   tft.setCursor(gmtDate.x, gmtDate.y);
   tft.setTextColor(cVALUE, cBACKGROUND);
   tft.print(sDate);       // todo
@@ -507,6 +512,7 @@ void timePlus() {
     gAddHours = -11;
   }
   updateView();
+  //saveConfig
 }
 void timeMinus() {
   gAddHours--;
@@ -592,12 +598,17 @@ void setup() {
 // This number will overflow after about 50 days.
 uint32_t prevTimeGPS = millis();
 const int GPS_PROCESS_INTERVAL = 1000;  // milliseconds between updating the model's GPS data
+uint32_t prevTimeTouch = millis();
+const int TOUCH_PROCESS_INTERVAL = 10;  // milliseconds between polling for touches
 
 void loop() {
 
   // if our timer or system millis() wrapped around, reset it
   if (prevTimeGPS > millis()) {
     prevTimeGPS = millis();
+  }
+  if (prevTimeTouch > millis()) {
+    prevTimeTouch = millis();
   }
 
   GPS.read();   // if you can, read the GPS serial port every millisecond in an interrupt
@@ -622,17 +633,21 @@ void loop() {
     updateView();                     // update current screen
   }
 
-  // if there's touchscreen input, handle it
-  Point touch;
-  if (newScreenTap(&touch)) {
-    if (touch.x < gScreenWidth / 2) {
-      timePlus();                     // left half screen
-    } else {
-      timeMinus();                    // right half screen
+  // periodically check for screen touch
+  if (millis() - prevTimeTouch > TOUCH_PROCESS_INTERVAL) {
+    prevTimeTouch = millis();         // start another interval
+    Point touch;
+    if (newScreenTap(&touch)) {
+      if (touch.x < gScreenWidth / 2) {
+        timePlus();                   // left half screen
+      } else {
+        timeMinus();                  // right half screen
+      }
     }
   }
 
   // make a small progress bar crawl along bottom edge
   // this gives a sense of how frequently the main loop is executing
+  delay(1);         // slow down activity bar so it can be seen
   showActivityBar(239, ILI9341_RED, ILI9341_BLACK);
 }
