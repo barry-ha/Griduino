@@ -73,13 +73,7 @@ TFT Resistive touch:
   #define TFT_BL   4    // TFT backlight
   #define TFT_CS   5    // TFT select pin
   #define TFT_DC  12    // TFT display/command pin
-  #define BMP_CS  13    // BMP388 sensor, chip select
 
-#elif defined(ARDUINO_AVR_MEGA2560)
-  #define TFT_BL   6    // TFT backlight
-  #define SD_CCS   7    // SD card select pin - Mega
-  #define SD_CD    8    // SD card detect pin - Mega
-  #define TFT_DC   9    // TFT display/command pin
   #define BMP_CS  13    // BMP388 sensor, chip select
 
 #else
@@ -101,12 +95,6 @@ Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
   #define PIN_XM  A4    // Touchscreen X- must be an analog pin, use "An" notation
   #define PIN_YP  A5    // Touchscreen Y+ must be an analog pin, use "An" notation
   #define PIN_YM   9    // Touchscreen Y- can be a digital pin
-#elif defined(ARDUINO_AVR_MEGA2560)
-  // Arduino Mega 2560 and others
-  #define PIN_XP   4    // Touchscreen X+ can be a digital pin
-  #define PIN_XM  A3    // Touchscreen X- must be an analog pin, use "An" notation
-  #define PIN_YP  A2    // Touchscreen Y+ must be an analog pin, use "An" notation
-  #define PIN_YM   5    // Touchscreen Y- can be a digital pin
 #else
   // todo: Unknown platform
   #warning You need to define pins for your hardware
@@ -114,7 +102,7 @@ Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 #endif
 TouchScreen ts = TouchScreen(PIN_XP, PIN_YP, PIN_XM, PIN_YM, 295);
 
-// ---------- Barometric and Temperature Sensor
+// ---------- Barometric Sensor
 Adafruit_BMP3XX baro(BMP_CS); // hardware SPI
 
 // ---------- Onboard LED
@@ -129,27 +117,21 @@ typedef struct {
 } Point;
 
 // ------------ definitions
-const int howLongToWait = 4;  // max number of seconds at startup waiting for Serial port to console
-#define gScreenWidth 320      // pixels wide
-#define gScreenHeight 240     // pixels high
-
 #define SEALEVELPRESSURE_HPA (1013.25)
 #define MILLIBARS_PER_INCHES_MERCURY (0.02953)
-
-// ----- screen layout
-// using default fonts - screen pixel coordinates will identify top left of character cell
-const int xLabel = 8;             // indent labels, slight margin on left edge of screen
-#define yRow1   0                 // program title: "Barograph Demo"
-#define yRow2   yRow1 + 40        // program version
-#define yRow3   yRow2 + 20        // author line 1
-#define yRow4   yRow3 + 20        // author line 2
+const int howLongToWait = 8;  // max number of seconds at startup waiting for Serial port to console
 
 // ----- color scheme
-#define cBACKGROUND     0x00A     // a little darker than ILI9341_NAVY, but not black
-#define cSCALECOLOR     0xF844    // color picker: http://www.barth-dev.de/online/rgb565-color-picker/
-#define cTEXTCOLOR      ILI9341_CYAN
-#define cLABEL          ILI9341_GREEN
-#define cWARN           0xF844    // a little brighter than ILI9341_RED
+#define cBACKGROUND   0x00A         // a little darker than ILI9341_NAVY, but not black
+#define cSCALECOLOR   0xF844        // color picker: http://www.barth-dev.de/online/rgb565-color-picker/
+#define cTEXTCOLOR    ILI9341_CYAN
+//#define cLABEL         ILI9341_GREEN
+//#define cVALUE         ILI9341_YELLOW
+//#define cHIGHLIGHT     ILI9341_WHITE
+//#define cBUTTONFILL    ILI9341_NAVY
+//#define cBUTTONOUTLINE ILI9341_CYAN
+//#define cBUTTONLABEL   ILI9341_YELLOW
+#define cWARN         0xF844        // a little brighter than ILI9341_RED
 
 // ------------ global scope
 float inchesHg;
@@ -175,7 +157,6 @@ float pascals;
 //long debounceDelay = 300;
 
 // ============== touchscreen helpers ==========================
-
 bool gTouching = false;             // keep track of previous state
 bool newScreenTap(Point* pPoint) {
   // find leading edge of a screen touch
@@ -210,34 +191,6 @@ bool newScreenTap(Point* pPoint) {
   return result;
 }
 
-// 2019-11-12 barry@k7bwh.com 
-// "isTouching()" was not implemented 
-// Here's a function provided by https://forum.arduino.cc/index.php?topic=449719.0
-bool TouchScreen::isTouching(void) {
-  uint16_t nTouchCount = 0, nTouch = 0;
-  for (uint8_t nI = 0; nI < 4; nI++)  {
-    //read current pressure level
-    nTouch = pressure();
-    // Minimum and maximum pressure we consider true pressing
-    if (nTouch > 100 && nTouch < 900) {
-      nTouchCount++;
-    }
-    delay(2);     // 2019-12-20 bwh: added for Feather M4 Express
-  }
-  // Clean the touchScreen settings after function is used
-  // Because LCD may use the same pins
-  pinMode(_xm, OUTPUT);
-  digitalWrite(_xm, LOW);
-  pinMode(_yp, OUTPUT);
-  digitalWrite(_yp, HIGH);
-  pinMode(_ym, OUTPUT);
-  digitalWrite(_ym, LOW);
-  pinMode(_xp, OUTPUT);
-  digitalWrite(_xp, HIGH);
-  return nTouchCount > 3;
-}
-
-
 void mapTouchToScreen(TSPoint touch, Point* screen) {
   // convert from X+,Y+ resistance measurements to screen coordinates
   // param touch = resistance readings from touchscreen
@@ -262,7 +215,7 @@ void mapTouchToScreen(TSPoint touch, Point* screen) {
   return;
 }
 
-// ======== barometer and temperature helpers ==================
+// ============== barometer helpers ============================
 void getData() {
   if (!baro.performReading()) {
     Serial.println("Error, failed to read barometer");
@@ -277,28 +230,7 @@ void getData() {
   altFeet = 3.28084 * altMeters;
 }
 
-// ========== screen helpers ===================================
-void startSplashScreen() {
-  tft.setTextSize(2);
-
-  tft.setCursor(xLabel, yRow1);
-  tft.setTextColor(cTEXTCOLOR);
-  tft.print(PROGRAM_TITLE);
-
-  tft.setCursor(xLabel, yRow2);
-  tft.setTextColor(cLABEL);
-  tft.print(PROGRAM_VERSION);
-  
-  tft.setCursor(xLabel, yRow2 + 20);
-  tft.println(PROGRAM_LINE1);
-
-  tft.setCursor(xLabel, yRow2 + 40);
-  tft.println(PROGRAM_LINE2);
-
-  delay(2000);
-  clearScreen();
-  
-}
+// ============== Screen Helpers ===============================
 void blinky(int qty, int waitTime) {
   for (int i = 0; i <= qty; i++) {
     digitalWrite(ledPin, HIGH);
@@ -519,7 +451,16 @@ void setup() {
   clearScreen();
 
   // ----- announce ourselves
-  startSplashScreen();
+  tft.setCursor(0, 0);
+  tft.setTextColor(cTEXTCOLOR);
+  tft.setTextSize(3);
+  tft.println(PROGRAM_TITLE);
+  tft.println(PROGRAM_VERSION);
+  tft.println(PROGRAM_LINE1);
+  tft.println(PROGRAM_LINE2);
+
+  delay(2000);
+  clearScreen();
 /*
 // --> bmp3_defs.h
 
