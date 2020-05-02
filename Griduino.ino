@@ -217,13 +217,12 @@ typedef struct {
 } Point;
 
 // ------------ definitions
-const int howLongToWait = 6;  // max number of seconds at startup waiting for Serial port to console
-
-// ------------ global scope
 const int gNumViews = 5;      // total number of different views (screens) we've implemented
 int gViewIndex = 0;           // selects which view to show
                               // init to a safe value, override in setup()
+const int howLongToWait = 6;  // max number of seconds at startup waiting for Serial port to console
 
+// ------------ global scope
 int gTextSize;                          // no such function as "tft.getTextSize()" so remember it on our own
 int gUnitFontWidth, gUnitFontHeight;    // character cell size for TextSize(1)
 int gCharWidth, gCharHeight;            // character cell size for TextSize(n)
@@ -299,36 +298,6 @@ bool newScreenTap(Point* pPoint) {
   }
   //delay(100);   // no delay: code above completely handles debouncing without blocking the loop
   return result;
-}
-
-// 2019-11-12 barry@k7bwh.com 
-// "isTouching()" was not implemented in Adafruit's TouchScreen library
-// Here's a function provided by https://forum.arduino.cc/index.php?topic=449719.0
-bool TouchScreen::isTouching(void) {
-  //return false;     // debug - temporarily remove the touch function
-                      // warning - this implementation can cause GPS instability problems, probably
-                      // because it takes so long (4 loops * 2 msec = 8 msec total)
-  
-  #define TOUCHCOUNT    3
-  uint16_t nTouchCount = 0, nTouch = 0;
-  for (uint8_t nI = 0; nI < TOUCHCOUNT; nI++)  {
-    nTouch = pressure();    //read current pressure level
-
-    // Minimum and maximum pressure we consider true pressing
-    if (nTouch > 100 && nTouch < 900) {
-      nTouchCount++;
-    }
-    delay(1);               // 2019-12-20 bwh: added for Feather M4 Express
-                            // warning: this is one of the biggest delays in our main loop
-  }
-  // Clean the touchScreen settings after function is used
-  // Because LCD may use the same pins
-  pinMode(_xm, OUTPUT);     digitalWrite(_xm, LOW);
-  pinMode(_yp, OUTPUT);     digitalWrite(_yp, HIGH);
-  pinMode(_ym, OUTPUT);     digitalWrite(_ym, LOW);
-  pinMode(_xp, OUTPUT);     digitalWrite(_xp, HIGH);
-
-  return nTouchCount >= TOUCHCOUNT;
 }
 
 void mapTouchToScreen(TSPoint touch, Point* screen) {
@@ -551,15 +520,6 @@ String calcLocator(double lat, double lon) {
   result[5] = (char)a3 + 'a';
   result[6] = (char)0;
   return (String)result;
-}
-
-int gAddDotX = 10;                     // current screen column, 0..319 pixels
-int gRmvDotX = 0;
-void showActivityBar(int row, uint16_t foreground, uint16_t background) {
-  gAddDotX = (gAddDotX + 1) % gScreenWidth;   // advance
-  gRmvDotX = (gRmvDotX + 1) % gScreenWidth;   // advance
-  tft.drawPixel(gAddDotX, row, foreground);   // write new
-  tft.drawPixel(gRmvDotX, row, background);   // erase old
 }
 
 // ----- console Serial port helper
@@ -885,6 +845,15 @@ void sendMorseGrid4(String gridName) {
   //spkrMorse.setMessage( grid4 );
   //spkrMorse.startSending();   // would prefer non-blocking but some bug causes random dashes to be too long
   //spkrMorse.sendBlocking();
+}
+
+int gAddDotX = 10;                     // current screen column, 0..319 pixels
+int gRmvDotX = 0;
+void showActivityBar(int row, uint16_t foreground, uint16_t background) {
+  gAddDotX = (gAddDotX + 1) % gScreenWidth;   // advance
+  gRmvDotX = (gRmvDotX + 1) % gScreenWidth;   // advance
+  tft.drawPixel(gAddDotX, row, foreground);   // write new
+  tft.drawPixel(gRmvDotX, row, background);   // erase old
 }
 
 //=========== setup ============================================
