@@ -192,5 +192,5 @@ int SaveRestore::openFlash() {
     }
     Serial.print(CONFIG_FOLDER); Serial.println(")");
   }
-  return 1;
+  return 1;   // indicate success
 }
