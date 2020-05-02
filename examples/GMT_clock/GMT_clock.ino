@@ -126,12 +126,12 @@ typedef struct {
 } Point;
 
 // ------------ definitions
-const int howLongToWait = 4;  // max number of seconds at startup waiting for Serial port to console
+const int howLongToWait = 6;  // max number of seconds at startup waiting for Serial port to console
 #define gScreenWidth 320      // pixels wide
 #define gScreenHeight 240     // pixels high
 
 // ------------ global scope
-int gTimeZone = -7;                     // default Pacific (-7 hours), saved in nonvolatile memory
+int gTimeZone = -7;                     // default local time Pacific (-7 hours), saved in nonvolatile memory
 int gSatellites = 0;                    // number of satellites
 int gTextSize;                          // no such function as "tft.getTextSize()" so remember it on our own
 int gUnitFontWidth, gUnitFontHeight;    // character cell size for TextSize(1)
@@ -298,27 +298,27 @@ bool newScreenTap(Point* pPoint) {
   return result;
 }
 
-// 2019-11-12 barry@k7bwh.com 
-// "isTouching()" is defined in touch.h but not implemented Adafruit's TouchScreen library
-// Here's a function provided by https://forum.arduino.cc/index.php?topic=449719.0
+// 2020-05-02 barry@k7bwh.com 
+// "isTouching()" is defined in touch.h but is not implemented Adafruit's TouchScreen library
+// My function is based on https://forum.arduino.cc/index.php?topic=449719.0
+// Q: does this loop drastically slow down the main routine? A: yes
+// Warning - For Griduino, this implementation can cause erratic GPS readings, 
+// if the isTouching() loop takes 8 msec or more (4 loops * 2 msec)
 bool TouchScreen::isTouching(void) {
-  //return false;     // debug - temporarily remove the touch function
-                      // warning - this implementation can cause GPS instability problems, probably
-                      // because it takes so long (4 loops * 2 msec = 8 msec total)
   
-  #define TOUCHCOUNT    3
+  #define MEASUREMENTS    3
   uint16_t nTouchCount = 0, nTouch = 0;
-  for (uint8_t nI = 0; nI < TOUCHCOUNT; nI++)  {  // debug this - does it drastically slow down the main routine?
-    //read current pressure level
-    nTouch = pressure();
+
+  for (uint8_t nI = 0; nI < MEASUREMENTS; nI++) {
+    nTouch = pressure();    // read current pressure level
     // Minimum and maximum pressure we consider true pressing
     if (nTouch > 100 && nTouch < 900) {
       nTouchCount++;
     }
 
     // pause between samples, but not after the last sample
-    if (nI < (TOUCHCOUNT-1)) {
-      delay(1);     // 2019-12-20 bwh: added for Feather M4 Express
+    if (nI < (MEASUREMENTS-1)) {
+      delay(1);             // 2019-12-20 bwh: added for Feather M4 Express
     }
   }
   // Clean the touchScreen settings after function is used
@@ -328,7 +328,7 @@ bool TouchScreen::isTouching(void) {
   pinMode(_ym, OUTPUT);     digitalWrite(_ym, LOW);
   pinMode(_xp, OUTPUT);     digitalWrite(_xp, HIGH);
 
-  return nTouchCount >= TOUCHCOUNT;
+  return nTouchCount >= MEASUREMENTS;
 }
 
 void mapTouchToScreen(TSPoint touch, Point* screen) {
