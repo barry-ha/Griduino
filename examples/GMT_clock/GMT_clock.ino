@@ -2,7 +2,8 @@
   GMT_clock - bright colorful Greenwich Mean Time based on GPS
 
   Date:     2020-04-22 created
-            2020-04-29 added touch adjustment
+            2020-04-29 added touch adjustment of local time zone
+            2020-05-01 added save/restore to nonvolatile RAM
 
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
@@ -130,11 +131,11 @@ const int howLongToWait = 4;  // max number of seconds at startup waiting for Se
 #define gScreenHeight 240     // pixels high
 
 // ------------ global scope
-int gTimeZone = -7;                   // default Pacific (-7), store in nonvolatile memory
-int gSatellites = 0;                  // number of satellites
-int gTextSize;                        // no such function as "tft.getTextSize()" so remember it on our own
-int gUnitFontWidth, gUnitFontHeight;  // character cell size for TextSize(1)
-int gCharWidth, gCharHeight;          // character cell size for TextSize(n)
+int gTimeZone = -7;                     // default Pacific (-7 hours), saved in nonvolatile memory
+int gSatellites = 0;                    // number of satellites
+int gTextSize;                          // no such function as "tft.getTextSize()" so remember it on our own
+int gUnitFontWidth, gUnitFontHeight;    // character cell size for TextSize(1)
+int gCharWidth, gCharHeight;            // character cell size for TextSize(n)
 
 // ----- screen layout
 // using default fonts - screen pixel coordinates will identify top left of character cell
@@ -182,11 +183,11 @@ typedef struct {
 
 // ========== constants ===============================
 
-const int nTimeButtons = 2;
 const int margin = xLabel;        // slight margin between button border and edge of screen
 const int btnRadius = 4;          // rounded corners
 const int btnWidth = 36;          // small and inconspicuous 
 const int btnHeight = 30;
+const int nTimeButtons = 2;
 Button timeButtons[nTimeButtons] = {
   // text           x,y                     w,h              r       color       function
   {"+",  buttonPlus.x,buttonPlus.y,  btnWidth,btnHeight, btnRadius, cTEXTCOLOR, timePlus  },  // Up
@@ -198,7 +199,7 @@ void processGPS() {
   // keep track of number of GPS satellites in view as a confidence indicator
   gSatellites = GPS.satellites;
 
-  // this sketch doesn't use GPS position, so we don't read NMEA sentences
+  // this sketch doesn't use GPS position, so we ignore NMEA sentences (except #satellites)
   // IF the GPS has a battery, then its realtime clock remembers the time
   // and for all practical purposes the GMT reading is always right.
 }
@@ -628,6 +629,7 @@ void loop() {
   }
 
   GPS.read();   // if you can, read the GPS serial port every millisecond in an interrupt
+                // this sketch reads the serial port continuously during idle time
 
   if (GPS.newNMEAreceived()) {
     // sentence received -- verify checksum, parse it
