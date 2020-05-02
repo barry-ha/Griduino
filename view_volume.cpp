@@ -16,7 +16,7 @@
 
   This "view" module is all about speaker volume.
   As such, the only thing it does is set the DS1804 digital potentiometer.
-  It has nothing to do with the DAC, sidetone pitch, code speed, or other Morse code attributes.
+  It has nothing to do with the DAC, audio files, Morse code speed/pitch, or other playback attributes.
 */
 
 #include <Arduino.h>
@@ -26,7 +26,7 @@
 #include "model.cpp"              // "Model" portion of model-view-controller
 #include "morse_dac.h"            // morse code
 #include "DS1804.h"               // DS1804 digital potentiometer library
-#include "save_restore.h"         // save volume control settings
+#include "save_restore.h"         // save/restore configuration data to SDRAM
 
 // ========== extern ===========================================
 extern Adafruit_ILI9341 tft;      // Griduino.ino
@@ -147,7 +147,7 @@ void volMute() {
   updateVolumeScreen();
 }
 
-// ========== load/save volume setting =========================
+// ========== load/save config setting =========================
 #define VOLUME_CONFIG_FILE    CONFIG_FOLDER "/volume.cfg"
 #define CONFIG_VOLUME_VERSION "Volume v01"
 
