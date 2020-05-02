@@ -32,10 +32,11 @@
 #include "Adafruit_GPS.h"         // Ultimate GPS library
 #include "TouchScreen.h"          // Touchscreen built in to 3.2" Adafruit TFT display
 #include "Adafruit_BMP3XX.h"      // Precision barometric and temperature sensor
+#include "save_restore.h"         // Save configuration in non-volatile RAM
 
 // ------- Identity for console
 #define PROGRAM_TITLE   "Griduino GMT Clock"
-#define PROGRAM_VERSION "v0.04"
+#define PROGRAM_VERSION "v0.06"
 #define PROGRAM_LINE1   "Barry K7BWH"
 #define PROGRAM_LINE2   "John KM7O"
 
@@ -129,11 +130,11 @@ const int howLongToWait = 4;  // max number of seconds at startup waiting for Se
 #define gScreenHeight 240     // pixels high
 
 // ------------ global scope
-int gAddHours = -7;                     // todo: save/restore this value from nonvolatile memory
-int gSatellites = 0;                    // number of satellites
-int gTextSize;                          // no such function as "tft.getTextSize()" so remember it on our own
-int gUnitFontWidth, gUnitFontHeight;    // character cell size for TextSize(1)
-int gCharWidth, gCharHeight;            // character cell size for TextSize(n)
+int gTimeZone = -7;                   // default Pacific (-7), store in nonvolatile memory
+int gSatellites = 0;                  // number of satellites
+int gTextSize;                        // no such function as "tft.getTextSize()" so remember it on our own
+int gUnitFontWidth, gUnitFontHeight;  // character cell size for TextSize(1)
+int gCharWidth, gCharHeight;          // character cell size for TextSize(n)
 
 // ----- screen layout
 // using default fonts - screen pixel coordinates will identify top left of character cell
@@ -214,7 +215,7 @@ void getTime(char* result, int len) {
 // Formatted Local time
 void getTimeLocal(char* result, int len) {
   // result = char[10] = string buffer to modify
-  int hh = (GPS.hour + gAddHours) % 24;   // 24-hour clock, to match GMT time
+  int hh = (GPS.hour + gTimeZone) % 24;   // 24-hour clock, to match GMT time
   int mm = GPS.minute;
   int ss = GPS.seconds;
   snprintf(result, len, "%02d:%02d:%02d",
@@ -455,12 +456,12 @@ void updateView() {
   // Hours to add/subtract from GMT for local time
   tft.setCursor(addHours.x, addHours.y);
   tft.setTextColor(cTEXTFAINT, cBACKGROUND);
-  if (gAddHours >= 0) {
+  if (gTimeZone >= 0) {
     tft.print("+");
   }
-  tft.print(gAddHours);
+  tft.print(gTimeZone);
   tft.print("h");
-  if (gAddHours >-10 && gAddHours < 10) {
+  if (gTimeZone >-10 && gTimeZone < 10) {
     // erase possible leftover trailing character
     tft.print(" ");
   }
@@ -506,20 +507,29 @@ void waitForSerial(int howLong) {
 }
 
 //=========== time helpers =====================================
+#define TIME_FOLDER  "/GMTclock"     // 8.3 names
+#define TIME_FILE    TIME_FOLDER "/AddHours.cfg"
+#define TIME_VERSION "v01"
+
 void timePlus() {
-  gAddHours++;
-  if (gAddHours > 12) {
-    gAddHours = -11;
+  gTimeZone++;
+  if (gTimeZone > 12) {
+    gTimeZone = -11;
   }
   updateView();
-  //saveConfig
+  Serial.print("Time zone changed to "); Serial.println(gTimeZone);
+  SaveRestore myconfig = SaveRestore(TIME_FOLDER, TIME_FILE, TIME_VERSION, gTimeZone);
+  myconfig.writeConfig();
 }
 void timeMinus() {
-  gAddHours--;
-  if (gAddHours < -12) {
-    gAddHours = 11;
+  gTimeZone--;
+  if (gTimeZone < -12) {
+    gTimeZone = 11;
   }
   updateView();
+  Serial.print("Time zone changed to "); Serial.println(gTimeZone);
+  SaveRestore myconfig = SaveRestore(TIME_FOLDER, TIME_FILE, TIME_VERSION, gTimeZone);
+  myconfig.writeConfig();
 }
 
 //=========== distance helpers =================================
@@ -563,7 +573,9 @@ void setup() {
   GPS.sendCommand(PMTK_Q_RELEASE);    // Send query to GPS unit
                                       // expected reply: $PMTK705,AXN_2.10...
   // ----- init onboard LED
+  // todo: how to turn off the solid red led next to the USB connector?
   pinMode(RED_LED, OUTPUT);           // diagnostics RED LED
+  digitalWrite(RED_LED, LOW);         // this led defaults to "on" so turn it off
   
   // ----- init TFT backlight
   pinMode(TFT_BL, OUTPUT);
@@ -583,9 +595,13 @@ void setup() {
     tft.println("Error!\n Unable to init\n  BMP388 sensor\n   check wiring");
     delay(4000);
   }
-
   // Set up BMP388 oversampling and filter initialization
   // baro.setTemperatureOversampling(BMP3_OVERSAMPLING_2X);
+
+  // ----- restore configuration settings
+  SaveRestore myconfig = SaveRestore(TIME_FOLDER, TIME_FILE, TIME_VERSION);
+  gTimeZone = myconfig.readConfig();
+  Serial.print("Time zone changed to "); Serial.println(gTimeZone);
 
   // ----- announce ourselves
   startSplashScreen();
@@ -648,6 +664,6 @@ void loop() {
 
   // make a small progress bar crawl along bottom edge
   // this gives a sense of how frequently the main loop is executing
-  delay(1);         // slow down activity bar so it can be seen
+  delay(2);         // slow down activity bar so it can be seen
   showActivityBar(239, ILI9341_RED, ILI9341_BLACK);
 }

@@ -22,9 +22,6 @@
 #include <SdFat.h>                // SDRAM File Allocation Table filesystem
 #include <Adafruit_SPIFlash.h>
 
-// ------------ forward references in this same .cpp file
-int openFlash(char* sFoldername);
-
 // ========== globals =================================
 Adafruit_FlashTransport_QSPI gFlashTransport;
 Adafruit_SPIFlash gFlash(&gFlashTransport);
