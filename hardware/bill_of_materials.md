@@ -16,17 +16,17 @@ GPS display for vehicle dashboard showing position in the Maidenhead Locator Sys
 ## Passive Components
 | Mfr         | Mfr Part No     | Digi-Key Part No     | Reference          |  Qty   | USD$  | Ext$   | Description  |
 | ----------- | --------------- | -------------------- | ------------------ | :----: | ----- | ------ | ------------ |
-| AVX Corp    |                 |                      | C1, C4, C5, C7, C8 |    5   |  2.67 |  13.35 | CAP Electrolytic 47UF 10% 25v radial |
+| Panasonic   | ECE-A1EKA470I   | P19582CT-ND          | C1, C4, C5, C7, C8 |    5   |  0.27 |   1.35 | CAP Electrolytic 47UF 20% 25v radial |
 | KEMET       | C320C104K5R5TA  | 399-4264-ND          | C2, C3, C6, C9     |    4   |  0.22 |   0.88 | CAP Ceramic 0.1UF 50V X7R radial |
 | ON Semi     | 1N4001G         | 1N4001GOS-ND         | D1, D2, D3         |    3   |  0.21 |   0.63 | Gen Purpose Diode 50V 1A |
 | Vishay      | 1.5KE18CA       | 1.5KE18CA-E3/51GI-ND | D4                 |    1   |  1.21 |   1.21 | Zener Diode 25.2v Clamp |
 | Adafruit    | 4445            | 3351-ND              | LS1                |    1   |  3.95 |   3.95 | Speaker, 3W 4ohm |
-| Yageo       | FKN2WSJT-73-22R | 22AUCT-ND            | R1                 |    1   |  0.39 |   0.39 | RES 22-ohm 2W 5% axial |
-| Yageo       | HHV-25JR-52-82K? | HHV-25JR-52-82K-ND or CFR-25JB-52-82K | R2 |  1   |  0.34 |   0.34 | RES 82K 1/4W 5% axial |
-| Yageo       |                 | CFR-25JB-52-10K      | R3                 |    1   |  0.10 |   0.20 | RES 10K 1/4W 1% axial |
+| Yageo       | FKN2WSJT-73-22R | 22AUCT-ND            | R1                 |    1   |  0.10 |   0.10 | RES 22-ohm 2W 5% axial |
+| Yageo       | CFR-25JB-52-82K | 82KQBK-ND            | R2                 |    1   |  0.34 |   0.34 | RES 82K 1/4W 5% axial |
+| Yageo       | CFR-25JB-52-10K | CFR-25JB-52-10K      | R3                 |    1   |  0.10 |   0.20 | RES 10K 1/4W 1% axial |
 | Yageo       | MFR-25FBF52-10R | 10.0XBK-ND           | R4                 |    1   |  0.10 |   0.10 | RES 10-ohm 1/4W 1% axial |
-| Yageo       |                 |                      | R5                 |    1   |  0.10 |   0.20 | RES 100-ohm 1/4W 1% axial |
-|             |                 |                      | **total**          | **16** |       | **21.25** |     |
+| Stackpole   | CF14JT100R      | CF14JT100RCT-ND      | R5                 |    1   |  0.10 |   0.20 | RES 100-ohm 1/4W 5% axial |
+|             |                 |                      | **total**          | **16** |       | **8.96** |     |
 
 ## Hardware
 | Mfr         | Mfr Part No     | Digi-Key Part No | Reference     |  Qty  | USD$  | Ext$   | Description  |
@@ -40,4 +40,4 @@ GPS display for vehicle dashboard showing position in the Maidenhead Locator Sys
 | Keystone    | 4952            | 36-4952-ND       | TP1-3, TP_GND |   4   |  0.21 |   0.84 | PC Test Point Loop |
 | JLC PCB     |                 |                  | PCB           |   1   |  5.00 |   5.00 | Printed Circuit Board |
 | Polycase    | QS-50MBT        | n/a              |               |   1   |  4.98 |   4.98 | Plastic Case, 4.5 x 3.5 x 1.25 |
-|             |                 |                  | **total**     |       |       | **16.45** |     |
+|             |                 |                  | **total**     |       |       | **18.79** |     |
