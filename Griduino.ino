@@ -218,7 +218,7 @@ typedef struct {
 
 // ------------ definitions
 const int howLongToWait = 6;  // max number of seconds at startup waiting for Serial port to console
-const int gNumViews = 5;      // total number of different views (screens) we've implemented
+const int gNumViews = 3;      // total number of different views (screens) we've implemented
 int gViewIndex = 0;           // selects which view to show
                               // init to a safe value, override in setup()
 
@@ -300,12 +300,32 @@ bool newScreenTap(Point* pPoint) {
   return result;
 }
 
+// 2020-05-03 Craig Verbeck
+bool TouchScreen::isTouching(void) {
+  #define TOUCHPRESSURE 200       // Minimum pressure we consider true pressing
+  static bool button_state = false;
+  uint16_t pres_val = pressure();
+
+  if ((button_state == false) && (pres_val > TOUCHPRESSURE)) {
+    Serial.println("button down");     // debug
+    button_state = true;
+  }
+
+  if ((button_state == true) && (pres_val < TOUCHPRESSURE)) {
+    Serial.println("button up");       // debug
+    button_state = false;
+  }
+
+  return button_state;
+}
+
 // 2020-05-02 barry@k7bwh.com 
 // "isTouching()" is defined in touch.h but is not implemented Adafruit's TouchScreen library
 // My function is based on https://forum.arduino.cc/index.php?topic=449719.0
 // Q: does this loop drastically slow down the main routine? A: yes
 // Warning - For Griduino, this implementation can cause erratic GPS readings, 
 // if the isTouching() loop takes 8 msec or more (4 loops * 2 msec)
+/****** replaced by Craig's routine above
 bool TouchScreen::isTouching(void) {
   
   #define MEASUREMENTS    3
@@ -332,6 +352,7 @@ bool TouchScreen::isTouching(void) {
 
   return nTouchCount >= MEASUREMENTS;
 }
+***** end replacement *****/
 
 void mapTouchToScreen(TSPoint touch, Point* screen) {
   // convert from X+,Y+ resistance measurements to screen coordinates
@@ -820,22 +841,22 @@ void (*gaUpdateView[])() = {
     updateGridScreen,     // first entry is the first view displayed after setup()
     updateStatusScreen,
     updateVolumeScreen,
-    updateSplashScreen,
-    updateHelpScreen,
+    //updateSplashScreen,
+    //updateHelpScreen,
 };
 void (*gaStartView[])() = {
     startGridScreen,      // first entry is the first view displayed after setup()
     startStatScreen,
     startVolumeScreen,
-    startSplashScreen,
-    startHelpScreen,
+    //startSplashScreen,
+    //startHelpScreen,
 };
 bool (*gaOnTouch[])(Point touch) = {
     onTouchGrid,
     onTouchStatus,
     onTouchVolume,
-    onTouchSplash,
-    onTouchHelp,
+    //onTouchSplash,
+    //onTouchHelp,
 };
 void selectNewView() {
   Serial.print("selectNewView() from "); Serial.print(gViewIndex);
