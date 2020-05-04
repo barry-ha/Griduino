@@ -298,37 +298,34 @@ bool newScreenTap(Point* pPoint) {
   return result;
 }
 
-// 2020-05-02 barry@k7bwh.com 
+// 2020-05-03 CraigV and barry@k7bwh.com
 // "isTouching()" is defined in touch.h but is not implemented Adafruit's TouchScreen library
-// My function is based on https://forum.arduino.cc/index.php?topic=449719.0
-// Q: does this loop drastically slow down the main routine? A: yes
-// Warning - For Griduino, this implementation can cause erratic GPS readings, 
-// if the isTouching() loop takes 8 msec or more (4 loops * 2 msec)
+// Note - For Griduino, if this function takes longer than 8 msec it can cause erratic GPS readings
+// so we recommend against using https://forum.arduino.cc/index.php?topic=449719.0
 bool TouchScreen::isTouching(void) {
-  
-  #define MEASUREMENTS    3
-  uint16_t nTouchCount = 0, nTouch = 0;
+  #define TOUCHPRESSURE 200       // Minimum pressure we consider true pressing
+  static bool button_state = false;
+  uint16_t pres_val = pressure();
 
-  for (uint8_t nI = 0; nI < MEASUREMENTS; nI++) {
-    nTouch = pressure();    // read current pressure level
-    // Minimum and maximum pressure we consider true pressing
-    if (nTouch > 100 && nTouch < 900) {
-      nTouchCount++;
-    }
-
-    // pause between samples, but not after the last sample
-    if (nI < (MEASUREMENTS-1)) {
-      delay(1);             // 2019-12-20 bwh: added for Feather M4 Express
-    }
+  if ((button_state == false) && (pres_val > TOUCHPRESSURE)) {
+    Serial.println("button down");     // debug
+    button_state = true;
   }
+
+  if ((button_state == true) && (pres_val < TOUCHPRESSURE)) {
+    Serial.println("button up");       // debug
+    button_state = false;
+  }
+
   // Clean the touchScreen settings after function is used
   // Because LCD may use the same pins
-  pinMode(_xm, OUTPUT);     digitalWrite(_xm, LOW);
-  pinMode(_yp, OUTPUT);     digitalWrite(_yp, HIGH);
-  pinMode(_ym, OUTPUT);     digitalWrite(_ym, LOW);
-  pinMode(_xp, OUTPUT);     digitalWrite(_xp, HIGH);
+  // todo - is this actually necessary?
+  //pinMode(_xm, OUTPUT);     digitalWrite(_xm, LOW);
+  //pinMode(_yp, OUTPUT);     digitalWrite(_yp, HIGH);
+  //pinMode(_ym, OUTPUT);     digitalWrite(_ym, LOW);
+  //pinMode(_xp, OUTPUT);     digitalWrite(_xp, HIGH);
 
-  return nTouchCount >= MEASUREMENTS;
+  return button_state;
 }
 
 void mapTouchToScreen(TSPoint touch, Point* screen) {
@@ -601,8 +598,10 @@ void setup() {
 
   // ----- restore configuration settings
   SaveRestore myconfig = SaveRestore(TIME_FOLDER, TIME_FILE, TIME_VERSION);
-  gTimeZone = myconfig.readConfig();
-  Serial.print("Time zone changed to "); Serial.println(gTimeZone);
+  if (myconfig.readConfig()) {
+    gTimeZone = myconfig.intSetting;
+  }
+  Serial.print("Time zone restored to "); Serial.println(gTimeZone);
 
   // ----- announce ourselves
   startSplashScreen();
