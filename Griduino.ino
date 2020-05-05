@@ -134,7 +134,7 @@ On-board lights:
   // https://learn.adafruit.com/adafruit-feather-m4-express-atsamd51/setup
   
   #define TFT_BL   4    // TFT backlight
-  #define TFT_CS   5    // TFT select pin
+  #define TFT_CS   5    // TFT chip select pin
   #define TFT_DC  12    // TFT display/command pin
 
   #define SD_CD   10    // SD card detect pin - Feather
@@ -145,7 +145,7 @@ On-board lights:
   #define SD_CCS   7    // SD card select pin - Mega
   #define SD_CD    8    // SD card detect pin - Mega
   #define TFT_DC   9    // TFT display/command pin
-  #define TFT_CS  10    // TFT select pin
+  #define TFT_CS  10    // TFT chip select pin
 
 #else
   // todo: Unknown platform
@@ -219,26 +219,21 @@ typedef struct {
 // ------------ definitions
 const int howLongToWait = 6;  // max number of seconds at startup waiting for Serial port to console
 const int gNumViews = 3;      // total number of different views (screens) we've implemented
-int gViewIndex = 0;           // selects which view to show
+int gViewIndex = 2; // = 0;           // selects which view to show
                               // init to a safe value, override in setup()
 
-// ------------ global scope
+// ========== global scope =====================================
 int gTextSize;                          // no such function as "tft.getTextSize()" so remember it on our own
 int gUnitFontWidth, gUnitFontHeight;    // character cell size for TextSize(1)
 int gCharWidth, gCharHeight;            // character cell size for TextSize(n)
 
 // ---------- Morse Code ----------
-#include "morse_dac.h"
+#include "morse_dac.h"      // Morse Code using digital-audio converter DAC0
 DACMorseSender dacMorse(DAC_PIN, gFrequency, gWordsPerMinute);
 
 // "morse_dac.cpp"  replaced  "morse.h"
 //#include "morse.h"         // Morse Code Library for Arduino with Non-Blocking Sending
 //                           // https://github.com/markfickett/arduinomorse
-//SpeakerMorseSender spkrMorse(
-//  A0,             // PIN_SPEAKER
-//  2000,           // tone frequency
-//  0,              // carrier frequency
-//  18);            // wpm
 
 // ========== extern ===========================================
 void runUnitTest();                     // unit_test.cpp
@@ -761,6 +756,7 @@ void setup() {
   // ----- announce ourselves
   startSplashScreen();
 
+  /* debug: removed to speed up testing
   // at 18 wpm, it takes 12 seconds to send "de k7bwh es km7o" 
   dacMorse.setMessage("de k7bwh es km7o");
   dacMorse.sendBlocking();            // TODO - send non-blocking
@@ -768,6 +764,7 @@ void setup() {
 
   startHelpScreen();
   delay(2000);
+  */
 
   // ----- select opening view screen
   gaStartView[gViewIndex]();          // start current view, eg, startGridScreen()
