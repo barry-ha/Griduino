@@ -89,22 +89,23 @@ const int yRow2 = yRow1 + 30;     // text:  "4 of 10"
 //nst int yRow6 = yRow5 + 44;
 
 const int labelX = 8;       // indent labels, slight margin to left edge of screen
-const int valueX = 124;     // indent values
+const int xBigNum = 56;     // indent values
+const int yBigNum = yRow2;
 
 const int numLabels = 2;
 Label volLabels[numLabels] = {
   //   text          x,y      color  
-  {"Audio Volume",  64,yRow1, cLABEL},
-  {"of 10",         64,yRow2, cLABEL},
+  {"Audio Volume",  98,yRow1, cLABEL},
+  {"of 10",         98,yRow2, cLABEL},
 };
 const int nVolButtons = 3;
 const int margin = 10;      // slight margin between button border and edge of screen
 const int radius = 10;      // rounded corners
 Button volButtons[nVolButtons] = {
   // text     x,y        w,h        r      color
-  {"",       50, 80,   140,74,  radius, cBUTTONLABEL, volUp  }, // Up
-  {"",       50,158,   140,75,  radius, cBUTTONLABEL, volDown}, // Down
-  {"Mute",  220,118,    90,64,  radius, cBUTTONLABEL, volMute}, // Mute
+  {"",       38, 76,   136,72,  radius, cBUTTONLABEL, volUp  }, // Up
+  {"",       38,156,   136,72,  radius, cBUTTONLABEL, volDown}, // Down
+  {"Mute",  208,116,    90,68,  radius, cBUTTONLABEL, volMute}, // Mute
 };
 int volLevel[11] = {
   // Digital potentiometer settings, about 2 dB steps = ratio 1.585
@@ -127,7 +128,7 @@ void setVolume(int volIndex) {
   // @param wiperPosition = 0..10
   int wiperPosition = volLevel[ volIndex ];
   volume.setWiperPosition( wiperPosition );
-  ~Serial.print("Set wiper position "); Serial.println(wiperPosition);
+  Serial.print("Set wiper position "); Serial.println(wiperPosition);
   saveConfigVolume();     // non-volatile storage
 }
 void changeVolume(int diff) {
@@ -196,14 +197,16 @@ void startVolumeScreen() {
   }
 
   // ----- icons on buttons
-  int sz = 20;
+  int ht = 24;                                  // height of triangle
+  int ww = 16;                                  // width of triangle
+  int nn = 8;                                   // nudge toward center of button
   int xx = volButtons[0].x + volButtons[0].w/2; // centerline is halfway in the middle
   int yy = volButtons[0].y + volButtons[0].h/2; // baseline is halfway in the middle
   //                  x0,y0,     x1,y1,     x2,y2,   color
-  tft.fillTriangle(xx-sz,yy+4,  xx+sz,yy+4,  xx,yy-sz, cVALUE);  // arrow UP
+  tft.fillTriangle(xx-ww,yy+nn,  xx+ww,yy+nn,  xx,yy-ht+nn, cVALUE);  // arrow UP
 
   yy = volButtons[1].y + volButtons[1].h/2;
-  tft.fillTriangle(xx-sz,yy-4,  xx+sz,yy-4,  xx,yy+sz, cVALUE);  // arrow DOWN
+  tft.fillTriangle(xx-ww,yy-nn,  xx+ww,yy-nn,  xx,yy+ht-nn, cVALUE);  // arrow DOWN
 
   gPrevVolIndex = -1;
   updateVolumeScreen();             // fill in values immediately, don't wait for loop() to eventually get around to it
@@ -216,8 +219,8 @@ void updateVolumeScreen() {
   // ----- volume
   if (gVolIndex != gPrevVolIndex) {
     initFontSizeBig();
-    //                                 x,y       w  String             color
-    erasePrintProportionalText(labelX+16,yRow2, 36, String(gVolIndex), cVALUE);
+    //                               x,y         w  String             color
+    erasePrintProportionalText(xBigNum,yBigNum, 36, String(gVolIndex), cVALUE);
 
     gPrevVolIndex = gVolIndex;
   }
@@ -232,10 +235,10 @@ bool onTouchVolume(Point touch) {
         handled = true;             // hit!
         item.function();            // do the thing
 
-        tft.setCursor(touch.x, touch.y);  // debug: show where hit
-        initFontSizeSmall();
-        tft.print("x");
+        //tft.setCursor(touch.x, touch.y);  // debug: show where hit
+        //initFontSizeSmall();
+        //tft.print("x");
      }
   }
-  return true;  // handled; // debug ALWAYS handle                  // true=handled, false=controller uses default action
+  return handled;         // true=handled, false=controller uses default action
 }

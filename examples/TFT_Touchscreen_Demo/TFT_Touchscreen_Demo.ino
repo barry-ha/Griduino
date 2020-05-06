@@ -12,11 +12,11 @@
             Use SERIAL MONITOR in the Arduino workbench to see results of touching screen.
 
   Tested with:
-         1. Arduino Mega 2560 Rev3 (16 MHz ATmega2560)
-            Spec: https://www.adafruit.com/product/191
-        -OR- 
-            Arduino Feather M4 Express (120 MHz SAMD51)
+         1. Arduino Feather M4 Express (120 MHz SAMD51)
             Spec: https://www.adafruit.com/product/3857
+        -OR- 
+            Arduino Mega 2560 Rev3 (16 MHz ATmega2560)
+            Spec: https://www.adafruit.com/product/191
 
          2. Adafruit 3.2" TFT color LCD display ILI-9341
             Spec: http://adafru.it/1743
@@ -315,9 +315,9 @@ void loop() {
 
   // if there's touchscreen input, handle it
   Point touch;
-  const int radius = 4;
   if (newScreenTap(&touch)) {
-    tft.fillCircle(touch.x, touch.y, radius, cVALUE);
+    const int radius = 3;    // debug
+    tft.fillCircle(touch.x, touch.y, radius, cVALUE);  // debug
 
     
   }

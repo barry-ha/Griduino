@@ -85,7 +85,7 @@ void erasePrintProportionalText(int xx, int yy, int ww, String text, uint16_t cc
   tft.getTextBounds(text, xx, yy, &x1, &y1, &w, &h);
 
   tft.fillRect(x1-4, y1-2, ww, h+4, cBACKGROUND); // erase the requested width of old text
-  //t.drawRect(x1-4, y1-2, ww, h+4, cWARN);       // debug: show what area was erased
+  //tft.drawRect(x1-4, y1-2, ww, h+4, cWARN);       // debug: show what area was erased
 
   // print new text in same spot
   tft.setCursor(xx, yy);
