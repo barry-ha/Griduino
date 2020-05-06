@@ -8,14 +8,8 @@
             2020-03-05 created v10.0
             2020-04-12 created v10.1
 
-  Changelog: v9 generates sound by synthesized sine wave intended
-            for decent fidelity from a small speaker. The hardware goal is to 
-            have an audio chain sufficient for possible future spoken-word output.
-
-            This version 9 is converging on our final hardware, and is 
-            written while Barry powers up a new soldered breadboard, new
-            Feather processor, new audio amp, and refining the software.
-
+  Changelog: v9.0 generates sound by synthesized sine wave intended for decent fidelity
+            from a small speaker. The hardware goal is for spoken-word output.
             v9.2 adds Morse Code announcements via generated audio waveform on DAC.
             v9.3 makes the Morse Code actually work, and replaces view_stat_screen
             v9.4 adds a new view for controlling audio volume
@@ -342,12 +336,10 @@ void mapTouchToScreen(TSPoint touch, Point* screen) {
   //
   // Typical measured pressures=200..549
 
-  screen->x = 0;
-  screen->y = 0;
-
   // setRotation(1) = landscape orientation = x-,y-axis exchanged
-  screen->x = map(touch.y, 100, 900,  0, tft.width());
-  screen->y = map(touch.x, 900, 100,  0, tft.height());
+  //          map(value    in_min,in_max, out_min,out_max)
+  screen->x = map(touch.y,  225,825,      0, tft.width());
+  screen->y = map(touch.x,  800,300,      0, tft.height());
   return;
 }
 
@@ -750,6 +742,9 @@ void setup() {
   tft.setRotation(1);                 // landscape (default is portrait)
   clearScreen();
 
+  // ----- init touch screen
+  ts.pressureThreshhold = 200;
+
   // ----- run unit tests, if allowed by "#define RUN_UNIT_TESTS"
   runUnitTest();                      // see "unit_test.cpp"
 
@@ -841,6 +836,11 @@ void loop() {
   Point touch;
   if (newScreenTap(&touch)) {
     bool touchHandled = gaOnTouch[gViewIndex](touch);
+
+    //const int radius = 3;     // debug
+    //tft.fillCircle(touch.x, touch.y, radius, cWARN);  // debug - show dot
+    //touchHandled = true;      // debug - true=stay on same screen
+
     if (!touchHandled) {
       // not handled by one of the views, so run our default action
       if (touch.y < gScreenHeight / 2) {
