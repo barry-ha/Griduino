@@ -7,7 +7,7 @@
 #define PROGRAM_LINE1   "Barry K7BWH"
 #define PROGRAM_LINE2   "John KM7O"
 
-
+#define SCREEN_ROTATION 3   // 1=landscape, 3=landscape 180-degrees
 #define gScreenWidth 320    // pixels wide
 #define gScreenHeight 240   // pixels high
                             // we use #define here instead of reading it from "tft.width()" because this

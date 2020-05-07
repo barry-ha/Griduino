@@ -37,6 +37,8 @@
 #define PROGRAM_LINE1   "Barry K7BWH"
 #define PROGRAM_LINE2   "John KM7O"
 
+#define SCREEN_ROTATION 3         // 1=landscape rsu, 3=landscape usd
+
 // ---------- Hardware Wiring ----------
 /*                                Arduino       Adafruit
   ___Label__Description______________Mega_______Feather M4__________Resource____
@@ -220,6 +222,11 @@ void mapTouchToScreen(TSPoint touch, Point* screen) {
   //          map(value    in_min,in_max, out_min,out_max)
   screen->x = map(touch.y,  225,825,      0, tft.width());
   screen->y = map(touch.x,  800,300,      0, tft.height());
+  if (SCREEN_ROTATION == 3) {
+    // if display is flipped, then also flip both x,y touchscreen coords
+    screen->x = tft.width() - screen->x;
+    screen->y = tft.height() - screen->y;
+  }
   return;
 }
 
@@ -285,7 +292,7 @@ void setup() {
 
   // ----- init TFT display
   tft.begin();                        // initialize TFT display
-  tft.setRotation(1);                 // landscape (default is portrait)
+  tft.setRotation(SCREEN_ROTATION);   // landscape (default is portrait)
   clearScreen();
 
   // ----- init touch screen
