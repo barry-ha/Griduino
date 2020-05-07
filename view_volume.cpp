@@ -32,29 +32,6 @@
 #include "DS1804.h"               // DS1804 digital potentiometer library
 #include "save_restore.h"         // save/restore configuration data to SDRAM
 
-// ------------ typedef's
-typedef struct {
-  int x;
-  int y;
-} Point;
-
-typedef struct {
-  char text[26];
-  int x;
-  int y;
-  uint16_t color;
-} Label;
-
-typedef void (*simpleFunction)();
-typedef struct {
-  char text[26];
-  int x, y;
-  int w, h;
-  int radius;
-  uint16_t color;
-  simpleFunction function;
-} Button;
-
 // ========== global scope =====================================
 int gVolIndex = 5;          // init to middle value
 int gPrevVolIndex = -1;     // remembers previous volume setting to avoid erase/write the same value

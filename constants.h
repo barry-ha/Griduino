@@ -37,4 +37,31 @@
 #define cBUTTONLABEL    ILI9341_YELLOW
 #define cWARN           0xF844            // brighter than ILI9341_RED but not pink
 
+// ------------ typedef's
+typedef struct {
+  int x, y;
+} Point;
+
+typedef struct {
+  int left, top;
+  int width, height;
+  char label[12];
+} Rectangle;
+
+typedef struct {
+  char text[26];
+  int x, y;
+  uint16_t color;
+} Label;
+
+typedef void (*simpleFunction)();
+typedef struct {
+  char text[26];
+  int x, y;
+  int w, h;
+  int radius;
+  uint16_t color;
+  simpleFunction function;
+} Button;
+
 #endif // _GRIDUINO_CONSTANTS_H

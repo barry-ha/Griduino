@@ -204,12 +204,6 @@ int gWiper = 15;              // initial digital potentiometer wiper position, 0
 int gFrequency = 1100;        // initial Morse code sidetone pitch
 int gWordsPerMinute = 18;     // initial Morse code sending speed
 
-// ------------ typedef's
-typedef struct {
-  int x;
-  int y;
-} Point;
-
 // ------------ definitions
 const int howLongToWait = 6;  // max number of seconds at startup waiting for Serial port to console
 const int gNumViews = 3;      // total number of different views (screens) we've implemented

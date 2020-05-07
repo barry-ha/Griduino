@@ -38,18 +38,6 @@ void initFontSizeSmall();           // Griduino.ino
 void initFontSizeBig();             // Griduino.ino
 int getOffsetToCenterText(String text); // Griduino.ino
 
-// ------------ typedef's
-typedef struct {
-  int x;
-  int y;
-} Point;
-typedef struct {
-  char text[24];
-  int x;
-  int y;
-  uint16_t color;
-} Label;
-
 // ========== constants ===============================
 // placement of text rows
 const int yRow1 = 28;

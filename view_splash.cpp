@@ -30,12 +30,6 @@ void initFontSizeSmall();           // Griduino.ino
 void initFontSizeBig();             // Griduino.ino
 int getOffsetToCenterText(String text); // Griduino.ino
 
-// ------------ typedef's
-typedef struct {
-  int x;
-  int y;
-} Point;
-
 // ========== constants ===============================
 // vertical placement of text rows
 const int gSplashyTitle = 84;       // ~= (gCharHeight * 2);

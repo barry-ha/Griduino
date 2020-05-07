@@ -28,21 +28,6 @@ int getOffsetToCenterText(String text); // Griduino.ino
 
 // ========== constants ===============================
 
-// ------------ typedef's
-typedef struct {
-  int x;
-  int y;
-} Point;
-typedef struct {
-  char text[26];
-  int x;
-  int y;
-  int w;
-  int h;
-  int radius;
-  uint16_t color;
-} Button;
-
 // ========== globals =================================
 
 const int nHelpButtons = 2;

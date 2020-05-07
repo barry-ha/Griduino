@@ -40,12 +40,6 @@ void initFontSizeSystemSmall();     // Griduino.ino
 int getOffsetToCenterText(String text); // Griduino.ino
 void drawProportionalText(int ulX, int ulY, String prevText, String newText, bool dirty);
 
-// ------------ typedef's
-typedef struct {
-  int x;
-  int y;
-} Point;
-
 // ========== constants ===============================
 const int gMarginX = 70;            // define space for grid outline on screen
 const int gMarginY = 26;            // and position text relative to this outline
@@ -140,6 +134,9 @@ void drawPositionLL(String sLat, String sLong) {
     tft.setCursor(x0, y0);
     tft.print("Waiting for GPS");
   }
+}
+void drawNSEW() {
+  initFontSizeSmall();
 }
 void drawLatLong() {
   return;   // disabled because it makes the screen too busy
