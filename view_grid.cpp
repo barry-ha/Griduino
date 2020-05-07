@@ -135,8 +135,21 @@ void drawPositionLL(String sLat, String sLong) {
     tft.print("Waiting for GPS");
   }
 }
-void drawNSEW() {
+void drawCompassPoints() {
+  const int numCompass = 4;
+  const Label compassLabels[numCompass] = {
+    // text   x    y     color  
+    { "N",   156,  47,  cCOMPASS },  // centered left-right
+    { "S",   156, 181,  cCOMPASS },
+    { "E",   232, 114,  cCOMPASS },  // centered top-bottom
+    { "W",    73, 114,  cCOMPASS },
+  };
   initFontSizeSmall();
+  for (int ii=0; ii<numCompass; ii++) {
+    tft.setTextColor( compassLabels[ii].color );
+    tft.setCursor( compassLabels[ii].x, compassLabels[ii].y );
+    tft.print( compassLabels[ii].text );
+  }
 }
 void drawLatLong() {
   return;   // disabled because it makes the screen too busy
@@ -144,7 +157,7 @@ void drawLatLong() {
             // also disabled because it always shows 47-48 and 122-124 degrees
 
   initFontSizeSmall();
-  tft.setTextColor(ILI9341_CYAN, ILI9341_BLACK);
+  tft.setTextColor(cCOMPASS, ILI9341_BLACK);
 
   tft.setCursor(gCharWidth * 1 / 2, gTopRowY);
   tft.print("124");   // TODO: read this from the model
@@ -243,7 +256,8 @@ void updateGridScreen() {
   // called on every pass through main()
   drawGridName(model.gsGridName);   // huge letters centered on screen
   drawPositionLL(model.gsLatitude, model.gsLongitude);  // lat-long of current position
-  drawLatLong();                    // identify box
+  drawCompassPoints();              // sprinkle N-S-E-W around grid square
+  drawLatLong();                    // identify coordinates of grid square
   drawNeighborGridNames();          // sprinkle names around outside box
   drawNeighborDistances();          // this is the main goal of the whole project
   plotPosition(model.gLatitude, model.gLongitude);      // pushpin

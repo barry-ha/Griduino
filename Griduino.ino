@@ -750,8 +750,8 @@ void setup() {
   // at 18 wpm, it takes 12 seconds to send "de k7bwh es km7o" 
   dacMorse.setMessage("de k7bwh es km7o");
   dacMorse.sendBlocking();            // TODO - send non-blocking
-  delay(1000);
   ..... */
+  delay(1000);
 
   startHelpScreen();
   delay(2000);

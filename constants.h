@@ -35,6 +35,7 @@
 #define cBUTTONFILL     ILI9341_NAVY
 #define cBUTTONOUTLINE  ILI9341_CYAN
 #define cBUTTONLABEL    ILI9341_YELLOW
+#define cCOMPASS        ILI9341_BLUE      // a little darker than cBUTTONOUTLINE
 #define cWARN           0xF844            // brighter than ILI9341_RED but not pink
 
 // ------------ typedef's
