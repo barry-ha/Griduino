@@ -116,14 +116,11 @@ TouchScreen ts = TouchScreen(PIN_XP, PIN_YP, PIN_XM, PIN_YM, 295);
 
 // ------------ typedef's
 typedef struct {
-  int x;
-  int y;
+  int x, y;
 } Point;
 typedef struct {
-  int left;
-  int top;
-  int width;
-  int height;
+  int left, top;
+  int width, height;
   char label[12];
 } Rectangle;
 
