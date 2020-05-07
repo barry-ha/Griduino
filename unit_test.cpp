@@ -5,6 +5,7 @@
 
 #include <arduino.h>
 #include "constants.h"            // Griduino constants and colors
+#ifdef RUN_UNIT_TESTS
 #include "Adafruit_GFX.h"         // Core graphics display library
 #include "Adafruit_ILI9341.h"     // TFT color display library
 #include "morse_dac.h"            // Morse code
@@ -31,7 +32,6 @@ extern DACMorseSender dacMorse;             // Morse code
 extern Model model;
 
 // ----- Testing "grid helper" routines in Griduino.ino
-#ifdef RUN_UNIT_TESTS
 void testNextGridLineEast(float fExpected, double fLongitude) {
   // unit test helper for finding grid line crossings
   float result = nextGridLineEast(fLongitude);
@@ -71,10 +71,8 @@ void testCalcLocator(String sExpected, double lat, double lon) {
     //~Serial.println(" <-- Unequal");
   }
 }
-#endif // RUN_UNIT_TESTS
 
 // ----- Testing "distance helper" routines in Griduino.cpp
-#ifdef RUN_UNIT_TESTS
 void testDistanceLat(String sExpected, double fromLat, double toLat) {
   // unit test helper function to calculate N-S distances
   String sResult = calcDistanceLat(fromLat, toLat);
@@ -93,12 +91,10 @@ void testDistanceLong(String sExpected, double lat, double fromLong, double toLo
     Serial.println(" <-- Unequal");
   }
 }
-#endif // RUN_UNIT_TESTS
 
 // ----- Testing display routines in Griduino.ino
 // ========== unit tests ========================
 void runUnitTest() {
-#ifdef RUN_UNIT_TESTS
   tft.fillScreen(ILI9341_BLACK);
 
   // ----- announce ourselves
@@ -239,5 +235,5 @@ void runUnitTest() {
 
   delay(4000);                      // give user time to inspect display appearance for unit test problems
 
-#endif // RUN_UNIT_TESTS
 }
+#endif // RUN_UNIT_TESTS

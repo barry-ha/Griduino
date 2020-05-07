@@ -213,7 +213,7 @@ typedef struct {
 // ------------ definitions
 const int howLongToWait = 6;  // max number of seconds at startup waiting for Serial port to console
 const int gNumViews = 3;      // total number of different views (screens) we've implemented
-int gViewIndex = 2; // = 0;           // selects which view to show
+int gViewIndex = 0;           // selects which view to show first
                               // init to a safe value, override in setup()
 
 // ========== global scope =====================================
@@ -230,8 +230,6 @@ DACMorseSender dacMorse(DAC_PIN, gFrequency, gWordsPerMinute);
 //                           // https://github.com/markfickett/arduinomorse
 
 // ========== extern ===========================================
-void runUnitTest();                     // unit_test.cpp
-
 void updateGridScreen();                // view_grid.cpp
 void startGridScreen();
 bool onTouchGrid(Point touch);
@@ -746,20 +744,23 @@ void setup() {
   ts.pressureThreshhold = 200;
 
   // ----- run unit tests, if allowed by "#define RUN_UNIT_TESTS"
+  #ifdef RUN_UNIT_TESTS
+  void runUnitTest();                 // extern declaration
   runUnitTest();                      // see "unit_test.cpp"
+  #endif
 
   // ----- announce ourselves
   startSplashScreen();
 
-  /* debug: removed to speed up testing
+  /* debug: removed to speed up testing.....
   // at 18 wpm, it takes 12 seconds to send "de k7bwh es km7o" 
   dacMorse.setMessage("de k7bwh es km7o");
   dacMorse.sendBlocking();            // TODO - send non-blocking
   delay(1000);
+  ..... */
 
   startHelpScreen();
   delay(2000);
-  */
 
   // ----- select opening view screen
   gaStartView[gViewIndex]();          // start current view, eg, startGridScreen()
