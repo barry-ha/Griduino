@@ -7,7 +7,7 @@
 #define PROGRAM_LINE1   "Barry K7BWH"
 #define PROGRAM_LINE2   "John KM7O"
 
-#define SCREEN_ROTATION 3   // 1=landscape, 3=landscape 180-degrees
+#define SCREEN_ROTATION 1   // 1=landscape, 3=landscape 180-degrees
 #define gScreenWidth 320    // pixels wide
 #define gScreenHeight 240   // pixels high
                             // we use #define here instead of reading it from "tft.width()" because this
@@ -29,6 +29,7 @@
 // RGB 565 color code: http://www.barth-dev.de/online/rgb565-color-picker/
 #define BACKGROUND      0x00A             // a little darker than ILI9341_NAVY
 #define cBACKGROUND     0x00A             // 0,   0,  10 = darker than ILI9341_NAVY, but not black
+#define cGRIDNAME       ILI9341_GREEN
 #define cLABEL          ILI9341_GREEN
 #define cVALUE          ILI9341_YELLOW
 #define cHIGHLIGHT      ILI9341_WHITE
