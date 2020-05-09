@@ -1,76 +1,70 @@
-/* File: view_splash_screen.cpp
+/*
+  File: view_splash_screen.cpp
 
-  When you power up the Griduino, you are greeted with this view.
-  We announce ourselves and give credit to developers.
+  Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
+  Hardware: John Vanderbeck, KM7O, Seattle, WA
 
-  +-----------------------------------+
-  | Welcome:                          |
-  |      Griduino                     |
-  |       version 1.0                 |
-  |                                   |
-  |    Barry K7BWH                    |
-  |    John KM7O                      |
-  |                                   |
-  +-----------------------------------+
+  Purpose:  When you power up the Griduino, you are greeted with this view.
+            We announce ourselves and the version number.
+
+            +-----------------------------------+
+            |                                   |
+            |      Griduino                     |
+            |      version 1.0                  |
+            |                                   |
+            |      Barry K7BWH                  |
+            |      John KM7O                    |
+            |                                   |
+            +-----------------------------------+
 */
 
 #include <Arduino.h>
-#include <Adafruit_GFX.h>           // Core graphics display library
-#include <Adafruit_ILI9341.h>       // TFT color display library
-#include "constants.h"              // Griduino constant definitions
+#include "Adafruit_GFX.h"           // Core graphics display library
+#include "Adafruit_ILI9341.h"       // TFT color display library
+#include "constants.h"              // Griduino constants and colors
+#include "TextField.h"              // Optimize TFT display text for proportional fonts
 
-// ========== extern ==================================
+// ========== extern ===========================================
 extern Adafruit_ILI9341 tft;        // Griduino.ino
-extern int gTextSize;               // no such function as "tft.getTextSize()" so remember it on our own
-extern int gCharWidth, gCharHeight; // character cell size for TextSize(n)
-extern int gUnitFontWidth, gUnitFontHeight; // character cell size for TextSize(1)
 
-void showNameOfView(String sName, uint16_t fgd, uint16_t bkg);  // Griduino.ino
-void initFontSizeSmall();           // Griduino.ino
 void initFontSizeBig();             // Griduino.ino
-int getOffsetToCenterText(String text); // Griduino.ino
+void initFontSizeSmall();           // Griduino.ino
 
-// ========== constants ===============================
-// vertical placement of text rows
-const int gSplashyTitle = 84;       // ~= (gCharHeight * 2);
-const int gSplashyVersion = 110;    // ~= (gSplashyTitle + gCharHeight);
-const int gSplashyCredit1 = 164;    // ~= (gScreenHeight / 2);
-const int gSplashyCredit2 = 196;    // ~= (gSplashyCredit1 + gCharHeight*1.5);
+// ============== constants ====================================
 
-// ========== globals =================================
+// color scheme: see constants.h
 
-// ========== helpers =================================
+const int numSplashFields = 4;
+TextField txtSplash[numSplashFields] = {
+  //        text               x,y    color  
+  TextField(PROGRAM_TITLE,    64, 84, cHIGHLIGHT),  // giant program title, centered
+  TextField(PROGRAM_VERSION, 132,110, cVALUE),      // normal size text, centered
+  TextField(PROGRAM_LINE1,    89,164, cVALUE),
+  TextField(PROGRAM_LINE2,    98,196, cVALUE),
+};
 
-// ========== splash screen ===========================
+// ========== helpers ==========================================
+
+// ========== splash screen view ===============================
+void updateSplashScreen() {
+  // called on every pass through main()
+  // nothing to do in the main loop - this screen has no dynamic items
+}
 void startSplashScreen() {
-  tft.fillScreen(cBACKGROUND);
+  // called once each time this view becomes active
+  tft.fillScreen(cBACKGROUND);      // clear screen
+  txtSplash[0].setBackground(cBACKGROUND);                // set background for all TextFields in this view
+  TextField::setTextDirty( txtSplash, numSplashFields );  // make sure all fields get re-printed on screen change
+
   initFontSizeBig();
+  txtSplash[0].print();        // large program title
 
-  // ----- large title
-  // figure out how to center title l-r across screen
-  int llX = getOffsetToCenterText(PROGRAM_TITLE);
-  tft.setCursor(llX, gSplashyTitle);
-  tft.setTextColor(ILI9341_WHITE);
-  tft.print(PROGRAM_TITLE);
-
-  // ----- version
   initFontSizeSmall();
-  llX = getOffsetToCenterText(PROGRAM_VERSION);
-  tft.setTextColor(ILI9341_YELLOW);
-  tft.setCursor(llX, gSplashyVersion);
-  tft.print(PROGRAM_VERSION);
-
-  // ----- small credits
-  llX = getOffsetToCenterText(PROGRAM_LINE1);
-  tft.setCursor(llX, gSplashyCredit1);
-  tft.print(PROGRAM_LINE1);
-
-  llX = getOffsetToCenterText(PROGRAM_LINE2);
-  tft.setCursor(llX, gSplashyCredit2);
-  tft.print(PROGRAM_LINE2);
-
-  // ----- label this view in upper left corner
-  //showNameOfView("Welcome!", ILI9341_YELLOW, ILI9341_BLUE);
+  txtSplash[1].print();        // program version
+  txtSplash[2].print();        // credits 1
+  txtSplash[3].print();        // credits 2
+  
+  updateSplashScreen();             // fill in values immediately, don't wait for the main loop to eventually get around to it
 
 #ifdef USE_MORSE_CODE
   // ----- announce in Morse code, so vehicle's driver doesn't have to look at the screen
@@ -78,14 +72,8 @@ void startSplashScreen() {
   //spkrMorse.startSending();       // non-blocking (TODO: does not send evenly)
   spkrMorse.sendBlocking();         // blocking
 #endif
-
-  //delay(4000);                    // no delay - the controller handles the schedule
-  //tft.fillScreen(cBACKGROUND);    // no clear - this screen is visible until the next view clears it
-}
-void updateSplashScreen() {
-  // nothing to do in the main loop - this screen has no dynamic items
 }
 bool onTouchSplash(Point touch) {
   Serial.println("->->-> Touched splash screen.");
-  return false;                     // ignore touch, let controller handle with default action
+  return false;                     // true=handled, false=controller uses default action
 }

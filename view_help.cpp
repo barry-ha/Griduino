@@ -1,4 +1,8 @@
-/* File: view_help_screen.cpp
+/*
+  File: view_help_screen.cpp
+
+  Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
+  Hardware: John Vanderbeck, KM7O, Seattle, WA
 
   +-----------------------------------+
   | Hint:                             |
@@ -10,25 +14,24 @@
   |                                   |
   +-----------------------------------+
    
- */
+*/
 
 #include <Arduino.h>
-#include <Adafruit_GFX.h>           // Core graphics display library
-#include <Adafruit_ILI9341.h>       // TFT color display library
+#include "Adafruit_GFX.h"           // Core graphics display library
+#include "Adafruit_ILI9341.h"       // TFT color display library
 #include "constants.h"              // Griduino constants and colors
 
 // ========== extern ===========================================
 extern Adafruit_ILI9341 tft;        // Griduino.ino
-void updateHelpScreen();            // forward reference in this same .cpp file
 
 void showNameOfView(String sName, uint16_t fgd, uint16_t bkg);  // Griduino.ino
-void initFontSizeSmall();           // Griduino.ino
 void initFontSizeBig();             // Griduino.ino
+void initFontSizeSmall();           // Griduino.ino
 int getOffsetToCenterText(String text); // Griduino.ino
 
-// ========== constants ===============================
+// ============== constants ====================================
 
-// ========== globals =================================
+// ========== globals ==========================================
 
 const int nHelpButtons = 2;
 const int margin = 10;      // slight margin between button border and edge of screen
@@ -39,11 +42,15 @@ Button helpButtons[nHelpButtons] = {
   {"Tap to change brightness", margin,126,     300, 100,  radius, cBUTTONLABEL},
 };
 
-// ========== helpers =================================
+// ========== helpers ==========================================
 
 // ========== help screen view =================================
+void updateHelpScreen() {
+  // nothing to do in the main loop - this screen has no dynamic items
+}
 void startHelpScreen() {
-  tft.fillScreen(cBACKGROUND);
+  // called once each time this view becomes active
+  tft.fillScreen(cBACKGROUND);      // clear screen
   initFontSizeSmall();
 
   // ----- draw buttons
@@ -59,17 +66,12 @@ void startHelpScreen() {
     tft.print(item.text);
   }
 
-  updateHelpScreen();             // fill in values immediately, don't wait for loop() to eventually get around to it
+  updateHelpScreen();               // fill in values immediately, don't wait for the main loop to eventually get around to it
 
   // ----- label this view in upper left corner
   showNameOfView("Hint: ", cWARN, cBACKGROUND);
-  //delay(4000);                    // no delay - the controller handles the schedule
-  //tft.fillScreen(cBACKGROUND);    // no clear - this screen is visible until the next view clears it
-}
-void updateHelpScreen() {
-  // nothing to do in the main loop - this screen has no dynamic items
 }
 bool onTouchHelp(Point touch) {
   Serial.println("->->-> Touched help screen.");
-  return false;                     // ignore touch, let controller handle with default action
+  return false;                     // true=handled, false=controller uses default action
 }

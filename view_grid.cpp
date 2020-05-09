@@ -1,50 +1,50 @@
 /*
   File: view_grid_screen.cpp
 
-  This sketch runs a GPS display for your vehicle's dashboard to show
-  your position in the Maidenhead Grid Square, with distances to
-  nearby squares. This is intended for ham radio rovers.
+  Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
+  Hardware: John Vanderbeck, KM7O, Seattle, WA
+
+  Purpose:  This sketch runs a GPS display for your vehicle's dashboard to
+            show your position in the Maidenhead Grid Square, with distances
+            to nearby squares. This is intended for ham radio rovers.
 
   +-------------------------------------------+
   |     124        CN88  30.1 mi      122     |...gTopRowY
   |   48 +-----------------------------+......|...gMarginY
   |      |                          *  |      |
   | CN77 |         CN87                | CN97 |...gMiddleRowY
-  | 61.2 |                             | 37.1 |
+  | 61.2 |          us                 | 37.1 |
   |      |                             |      |
   |   47 +-----------------------------+      |
-  |      :         CN86  39.0 mi       :      |...gBottomGridY
-  | 123' : 47.5644 :  -122.0378        :      |...gMessageRowY
+  | 123' :         CN86  39.0 mi       :      |...gBottomGridY
+  | 47.5644, -122.0378                 :   5# |...gMessageRowY
   +------:---------:-------------------:------+
          :         :                   :
        +gMarginX  gIndentX          -gMarginX
 */
 
 #include <Arduino.h>
-#include <Adafruit_GFX.h>           // Core graphics display library
-#include <Adafruit_ILI9341.h>       // TFT color display library
-#include "constants.h"              // Griduino constant definitions
+#include "Adafruit_GFX.h"           // Core graphics display library
+#include "Adafruit_ILI9341.h"       // TFT color display library
+#include "constants.h"              // Griduino constants and colors
 #include "model.cpp"                // "Model" portion of model-view-controller
+#include "TextField.h"              // Optimize TFT display text for proportional fonts
 
-// ========== extern ==================================
+// ========== extern ===========================================
 extern Adafruit_ILI9341 tft;        // Griduino.ino
-extern int gTextSize;               // no such function as "tft.getTextSize()" so remember it on our own
 extern int gCharWidth, gCharHeight; // character cell size for TextSize(n)
-extern int gUnitFontWidth, gUnitFontHeight; // character cell size for TextSize(1)
-extern int gCharWidth, gCharHeight;         // character cell size for TextSize(n)
 extern Model model;                 // "model" portion of model-view-controller
 
 void initFontSizeBig();             // Griduino.ino
 void initFontSizeSmall();           // Griduino.ino
 void initFontSizeSystemSmall();     // Griduino.ino
-int getOffsetToCenterText(String text); // Griduino.ino
 void drawProportionalText(int ulX, int ulY, String prevText, String newText, bool dirty);
 
-// ========== constants ===============================
+// ============== constants ====================================
 const int gMarginX = 70;            // define space for grid outline on screen
 const int gMarginY = 26;            // and position text relative to this outline
-const int gBoxWidth = 180;                // ~= (gScreenWidth - 2*gMarginX);
-const int gBoxHeight = 160;               // ~= (gScreenHeight - 3*gMarginY);
+const int gBoxWidth = 180;          // ~= (gScreenWidth - 2*gMarginX);
+const int gBoxHeight = 160;         // ~= (gScreenHeight - 3*gMarginY);
 
 // vertical placement of text rows
 const int gTopRowY = 20;            // ~= (gMarginY - gCharHeight - 2);
@@ -52,8 +52,7 @@ const int gMiddleRowY = 104;        // ~= (gScreenHeight - gCharHeight) / 2;
 const int gBottomGridY = 207;       // ~= (gScreenHeight - gCharHeight - 3*gCharHeight);
 const int gMessageRowY = 215;       // ~= (gScreenHeight - gCharHeight -1);
 
-// ========== globals =================================
-String prevGrid1_4, prevGrid5_6;
+// ========== globals ==========================================
 String prevGridNorth = "";
 String prevGridSouth = "";
 String prevGridEast = "";
@@ -64,91 +63,74 @@ String prevDistEast = "9999";
 String prevDistWest = "9999";
 bool gDirtyView = true;             // force all text fields to be updated
 
-// ========== helpers =================================
+// ========== helpers ==========================================
 void drawGridOutline() {
   tft.drawRect(gMarginX, gMarginY, gBoxWidth, gBoxHeight, ILI9341_CYAN);
 }
 // ----- workers for "updateGridScreen()" ----- in the same order as called, below
+
+TextField txtGrid4(101,101, cGRIDNAME);
+TextField txtGrid6(138,139, cGRIDNAME);
+
 void drawGridName(String newGridName) {
   // huge lettering of current grid square
   // two lines: "CN87" and "us" below it
-  // Note about proportional fonts:
-  // 1. The origin is bottom left corner
-  // 2. Printing text does not clear its own background
-  int rectX, rectY, rectWidth, rectHeight;
+
   initFontSizeBig();
 
-  //~Serial.print("drawGridName("); Serial.print(newGridName); Serial.println(")");  // debug
-
-  // --- line 1 ---
-  int stringlen = 4;     // = strlen(gsGridName)
   String grid1_4 = newGridName.substring(0, 4);
   String grid5_6 = newGridName.substring(4, 6);
 
-  // Compute upper-left corner position of text
-  rectWidth = stringlen * gCharWidth;           // "gCharWidth" is my approximation of average proportional font width
-  rectHeight = gCharHeight;                     // "gCharHeight" is an approximate proportional font height,
-                                                // taking into account both capital letters and descenders
-  rectX = (gScreenWidth - rectWidth) / 2;       // center text left-right (ul corner X)
-  rectY = (gScreenHeight / 2) - (rectHeight / 2); // center text top-bottom (ul corner Y)
-
-  const int g4x = rectX;                        // figure out where to put the giant Grid4 text
-  const int g4y = rectY;
-  const int g6x = rectX + gCharWidth * 8 / 6;   // the Grid6 letters are approx centered below Grid4
-  const int g6y = rectY + gCharHeight;
-
-  tft.setTextColor(ILI9341_GREEN);
-  if (model.grid4dirty) {
-    drawProportionalText(g4x, g4y, prevGrid1_4, grid1_4, model.grid4dirty);
-    model.grid4dirty = false;
-  }
-  if (model.grid6dirty) {
-    drawProportionalText(g6x, g6y, prevGrid5_6, grid5_6, model.grid6dirty);
-    model.grid6dirty = false;
-  }
-
-  // remember what was written so it can be erased accurately and efficiently at next grid-crossing
-  prevGrid1_4 = grid1_4;
-  prevGrid5_6 = grid5_6;
+  txtGrid4.print(grid1_4);
+  txtGrid6.print(grid5_6);
 }
-void drawPositionLL(String sLat, String sLong) {
-  initFontSizeSystemSmall();
-  tft.setTextColor(ILI9341_RED, ILI9341_BLACK);
 
-  int x0 = 0*gCharWidth;        // indent alt-lat-long on bottom row
-  int y0 = gScreenHeight - gCharHeight;
+TextField txtAlt("123'",              4,194, cWARN);    // just above bottom row
+TextField txtLL("47.1234,-123.5678",  4,223, cWARN);    // about centered on bottom row
+TextField txtNumSat("99#",          280,223, cWARN);    // lower right corner
+void drawPositionLL(String sLat, String sLong) {
+  //      |1...+....1....+....2....+.|
+  //      | ---------,----------  ---|
+  // e.g. | -123.4567, -123.4567  10#|
+  // e.g. |   47.1234, -122.1234   5#|
+  initFontSizeSystemSmall();
 
   // the message line shows either or a position (lat-long) or a message (waiting for GPS)
+  char sTemp[27];       // why 27? Small system font will fit 26 characters on one row
   if (model.gHaveGPSfix) {
-  
-    int altFeet = model.gAltitude * feetPerMeters;
-  
-    tft.setCursor(x0, y0);
-    //String message = altFeet + "',  " + sLat + ", " + sLong;
-    tft.print(altFeet);
-    tft.print("'   ");
-    tft.print(sLat);      // show latitude on row 1
-    tft.print(", ");
-    tft.print(sLong);
+    char latitude[10], longitude[10];
+    sLat.toCharArray(latitude, sizeof(latitude));
+    sLong.toCharArray(longitude, sizeof(longitude));
+    snprintf(sTemp, sizeof(sTemp), "%s, %s", latitude, longitude);
   } else {
-    tft.setCursor(x0, y0);
-    tft.print("Waiting for GPS");
+    strcpy(sTemp, "Waiting for GPS");
   }
+  txtLL.print(sTemp);               // latitude-longitude
+
+  if (model.gSatellites<10) {
+    sprintf(sTemp, " %d#", model.gSatellites);
+  } else {
+    sprintf(sTemp, "%d#", model.gSatellites);
+  }
+  txtNumSat.print(sTemp);           // number of satellites
+
+  int altFeet = model.gAltitude * feetPerMeters;
+  sprintf(sTemp, "%d'", altFeet);
+  txtAlt.print(sTemp);              // altitude
 }
+
+const int numCompass = 4;
+TextField txtCompass[numCompass] = {
+  //        text      x,y      color     background
+  TextField( "N",   156,  47,  cCOMPASS, ILI9341_BLACK ),  // centered left-right
+  TextField( "S",   156, 181,  cCOMPASS, ILI9341_BLACK ),
+  TextField( "E",   232, 114,  cCOMPASS, ILI9341_BLACK ),  // centered top-bottom
+  TextField( "W",    73, 114,  cCOMPASS, ILI9341_BLACK ),
+};
 void drawCompassPoints() {
-  const int numCompass = 4;
-  const Label compassLabels[numCompass] = {
-    // text   x    y     color  
-    { "N",   156,  47,  cCOMPASS },  // centered left-right
-    { "S",   156, 181,  cCOMPASS },
-    { "E",   232, 114,  cCOMPASS },  // centered top-bottom
-    { "W",    73, 114,  cCOMPASS },
-  };
   initFontSizeSmall();
   for (int ii=0; ii<numCompass; ii++) {
-    tft.setTextColor( compassLabels[ii].color );
-    tft.setCursor( compassLabels[ii].x, compassLabels[ii].y );
-    tft.print( compassLabels[ii].text );
+    txtCompass[ii].print();
   }
 }
 void drawLatLong() {
@@ -189,7 +171,6 @@ void drawNeighborGridNames() {
   prevGridEast  = model.gsGridEast;
 }
 void drawNeighborDistances() {
-  // test data: N 17.3 mi, S 63.4, E 15.5 to CN97as, W 81.4 to CN77xs
   initFontSizeSmall();
   tft.setTextColor(ILI9341_YELLOW, ILI9341_BLACK);
 
@@ -251,7 +232,7 @@ void plotPosition(double fLat, double fLong) {
   tft.drawCircle(plotX, plotY, radius, ILI9341_ORANGE); // draw new circle
   tft.drawPixel(plotX, plotY, ILI9341_WHITE);           // with a cherry in the middle
 }
-// ========== grid screen view ================
+// ========== grid screen view =================================
 void updateGridScreen() {
   // called on every pass through main()
   drawGridName(model.gsGridName);   // huge letters centered on screen
@@ -264,19 +245,26 @@ void updateGridScreen() {
   gDirtyView = false;
 }
 void startGridScreen() {
-  // called once when view becomes active
+  // called once each time this view becomes active
+  tft.fillScreen(ILI9341_BLACK);    // clear screen
+  txtCompass[0].setBackground(ILI9341_BLACK);          // set background for all TextFields in this view
+  TextField::setTextDirty( txtCompass, numCompass );   // make sure all fields get re-printed on screen change
+  txtGrid4.dirty = true;
+  txtGrid6.dirty = true;
+  txtAlt.dirty = true;
+  txtLL.dirty = true;
+  txtNumSat.dirty = true;
   initFontSizeSmall();
 
-  tft.fillScreen(ILI9341_BLACK);    // clear screen
   drawGridOutline();                // box outline around grid
   //tft.drawRect(0, 0, gScreenWidth, gScreenHeight, ILI9341_BLUE);  // debug: border around screen
   model.grid4dirty = true;          // reset the "previous grid" to trigger the new one to show
   model.grid6dirty = true;
   gDirtyView = true;                // force all text fields to be updated
 
-  updateGridScreen();
+  updateGridScreen();               // fill in values immediately, don't wait for the main loop to eventually get around to it
 }
 bool onTouchGrid(Point touch) {
   Serial.println("->->-> Touched grid detail screen.");
-  return false;                     // ignore touch, let controller handle with default action
+  return false;                     // true=handled, false=controller uses default action
 }

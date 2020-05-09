@@ -1,5 +1,5 @@
-/* File: view_volume.cpp
-
+/*
+  File: view_volume.cpp
 
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
@@ -24,30 +24,22 @@
 */
 
 #include <Arduino.h>
-#include "Adafruit_GFX.h"         // Core graphics display library
-#include "Adafruit_ILI9341.h"     // TFT color display library
-#include "constants.h"            // Griduino constant declarations
-#include "model.cpp"              // "Model" portion of model-view-controller
-#include "morse_dac.h"            // morse code
-#include "DS1804.h"               // DS1804 digital potentiometer library
-#include "save_restore.h"         // save/restore configuration data to SDRAM
-
-// ========== global scope =====================================
-int gVolIndex = 5;          // init to middle value
-int gPrevVolIndex = -1;     // remembers previous volume setting to avoid erase/write the same value
-
+#include "Adafruit_GFX.h"           // Core graphics display library
+#include "Adafruit_ILI9341.h"       // TFT color display library
+#include "constants.h"              // Griduino constants and colors
+#include "model.cpp"                // "Model" portion of model-view-controller
+#include "morse_dac.h"              // morse code
+#include "DS1804.h"                 // DS1804 digital potentiometer library
+#include "save_restore.h"           // save/restore configuration data to SDRAM
+#include "TextField.h"              // Optimize TFT display text for proportional fonts
 
 // ========== extern ===========================================
-extern Adafruit_ILI9341 tft;      // Griduino.ino
-extern void printProportionalText(int xx, int yy, String text, uint16_t cc);
-extern void erasePrintProportionalText(int xx, int yy, int ww, String text, uint16_t cc); // view_status.cpp
+extern Adafruit_ILI9341 tft;        // Griduino.ino
 extern DACMorseSender dacMorse;   // morse code (so we can send audio samples)
 extern DS1804 volume;             // digital potentiometer
 
-//id showNameOfView(String sName, uint16_t fgd, uint16_t bkg);  // Griduino.ino
-void initFontSizeSmall();         // Griduino.ino
-void initFontSizeBig();           // Griduino.ino
-int getOffsetToCenterText(String text); // Griduino.ino
+void initFontSizeSmall();           // Griduino.ino
+void initFontSizeBig();             // Griduino.ino
 
 // ========== forward reference ================================
 void updateVolumeScreen();
@@ -57,24 +49,25 @@ void volMute();
 int loadConfigVolume();
 void saveConfigVolume();
 
-// ========== constants ===============================
+// ============== constants ====================================
+// vertical placement of text rows
 const int yRow1 = 32;             // label: "Audio Volume"
-const int yRow2 = yRow1 + 30;     // text:  "4 of 10"
-//nst int yRow3 = yRow2 + 20;
-//nst int yRow4 = yRow3 + 44;
-//nst int yRow5 = yRow4 + 44;
-//nst int yRow6 = yRow5 + 44;
+const int yRow2 = yRow1 + 30;     // text:  "of 10"
 
-const int labelX = 8;       // indent labels, slight margin to left edge of screen
-const int xBigNum = 56;     // indent values
-const int yBigNum = yRow2;
+// color scheme: see constants.h
 
-const int numLabels = 2;
-Label volLabels[numLabels] = {
-  //   text          x,y      color  
-  {"Audio Volume",  98,yRow1, cLABEL},
-  {"of 10",         98,yRow2, cLABEL},
+// ========== globals ==========================================
+int gVolIndex = 5;          // init to middle value
+int gPrevVolIndex = -1;     // remembers previous volume setting to avoid erase/write the same value
+
+const int numVolFields = 3;
+TextField txtVolume[numVolFields] = {
+  //        text             x,y      color  
+  TextField("0",            82,yRow2, cVALUE, FLUSHRIGHT),  // giant audio volume display
+  TextField("Audio Volume", 98,yRow1, cLABEL),              // normal size text labels
+  TextField("of 10",        98,yRow2, cLABEL),
 };
+
 const int nVolButtons = 3;
 const int margin = 10;      // slight margin between button border and edge of screen
 const int radius = 10;      // rounded corners
@@ -99,7 +92,7 @@ int volLevel[11] = {
   /*10 */ 99,   // max allowed wiper position
 };
 
-// ========== helpers =================================
+// ========== helpers ==========================================
 void setVolume(int volIndex) {
   // set digital potentiometer
   // @param wiperPosition = 0..10
@@ -150,9 +143,24 @@ void saveConfigVolume() {
 }
 
 // ========== volume screen view ===============================
+void updateVolumeScreen() {
+  // called on every pass through main()
+
+  // ----- volume
+  initFontSizeBig();
+  txtVolume[0].print(gVolIndex);
+}
 void startVolumeScreen() {
-  tft.fillScreen(cBACKGROUND);
+  // called once each time this view becomes active
+  tft.fillScreen(cBACKGROUND);      // clear screen
+  txtVolume[0].setBackground(cBACKGROUND);                // set background for all TextFields in this view
+  TextField::setTextDirty( txtVolume, numVolFields );     // make sure all fields get re-printed on screen change
   initFontSizeSmall();
+
+  // ----- draw text fields
+  for (int ii=1; ii<numVolFields; ii++) {       // start at [1], since [0] is a different font size
+    txtVolume[ii].print();
+  }
 
   // ----- draw buttons
   for (int ii=0; ii<nVolButtons; ii++) {
@@ -162,14 +170,6 @@ void startVolumeScreen() {
 
     tft.setCursor(item.x+20, item.y+32);
     tft.setTextColor(cVALUE);
-    tft.print(item.text);
-  }
-
-  // ----- other labels around buttons
-  for (int ii=0; ii<numLabels; ii++) {
-    Label item = volLabels[ii];
-    tft.setCursor(item.x, item.y);
-    tft.setTextColor(item.color);
     tft.print(item.text);
   }
 
@@ -187,22 +187,7 @@ void startVolumeScreen() {
 
   gPrevVolIndex = -1;
   updateVolumeScreen();             // fill in values immediately, don't wait for loop() to eventually get around to it
-
-  // ----- label this view in upper left corner
-  //showNameOfView("Volume:", cWARN, cBACKGROUND);  // todo - unused, delete this everywhere
 }
-
-void updateVolumeScreen() {
-  // ----- volume
-  if (gVolIndex != gPrevVolIndex) {
-    initFontSizeBig();
-    //                               x,y         w  String             color
-    erasePrintProportionalText(xBigNum,yBigNum, 36, String(gVolIndex), cVALUE);
-
-    gPrevVolIndex = gVolIndex;
-  }
-}
-
 bool onTouchVolume(Point touch) {
   bool handled = false;             // assume a touch target was not hit
   for (int ii=0; ii<nVolButtons; ii++) {
@@ -217,5 +202,5 @@ bool onTouchVolume(Point touch) {
         //tft.print("x");
      }
   }
-  return handled;         // true=handled, false=controller uses default action
+  return handled;                   // true=handled, false=controller uses default action
 }
