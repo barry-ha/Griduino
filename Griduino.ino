@@ -17,6 +17,7 @@
             v9.8 adds saving settings in 2MB RAM
             v10.0 add altimeter
             v10.1 add GPS save/restore to visually power up in the same place as previous
+            v12.0 refactors screen writing to class TextField
 
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
@@ -69,14 +70,14 @@
          7. loop()
 */
 
-#include "SPI.h"                  // Serial Peripheral Interface
-#include "Adafruit_GFX.h"         // Core graphics display library
-#include "Adafruit_ILI9341.h"     // TFT color display library
-#include "Adafruit_GPS.h"         // Ultimate GPS library
-#include "TouchScreen.h"          // Touchscreen built in to 3.2" Adafruit TFT display
-#include "constants.h"            // Griduino constant declarations
-#include "DS1804.h"               // DS1804 digital potentiometer library
-#include "save_restore.h"         // save/restore configuration data to SDRAM
+#include "SPI.h"                    // Serial Peripheral Interface
+#include "Adafruit_GFX.h"           // Core graphics display library
+#include "Adafruit_ILI9341.h"       // TFT color display library
+#include "Adafruit_GPS.h"           // Ultimate GPS library
+#include "TouchScreen.h"            // Touchscreen built in to 3.2" Adafruit TFT display
+#include "constants.h"              // Griduino constants and colors
+#include "DS1804.h"                 // DS1804 digital potentiometer library
+#include "save_restore.h"           // save/restore configuration data to SDRAM
 
 // ---------- Hardware Wiring ----------
 /*                                Arduino       Adafruit
