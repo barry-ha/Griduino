@@ -31,10 +31,12 @@
 #define cBACKGROUND     0x00A             // 0,   0,  10 = darker than ILI9341_NAVY, but not black
 #define cGRIDNAME       ILI9341_GREEN
 #define cLABEL          ILI9341_GREEN
+#define cDISTANCE       ILI9341_YELLOW
 #define cVALUE          ILI9341_YELLOW
 #define cHIGHLIGHT      ILI9341_WHITE
 #define cBUTTONFILL     ILI9341_NAVY
 #define cBUTTONOUTLINE  ILI9341_CYAN
+#define cBOXDEGREES     ILI9341_CYAN
 #define cBUTTONLABEL    ILI9341_YELLOW
 #define cCOMPASS        ILI9341_BLUE      // a little darker than cBUTTONOUTLINE
 #define cWARN           0xF844            // brighter than ILI9341_RED but not pink

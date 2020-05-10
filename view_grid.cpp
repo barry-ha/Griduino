@@ -38,7 +38,7 @@ extern Model model;                 // "model" portion of model-view-controller
 void initFontSizeBig();             // Griduino.ino
 void initFontSizeSmall();           // Griduino.ino
 void initFontSizeSystemSmall();     // Griduino.ino
-void drawProportionalText(int ulX, int ulY, String prevText, String newText, bool dirty);
+//void drawProportionalText(int ulX, int ulY, String prevText, String newText, bool dirty);
 
 // ============== constants ====================================
 const int gMarginX = 70;            // define space for grid outline on screen
@@ -53,15 +53,6 @@ const int gBottomGridY = 207;       // ~= (gScreenHeight - gCharHeight - 3*gChar
 const int gMessageRowY = 215;       // ~= (gScreenHeight - gCharHeight -1);
 
 // ========== globals ==========================================
-String prevGridNorth = "";
-String prevGridSouth = "";
-String prevGridEast = "";
-String prevGridWest = "";
-String prevDistNorth = "9999";      // this value is used for first erasure, so init to a large numeral
-String prevDistSouth = "9999";
-String prevDistEast = "9999";
-String prevDistWest = "9999";
-bool gDirtyView = true;             // force all text fields to be updated
 
 // ========== helpers ==========================================
 void drawGridOutline() {
@@ -69,8 +60,40 @@ void drawGridOutline() {
 }
 // ----- workers for "updateGridScreen()" ----- in the same order as called, below
 
-TextField txtGrid4(101,101, cGRIDNAME);
-TextField txtGrid6(138,139, cGRIDNAME);
+// these are names for the array indexes for readability, must be named in same order as below
+enum txtIndex {
+  GRID4=0, GRID6, ALTITUDE, LATLONG, NUMSAT,
+  N_COMPASS,   S_COMPASS,   E_COMPASS,   W_COMPASS,
+  N_DISTANCE,  S_DISTANCE,  E_DISTANCE,  W_DISTANCE,
+  N_GRIDNAME,  S_GRIDNAME,  E_GRIDNAME,  W_GRIDNAME,
+  N_BOXDEGREES,S_BOXDEGREES,E_BOXDEGREES,W_BOXDEGREES,
+};
+                                            
+TextField txtGrid[] = {
+  //         text      x,y     color
+  TextField("CN77",  101,101,  cGRIDNAME),      // GRID4: center of screen
+  TextField("tt",    138,139,  cGRIDNAME),      // GRID6: center of screen
+  TextField("123'",    4,196,  cWARN),          // ALTITUDE: just above bottom row
+  TextField("47.1234,-123.5678", 4,223, cWARN), // LATLONG: left-adj on bottom row
+  TextField("99#",   280,223,  cWARN),          // NUMSAT: lower right corner
+  TextField( "N",    156, 47,  cCOMPASS ),     // N_COMPASS: centered left-right
+  TextField( "S",    156,181,  cCOMPASS ),     // S_COMPASS
+  TextField( "E",    232,114,  cCOMPASS ),     // E_COMPASS: centered top-bottom
+  TextField( "W",     73,114,  cCOMPASS ),     // W_COMPASS
+  TextField("17.1",  180, 20,  cDISTANCE),     // N_DISTANCE
+  TextField("52.0",  180,207,  cDISTANCE),     // S_DISTANCE
+  TextField("13.2",  256,130,  cDISTANCE),     // E_DISTANCE
+  TextField("79.7",    0,130,  cDISTANCE),     // W_DISTANCE
+  TextField("CN88",  102, 20,  cGRIDNAME),     // N_GRIDNAME
+  TextField("CN86",  102,207,  cGRIDNAME),     // S_GRIDNAME
+  TextField("CN97",  256,102,  cGRIDNAME),     // E_GRIDNAME
+  TextField("CN77",    0,102,  cGRIDNAME),     // W_GRIDNAME
+  TextField("48",     56, 44,  cBOXDEGREES, FLUSHRIGHT),  // N_BOXDEGREES
+  TextField("47",     56,188,  cBOXDEGREES, FLUSHRIGHT),  // S_BOXDEGREES
+  TextField("122",   243, 20,  cBOXDEGREES),              // E_BOXDEGREES
+  TextField("124",    72, 20,  cBOXDEGREES, FLUSHRIGHT),  // W_BOXDEGREES
+};
+const int numTextGrid = sizeof(txtGrid)/sizeof(TextField);
 
 void drawGridName(String newGridName) {
   // huge lettering of current grid square
@@ -81,21 +104,14 @@ void drawGridName(String newGridName) {
   String grid1_4 = newGridName.substring(0, 4);
   String grid5_6 = newGridName.substring(4, 6);
 
-  txtGrid4.print(grid1_4);
-  txtGrid6.print(grid5_6);
+  txtGrid[GRID4].print(grid1_4);
+  txtGrid[GRID6].print(grid5_6);
 }
 
-TextField txtAlt("123'",              4,194, cWARN);    // just above bottom row
-TextField txtLL("47.1234,-123.5678",  4,223, cWARN);    // about centered on bottom row
-TextField txtNumSat("99#",          280,223, cWARN);    // lower right corner
 void drawPositionLL(String sLat, String sLong) {
-  //      |1...+....1....+....2....+.|
-  //      | ---------,----------  ---|
-  // e.g. | -123.4567, -123.4567  10#|
-  // e.g. |   47.1234, -122.1234   5#|
   initFontSizeSystemSmall();
 
-  // the message line shows either or a position (lat-long) or a message (waiting for GPS)
+  // the message line shows either or a position (lat,long) or a message (waiting for GPS)
   char sTemp[27];       // why 27? Small system font will fit 26 characters on one row
   if (model.gHaveGPSfix) {
     char latitude[10], longitude[10];
@@ -105,88 +121,74 @@ void drawPositionLL(String sLat, String sLong) {
   } else {
     strcpy(sTemp, "Waiting for GPS");
   }
-  txtLL.print(sTemp);               // latitude-longitude
+  txtGrid[LATLONG].print(sTemp);          // latitude-longitude
 
   if (model.gSatellites<10) {
     sprintf(sTemp, " %d#", model.gSatellites);
   } else {
     sprintf(sTemp, "%d#", model.gSatellites);
   }
-  txtNumSat.print(sTemp);           // number of satellites
+  txtGrid[NUMSAT].print(sTemp);           // number of satellites
 
   int altFeet = model.gAltitude * feetPerMeters;
   sprintf(sTemp, "%d'", altFeet);
-  txtAlt.print(sTemp);              // altitude
+  txtGrid[ALTITUDE].print(sTemp);         // altitude
 }
 
-const int numCompass = 4;
-TextField txtCompass[numCompass] = {
-  //        text      x,y      color     background
-  TextField( "N",   156,  47,  cCOMPASS, ILI9341_BLACK ),  // centered left-right
-  TextField( "S",   156, 181,  cCOMPASS, ILI9341_BLACK ),
-  TextField( "E",   232, 114,  cCOMPASS, ILI9341_BLACK ),  // centered top-bottom
-  TextField( "W",    73, 114,  cCOMPASS, ILI9341_BLACK ),
-};
 void drawCompassPoints() {
   initFontSizeSmall();
-  for (int ii=0; ii<numCompass; ii++) {
-    txtCompass[ii].print();
+  for (int ii=N_COMPASS; ii<N_COMPASS+4; ii++) {
+    txtGrid[ii].print();
   }
 }
-void drawLatLong() {
-  return;   // disabled because it makes the screen too busy
-            // also disabled because its screen text positioning need updating
+void drawBoxLatLong() {
+  //return;   // disabled because it makes the screen too busy
             // also disabled because it always shows 47-48 and 122-124 degrees
 
   initFontSizeSmall();
+  for (int ii=N_BOXDEGREES; ii<=W_BOXDEGREES; ii++) {
+    txtGrid[ii].print();
+  }
+  int radius = 3;
+  //                          x                          y                r     color
+  tft.drawCircle(txtGrid[N_BOXDEGREES].x+7, txtGrid[N_BOXDEGREES].y-14, radius, cBOXDEGREES); // draw circle to represent "degrees"
+  tft.drawCircle(txtGrid[S_BOXDEGREES].x+7, txtGrid[S_BOXDEGREES].y-14, radius, cBOXDEGREES);
+  //t.drawCircle(txtGrid[E_BOXDEGREES].x+7, txtGrid[E_BOXDEGREES].y-14, radius, cBOXDEGREES);  // todo: where to put "degrees" on FLUSHLEFT number?
+  tft.drawCircle(txtGrid[W_BOXDEGREES].x+7, txtGrid[W_BOXDEGREES].y-14, radius, cBOXDEGREES);
+
+  /* *****
   tft.setTextColor(cCOMPASS, ILI9341_BLACK);
 
   tft.setCursor(gCharWidth * 1 / 2, gTopRowY);
+  Serial.print("West degrees x,y = "); Serial.print(gCharWidth * 1 / 2); Serial.print(","); Serial.println(gTopRowY);
   tft.print("124");   // TODO: read this from the model
 
   tft.setCursor(gScreenWidth - gMarginX + gCharWidth, gTopRowY);
+  Serial.print("East degrees x,y = "); Serial.print(gScreenWidth - gMarginX + gCharWidth); Serial.print(","); Serial.println(gTopRowY);
   tft.print("122");
 
   tft.setCursor(gCharWidth * 3 / 2, gMarginY + gCharHeight / 4);
+  Serial.print("North degrees x,y = "); Serial.print(gCharWidth * 3 / 2); Serial.print(","); Serial.println(gMarginY + gCharHeight / 4);
   tft.print("48");
 
   tft.setCursor(gCharWidth * 3 / 2, gScreenHeight - gMarginY - gCharHeight);
+  Serial.print("South degrees x,y = "); Serial.print(gCharWidth * 3 / 2); Serial.print(","); Serial.println(gScreenHeight - gMarginY - gCharHeight);
   tft.print("47");
+  ***** */
 }
 void drawNeighborGridNames() {
   initFontSizeSmall();
-  tft.setTextColor(ILI9341_GREEN, ILI9341_BLACK);
-
-  int indentX = gMarginX + gCharWidth*1;
-  drawProportionalText(indentX, gTopRowY,     prevGridNorth, model.gsGridNorth, gDirtyView); // NORTH grid, e.g. "CN88"
-  drawProportionalText(indentX, gBottomGridY, prevGridSouth, model.gsGridSouth, gDirtyView); // SOUTH grid, e.g. "CN86"
-
-  indentX = gScreenWidth - gCharWidth*4;
-  drawProportionalText(indentX, gMiddleRowY,  prevGridEast,  model.gsGridEast,  gDirtyView); // EAST  grid, e.g. "CN97"
-  drawProportionalText(0,       gMiddleRowY,  prevGridWest,  model.gsGridWest,  gDirtyView); // WEST  grid, e.g. "CN77"
-
-  prevGridNorth = model.gsGridNorth;
-  prevGridSouth = model.gsGridSouth;
-  prevGridWest  = model.gsGridWest;
-  prevGridEast  = model.gsGridEast;
+  txtGrid[N_GRIDNAME].print(model.gsGridNorth);
+  txtGrid[S_GRIDNAME].print(model.gsGridSouth);
+  txtGrid[E_GRIDNAME].print(model.gsGridEast);
+  txtGrid[W_GRIDNAME].print(model.gsGridWest);
 }
 void drawNeighborDistances() {
   initFontSizeSmall();
-  tft.setTextColor(ILI9341_YELLOW, ILI9341_BLACK);
-
-  int indentX = gMarginX + gCharWidth*6;
-  drawProportionalText(indentX, gTopRowY,     prevDistNorth, model.gsDistanceNorth, gDirtyView); // NORTH distance, e.g. "17.3"
-  drawProportionalText(indentX, gBottomGridY, prevDistSouth, model.gsDistanceSouth, gDirtyView); // SOUTH distance, e.g. "63.4"
-
-  indentX = gScreenWidth - 4 * gCharWidth;
-  int indentY = gMiddleRowY + gCharHeight + 4;
-  drawProportionalText(indentX, indentY, prevDistEast, model.gsDistanceEast,  gDirtyView); // EAST distance, e.g. "15.5"
-  drawProportionalText(0,       indentY, prevDistWest, model.gsDistanceWest,  gDirtyView); // WEST distance, e.g. "81.4"
-
-  prevDistNorth = model.gsDistanceNorth;
-  prevDistSouth = model.gsDistanceSouth;
-  prevDistEast  = model.gsDistanceEast;
-  prevDistWest  = model.gsDistanceWest;
+  txtGrid[N_DISTANCE].print(model.gsDistanceNorth);
+  txtGrid[S_DISTANCE].print(model.gsDistanceSouth);
+  txtGrid[E_DISTANCE].print(model.gsDistanceEast);
+  txtGrid[W_DISTANCE].print(model.gsDistanceWest);
 }
 void plotPosition(double fLat, double fLong) {
   // put a pushpin inside the grid's box, proportional to your position within the grid
@@ -202,7 +204,7 @@ void plotPosition(double fLat, double fLong) {
   float degreesX = fLong - nextGridLineWest(fLong);
   float degreesY = fLat - nextGridLineSouth(fLat);
 
-  double fracGridX = degreesX / gridWidthDegrees; // E-W position as fraction of grid width, 0-1
+  double fracGridX = degreesX / gridWidthDegrees;  // E-W position as fraction of grid width, 0-1
   double fracGridY = degreesY / gridHeightDegrees; // N-S position as fraction of grid height, 0-1
 
   // our drawing canvas is a box the size of the screen, minus an outside margin on all sides reserved for text
@@ -237,30 +239,25 @@ void updateGridScreen() {
   // called on every pass through main()
   drawGridName(model.gsGridName);   // huge letters centered on screen
   drawPositionLL(model.gsLatitude, model.gsLongitude);  // lat-long of current position
-  drawCompassPoints();              // sprinkle N-S-E-W around grid square
-  drawLatLong();                    // identify coordinates of grid square
+  //drawCompassPoints();              // sprinkle N-S-E-W around grid square
+  //drawBoxLatLong();                 // identify coordinates of grid square box
   drawNeighborGridNames();          // sprinkle names around outside box
   drawNeighborDistances();          // this is the main goal of the whole project
   plotPosition(model.gLatitude, model.gLongitude);      // pushpin
-  gDirtyView = false;
 }
 void startGridScreen() {
   // called once each time this view becomes active
   tft.fillScreen(ILI9341_BLACK);    // clear screen
-  txtCompass[0].setBackground(ILI9341_BLACK);          // set background for all TextFields in this view
-  TextField::setTextDirty( txtCompass, numCompass );   // make sure all fields get re-printed on screen change
-  txtGrid4.dirty = true;
-  txtGrid6.dirty = true;
-  txtAlt.dirty = true;
-  txtLL.dirty = true;
-  txtNumSat.dirty = true;
+  txtGrid[0].setBackground(ILI9341_BLACK);          // set background for all TextFields in this view
+  TextField::setTextDirty( txtGrid, numTextGrid );
+  Serial.print("numTextGrid = "); Serial.println(numTextGrid);  // debug
   initFontSizeSmall();
 
   drawGridOutline();                // box outline around grid
   //tft.drawRect(0, 0, gScreenWidth, gScreenHeight, ILI9341_BLUE);  // debug: border around screen
   model.grid4dirty = true;          // reset the "previous grid" to trigger the new one to show
   model.grid6dirty = true;
-  gDirtyView = true;                // force all text fields to be updated
+  //gDirtyView = true;                // force all text fields to be updated
 
   updateGridScreen();               // fill in values immediately, don't wait for the main loop to eventually get around to it
 }
