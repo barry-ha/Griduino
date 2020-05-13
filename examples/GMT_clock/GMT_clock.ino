@@ -38,7 +38,7 @@
 
 // ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE   "Griduino GMT Clock"
-#define PROGRAM_VERSION "v0.06"
+#define PROGRAM_VERSION "v0.07"
 #define PROGRAM_LINE1   "Barry K7BWH"
 #define PROGRAM_LINE2   "John KM7O"
 
@@ -551,13 +551,19 @@ void timeMinus() {
 
 //=========== distance helpers =================================
 
-int gAddDotX = 10;                     // current screen column, 0..319 pixels
-int gRmvDotX = 0;
 void showActivityBar(int row, uint16_t foreground, uint16_t background) {
-  gAddDotX = (gAddDotX + 1) % gScreenWidth;   // advance
-  gRmvDotX = (gRmvDotX + 1) % gScreenWidth;   // advance
-  tft.drawPixel(gAddDotX, row, foreground);   // write new
-  tft.drawPixel(gRmvDotX, row, background);   // erase old
+  static int addDotX = 10;                    // current screen column, 0..319 pixels
+  static int rmvDotX = 0;
+  static int count = 0;
+  const int SCALEF = 2048;                    // how much to slow it down so it becomes visible
+
+  count = (count + 1) % SCALEF;
+  if (count == 0) {
+    addDotX = (addDotX + 1) % gScreenWidth;   // advance
+    rmvDotX = (rmvDotX + 1) % gScreenWidth;   // advance
+    tft.drawPixel(addDotX, row, foreground);  // write new
+    tft.drawPixel(rmvDotX, row, background);  // erase old
+  }
 }
 
 //=========== setup ============================================
@@ -685,6 +691,5 @@ void loop() {
 
   // make a small progress bar crawl along bottom edge
   // this gives a sense of how frequently the main loop is executing
-  delay(2);         // slow down activity bar so it can be seen
   showActivityBar(239, ILI9341_RED, ILI9341_BLACK);
 }
