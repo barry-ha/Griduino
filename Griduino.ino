@@ -18,6 +18,7 @@
             v10.0 add altimeter
             v10.1 add GPS save/restore to visually power up in the same place as previous
             v12.0 refactors screen writing to class TextField
+            v13.0 begin implementing our own TouchScreen functions
 
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
@@ -284,35 +285,88 @@ bool newScreenTap(Point* pPoint) {
   return result;
 }
 
+// WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
+// 2020-05-12 barry@k7bwh.com
+// We need to replace TouchScreen::pressure() and implement TouchScreen::isTouching()
+
+/*#define USE_ORIGINAL_TOUCHSCREEN_CODE*/
+#ifdef USE_ORIGINAL_TOUCHSCREEN_CODE
+// 2019-11-12 barry@k7bwh.com 
+// "isTouching()" is defined in touch.h but is not implemented Adafruit's TouchScreen library
+// Note - For Griduino, if this function takes longer than 8 msec it can cause erratic GPS readings
+// Here's a function provided by https://forum.arduino.cc/index.php?topic=449719.0
+bool TouchScreen::isTouching(void) {
+
+  #define MEASUREMENTS    3
+  uint16_t nTouchCount = 0, nTouch = 0;
+
+  for (uint8_t nI = 0; nI < MEASUREMENTS; nI++) {
+    nTouch = pressure();    // read current pressure level
+    // Minimum and maximum pressure we consider true pressing
+    if (nTouch > 100 && nTouch < 900) {
+      nTouchCount++;
+    }
+
+    // pause between samples, but not after the last sample
+    //if (nI < (MEASUREMENTS-1)) {
+    //  delay(1);             // 2019-12-20 bwh: added for Feather M4 Express
+    //}
+  }
+  // Clean the touchScreen settings after function is used
+  // Because LCD may use the same pins
+  pinMode(_xm, OUTPUT);     digitalWrite(_xm, LOW);
+  pinMode(_yp, OUTPUT);     digitalWrite(_yp, HIGH);
+  pinMode(_ym, OUTPUT);     digitalWrite(_ym, LOW);
+  pinMode(_xp, OUTPUT);     digitalWrite(_xp, HIGH);
+
+  bool ret = (nTouchCount >= MEASUREMENTS);
+  return ret;
+}
+#else
 // 2020-05-03 CraigV and barry@k7bwh.com
+uint16_t myPressure(void) {
+  pinMode(PIN_XP, OUTPUT);   digitalWrite(PIN_XP, LOW);   // Set X+ to ground
+  pinMode(PIN_YM, OUTPUT);   digitalWrite(PIN_YM, HIGH);  // Set Y- to VCC
+
+  digitalWrite(PIN_XM, LOW); pinMode(PIN_XM, INPUT);      // Hi-Z X-
+  digitalWrite(PIN_YP, LOW); pinMode(PIN_YP, INPUT);      // Hi-Z Y+
+
+  int z1 = analogRead(PIN_XM);
+  int z2 = 1023-analogRead(PIN_YP);
+
+  return (uint16_t) ((z1+z2)/2);
+}
+
 // "isTouching()" is defined in touch.h but is not implemented Adafruit's TouchScreen library
 // Note - For Griduino, if this function takes longer than 8 msec it can cause erratic GPS readings
 // so we recommend against using https://forum.arduino.cc/index.php?topic=449719.0
 bool TouchScreen::isTouching(void) {
   #define TOUCHPRESSURE 200       // Minimum pressure we consider true pressing
   static bool button_state = false;
-  uint16_t pres_val = pressure();
+  uint16_t pres_val = ::myPressure();
 
   if ((button_state == false) && (pres_val > TOUCHPRESSURE)) {
-    Serial.println("button down");     // debug
+    Serial.print(". pressed, pressure = "); Serial.println(pres_val);     // debug
     button_state = true;
   }
 
   if ((button_state == true) && (pres_val < TOUCHPRESSURE)) {
-    Serial.println("button up");       // debug
+    Serial.print(". released, pressure = "); Serial.println(pres_val);       // debug
     button_state = false;
   }
 
   // Clean the touchScreen settings after function is used
   // Because LCD may use the same pins
   // todo - is this actually necessary?
-  //pinMode(_xm, OUTPUT);     digitalWrite(_xm, LOW);
-  //pinMode(_yp, OUTPUT);     digitalWrite(_yp, HIGH);
-  //pinMode(_ym, OUTPUT);     digitalWrite(_ym, LOW);
-  //pinMode(_xp, OUTPUT);     digitalWrite(_xp, HIGH);
+  pinMode(PIN_XM, OUTPUT);     digitalWrite(PIN_XM, LOW);
+  pinMode(PIN_YP, OUTPUT);     digitalWrite(PIN_YP, HIGH);
+  pinMode(PIN_YM, OUTPUT);     digitalWrite(PIN_YM, LOW);
+  pinMode(PIN_XP, OUTPUT);     digitalWrite(PIN_XP, HIGH);
 
   return button_state;
 }
+#endif
+// MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 
 void mapTouchToScreen(TSPoint touch, Point* screen) {
   // convert from X+,Y+ resistance measurements to screen coordinates

@@ -3,8 +3,10 @@
 
   Date:     2019-12-26 created
             2019-12-26 moved pin X+ from D6 to A3 to match John's schematic
+            2020-05-12 updated TouchScreen code
 
-  Author:   Barry Hansen, barry@k7bwh.com, Seattle, WA
+  Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
+  Hardware: John Vanderbeck, KM7O, Seattle, WA
 
   From:     https://forum.arduino.cc/index.php?topic=359928.0
 
@@ -39,14 +41,18 @@
             Touchscreen: https://learn.adafruit.com/adafruit-2-dot-8-color-tft-touchscreen-breakout-v2/resistive-touchscreen
 */
 
-#include "SPI.h"                  // Serial Peripheral Interface
-#include "Adafruit_GFX.h"         // Core graphics display library
-#include "Adafruit_ILI9341.h"     // TFT color display library
-#include "TouchScreen.h"          // Touchscreen built in to 3.2" Adafruit TFT display
+#include "SPI.h"                    // Serial Peripheral Interface
+#include "Adafruit_GFX.h"           // Core graphics display library
+#include "Adafruit_ILI9341.h"       // TFT color display library
+#include "TouchScreen.h"            // Touchscreen built in to 3.2" Adafruit TFT display
 
-// ------- Identity for console
+// ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE   "Volume Control Demo"
 #define PROGRAM_VERSION "v1.0"
+#define PROGRAM_LINE1   "Barry K7BWH"
+#define PROGRAM_LINE2   "John KM7O"
+
+#define SCREEN_ROTATION 1   // 1=landscape, 3=landscape 180-degrees
 
 // ---------- Hardware Wiring ----------
 /*                                Arduino       Adafruit
@@ -118,6 +124,7 @@ TouchScreen ts = TouchScreen(PIN_XP, PIN_YP, PIN_XM, PIN_YM, 295);
 typedef struct {
   int x, y;
 } Point;
+
 typedef struct {
   int left, top;
   int width, height;
@@ -125,22 +132,22 @@ typedef struct {
 } Rectangle;
 
 // ------------ definitions
-// Rotation 1 = landscape : 1->USB=left,upper
+const int howLongToWait = 6;  // max number of seconds at startup waiting for Serial port to console
+const int gScreenWidth = 320; // pixels wide, landscape orientation
+const int gScreenHeight = 240;  // pixels high
 const int gRotation = 1;  // This rotates the display coordinate system
                           // but not the touchscreen x/y coordinates.
                           // Be aware that your reported touches will have different x/y axis
                           // than the display screen.
-const int gScreenHeight = 240;
-const int gScreenWidth = 320;
 
-// ----- color scheme for this example program
+// ----- color scheme
+// RGB 565 color code: http://www.barth-dev.de/online/rgb565-color-picker/
+const int cBACKGROUND = ILI9341_NAVY;
 const int cLABEL = ILI9341_GREEN;
 const int cVALUE = ILI9341_YELLOW;
 const int cBUTTON_OUTLINE = ILI9341_CYAN;
 const int cBUTTON_LABEL = ILI9341_WHITE;
-const int cBACKGROUND = ILI9341_NAVY;
 
-const int howLongToWait = 12; // max number of seconds before using Serial port to console
 
 const int gNumButtons = 2;
 Rectangle gaRect[gNumButtons] = {
@@ -195,7 +202,7 @@ void showVolumeSetting(int vol) {
   tft.print(" ");
 }
 
-//============== touchscreen helpers ===================
+// ============== touchscreen helpers ==========================
 
 int getRectangleID(int x, int y) {
   // given the screen coordinates of a touch, 
@@ -248,6 +255,52 @@ bool newScreenTap(Point* pPoint) {
   return result;
 }
 
+// 2020-05-12 barry@k7bwh.com
+// We need to replace TouchScreen::pressure() and implement TouchScreen::isTouching()
+
+// 2020-05-03 CraigV and barry@k7bwh.com
+uint16_t myPressure(void) {
+  pinMode(PIN_XP, OUTPUT);   digitalWrite(PIN_XP, LOW);   // Set X+ to ground
+  pinMode(PIN_YM, OUTPUT);   digitalWrite(PIN_YM, HIGH);  // Set Y- to VCC
+
+  digitalWrite(PIN_XM, LOW); pinMode(PIN_XM, INPUT);      // Hi-Z X-
+  digitalWrite(PIN_YP, LOW); pinMode(PIN_YP, INPUT);      // Hi-Z Y+
+
+  int z1 = analogRead(PIN_XM);
+  int z2 = 1023-analogRead(PIN_YP);
+
+  return (uint16_t) ((z1+z2)/2);
+}
+
+// "isTouching()" is defined in touch.h but is not implemented Adafruit's TouchScreen library
+// Note - For Griduino, if this function takes longer than 8 msec it can cause erratic GPS readings
+// so we recommend against using https://forum.arduino.cc/index.php?topic=449719.0
+bool TouchScreen::isTouching(void) {
+  #define TOUCHPRESSURE 200       // Minimum pressure we consider true pressing
+  static bool button_state = false;
+  uint16_t pres_val = ::myPressure();
+
+  if ((button_state == false) && (pres_val > TOUCHPRESSURE)) {
+    Serial.print(". pressed, pressure = "); Serial.println(pres_val);     // debug
+    button_state = true;
+  }
+
+  if ((button_state == true) && (pres_val < TOUCHPRESSURE)) {
+    Serial.print(". released, pressure = "); Serial.println(pres_val);       // debug
+    button_state = false;
+  }
+
+  // Clean the touchScreen settings after function is used
+  // Because LCD may use the same pins
+  // todo - is this actually necessary?
+  //pinMode(_xm, OUTPUT);     digitalWrite(_xm, LOW);
+  //pinMode(_yp, OUTPUT);     digitalWrite(_yp, HIGH);
+  //pinMode(_ym, OUTPUT);     digitalWrite(_ym, LOW);
+  //pinMode(_xp, OUTPUT);     digitalWrite(_xp, HIGH);
+
+  return button_state;
+}
+
 void mapTouchToScreen(TSPoint touch, Point* screen) {
   // convert from X+,Y+ resistance measurements to screen coordinates
   // param touch = resistance readings from touchscreen
@@ -262,9 +315,6 @@ void mapTouchToScreen(TSPoint touch, Point* screen) {
   //  Y=110                Y=892
   //
   // Typical measured pressures=200..549
-
-  screen->x = 0;
-  screen->y = 0;
 
   // magic numbers need calibration for each individual display
   // measured by running this program, watching Serial console reports

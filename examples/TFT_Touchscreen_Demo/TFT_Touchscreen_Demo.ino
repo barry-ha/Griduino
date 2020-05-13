@@ -2,6 +2,7 @@
   TFT Touchscreen Demo - Touch screen with X, Y and Z (pressure) readings
 
   Date:     2019-11-15 created v6
+            2020-05-12 updated TouchScreen code
 
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
@@ -26,10 +27,10 @@
 
 */
 
-#include "SPI.h"                  // Serial Peripheral Interface
-#include "Adafruit_GFX.h"         // Core graphics display library
-#include "Adafruit_ILI9341.h"     // TFT color display library
-#include "TouchScreen.h"          // Touchscreen built in to 3.2" Adafruit TFT display
+#include "SPI.h"                    // Serial Peripheral Interface
+#include "Adafruit_GFX.h"           // Core graphics display library
+#include "Adafruit_ILI9341.h"       // TFT color display library
+#include "TouchScreen.h"            // Touchscreen built in to 3.2" Adafruit TFT display
 
 // ------- Identity for console
 #define PROGRAM_TITLE   "Touch Screen Demo"
@@ -37,7 +38,7 @@
 #define PROGRAM_LINE1   "Barry K7BWH"
 #define PROGRAM_LINE2   "John KM7O"
 
-#define SCREEN_ROTATION 3         // 1=landscape rsu, 3=landscape usd
+#define SCREEN_ROTATION 1   // 1=landscape, 3=landscape 180-degrees
 
 // ---------- Hardware Wiring ----------
 /*                                Arduino       Adafruit
@@ -65,8 +66,6 @@ TFT Resistive touch:
 
 #elif defined(ARDUINO_AVR_MEGA2560)
   #define TFT_BL   6    // TFT backlight
-  #define SD_CCS   7    // SD card select pin - Mega
-  #define SD_CD    8    // SD card detect pin - Mega
   #define TFT_DC   9    // TFT display/command pin
   #define TFT_CS  10    // TFT chip select pin
 
@@ -105,37 +104,35 @@ TouchScreen ts = TouchScreen(PIN_XP, PIN_YP, PIN_XM, PIN_YM, 295);
 
 // ------------ typedef's
 typedef struct {
-  int x;
-  int y;
+  int x, y;
 } Point;
 
 // ------------ definitions
-#define gScreenWidth 320      // pixels wide
+#define gScreenWidth 320      // pixels wide, landscape orientation
 
 // ----- screen layout
-// using default fonts - screen pixel coordinates will identify top left of character cell
+// When using default system fonts, screen pixel coordinates will identify top left of character cell
 
 // splash screen layout
 const int xLabel = 8;             // indent labels, slight margin on left edge of screen
-#define yRow1   0                 // program title: "Griduino GMT Clock"
+#define yRow1   0                 // title: "Touchscreen Demo"
 #define yRow2   yRow1 + 40        // program version
 #define yRow3   yRow2 + 20        // compiled date
 #define yRow4   yRow3 + 20        // author line 1
 #define yRow5   yRow4 + 20        // author line 2
 #define yRow6   yRow5 + 40        // "Pressure threshhold = "
 
-
 // ----- color scheme
 // RGB 565 color code: http://www.barth-dev.de/online/rgb565-color-picker/
-#define cBACKGROUND     0x00A             // 0,   0,  10 = darker than ILI9341_NAVY, but not black
-#define cTEXTCOLOR      ILI9341_CYAN      // 0, 255, 255
-#define cTEXTFAINT      0x514             // 0, 160, 160 = blue, between CYAN and DARKCYAN
-#define cLABEL          ILI9341_GREEN
-#define cVALUE          ILI9341_YELLOW
-#define cINPUT          ILI9341_WHITE
-#define cBUTTONFILL     ILI9341_NAVY
-#define cBUTTONOUTLINE  ILI9341_BLUE      // 0,   0, 255 = darker than cyan
-#define cWARN           0xF844            // brighter than ILI9341_RED but not pink
+#define cBACKGROUND      0x00A             // 0,   0,  10 = darker than ILI9341_NAVY, but not black
+#define cTEXTCOLOR       ILI9341_CYAN      // 0, 255, 255
+#define cTEXTFAINT       0x514             // 0, 160, 160 = blue, between CYAN and DARKCYAN
+#define cLABEL           ILI9341_GREEN
+#define cVALUE           ILI9341_YELLOW
+#define cINPUT           ILI9341_WHITE
+#define cBUTTONFILL      ILI9341_NAVY
+#define cBUTTONOUTLINE   ILI9341_BLUE      // 0,   0, 255 = darker than cyan
+#define cWARN            0xF844            // brighter than ILI9341_RED but not pink
 
 // ============== touchscreen helpers ==========================
 
@@ -173,22 +170,38 @@ bool newScreenTap(Point* pPoint) {
   return result;
 }
 
+// 2020-05-12 barry@k7bwh.com
+// We need to replace TouchScreen::pressure() and implement TouchScreen::isTouching()
+
 // 2020-05-03 CraigV and barry@k7bwh.com
+uint16_t myPressure(void) {
+  pinMode(PIN_XP, OUTPUT);   digitalWrite(PIN_XP, LOW);   // Set X+ to ground
+  pinMode(PIN_YM, OUTPUT);   digitalWrite(PIN_YM, HIGH);  // Set Y- to VCC
+
+  digitalWrite(PIN_XM, LOW); pinMode(PIN_XM, INPUT);      // Hi-Z X-
+  digitalWrite(PIN_YP, LOW); pinMode(PIN_YP, INPUT);      // Hi-Z Y+
+
+  int z1 = analogRead(PIN_XM);
+  int z2 = 1023-analogRead(PIN_YP);
+
+  return (uint16_t) ((z1+z2)/2);
+}
+
 // "isTouching()" is defined in touch.h but is not implemented Adafruit's TouchScreen library
 // Note - For Griduino, if this function takes longer than 8 msec it can cause erratic GPS readings
 // so we recommend against using https://forum.arduino.cc/index.php?topic=449719.0
 bool TouchScreen::isTouching(void) {
   #define TOUCHPRESSURE 200       // Minimum pressure we consider true pressing
   static bool button_state = false;
-  uint16_t pres_val = pressure();
+  uint16_t pres_val = ::myPressure();
 
   if ((button_state == false) && (pres_val > TOUCHPRESSURE)) {
-    Serial.println("button down");     // debug
+    Serial.print(". pressed, pressure = "); Serial.println(pres_val);     // debug
     button_state = true;
   }
 
   if ((button_state == true) && (pres_val < TOUCHPRESSURE)) {
-    Serial.println("button up");       // debug
+    Serial.print(". released, pressure = "); Serial.println(pres_val);       // debug
     button_state = false;
   }
 
@@ -323,6 +336,7 @@ void loop() {
   // if there's touchscreen input, handle it
   Point touch;
   if (newScreenTap(&touch)) {
+
     const int radius = 3;    // debug
     tft.fillCircle(touch.x, touch.y, radius, cVALUE);  // debug
 

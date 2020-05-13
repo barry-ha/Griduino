@@ -1,11 +1,12 @@
 /*
   Barograph -- demonstrate BMP388 barometric sensor
 
-  From:   
-  Date:   2019-20-18 created from example by John KM7O
-          2020-03-05 replaced physical button design with touchscreen
+  Date:     2019-20-18 created from example by John KM7O
+            2020-03-05 replaced physical button design with touchscreen
+            2020-05-12 updated TouchScreen code
 
-  Author: Barry Hansen, barry@k7bwh.com, Seattle, WA
+  Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
+  Hardware: John Vanderbeck, KM7O, Seattle, WA
 
   Purpose: 
 
@@ -22,18 +23,20 @@
 */
 
 #include <Wire.h>
-#include "SPI.h"                  // Serial Peripheral Interface
-#include "Adafruit_GFX.h"         // Core graphics display library
-#include "Adafruit_ILI9341.h"     // TFT color display library
-#include "TouchScreen.h"          // Touchscreen built in to 3.2" Adafruit TFT display
-#include "Adafruit_BMP3XX.h"      // Precision barometric sensor
-#include "bitmaps.h"              // our definition of graphics displayed
+#include "SPI.h"                    // Serial Peripheral Interface
+#include "Adafruit_GFX.h"           // Core graphics display library
+#include "Adafruit_ILI9341.h"       // TFT color display library
+#include "TouchScreen.h"            // Touchscreen built in to 3.2" Adafruit TFT display
+#include "Adafruit_BMP3XX.h"        // Precision barometric and temperature sensor
+#include "bitmaps.h"                // our definition of graphics displayed
 
-// ------- Identity for console
+// ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE   "Barograph Demo"
 #define PROGRAM_VERSION "v1.0"
 #define PROGRAM_LINE1   "Barry K7BWH"
 #define PROGRAM_LINE2   "John KM7O"
+
+#define SCREEN_ROTATION 1   // 1=landscape, 3=landscape 180-degrees
 
 //--------------CONFIG--------------
 //float elevCorr = 4241;  // elevation correction in Pa, 
@@ -71,9 +74,14 @@ TFT Resistive touch:
   // https://learn.adafruit.com/adafruit-feather-m4-express-atsamd51/setup
   
   #define TFT_BL   4    // TFT backlight
-  #define TFT_CS   5    // TFT select pin
+  #define TFT_CS   5    // TFT chip select pin
   #define TFT_DC  12    // TFT display/command pin
+  #define BMP_CS  13    // BMP388 sensor, chip select
 
+#elif defined(ARDUINO_AVR_MEGA2560)
+  #define TFT_BL   6    // TFT backlight
+  #define TFT_DC   9    // TFT display/command pin
+  #define TFT_CS  10    // TFT chip select pin
   #define BMP_CS  13    // BMP388 sensor, chip select
 
 #else
@@ -95,6 +103,12 @@ Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
   #define PIN_XM  A4    // Touchscreen X- must be an analog pin, use "An" notation
   #define PIN_YP  A5    // Touchscreen Y+ must be an analog pin, use "An" notation
   #define PIN_YM   9    // Touchscreen Y- can be a digital pin
+#elif defined(ARDUINO_AVR_MEGA2560)
+  // Arduino Mega 2560 and others
+  #define PIN_XP   4    // Touchscreen X+ can be a digital pin
+  #define PIN_XM  A3    // Touchscreen X- must be an analog pin, use "An" notation
+  #define PIN_YP  A2    // Touchscreen Y+ must be an analog pin, use "An" notation
+  #define PIN_YM   5    // Touchscreen Y- can be a digital pin
 #else
   // todo: Unknown platform
   #warning You need to define pins for your hardware
@@ -102,7 +116,7 @@ Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 #endif
 TouchScreen ts = TouchScreen(PIN_XP, PIN_YP, PIN_XM, PIN_YM, 295);
 
-// ---------- Barometric Sensor
+// ---------- Barometric and Temperature Sensor
 Adafruit_BMP3XX baro(BMP_CS); // hardware SPI
 
 // ---------- Onboard LED
@@ -112,26 +126,29 @@ const int ledPin = 14;     // for blinking
 
 // ------------ typedef's
 typedef struct {
-  int x;
-  int y;
+  int x, y;
 } Point;
 
 // ------------ definitions
+#define FEET_PER_METER 3.28084
 #define SEALEVELPRESSURE_HPA (1013.25)
 #define MILLIBARS_PER_INCHES_MERCURY (0.02953)
+
 const int howLongToWait = 8;  // max number of seconds at startup waiting for Serial port to console
 
 // ----- color scheme
-#define cBACKGROUND   0x00A         // a little darker than ILI9341_NAVY, but not black
-#define cSCALECOLOR   0xF844        // color picker: http://www.barth-dev.de/online/rgb565-color-picker/
-#define cTEXTCOLOR    ILI9341_CYAN
+// RGB 565 color code: http://www.barth-dev.de/online/rgb565-color-picker/
+#define cBACKGROUND      0x00A             // a little darker than ILI9341_NAVY, but not black
+#define cSCALECOLOR      0xF844            // color picker: http://www.barth-dev.de/online/rgb565-color-picker/
+#define cTEXTCOLOR       ILI9341_CYAN      // 0, 255, 255
 //#define cLABEL         ILI9341_GREEN
 //#define cVALUE         ILI9341_YELLOW
+//#define cINPUT         ILI9341_WHITE
 //#define cHIGHLIGHT     ILI9341_WHITE
 //#define cBUTTONFILL    ILI9341_NAVY
 //#define cBUTTONOUTLINE ILI9341_CYAN
 //#define cBUTTONLABEL   ILI9341_YELLOW
-#define cWARN         0xF844        // a little brighter than ILI9341_RED
+#define cWARN            0xF844            // a little brighter than ILI9341_RED
 
 // ------------ global scope
 float inchesHg;
@@ -157,6 +174,7 @@ float pascals;
 //long debounceDelay = 300;
 
 // ============== touchscreen helpers ==========================
+
 bool gTouching = false;             // keep track of previous state
 bool newScreenTap(Point* pPoint) {
   // find leading edge of a screen touch
@@ -191,6 +209,52 @@ bool newScreenTap(Point* pPoint) {
   return result;
 }
 
+// 2020-05-12 barry@k7bwh.com
+// We need to replace TouchScreen::pressure() and implement TouchScreen::isTouching()
+
+// 2020-05-03 CraigV and barry@k7bwh.com
+uint16_t myPressure(void) {
+  pinMode(PIN_XP, OUTPUT);   digitalWrite(PIN_XP, LOW);   // Set X+ to ground
+  pinMode(PIN_YM, OUTPUT);   digitalWrite(PIN_YM, HIGH);  // Set Y- to VCC
+
+  digitalWrite(PIN_XM, LOW); pinMode(PIN_XM, INPUT);      // Hi-Z X-
+  digitalWrite(PIN_YP, LOW); pinMode(PIN_YP, INPUT);      // Hi-Z Y+
+
+  int z1 = analogRead(PIN_XM);
+  int z2 = 1023-analogRead(PIN_YP);
+
+  return (uint16_t) ((z1+z2)/2);
+}
+
+// "isTouching()" is defined in touch.h but is not implemented Adafruit's TouchScreen library
+// Note - For Griduino, if this function takes longer than 8 msec it can cause erratic GPS readings
+// so we recommend against using https://forum.arduino.cc/index.php?topic=449719.0
+bool TouchScreen::isTouching(void) {
+  #define TOUCHPRESSURE 200       // Minimum pressure we consider true pressing
+  static bool button_state = false;
+  uint16_t pres_val = ::myPressure();
+
+  if ((button_state == false) && (pres_val > TOUCHPRESSURE)) {
+    Serial.print(". pressed, pressure = "); Serial.println(pres_val);     // debug
+    button_state = true;
+  }
+
+  if ((button_state == true) && (pres_val < TOUCHPRESSURE)) {
+    Serial.print(". released, pressure = "); Serial.println(pres_val);       // debug
+    button_state = false;
+  }
+
+  // Clean the touchScreen settings after function is used
+  // Because LCD may use the same pins
+  // todo - is this actually necessary?
+  //pinMode(_xm, OUTPUT);     digitalWrite(_xm, LOW);
+  //pinMode(_yp, OUTPUT);     digitalWrite(_yp, HIGH);
+  //pinMode(_ym, OUTPUT);     digitalWrite(_ym, LOW);
+  //pinMode(_xp, OUTPUT);     digitalWrite(_xp, HIGH);
+
+  return button_state;
+}
+
 void mapTouchToScreen(TSPoint touch, Point* screen) {
   // convert from X+,Y+ resistance measurements to screen coordinates
   // param touch = resistance readings from touchscreen
@@ -206,17 +270,20 @@ void mapTouchToScreen(TSPoint touch, Point* screen) {
   //
   // Typical measured pressures=200..549
 
-  screen->x = 0;
-  screen->y = 0;
-
   // setRotation(1) = landscape orientation = x-,y-axis exchanged
-  screen->x = map(touch.y, 100, 900,  0, tft.width());
-  screen->y = map(touch.x, 900, 100,  0, tft.height());
+  //          map(value    in_min,in_max, out_min,out_max)
+  screen->x = map(touch.y,  225,825,      0, tft.width());
+  screen->y = map(touch.x,  800,300,      0, tft.height());
+  if (SCREEN_ROTATION == 3) {
+    // if display is flipped, then also flip both x,y touchscreen coords
+    screen->x = tft.width() - screen->x;
+    screen->y = tft.height() - screen->y;
+  }
   return;
 }
 
-// ============== barometer helpers ============================
-void getData() {
+// ======== barometer and temperature helpers ==================
+void getBaroData() {
   if (!baro.performReading()) {
     Serial.println("Error, failed to read barometer");
   }
@@ -227,7 +294,7 @@ void getData() {
   hPa = Pa / 100;
   inchesHg = 0.0002953 * Pa;
   altMeters = baro.readAltitude(SEALEVELPRESSURE_HPA);
-  altFeet = 3.28084 * altMeters;
+  altFeet = altMeters * FEET_PER_METER;
 }
 
 // ============== Screen Helpers ===============================
@@ -242,7 +309,7 @@ void blinky(int qty, int waitTime) {
 void clearScreen() {
   tft.fillScreen(cBACKGROUND);
 }
-void printReadings(int units, float pascals) {
+void showReadings(int units, float pascals) {
   clearScreen();
   tft.setCursor(0, 0);
   tft.setTextColor(cTEXTCOLOR);
@@ -412,8 +479,8 @@ void adjustUnits() {
     units = 0;
   }
   Serial.print("Units changed to: "); Serial.println(units);
-  getData();
-  printReadings(units, Pa);
+  getBaroData();
+  showReadings(units, Pa);
 }
 
 // ----- console Serial port helper
@@ -447,7 +514,7 @@ void setup() {
 
   // ----- init TFT display
   tft.begin();                        // initialize TFT display
-  tft.setRotation(1);                 // landscape (default is portrait)
+  tft.setRotation(SCREEN_ROTATION);   // landscape (default is portrait)
   clearScreen();
 
   // ----- announce ourselves
@@ -501,13 +568,13 @@ void setup() {
   pinMode(ledPin, OUTPUT);    // for blinking
 
   // Get first data point (done twice because first reading is always bad)
-  getData();
+  getBaroData();
   pressureStack[lastIndex] = Pa + elevCorr;
-  printReadings(units, pressureStack[lastIndex]);
+  showReadings(units, pressureStack[lastIndex]);
 
-  getData();
+  getBaroData();
   pressureStack[lastIndex] = Pa + elevCorr;
-  printReadings(units, pressureStack[lastIndex]);
+  showReadings(units, pressureStack[lastIndex]);
 }
 
 //=========== main work loop ===================================
@@ -542,8 +609,8 @@ void loop() {
 
   // every 5 minutes acquire/print temp and pressure
   if (millis() - prevTimer1 > READ_BAROMETER_INTERVAL) {
-    getData();
-    printReadings(units, Pa);
+    getBaroData();
+    showReadings(units, Pa);
 
     // every 20 minutes log, display, and graph pressure/delta pressure
     if (millis() - prevTimer2 > LOG_PRESSURE_INTERVAL) {  // 1200000 for 20 minutes
@@ -558,7 +625,7 @@ void loop() {
       //calculate pressure change and reprint all to screen
       deltaPressure = pressureStack[lastIndex] - pressureStack[140];
       deltaPressure3h = pressureStack[lastIndex] - pressureStack[134];
-      printReadings(units, Pa);
+      showReadings(units, Pa);
       prevTimer2 = millis();
     }
     prevTimer1 = millis();
@@ -581,6 +648,11 @@ void loop() {
   // if there's touchscreen input, handle it
   Point touch;
   if (newScreenTap(&touch)) {
+
+    //const int radius = 3;     // debug
+    //tft.fillCircle(touch.x, touch.y, radius, cWARN);  // debug - show dot
+    //touchHandled = true;      // debug - true=stay on same screen
+
     adjustUnits();             // change between "inches mercury" and "millibars" units
   }
 }

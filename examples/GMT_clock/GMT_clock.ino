@@ -4,6 +4,7 @@
   Date:     2020-04-22 created
             2020-04-29 added touch adjustment of local time zone
             2020-05-01 added save/restore to nonvolatile RAM
+            2020-05-12 updated TouchScreen code
 
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
@@ -35,7 +36,7 @@
 #include "Adafruit_BMP3XX.h"        // Precision barometric and temperature sensor
 #include "save_restore.h"           // Save configuration in non-volatile RAM
 
-// ------- Identity for console
+// ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE   "Griduino GMT Clock"
 #define PROGRAM_VERSION "v0.06"
 #define PROGRAM_LINE1   "Barry K7BWH"
@@ -63,9 +64,8 @@ void timeMinus();
 
 #elif defined(ARDUINO_AVR_MEGA2560)
   #define TFT_BL   6    // TFT backlight
-  #define SD_CCS   7    // SD card select pin - Mega
-  #define SD_CD    8    // SD card detect pin - Mega
   #define TFT_DC   9    // TFT display/command pin
+  #define TFT_CS  10    // TFT chip select pin
   #define BMP_CS  13    // BMP388 sensor, chip select
 
 #else
@@ -121,14 +121,24 @@ Adafruit_GPS GPS(&Serial1);
 
 // ------------ typedef's
 typedef struct {
-  int x;
-  int y;
+  int x, y;
 } Point;
+
+typedef void (*simpleFunction)();
+typedef struct {
+  char text[26];
+  int x, y;
+  int w, h;
+  int radius;
+  uint16_t color;
+  simpleFunction function;
+} Button;
 
 // ------------ definitions
 const int howLongToWait = 6;  // max number of seconds at startup waiting for Serial port to console
-#define gScreenWidth 320      // pixels wide
+#define gScreenWidth 320      // pixels wide, landscape orientation
 #define gScreenHeight 240     // pixels high
+#define SCREEN_ROTATION  1    // 1=landscape, 3=landscape 180 degrees
 
 // ------------ global scope
 int gTimeZone = -7;                     // default local time Pacific (-7 hours), saved in nonvolatile memory
@@ -138,7 +148,7 @@ int gUnitFontWidth, gUnitFontHeight;    // character cell size for TextSize(1)
 int gCharWidth, gCharHeight;            // character cell size for TextSize(n)
 
 // ----- screen layout
-// using default fonts - screen pixel coordinates will identify top left of character cell
+// When using default system fonts, screen pixel coordinates will identify top left of character cell
 
 // splash screen layout
 const int xLabel = 8;             // indent labels, slight margin on left edge of screen
@@ -160,6 +170,7 @@ const Point birds     = { 286, 212 };           // "3 satellites"
 // ----- color scheme
 // RGB 565 color code: http://www.barth-dev.de/online/rgb565-color-picker/
 #define cBACKGROUND     0x00A             // 0,   0,  10 = darker than ILI9341_NAVY, but not black
+#define cSCALECOLOR     0xF844            // color picker: http://www.barth-dev.de/online/rgb565-color-picker/
 #define cTEXTCOLOR      ILI9341_CYAN      // 0, 255, 255
 #define cTEXTFAINT      0x514             // 0, 160, 160 = blue, between CYAN and DARKCYAN
 #define cLABEL          ILI9341_GREEN
@@ -167,19 +178,8 @@ const Point birds     = { 286, 212 };           // "3 satellites"
 #define cINPUT          ILI9341_WHITE
 #define cBUTTONFILL     ILI9341_NAVY
 #define cBUTTONOUTLINE  ILI9341_BLUE      // 0,   0, 255 = darker than cyan
+#define cBUTTONLABEL    ILI9341_YELLOW
 #define cWARN           0xF844            // brighter than ILI9341_RED but not pink
-
-typedef void (*simpleFunction)();
-typedef struct {
-  char text[26];
-  int x;
-  int y;
-  int w;
-  int h;
-  int radius;
-  uint16_t color;
-  simpleFunction function;
-} Button;
 
 // ========== constants ===============================
 
@@ -298,22 +298,38 @@ bool newScreenTap(Point* pPoint) {
   return result;
 }
 
+// 2020-05-12 barry@k7bwh.com
+// We need to replace TouchScreen::pressure() and implement TouchScreen::isTouching()
+
 // 2020-05-03 CraigV and barry@k7bwh.com
+uint16_t myPressure(void) {
+  pinMode(PIN_XP, OUTPUT);   digitalWrite(PIN_XP, LOW);   // Set X+ to ground
+  pinMode(PIN_YM, OUTPUT);   digitalWrite(PIN_YM, HIGH);  // Set Y- to VCC
+
+  digitalWrite(PIN_XM, LOW); pinMode(PIN_XM, INPUT);      // Hi-Z X-
+  digitalWrite(PIN_YP, LOW); pinMode(PIN_YP, INPUT);      // Hi-Z Y+
+
+  int z1 = analogRead(PIN_XM);
+  int z2 = 1023-analogRead(PIN_YP);
+
+  return (uint16_t) ((z1+z2)/2);
+}
+
 // "isTouching()" is defined in touch.h but is not implemented Adafruit's TouchScreen library
 // Note - For Griduino, if this function takes longer than 8 msec it can cause erratic GPS readings
 // so we recommend against using https://forum.arduino.cc/index.php?topic=449719.0
 bool TouchScreen::isTouching(void) {
   #define TOUCHPRESSURE 200       // Minimum pressure we consider true pressing
   static bool button_state = false;
-  uint16_t pres_val = pressure();
+  uint16_t pres_val = ::myPressure();
 
   if ((button_state == false) && (pres_val > TOUCHPRESSURE)) {
-    Serial.println("button down");     // debug
+    Serial.print(". pressed, pressure = "); Serial.println(pres_val);     // debug
     button_state = true;
   }
 
   if ((button_state == true) && (pres_val < TOUCHPRESSURE)) {
-    Serial.println("button up");       // debug
+    Serial.print(". released, pressure = "); Serial.println(pres_val);       // debug
     button_state = false;
   }
 
@@ -343,12 +359,15 @@ void mapTouchToScreen(TSPoint touch, Point* screen) {
   //
   // Typical measured pressures=200..549
 
-  screen->x = 0;
-  screen->y = 0;
-
   // setRotation(1) = landscape orientation = x-,y-axis exchanged
-  screen->x = map(touch.y, 100, 900,  0, tft.width());
-  screen->y = map(touch.x, 900, 100,  0, tft.height());
+  //          map(value    in_min,in_max, out_min,out_max)
+  screen->x = map(touch.y,  225,825,      0, tft.width());
+  screen->y = map(touch.x,  800,300,      0, tft.height());
+  if (SCREEN_ROTATION == 3) {
+    // if display is flipped, then also flip both x,y touchscreen coords
+    screen->x = tft.width() - screen->x;
+    screen->y = tft.height() - screen->y;
+  }
   return;
 }
 
@@ -581,7 +600,7 @@ void setup() {
 
   // ----- init TFT display
   tft.begin();                        // initialize TFT display
-  tft.setRotation(1);                 // landscape (default is portrait)
+  tft.setRotation(SCREEN_ROTATION);   // landscape (default is portrait)
   clearScreen();
 
   // ----- init barometer
@@ -593,6 +612,7 @@ void setup() {
     tft.println("Error!\n Unable to init\n  BMP388 sensor\n   check wiring");
     delay(4000);
   }
+
   // Set up BMP388 oversampling and filter initialization
   // baro.setTemperatureOversampling(BMP3_OVERSAMPLING_2X);
 
