@@ -395,7 +395,7 @@ void mapTouchToScreen(TSPoint touch, Point* screen) {
   return;
 }
 
-// ========== font management routines =========================
+// ========== font management helpers ==========================
 /* Using fonts: https://learn.adafruit.com/adafruit-gfx-graphics-library/using-fonts
 
   "Fonts" folder inside Adafruit_GFX, and here are some of the "Sans" fonts I tried.
