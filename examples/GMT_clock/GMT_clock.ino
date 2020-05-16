@@ -176,7 +176,8 @@ void processGPS() {
 void getTimeLocal(char* result, int len) {
   // @param result = char[10] = string buffer to modify
   // @param len = string buffer length
-  int hh = (GPS.hour + gTimeZone) % 24;   // 24-hour clock, to match GMT time
+  int hh = GPS.hour + gTimeZone;      // 24-hour clock (format matches GMT time)
+  hh = (hh + 24) % 24;                // ensure positive number of hours
   int mm = GPS.minute;
   int ss = GPS.seconds;
   snprintf(result, len, "%02d:%02d:%02d",
