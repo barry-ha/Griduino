@@ -20,7 +20,7 @@
             | Griduino Altimeter Demo         |. . .line1
             |                                 |
             | Barometer:      17.8 feet       |. . .line2
-            | GPS:           123.4 feet       |. . .line3
+            | GPS (5#):      123.4 feet       |. . .line3
             |                                 |
             | Enter your current local        |. . .line4
             | pressure at sea level:          |. . .line5
@@ -56,7 +56,7 @@
 
 // ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE   "Griduino Altimeter"
-#define PROGRAM_VERSION "v0.9"
+#define PROGRAM_VERSION "v0.10"
 #define PROGRAM_LINE1   "Barry K7BWH"
 #define PROGRAM_LINE2   "John KM7O"
 
@@ -390,7 +390,7 @@ void echoGPSinfo() {
 
   if (GPS.fix) {
     //Serial.print("   Loc("); Serial.print(gsLatitude); Serial.print(","); Serial.print(gsLongitude);
-    Serial.print("   Quality("); Serial.print((int)GPS.fixquality);
+    Serial.print("     Quality("); Serial.print((int)GPS.fixquality);
     Serial.print(") Sats("); Serial.print((int)GPS.satellites);
     Serial.print(") Speed("); Serial.print(GPS.speed); Serial.print(" knots");
     Serial.print(") Angle("); Serial.print(GPS.angle);
@@ -466,7 +466,14 @@ void showReadings() {
 
   tft.setCursor(xLabel, yRow3);
   tft.setTextColor(cLABEL);
-  tft.print("GPS:       ");
+  tft.print("GPS ");
+  char sSats[10];
+  if (GPS.satellites < 10) {
+    snprintf(sSats, sizeof(sSats), "(%d#):  ", GPS.satellites);
+  } else {
+    snprintf(sSats, sizeof(sSats), "(%d#): ", GPS.satellites);
+  }
+  tft.print(sSats);
   if (GPS.fix) {
     tft.setTextColor(cVALUE, cBACKGROUND);
     tft.print(GPS.altitude * FEET_PER_METER, 1);
