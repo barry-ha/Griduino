@@ -465,7 +465,7 @@ void showReadings() {
   tft.println(" feet  ");
 
   tft.setCursor(xLabel, yRow3);
-  tft.setTextColor(cLABEL);
+  tft.setTextColor(cLABEL, cBACKGROUND);
   tft.print("GPS ");
   char sSats[10];
   if (GPS.satellites < 10) {
