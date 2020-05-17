@@ -16,7 +16,7 @@
   | 61.2 |          us                 | 37.1 |
   |      |                             |      |
   |   47 +-----------------------------+      |
-  | 123' :         CN86  39.0 mi       :      |...gBottomGridY
+  |      :         CN86  39.0 mi       : 123' |...gBottomGridY
   | 47.5644, -122.0378                 :   5# |...gMessageRowY
   +------:---------:-------------------:------+
          :         :                   :
@@ -62,7 +62,7 @@ void drawGridOutline() {
 
 // these are names for the array indexes for readability, must be named in same order as below
 enum txtIndex {
-  GRID4=0, GRID6, ALTITUDE, LATLONG, NUMSAT,
+  GRID4=0, GRID6, LATLONG, ALTITUDE, NUMSAT,
   N_COMPASS,   S_COMPASS,   E_COMPASS,   W_COMPASS,
   N_DISTANCE,  S_DISTANCE,  E_DISTANCE,  W_DISTANCE,
   N_GRIDNAME,  S_GRIDNAME,  E_GRIDNAME,  W_GRIDNAME,
@@ -73,21 +73,21 @@ TextField txtGrid[] = {
   //         text      x,y     color
   TextField("CN77",  101,101,  cGRIDNAME),      // GRID4: center of screen
   TextField("tt",    138,139,  cGRIDNAME),      // GRID6: center of screen
-  TextField("123'",    4,196,  cWARN),          // ALTITUDE: just above bottom row
   TextField("47.1234,-123.5678", 4,223, cWARN), // LATLONG: left-adj on bottom row
-  TextField("99#",   280,223,  cWARN),          // NUMSAT: lower right corner
-  TextField( "N",    156, 47,  cCOMPASS ),     // N_COMPASS: centered left-right
-  TextField( "S",    156,181,  cCOMPASS ),     // S_COMPASS
-  TextField( "E",    232,114,  cCOMPASS ),     // E_COMPASS: centered top-bottom
-  TextField( "W",     73,114,  cCOMPASS ),     // W_COMPASS
-  TextField("17.1",  180, 20,  cDISTANCE),     // N_DISTANCE
-  TextField("52.0",  180,207,  cDISTANCE),     // S_DISTANCE
-  TextField("13.2",  256,130,  cDISTANCE),     // E_DISTANCE
-  TextField("79.7",    0,130,  cDISTANCE),     // W_DISTANCE
-  TextField("CN88",  102, 20,  cGRIDNAME),     // N_GRIDNAME
-  TextField("CN86",  102,207,  cGRIDNAME),     // S_GRIDNAME
-  TextField("CN97",  256,102,  cGRIDNAME),     // E_GRIDNAME
-  TextField("CN77",    0,102,  cGRIDNAME),     // W_GRIDNAME
+  TextField("123'",  315,196,  cWARN, FLUSHRIGHT),  // ALTITUDE: just above bottom row
+  TextField("99#",   315,221,  cWARN, FLUSHRIGHT),  // NUMSAT: lower right corner
+  TextField( "N",    156, 47,  cCOMPASS ),      // N_COMPASS: centered left-right
+  TextField( "S",    156,181,  cCOMPASS ),      // S_COMPASS
+  TextField( "E",    232,114,  cCOMPASS ),      // E_COMPASS: centered top-bottom
+  TextField( "W",     73,114,  cCOMPASS ),      // W_COMPASS
+  TextField("17.1",  180, 20,  cDISTANCE),      // N_DISTANCE
+  TextField("52.0",  180,207,  cDISTANCE),      // S_DISTANCE
+  TextField("13.2",  256,130,  cDISTANCE),      // E_DISTANCE
+  TextField("79.7",    0,130,  cDISTANCE),      // W_DISTANCE
+  TextField("CN88",  102, 20,  cGRIDNAME),      // N_GRIDNAME
+  TextField("CN86",  102,207,  cGRIDNAME),      // S_GRIDNAME
+  TextField("CN97",  256,102,  cGRIDNAME),      // E_GRIDNAME
+  TextField("CN77",    0,102,  cGRIDNAME),      // W_GRIDNAME
   TextField("48",     56, 44,  cBOXDEGREES, FLUSHRIGHT),  // N_BOXDEGREES
   TextField("47",     56,188,  cBOXDEGREES, FLUSHRIGHT),  // S_BOXDEGREES
   TextField("122",   243, 20,  cBOXDEGREES),              // E_BOXDEGREES
