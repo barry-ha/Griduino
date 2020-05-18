@@ -59,6 +59,7 @@
 #define PROGRAM_VERSION "v0.10"
 #define PROGRAM_LINE1   "Barry K7BWH"
 #define PROGRAM_LINE2   "John KM7O"
+#define PROGRAM_COMPILED __DATE__ " " __TIME__
 
 #define SCREEN_ROTATION 1   // 1=landscape, 3=landscape 180-degrees
 
@@ -184,12 +185,11 @@ const int howLongToWait = 6;  // max number of seconds at startup waiting for Se
 #define SCREEN_ROTATION  1    // 1=landscape, 3=landscape 180 degrees
 #define FEET_PER_METER 3.28084
 
-
 // ----- screen layout
 // When using default system fonts, screen pixel coordinates will identify top left of character cell
 const int xLabel = 8;             // indent labels, slight margin on left edge of screen
 #define yRow1   0                 // title: "Griduino Altimeter"
-#define yRow2   yRow1 + 40        // barometer reading
+#define yRow2   yRow1 + 40        // more text
 #define yRow3   yRow2 + 24        // GPS altitude
 #define yRow4   138               // label: "Your current local"
 #define yRow5   yRow4 + 20        // label: "pressure at sea level:"
