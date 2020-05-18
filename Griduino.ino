@@ -119,7 +119,7 @@ Digital potentiometer:
    CS   - volume chip select      - n/a         - A1
 On-board lights:
    LED  - red activity led        - Digital 13  - D13             - reserved for onboard LED
-   NP   - NeoPixel                - n/a         - D6              - reserved for onboard NeoPixel !! no, NeoPixel is ONLY using pin 8 !!
+   NP   - NeoPixel                - n/a         - D8              - reserved for onboard NeoPixel
 */
 
 // TFT display and SD card share the hardware SPI interface, and have
