@@ -4,6 +4,7 @@
   Date:     2019-20-18 created from example by John KM7O
             2020-03-05 replaced physical button design with touchscreen
             2020-05-12 updated TouchScreen code
+            2020-05-18 added NeoPixel control
 
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
@@ -28,13 +29,15 @@
 #include "Adafruit_ILI9341.h"       // TFT color display library
 #include "TouchScreen.h"            // Touchscreen built in to 3.2" Adafruit TFT display
 #include "Adafruit_BMP3XX.h"        // Precision barometric and temperature sensor
+#include "Adafruit_NeoPixel.h"
 #include "bitmaps.h"                // our definition of graphics displayed
 
 // ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE   "Barograph Demo"
-#define PROGRAM_VERSION "v1.0"
+#define PROGRAM_VERSION "v0.11"
 #define PROGRAM_LINE1   "Barry K7BWH"
 #define PROGRAM_LINE2   "John KM7O"
+#define PROGRAM_COMPILED __DATE__ " " __TIME__
 
 #define SCREEN_ROTATION 1   // 1=landscape, 3=landscape 180-degrees
 
@@ -66,6 +69,8 @@ TFT Resistive touch:
    X-   - Touch Horizontal        - Analog  A3  - A4  (J2 Pin 8)  - uses analog A/D
    Y+   - Touch Vertical axis     - Analog  A2  - A5  (J2 Pin 7)  - uses analog A/D
    Y-   - Touch Vertical          - Digital  5  - D9  (Pin 5 J5)
+NeoPixel:
+   DATA - Data/Command            - n/a         - Pin  8
 */
 
 #if defined(SAMD_SERIES)
@@ -119,10 +124,22 @@ TouchScreen ts = TouchScreen(PIN_XP, PIN_YP, PIN_XM, PIN_YM, 295);
 // ---------- Barometric and Temperature Sensor
 Adafruit_BMP3XX baro(BMP_CS); // hardware SPI
 
-// ---------- Onboard LED
-#define RED_LED 13    // diagnostics RED LED
+// ---------- Feather's onboard lights
+//efine PIN_NEOPIXEL 8      // already defined in Feather's board variant.h
+//efine PIN_LED 13          // already defined in Feather's board variant.h
 
-const int ledPin = 14;     // for blinking
+#define NUMPIXELS 1         // Feather M4 has one NeoPixel on board
+Adafruit_NeoPixel pixel = Adafruit_NeoPixel(NUMPIXELS, PIN_NEOPIXEL, NEO_GRB + NEO_KHZ800);
+
+const int MAXBRIGHT = 255;    // = 100% brightness = maximum allowed on individual LED
+const int BRIGHT = 32;        // = tolerably bright indoors
+const int HALFBR = 20;        // = half of tolerably bright
+const int OFF = 0;            // = turned off
+
+const uint32_t colorRed    = pixel.Color(HALFBR, OFF,    OFF);
+const uint32_t colorGreen  = pixel.Color(OFF,    HALFBR, OFF);
+const uint32_t colorBlue   = pixel.Color(OFF,    OFF,    BRIGHT);
+const uint32_t colorPurple = pixel.Color(HALFBR, OFF,    HALFBR);
 
 // ------------ typedef's
 typedef struct {
@@ -130,25 +147,31 @@ typedef struct {
 } Point;
 
 // ------------ definitions
+const int howLongToWait = 2;  // max number of seconds at startup waiting for Serial port to console
 #define FEET_PER_METER 3.28084
 #define SEALEVELPRESSURE_HPA (1013.25)
 #define MILLIBARS_PER_INCHES_MERCURY (0.02953)
 
-const int howLongToWait = 8;  // max number of seconds at startup waiting for Serial port to console
+// ----- screen layout
+// When using default system fonts, screen pixel coordinates will identify top left of character cell
+const int xLabel = 8;             // indent labels, slight margin on left edge of screen
+#define yRow1   0                 // title: "Barograph Demo"
+#define yRow2   yRow1 + 40        // barometer reading
 
 // ----- color scheme
 // RGB 565 color code: http://www.barth-dev.de/online/rgb565-color-picker/
-#define cBACKGROUND      0x00A             // a little darker than ILI9341_NAVY, but not black
+#define cBACKGROUND      0x00A             // 0,   0,  10 = darker than ILI9341_NAVY, but not black
 #define cSCALECOLOR      0xF844            // color picker: http://www.barth-dev.de/online/rgb565-color-picker/
 #define cTEXTCOLOR       ILI9341_CYAN      // 0, 255, 255
-//#define cLABEL         ILI9341_GREEN
+//define cTEXTFAINT      0x514             // 0, 160, 160 = blue, between CYAN and DARKCYAN
+#define cLABEL           ILI9341_GREEN
 //#define cVALUE         ILI9341_YELLOW
 //#define cINPUT         ILI9341_WHITE
 //#define cHIGHLIGHT     ILI9341_WHITE
 //#define cBUTTONFILL    ILI9341_NAVY
 //#define cBUTTONOUTLINE ILI9341_CYAN
 //#define cBUTTONLABEL   ILI9341_YELLOW
-#define cWARN            0xF844            // a little brighter than ILI9341_RED
+#define cWARN            0xF844            // brighter than ILI9341_RED but not pink
 
 // ------------ global scope
 float inchesHg;
@@ -297,14 +320,38 @@ void getBaroData() {
   altFeet = altMeters * FEET_PER_METER;
 }
 
-// ============== Screen Helpers ===============================
+// ========== screen helpers ===================================
 void blinky(int qty, int waitTime) {
   for (int i = 0; i <= qty; i++) {
-    digitalWrite(ledPin, HIGH);
+    digitalWrite(PIN_LED, HIGH);
     delay(waitTime);
-    digitalWrite(ledPin, LOW);
+    digitalWrite(PIN_LED, LOW);
     delay(waitTime);
   }
+}
+void startSplashScreen() {
+  tft.setTextSize(2);
+
+  tft.setCursor(xLabel, yRow1);
+  tft.setTextColor(cTEXTCOLOR);
+  tft.print(PROGRAM_TITLE);
+
+  tft.setCursor(xLabel, yRow2);
+  tft.setTextColor(cLABEL);
+  tft.print(PROGRAM_VERSION);
+  
+  tft.setCursor(xLabel, yRow2 + 20);
+  tft.println(PROGRAM_LINE1);
+
+  tft.setCursor(xLabel, yRow2 + 40);
+  tft.println(PROGRAM_LINE2);
+
+  tft.setCursor(xLabel, yRow2 + 140);
+  tft.println("Compiled");
+
+  tft.setCursor(xLabel, yRow2 + 160);
+  tft.println(PROGRAM_COMPILED);
+
 }
 void clearScreen() {
   tft.fillScreen(cBACKGROUND);
@@ -384,6 +431,7 @@ void printDeltaP3h() {
 
 void drawIcon() {
   if ( -116 < deltaPressure && deltaPressure <= -50) {
+    //               x, y  bimap     w, h   color
     tft.drawBitmap(230, 5, falling, 80, 80, cTEXTCOLOR);
     return;
   }
@@ -498,12 +546,12 @@ void waitForSerial(int howLong) {
 void setup() {
 
   // ----- init serial monitor
-  Serial.begin(115200);           // init for debuggging in the Arduino IDE
-  waitForSerial(howLongToWait);   // wait for developer to connect debugging console
+  Serial.begin(115200);                               // init for debuggging in the Arduino IDE
+  waitForSerial(howLongToWait);                       // wait for developer to connect debugging console
 
   // now that Serial is ready and connected (or we gave up)...
   Serial.println(PROGRAM_TITLE " " PROGRAM_VERSION);  // Report our program name to console
-  Serial.println("Compiled " __DATE__ " " __TIME__);  // Report our compiled date
+  Serial.println("Compiled " PROGRAM_COMPILED);       // Report our compiled date
   Serial.println(__FILE__);                           // Report our source code file name
 
   Serial.print("Last element index = "); Serial.println(lastIndex);
@@ -517,16 +565,49 @@ void setup() {
   tft.setRotation(SCREEN_ROTATION);   // landscape (default is portrait)
   clearScreen();
 
-  // ----- announce ourselves
-  tft.setCursor(0, 0);
-  tft.setTextColor(cTEXTCOLOR);
-  tft.setTextSize(3);
-  tft.println(PROGRAM_TITLE);
-  tft.println(PROGRAM_VERSION);
-  tft.println(PROGRAM_LINE1);
-  tft.println(PROGRAM_LINE2);
+  // ----- init Feather M4 onboard lights
+  pixel.begin();
+  pixel.clear();                      // turn off NeoPixel
+  digitalWrite(PIN_LED, LOW);         // turn off little red LED
+  Serial.println("NeoPixel initialized and turned off");
 
-  delay(2000);
+  /* ***** test code commented out...
+  delay(3000);     // waiting for serial console to attach
+  for (int ii=0; ii<10; ii++) {
+    Serial.print(ii); 
+    Serial.print(". Red ");
+    pixel.setPixelColor(0, colorRed);
+    pixel.show();
+    digitalWrite(PIN_LED, HIGH);       // little red LED on
+    delay(800);
+
+    Serial.print(". Green ");
+    pixel.setPixelColor(0, colorGreen);
+    pixel.show();
+    digitalWrite(PIN_LED, LOW);        // little red LED off
+    delay(800);
+
+    Serial.print(". Blue ");
+    pixel.setPixelColor(0, colorBlue);
+    pixel.show();
+    digitalWrite(PIN_LED, HIGH);       // little red LED on
+    delay(800);
+    
+    Serial.print(". Purple ");
+    pixel.setPixelColor(0, colorPurple);
+    pixel.show();
+    digitalWrite(PIN_LED, LOW);        // little red LED off
+    delay(800);
+
+    Serial.println();
+  }
+  pixel.clear();
+  ... end test code ***** */
+
+  // ----- announce ourselves
+  startSplashScreen();
+
+  delay(4000);
   clearScreen();
 /*
 // --> bmp3_defs.h
@@ -564,8 +645,6 @@ void setup() {
   baro.setPressureOversampling(BMP3_OVERSAMPLING_32X);
   baro.setIIRFilterCoeff(BMP3_IIR_FILTER_COEFF_127);
   // baro.setOutputDataRate(BMP3_ODR_50_HZ);
-
-  pinMode(ledPin, OUTPUT);    // for blinking
 
   // Get first data point (done twice because first reading is always bad)
   getBaroData();
