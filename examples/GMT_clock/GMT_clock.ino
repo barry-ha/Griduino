@@ -638,6 +638,10 @@ void setup() {
   tft.begin();                        // initialize TFT display
   tft.setRotation(SCREEN_ROTATION);   // landscape (default is portrait)
   clearScreen();
+  // ----- announce ourselves
+  startSplashScreen();
+  delay(4000);         // milliseconds
+
 
   // ----- init barometer
   if (!baro.begin()) {
@@ -658,10 +662,6 @@ void setup() {
     gTimeZone = myconfig.intSetting;
   }
   Serial.print("Time zone restored to "); Serial.println(gTimeZone);
-
-  // ----- announce ourselves
-  startSplashScreen();
-  delay(4000);         // milliseconds
 
   startViewScreen();
 }
