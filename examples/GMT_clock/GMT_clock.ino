@@ -642,15 +642,35 @@ void setup() {
   startSplashScreen();
   delay(4000);         // milliseconds
 
-
   // ----- init barometer
   if (!baro.begin()) {
     Serial.println("Error, unable to initialize BMP388, check your wiring");
-    tft.setCursor(0, 80);
-    tft.setTextColor(cWARN);
-    tft.setTextSize(3);
-    tft.println("Error!\n Unable to init\n  BMP388 sensor\n   check wiring");
-    delay(4000);
+
+    #define RETRYLIMIT 50
+    TextField txtError[] = {
+      //        text                 x,y     color  
+      {"Error!",                    12, 32,  cWARN},       // [0]
+      {"Unable to init barometer",  12, 62,  cWARN},       // [1]
+      {"Please check your wiring",  12, 92,  cWARN},       // [2]
+      {"Retrying...",               12,152,  cWARN},       // [3]
+      {"1",                        150,152,  cTEXTCOLOR, FLUSHRIGHT},  // [4]
+      {"of 50",                    162,152,  cWARN},       // [5]
+    };
+    const int numErrorFields = sizeof(txtError)/sizeof(TextField);
+
+    initFontSizeSmall();
+    clearScreen();
+    for (int ii=0; ii<numErrorFields; ii++) {
+      txtError[ii].print();
+    }
+
+    for (int ii=1; ii<=RETRYLIMIT; ii++) {
+      txtError[4].print(ii);
+      if (baro.begin()) {
+        break;  // success, baro sensor finally initialized
+      }
+      delay(1000);
+    }
   }
 
   // Set up BMP388 oversampling and filter initialization
