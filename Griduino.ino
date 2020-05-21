@@ -571,7 +571,6 @@ String calcDistanceLat(double fromLat, double toLat) {
   String sDistance("12.3");   // result
 
   const double R = 3958.8;             // average Earth radius (miles)
-  const double degreesPerRadian = 57.2957795;
   double angleDegrees = fabs(fromLat - toLat);
   double angleRadians = angleDegrees / degreesPerRadian;
   double distance = angleRadians * R;
@@ -853,7 +852,9 @@ void loop() {
       // this also sets the newNMEAreceived() flag to false
       return;
     } else {
+      #ifdef ECHO_GPS_SENTENCE
       Serial.print(GPS.lastNMEA());   // debug
+      #endif
     }
   }
 
