@@ -15,10 +15,15 @@
 
 #define feetPerMeters 3.28084
 #define mphPerKnots   1.15078
+const double degreesPerRadian = 57.2957795;
+
+const float gridWidthDegrees = 2.0;   // size of one grid square, degrees
+const float gridHeightDegrees = 1.0;
 
 // ------- Select features ---------
-#define RUN_UNIT_TESTS            // comment out to save boot-up time
-//#define ECHO_GPS                  // use this to resend GPS sentences to IDE console for debug
+//#define RUN_UNIT_TESTS            // comment out to save boot-up time
+//#define ECHO_GPS                  // use this to see GPS detailed info on IDE console for debug
+//#define ECHO_GPS_SENTENCE         // use this to see once-per-second GPS sentences
 
 // ----- load/save configuration using SDRAM
 //#define EXTERNAL_FLASH_USE_QSPI   // 2020-02-11 added by BarryH, since it seems to be missing from 
@@ -36,27 +41,31 @@
 #define cHIGHLIGHT      ILI9341_WHITE
 #define cBUTTONFILL     ILI9341_NAVY
 #define cBUTTONOUTLINE  ILI9341_CYAN
-#define cBOXDEGREES     ILI9341_CYAN
+//efine cBOXDEGREES     0x0514            // 0, 160, 160 = blue, between CYAN and DARKCYAN
+#define cBOXDEGREES     0x0410            // 0, 128, 128 = blue, between CYAN and DARKCYAN
 #define cBUTTONLABEL    ILI9341_YELLOW
 #define cCOMPASS        ILI9341_BLUE      // a little darker than cBUTTONOUTLINE
 #define cWARN           0xF844            // brighter than ILI9341_RED but not pink
 
 // ------------ typedef's
-typedef struct {
+struct Point {
   int x, y;
-} Point;
+};
+struct PointGPS{
+  public:
+    double lat, lng;
+};
 
-typedef struct {
+struct Rectangle {
   int left, top;
   int width, height;
   char label[12];
-} Rectangle;
-
-typedef struct {
+};
+struct Label {
   char text[26];
   int x, y;
   uint16_t color;
-} Label;
+};
 
 typedef void (*simpleFunction)();
 typedef struct {
@@ -67,5 +76,18 @@ typedef struct {
   uint16_t color;
   simpleFunction function;
 } Button;
+
+class Location {
+  public:
+    PointGPS loc;       // has-a lat/long, degrees
+    int hh, mm, ss;     // has-a GMT time
+    void reset() {
+      loc.lat = loc.lng = 0.0;
+      hh = mm = ss = 0;
+    }
+    bool isEmpty() {
+      return (loc.lat==0.0 && loc.lng==0.0);
+    }
+};
 
 #endif // _GRIDUINO_CONSTANTS_H
