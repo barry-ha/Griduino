@@ -147,18 +147,18 @@ int gSatellites = 0;                    // number of satellites
 
 // ----- color scheme
 // RGB 565 color code: http://www.barth-dev.de/online/rgb565-color-picker/
-#define cBACKGROUND      0x00A             // 0,   0,  10 = darker than ILI9341_NAVY, but not black
-//efine cSCALECOLOR      0xF844
-#define cTEXTCOLOR       ILI9341_CYAN      // 0, 255, 255
-#define cTEXTFAINT       0x514             // 0, 160, 160 = blue, between CYAN and DARKCYAN
-#define cLABEL           ILI9341_GREEN
-#define cVALUE           ILI9341_YELLOW
-#define cINPUT           ILI9341_WHITE
-//efine cHIGHLIGHT       ILI9341_WHITE
-#define cBUTTONFILL      ILI9341_NAVY
-#define cBUTTONOUTLINE   ILI9341_BLUE      // 0,   0, 255 = darker than cyan
-#define cBUTTONLABEL     ILI9341_YELLOW
-#define cWARN            0xF844            // brighter than ILI9341_RED but not pink
+#define cBACKGROUND     0x00A             // 0,   0,  10 = darker than ILI9341_NAVY, but not black
+//efine cSCALECOLOR     0xF844
+#define cTEXTCOLOR      ILI9341_CYAN      // 0, 255, 255
+#define cTEXTFAINT      0x514             // 0, 160, 160 = blue, between CYAN and DARKCYAN
+#define cLABEL          ILI9341_GREEN
+#define cVALUE          ILI9341_YELLOW
+#define cINPUT          ILI9341_WHITE
+//efine cHIGHLIGHT      ILI9341_WHITE
+#define cBUTTONFILL     ILI9341_NAVY
+#define cBUTTONOUTLINE  ILI9341_BLUE      // 0,   0, 255 = darker than cyan
+#define cBUTTONLABEL    ILI9341_YELLOW
+#define cWARN           0xF844            // brighter than ILI9341_RED but not pink
 
 // ========== constants ===============================
 
