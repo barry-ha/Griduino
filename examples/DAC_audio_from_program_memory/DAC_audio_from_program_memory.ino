@@ -27,40 +27,25 @@
             This example program has no user interface controls or inputs.
 */
 
-#include "Adafruit_ILI9341.h"     // TFT color display library
-#include "DS1804.h"               // DS1804 digital potentiometer library
-#include "elapsedMillis.h"        // short-interval timing functions
-#include "sample1.h"              // audio clip 1
-#include "sample2.h"              // audio clip 2
+#include "Adafruit_ILI9341.h"       // TFT color display library
+#include "DS1804.h"                 // DS1804 digital potentiometer library
+#include "elapsedMillis.h"          // short-interval timing functions
+#include "sample1.h"                // audio clip 1
+#include "sample2.h"                // audio clip 2
 
 // ------- Identity for console
 #define PROGRAM_TITLE   "DAC Audio in Program Mem"
 #define PROGRAM_VERSION "v1.0"
 #define PROGRAM_LINE1   "Barry K7BWH"
 #define PROGRAM_LINE2   "John KM7O"
+#define PROGRAM_COMPILED __DATE__ " " __TIME__
 
 // ---------- Hardware Wiring ----------
-/*                                Arduino       Adafruit
-  ___Label__Description______________Mega_______Feather M4__________Resource____
-TFT Power:
-   GND  - Ground                  - ground      - J2 Pin 13
-   VIN  - VCC                     - 5v          - Pin 10 J5 Vusb
-TFT SPI: 
-   SCK  - SPI Serial Clock        - Digital 52  - SCK (J2 Pin 6)  - uses hardw SPI
-   MISO - SPI Master In Slave Out - Digital 50  - MI  (J2 Pin 4)  - uses hardw SPI
-   MOSI - SPI Master Out Slave In - Digital 51  - MO  (J2 Pin 5)  - uses hardw SPI
-   CS   - SPI Chip Select         - Digital 10  - D5  (Pin 3 J5)
-   D/C  - SPI Data/Command        - Digital  9  - D12 (Pin 8 J5)
-Audio Out:
-   DAC0 - audio signal            - n/a         - A0  (J2 Pin 12) - uses onboard digital-analog converter
-Digital potentiometer:
-   PIN_VINC - volume increment    - n/a         - D6
-   PIN_VUD  - volume up/down      - n/a         - A2
-   PIN_VCS  - volume chip select  - n/a         - A1
+/* Same as Griduino platform
 */
 
   #define TFT_BL   4    // TFT backlight
-  #define TFT_CS   5    // TFT select pin
+  #define TFT_CS   5    // TFT chip select pin
   #define TFT_DC  12    // TFT display/command pin
 
 // create an instance of the TFT Display
@@ -81,25 +66,19 @@ int gVolume = 85;             // initial digital potentiometer wiper position, 0
 
 // ----- screen layout
 // screen pixel coordinates for top left of character cell
-#define yRow1   0            // title: "Griduino Altimeter Demo"
-#define yRow2   yRow1 + 40   // barometer reading
-#define yRow3   yRow2 + 24   // GPS altitude
-#define yRow4   138          // label: "Your current local"
-#define yRow5   yRow4 + 20   // label: "pressure at sea level:"
-#define yRow6   yRow5 + 42   // value: "1016.2 hPa"
-const int xLabel = 8;        // indent labels, slight margin to left edge of screen
 
 // ----- color scheme
-#define cBACKGROUND   0x00A   // a little darker than ILI9341_NAVY, but not black
-#define cSCALECOLOR   0xF844  // color picker: http://www.barth-dev.de/online/rgb565-color-picker/
-#define cTEXTCOLOR    ILI9341_CYAN
-#define cLABEL        ILI9341_GREEN
-#define cVALUE        ILI9341_YELLOW
-#define cINPUT        ILI9341_WHITE
-#define cBUTTONFILL    ILI9341_NAVY
-#define cBUTTONOUTLINE ILI9341_CYAN
-#define cBUTTONLABEL   ILI9341_YELLOW
-#define cWARN         0xF844        // a little brighter than ILI9341_RED
+// RGB 565 color code: http://www.barth-dev.de/online/rgb565-color-picker/
+#define cBACKGROUND     0x00A             // 0,   0,  10 = darker than ILI9341_NAVY, but not black
+#define cSCALECOLOR     0xF844
+#define cTEXTCOLOR      ILI9341_CYAN      // 0, 255, 255
+#define cLABEL          ILI9341_GREEN
+#define cVALUE          ILI9341_YELLOW
+#define cINPUT          ILI9341_WHITE
+#define cBUTTONFILL     ILI9341_NAVY
+#define cBUTTONOUTLINE  ILI9341_CYAN
+#define cBUTTONLABEL    ILI9341_YELLOW
+#define cWARN           0xF844            // brighter than ILI9341_RED but not pink
 
 // ------------ global scope
 const int howLongToWait = 10; // max number of seconds before using Serial port to console
@@ -107,7 +86,33 @@ int gLoopCount = 0;
 
 const int gSampleRate = 8000;               // 8 kHz audio file
 const int gHoldTime = 1E6 / gSampleRate;    // microseconds to hold each output sample
-// ============== Screen Helpers ===============================
+
+// ========== splash screen helpers ============================
+// splash screen layout
+const int xLabel = 8;             // indent labels, slight margin to left edge of screen
+#define yRow1   20                // program title: "DAC Audio"
+#define yRow2   yRow1 + 20        // program version
+#define yRow3   yRow2 + 20        // author line 1
+#define yRow4   yRow3 + 20        // author line 2
+
+void startSplashScreen() {
+  tft.setTextSize(2);
+
+  tft.setCursor(xLabel, yRow1);
+  tft.setTextColor(cTEXTCOLOR);
+  tft.print(PROGRAM_TITLE);
+
+  tft.setCursor(xLabel, yRow2);
+  tft.setTextColor(cLABEL);
+  tft.print(PROGRAM_VERSION);
+  
+  tft.setCursor(xLabel, yRow3);
+  tft.println(PROGRAM_LINE1);
+
+  tft.setCursor(xLabel, yRow4);
+  tft.println(PROGRAM_LINE2);
+}
+// ========== screen helpers ===================================
 void clearScreen() {
   tft.fillScreen(cBACKGROUND);
 }
@@ -127,19 +132,13 @@ void waitForSerial(int howLong) {
 void setup() {
 
   // ----- init serial monitor
-  Serial.begin(115200);           // init for debuggging in the Arduino IDE
-  waitForSerial(howLongToWait);   // wait for developer to connect debugging console
+  Serial.begin(115200);                               // init for debuggging in the Arduino IDE
+  waitForSerial(howLongToWait);                       // wait for developer to connect debugging console
 
   // now that Serial is ready and connected (or we gave up)...
   Serial.println(PROGRAM_TITLE " " PROGRAM_VERSION);  // Report our program name to console
-  Serial.println("Compiled " __DATE__ " " __TIME__);  // Report our compiled date
+  Serial.println("Compiled " PROGRAM_COMPILED);       // Report our compiled date
   Serial.println(__FILE__);                           // Report our source code file name
-
-  #if defined(SAMD_SERIES)
-    Serial.println("Compiled for Adafruit Feather M4 Express (or equivalent)");
-  #else
-    Serial.println("Sorry, your hardware platform is not recognized.");
-  #endif
 
   // ----- init TFT backlight
   pinMode(TFT_BL, OUTPUT);
@@ -147,25 +146,11 @@ void setup() {
 
   // ----- init TFT display
   tft.begin();                        // initialize TFT display
-  tft.setRotation(1);                 // landscape (default is portrait)
+  tft.setRotation(1);                 // 1=landscape (default is 0=portrait)
   clearScreen();
 
   // ----- announce ourselves
-  tft.setTextSize(2);
-
-  tft.setCursor(xLabel, yRow1);
-  tft.setTextColor(cTEXTCOLOR);
-  tft.print(PROGRAM_TITLE);
-
-  tft.setCursor(xLabel, yRow2);
-  tft.setTextColor(cLABEL);
-  tft.print(PROGRAM_VERSION);
-  
-  tft.setCursor(xLabel, yRow2 + 20);
-  tft.println(PROGRAM_LINE1);
-
-  tft.setCursor(xLabel, yRow2 + 40);
-  tft.println(PROGRAM_LINE2);
+  startSplashScreen();
 
   // ----- init digital potentiometer
   volume.setWiperPosition(gVolume);
