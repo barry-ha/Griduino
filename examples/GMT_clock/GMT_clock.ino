@@ -107,8 +107,9 @@ TouchScreen ts = TouchScreen(PIN_XP, PIN_YP, PIN_XM, PIN_YM, 295);
 // ---------- Barometric and Temperature Sensor
 Adafruit_BMP3XX baro(BMP_CS); // hardware SPI
 
-// ---------- Onboard LED
-#define RED_LED 13    // diagnostics RED LED
+// ---------- Feather's onboard lights
+#define RED_LED 13          // diagnostics RED LED
+//efine PIN_LED 13          // already defined in Feather's board variant.h
 
 // ---------- GPS ----------
 /* "Ultimate GPS" pin wiring is connected to a dedicated hardware serial port
@@ -123,10 +124,9 @@ Adafruit_BMP3XX baro(BMP_CS); // hardware SPI
 Adafruit_GPS GPS(&Serial1);
 
 // ------------ typedef's
-typedef struct {
+struct Point {
   int x, y;
-} Point;
-
+};
 typedef void (*simpleFunction)();
 typedef struct {
   char text[26];
@@ -139,7 +139,7 @@ typedef struct {
 
 // ------------ definitions
 const int howLongToWait = 6;  // max number of seconds at startup waiting for Serial port to console
-#define SCREEN_ROTATION  1    // 1=landscape, 3=landscape 180 degrees
+#define SCREEN_ROTATION 1     // 1=landscape, 3=landscape 180 degrees
 
 // ------------ global scope
 int gTimeZone = -7;                     // default local time Pacific (-7 hours), saved in nonvolatile memory
@@ -148,7 +148,7 @@ int gSatellites = 0;                    // number of satellites
 // ----- color scheme
 // RGB 565 color code: http://www.barth-dev.de/online/rgb565-color-picker/
 #define cBACKGROUND     0x00A             // 0,   0,  10 = darker than ILI9341_NAVY, but not black
-//efine cSCALECOLOR     0xF844
+//efine cSCALECOLOR     ILI9341_YELLOW
 #define cTEXTCOLOR      ILI9341_CYAN      // 0, 255, 255
 #define cTEXTFAINT      0x514             // 0, 160, 160 = blue, between CYAN and DARKCYAN
 #define cLABEL          ILI9341_GREEN
@@ -646,7 +646,7 @@ void setup() {
   if (!baro.begin()) {
     Serial.println("Error, unable to initialize BMP388, check your wiring");
 
-    #define RETRYLIMIT 50
+    #define RETRYLIMIT 10
     TextField txtError[] = {
       //        text                 x,y     color  
       {"Error!",                    12, 32,  cWARN},       // [0]
