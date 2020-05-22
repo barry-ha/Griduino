@@ -144,8 +144,9 @@ TouchScreen ts = TouchScreen(PIN_XP, PIN_YP, PIN_XM, PIN_YM, 295);
 // ---------- Barometric and Temperature Sensor
 Adafruit_BMP3XX baro(BMP_CS); // hardware SPI
 
-// ---------- Onboard LED
-#define RED_LED 13    // diagnostics RED LED
+// ---------- Feather's onboard lights
+#define RED_LED 13          // diagnostics RED LED
+//efine PIN_LED 13          // already defined in Feather's board variant.h
 
 // ---------- GPS ----------
 /* "Ultimate GPS" pin wiring is connected to a dedicated hardware serial port
@@ -160,9 +161,9 @@ Adafruit_BMP3XX baro(BMP_CS); // hardware SPI
 Adafruit_GPS GPS(&Serial1);
 
 // ------------ typedef's
-typedef struct {
+struct Point {
   int x, y;
-} Point;
+};
 
 typedef struct {
   char text[26];
@@ -440,6 +441,12 @@ void startSplashScreen() {
   tft.setCursor(xLabel, yRow2 + 40);
   tft.println(PROGRAM_LINE2);
 
+  tft.setCursor(xLabel, yRow2 + 140);
+  tft.println("Compiled");
+
+  tft.setCursor(xLabel, yRow2 + 160);
+  tft.println(PROGRAM_COMPILED);
+
   delay(2000);
   clearScreen();
   
@@ -545,7 +552,7 @@ void setup() {
 
   // now that Serial is ready and connected (or we gave up)...
   Serial.println(PROGRAM_TITLE " " PROGRAM_VERSION);  // Report our program name to console
-  Serial.println("Compiled " __DATE__ " " __TIME__);  // Report our compiled date
+  Serial.println("Compiled " PROGRAM_COMPILED);       // Report our compiled date
   Serial.println(__FILE__);                           // Report our source code file name
 
   // ----- init GPS
