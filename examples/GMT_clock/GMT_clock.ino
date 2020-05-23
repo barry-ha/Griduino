@@ -255,7 +255,7 @@ bool newScreenTap(Point* pPoint) {
       Serial.print(","); Serial.print(pPoint->y); Serial.println(")");
     }
   }
-  //delay(100);   // no delay: code above completely handles debouncing without blocking the loop
+  //delay(10);   // no delay: code above completely handles debouncing without blocking the loop
   return result;
 }
 
@@ -618,7 +618,6 @@ void setup() {
 
   GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);    // 1 Hz update rate
   //GPS.sendCommand(PMTK_SET_NMEA_UPDATE_200_MILLIHERTZ); // Once every 5 seconds update
-  //GPS.sendCommand(PGCMD_ANTENNA);             // Request updates on whether antenna is connected or not (comment out to keep quiet)
 
   // ----- query GPS
   Serial.print("Sending command to query GPS Firmware version");
@@ -636,10 +635,11 @@ void setup() {
 
   // ----- init TFT display
   tft.begin();                        // initialize TFT display
-  tft.setRotation(SCREEN_ROTATION);   // landscape (default is portrait)
+  tft.setRotation(SCREEN_ROTATION);   // 1=landscape (default is 0=portrait)
   clearScreen();
   // ----- announce ourselves
   startSplashScreen();
+
   delay(4000);         // milliseconds
 
   // ----- init barometer

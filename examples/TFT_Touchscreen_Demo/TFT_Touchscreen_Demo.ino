@@ -32,25 +32,17 @@
 #include "Adafruit_ILI9341.h"       // TFT color display library
 #include "TouchScreen.h"            // Touchscreen built in to 3.2" Adafruit TFT display
 
-// ------- Identity for console
+// ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE   "Touch Screen Demo"
 #define PROGRAM_VERSION "v0.9"
 #define PROGRAM_LINE1   "Barry K7BWH"
 #define PROGRAM_LINE2   "John KM7O"
+#define PROGRAM_COMPILED __DATE__ " " __TIME__
 
 #define SCREEN_ROTATION 1   // 1=landscape, 3=landscape 180-degrees
 
 // ---------- Hardware Wiring ----------
-/*                                Arduino       Adafruit
-  ___Label__Description______________Mega_______Feather M4__________Resource____
-TFT Power:
-   GND  - Ground                  - ground      - J2 Pin 13
-   VIN  - VCC                     - 5v          - Pin 10 J5 Vusb
-TFT Resistive touch:
-   X+   - Touch Horizontal axis   - Digital  4  - A3  (Pin 4 J5)
-   X-   - Touch Horizontal        - Analog  A3  - A4  (J2 Pin 8)  - uses analog A/D
-   Y+   - Touch Vertical axis     - Analog  A2  - A5  (J2 Pin 7)  - uses analog A/D
-   Y-   - Touch Vertical          - Digital  5  - D9  (Pin 5 J5)
+/* Same as Griduino platform
 */
 
 // TFT display and SD card share the hardware SPI interface, and have
@@ -103,9 +95,9 @@ Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 TouchScreen ts = TouchScreen(PIN_XP, PIN_YP, PIN_XM, PIN_YM, 295);
 
 // ------------ typedef's
-typedef struct {
+struct Point {
   int x, y;
-} Point;
+};
 
 // ------------ definitions
 #define gScreenWidth 320      // pixels wide, landscape orientation
@@ -124,15 +116,15 @@ const int xLabel = 8;             // indent labels, slight margin on left edge o
 
 // ----- color scheme
 // RGB 565 color code: http://www.barth-dev.de/online/rgb565-color-picker/
-#define cBACKGROUND      0x00A             // 0,   0,  10 = darker than ILI9341_NAVY, but not black
-#define cTEXTCOLOR       ILI9341_CYAN      // 0, 255, 255
-#define cTEXTFAINT       0x514             // 0, 160, 160 = blue, between CYAN and DARKCYAN
-#define cLABEL           ILI9341_GREEN
+#define cBACKGROUND     0x00A             // 0,   0,  10 = darker than ILI9341_NAVY, but not black
+#define cTEXTCOLOR       ILI9341_CYAN     // 0, 255, 255
+#define cTEXTFAINT      0x514             // 0, 160, 160 = blue, between CYAN and DARKCYAN
+#define cLABEL          ILI9341_GREEN
 #define cVALUE           ILI9341_YELLOW
 #define cINPUT           ILI9341_WHITE
 #define cBUTTONFILL      ILI9341_NAVY
-#define cBUTTONOUTLINE   ILI9341_BLUE      // 0,   0, 255 = darker than cyan
-#define cWARN            0xF844            // brighter than ILI9341_RED but not pink
+#define cBUTTONOUTLINE   ILI9341_BLUE     // 0,   0, 255 = darker than cyan
+#define cWARN           0xF844            // brighter than ILI9341_RED but not pink
 
 // ============== touchscreen helpers ==========================
 
@@ -166,7 +158,7 @@ bool newScreenTap(Point* pPoint) {
       Serial.print(","); Serial.print(pPoint->y); Serial.println(")");
     }
   }
-  //delay(100);   // no delay: code above completely handles debouncing without blocking the loop
+  //delay(10);   // no delay: code above completely handles debouncing without blocking the loop
   return result;
 }
 
@@ -243,7 +235,7 @@ void mapTouchToScreen(TSPoint touch, Point* screen) {
   return;
 }
 
-// ========== screen helpers ===================================
+// ========== splash screen helpers ============================
 void startSplashScreen() {
   tft.setTextSize(2);
 
@@ -269,23 +261,22 @@ void startSplashScreen() {
   tft.print("Pressure threshhold: ");
   tft.print(ts.pressureThreshhold);
 }
-
 void clearScreen() {
   tft.fillScreen(cBACKGROUND);
 }
 
 void showActivityBar(int row, uint16_t foreground, uint16_t background) {
-  static int addDotX = 10;                   // current screen column, 0..319 pixels
+  static int addDotX = 10;                    // current screen column, 0..319 pixels
   static int rmvDotX = 0;
   static int count = 0;
-  const int SCALEF = 32;                     // how much to slow it down so it becomes visible
+  const int SCALEF = 2048;                    // how much to slow it down so it becomes visible
 
   count = (count + 1) % SCALEF;
   if (count == 0) {
-    addDotX = (addDotX + 1) % gScreenWidth;   // advance
-    rmvDotX = (rmvDotX + 1) % gScreenWidth;   // advance
-    tft.drawPixel(addDotX, row, foreground);   // write new
-    tft.drawPixel(rmvDotX, row, background);   // erase old
+    addDotX = (addDotX + 1) % tft.width();    // advance
+    rmvDotX = (rmvDotX + 1) % tft.width();    // advance
+    tft.drawPixel(addDotX, row, foreground);  // write new
+    tft.drawPixel(rmvDotX, row, background);  // erase old
   }
 }
 
@@ -293,10 +284,10 @@ void showActivityBar(int row, uint16_t foreground, uint16_t background) {
 void setup() {
 
   // ----- init serial monitor
-  Serial.begin(115200);           // init for debuggging in the Arduino IDE
+  Serial.begin(115200);                               // init for debuggging in the Arduino IDE
 
   Serial.println(PROGRAM_TITLE " " PROGRAM_VERSION);  // Report our program name to console
-  Serial.println("Compiled " __DATE__ " " __TIME__);  // Report our compiled date
+  Serial.println("Compiled " PROGRAM_COMPILED);       // Report our compiled date
   Serial.println(__FILE__);                           // Report our source code file name
 
   // ----- init TFT backlight

@@ -64,6 +64,11 @@ Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 DS1804 volume = DS1804( PIN_VCS,     PIN_VINC,  PIN_VUD,  DS1804_TEN );
 int gVolume = 85;             // initial digital potentiometer wiper position, 0..99
 
+// ------------ typedef's
+struct Point {
+  int x, y;
+};
+
 // ----- screen layout
 // screen pixel coordinates for top left of character cell
 
@@ -112,6 +117,7 @@ void startSplashScreen() {
   tft.setCursor(xLabel, yRow4);
   tft.println(PROGRAM_LINE2);
 }
+
 // ========== screen helpers ===================================
 void clearScreen() {
   tft.fillScreen(cBACKGROUND);

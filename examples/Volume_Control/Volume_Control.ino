@@ -51,6 +51,7 @@
 #define PROGRAM_VERSION "v1.0"
 #define PROGRAM_LINE1   "Barry K7BWH"
 #define PROGRAM_LINE2   "John KM7O"
+#define PROGRAM_COMPILED __DATE__ " " __TIME__
 
 #define SCREEN_ROTATION 1   // 1=landscape, 3=landscape 180-degrees
 
@@ -93,7 +94,7 @@ TFT No connection:
 
 #else
   // todo: Unknown platform
-  #error You need to define pins for your hardware
+  #warning You need to define pins for your hardware
 
 #endif
 
@@ -121,10 +122,9 @@ Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 TouchScreen ts = TouchScreen(PIN_XP, PIN_YP, PIN_XM, PIN_YM, 295);
 
 // ------------ typedef's
-typedef struct {
+struct Point {
   int x, y;
-} Point;
-
+};
 typedef struct {
   int left, top;
   int width, height;
@@ -251,7 +251,7 @@ bool newScreenTap(Point* pPoint) {
       Serial.print(","); Serial.print(pPoint->y); Serial.println(")");
     }
   }
-  //delay(100);   // no delay: code above completely handles debouncing without blocking the loop
+  //delay(10);   // no delay: code above completely handles debouncing without blocking the loop
   return result;
 }
 
@@ -337,6 +337,10 @@ void mapTouchToScreen(TSPoint touch, Point* screen) {
   return;
 }
 
+void clearScreen() {
+  tft.fillScreen(cBACKGROUND);
+}
+
 // ----- Do The Thing
 void increaseVolume() {
   Serial.println("+++ Increase volume! Yay!");
@@ -351,6 +355,21 @@ void decreaseVolume() {
   // todo: send volume change to DS1804 digital potentiometer
 }
 
+void showActivityBar(int row, uint16_t foreground, uint16_t background) {
+  static int addDotX = 10;                    // current screen column, 0..319 pixels
+  static int rmvDotX = 0;
+  static int count = 0;
+  const int SCALEF = 2048;                    // how much to slow it down so it becomes visible
+
+  count = (count + 1) % SCALEF;
+  if (count == 0) {
+    addDotX = (addDotX + 1) % tft.width();    // advance
+    rmvDotX = (rmvDotX + 1) % tft.width();    // advance
+    tft.drawPixel(addDotX, row, foreground);  // write new
+    tft.drawPixel(rmvDotX, row, background);  // erase old
+  }
+}
+
 //=========== setup ============================================
 void setup() {
 
@@ -360,14 +379,15 @@ void setup() {
 
   // now that Serial is ready and connected (or we gave up)...
   Serial.println(PROGRAM_TITLE " " PROGRAM_VERSION);  // Report our program name to console
-  Serial.println("Compiled " __DATE__ " " __TIME__);  // Report our compiled date
+  Serial.println("Compiled " PROGRAM_COMPILED);       // Report our compiled date
   Serial.println(__FILE__);                           // Report our source code file name
 
   // ----- init TFT display
   tft.begin();                        // initialize TFT display
-  tft.setRotation(gRotation);         // landscape (default is portrait)
+  tft.setRotation(gRotation);         // 1=landscape (default is 0=portrait)
+  clearScreen();
+
   tft.setTextSize(3);
-  tft.fillScreen(cBACKGROUND);
 
   // ----- init screen appearance
   tft.setTextColor(cLABEL, cBACKGROUND);
@@ -383,9 +403,9 @@ void setup() {
 void loop() {
 
   // if there's touchscreen input, handle it
-  Point screen;
-  if (newScreenTap(&screen)) {
-    int id = getRectangleID(screen.x, screen.y);
+  Point touch;
+  if (newScreenTap(&touch)) {
+    int id = getRectangleID(touch.x, touch.y);
     switch (id) {
       case 0:
         increaseVolume();
@@ -398,6 +418,7 @@ void loop() {
         break;
     }
   }
-
-//  delay(100);
+  // make a small progress bar crawl along bottom edge
+  // this gives a sense of how frequently the main loop is executing
+  //showActivityBar(239, ILI9341_RED, ILI9341_BLACK);
 }

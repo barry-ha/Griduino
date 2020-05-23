@@ -23,21 +23,24 @@
  ***************************************************************************/
 
 #include <Wire.h>
-#include "SPI.h"                  // Serial Peripheral Interface
-#include <Adafruit_Sensor.h>      // Adafruit sensor library
-#include "Adafruit_BMP3XX.h"      // Precision barometric sensor
+#include "SPI.h"                    // Serial Peripheral Interface
+#include <Adafruit_Sensor.h>        // Adafruit sensor library
+#include "Adafruit_BMP3XX.h"        // Precision barometric and temperature sensor
 
-// ------- Identity for console
+// ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE   "BMP388 Simple Test"
 #define PROGRAM_VERSION "v1.0"
+#define PROGRAM_COMPILED __DATE__ " " __TIME__
 
 // ---------- Hardware Wiring ----------
 #define BMP_CS   13            // BMP388 sensor, chip select
 
-// create an instance of the barometric sensor
+// ---------- Barometric and Temperature Sensor
 Adafruit_BMP3XX bmp(BMP_CS);   // hardware SPI
 
 // ------------ definitions
+#define FEET_PER_METER 3.28084
+#define SEA_LEVEL_PRESSURE_HPA (1013.25)
 // In Seattle, get current barometric readings from
 //    https://forecast.weather.gov/data/obhistory/KSEA.html
 //    At my home, it results in altimeter readings of 16.9 - 18.1 feet ASL over 5-minute interval
@@ -48,11 +51,11 @@ Adafruit_BMP3XX bmp(BMP_CS);   // hardware SPI
 void setup() {
 
   // ----- init serial monitor
-  Serial.begin(115200);           // init for debuggging in the Arduino IDE
+  Serial.begin(115200);                               // init for debuggging in the Arduino IDE
   while (!Serial);
 
   Serial.println(PROGRAM_TITLE " " PROGRAM_VERSION);  // Report our program name to console
-  Serial.println("Compiled " __DATE__ " " __TIME__);  // Report our compiled date
+  Serial.println("Compiled " PROGRAM_COMPILED);       // Report our compiled date
   Serial.println(__FILE__);                           // Report our source code file name
 
   // ----- init barometer
