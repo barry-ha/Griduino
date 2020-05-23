@@ -70,14 +70,15 @@ class TextField {
 
     void print(const char* pText) { // dynamic text
       // main central print routine
-      Serial.print("~ old("); Serial.print(textPrev);
+      //Serial.print("~ old("); Serial.print(textPrev);
       if (dirty || strcmp(textPrev, pText)) {
         eraseOld();
         printNew(pText);
+        strncpy(text, pText, sizeof(text));
         strncpy(textPrev, pText, sizeof(textPrev));
         dirty = false;
       }
-      Serial.print(") ~ new("); Serial.print(pText); Serial.println(")");
+      //Serial.print(") ~ new("); Serial.print(pText); Serial.println(")");
     }
     void print() {                  // static text
       // delegate to this->print(char*)

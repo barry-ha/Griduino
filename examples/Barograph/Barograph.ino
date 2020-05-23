@@ -4,12 +4,16 @@
   Date:     2019-20-18 created from example by John KM7O
             2020-03-05 replaced physical button design with touchscreen
             2020-05-12 updated TouchScreen code
-            2020-05-18 added NeoPixel control
+            2020-05-18 added NeoPixel control to illustrate technique
 
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
 
-  Purpose: 
+  Purpose:  What can you do with a graphing barometer that knows what time it is?
+            This program timestamps each reading and stores it for later.
+            It graphs the most recent 48 hours. 
+            (Todo) It saves the readings in non-volatile memory and re-displays them on power-up.
+            The RTC (realtime clock) is updated from the GPS satellite network.
 
   Tested with:
          1. Arduino Feather M4 Express (120 MHz SAMD51)
@@ -29,48 +33,32 @@
 #include "Adafruit_ILI9341.h"       // TFT color display library
 #include "TouchScreen.h"            // Touchscreen built in to 3.2" Adafruit TFT display
 #include "Adafruit_BMP3XX.h"        // Precision barometric and temperature sensor
+#include "TextField.h"              // Optimize TFT display text for proportional fonts
 #include "Adafruit_NeoPixel.h"
 #include "bitmaps.h"                // our definition of graphics displayed
 
 // ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE   "Barograph Demo"
-#define PROGRAM_VERSION "v0.11"
+#define PROGRAM_VERSION "v0.12"
 #define PROGRAM_LINE1   "Barry K7BWH"
 #define PROGRAM_LINE2   "John KM7O"
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
-
-#define SCREEN_ROTATION 1   // 1=landscape, 3=landscape 180-degrees
 
 //--------------CONFIG--------------
 //float elevCorr = 4241;  // elevation correction in Pa, 
 // use difference between altimeter setting and station pressure: https://www.weather.gov/epz/wxcalc_altimetersetting
 
 float elevCorr = 0;
-float maxP = 104000;      // in Pa
-float minP = 98000;       // in Pa
-byte units = 1;           // units on startup: 0=english=inches mercury, 1=metric=millibars
-int graphHeight = 135;    // in pixels
-int yShift = 9;           // in pixels
+float maxP = 104000;          // in Pa
+float minP = 98000;           // in Pa
+const int yShift = 9;         // in pixels
+const int xIndent = 12;       // in pixels, text on main screen
+
+enum units { eMetric, eEnglish };
+int units = eEnglish;         // units on startup: 0=english=inches mercury, 1=metric=millibars
 
 // ---------- Hardware Wiring ----------
-/*                                Arduino       Adafruit
-  ___Label__Description______________Mega_______Feather M4__________Resource____
-TFT Power:
-   GND  - Ground                  - ground      - J2 Pin 13
-   VIN  - VCC                     - 5v          - Pin 10 J5 Vusb
-TFT SPI: 
-   SCK  - SPI Serial Clock        - Digital 52  - SCK (J2 Pin 6)  - uses hardw SPI
-   MISO - SPI Master In Slave Out - Digital 50  - MI  (J2 Pin 4)  - uses hardw SPI
-   MOSI - SPI Master Out Slave In - Digital 51  - MO  (J2 Pin 5)  - uses hardw SPI
-   CS   - SPI Chip Select         - Digital 10  - D5  (Pin 3 J5)
-   D/C  - SPI Data/Command        - Digital  9  - D12 (Pin 8 J5)
-TFT Resistive touch:
-   X+   - Touch Horizontal axis   - Digital  4  - A3  (Pin 4 J5)
-   X-   - Touch Horizontal        - Analog  A3  - A4  (J2 Pin 8)  - uses analog A/D
-   Y+   - Touch Vertical axis     - Analog  A2  - A5  (J2 Pin 7)  - uses analog A/D
-   Y-   - Touch Vertical          - Digital  5  - D9  (Pin 5 J5)
-NeoPixel:
-   DATA - Data/Command            - n/a         - Pin  8
+/* Same as Griduino platform
 */
 
 #if defined(SAMD_SERIES)
@@ -142,59 +130,60 @@ const uint32_t colorBlue   = pixel.Color(OFF,    OFF,    BRIGHT);
 const uint32_t colorPurple = pixel.Color(HALFBR, OFF,    HALFBR);
 
 // ------------ typedef's
-typedef struct {
+struct Point {
   int x, y;
-} Point;
+};
+struct Reading {
+  float pressure;   // in millibars, from BMP388 sensor
+  int hh, mm, ss;   // in GMT, from realtime clock
+};
 
 // ------------ definitions
 const int howLongToWait = 2;  // max number of seconds at startup waiting for Serial port to console
-#define FEET_PER_METER 3.28084
-#define SEALEVELPRESSURE_HPA (1013.25)
-#define MILLIBARS_PER_INCHES_MERCURY (0.02953)
+#define SCREEN_ROTATION 1     // 1=landscape, 3=landscape 180-degrees
 
-// ----- screen layout
-// When using default system fonts, screen pixel coordinates will identify top left of character cell
-const int xLabel = 8;             // indent labels, slight margin on left edge of screen
-#define yRow1   0                 // title: "Barograph Demo"
-#define yRow2   yRow1 + 40        // barometer reading
+#define FEET_PER_METER 3.28084
+#define SEA_LEVEL_PRESSURE_HPA (1013.25)
+
+//efine MILLIBARS_PER_INCHES_MERCURY (33864.0)  // todo - is this wrong? https://www.calculateme.com/pressure/
+#define MILLIBARS_PER_INCHES_MERCURY (0.02953)
+#define BARS_PER_INCHES_MERCURY      (0.033864)
+#define PASCALS_PER_INCHES_MERCURY   (3386.4)
 
 // ----- color scheme
 // RGB 565 color code: http://www.barth-dev.de/online/rgb565-color-picker/
-#define cBACKGROUND      0x00A             // 0,   0,  10 = darker than ILI9341_NAVY, but not black
-#define cSCALECOLOR      0xF844            // color picker: http://www.barth-dev.de/online/rgb565-color-picker/
-#define cTEXTCOLOR       ILI9341_CYAN      // 0, 255, 255
-//define cTEXTFAINT      0x514             // 0, 160, 160 = blue, between CYAN and DARKCYAN
-#define cLABEL           ILI9341_GREEN
-//#define cVALUE         ILI9341_YELLOW
-//#define cINPUT         ILI9341_WHITE
-//#define cHIGHLIGHT     ILI9341_WHITE
-//#define cBUTTONFILL    ILI9341_NAVY
-//#define cBUTTONOUTLINE ILI9341_CYAN
-//#define cBUTTONLABEL   ILI9341_YELLOW
-#define cWARN            0xF844            // brighter than ILI9341_RED but not pink
+#define cBACKGROUND     0x00A             // 0,   0,  10 = darker than ILI9341_NAVY, but not black
+#define cSCALECOLOR     ILI9341_YELLOW
+#define cGRAPHCOLOR     ILI9341_WHITE     // graphed line of baro pressure
+#define cTEXTCOLOR      ILI9341_GREEN
+//efine cTEXTFAINT      0x514             // 0, 160, 160 = blue, between CYAN and DARKCYAN
+#define cLABEL          ILI9341_GREEN
+#define cICON           ILI9341_CYAN
+//efine cVALUE          ILI9341_YELLOW
+//efine cINPUT          ILI9341_WHITE
+//efine cHIGHLIGHT      ILI9341_WHITE
+//efine cBUTTONFILL     ILI9341_NAVY
+//efine cBUTTONOUTLINE  ILI9341_BLUE      // 0,   0, 255 = darker than cyan
+//efine cBUTTONLABEL    ILI9341_YELLOW
+#define cWARN           0xF844            // brighter than ILI9341_RED but not pink
+#define cSINKING        0xF882            // highlight rapidly sinking barometric pressure
 
-// ------------ global scope
+// ------------ global barometric data
 float inchesHg;
-float Pa;
+float gPressure;
 float hPa;
 float feet;
 float tempF;
-float tempC;
-float altMeters;
-float altFeet;
+
+float deltaPressure1h = 5000;     // 5k is arbitrary, it just needs to be out of range to prevent display on cold start
+float deltaPressure3h = 5000;
 
 // 144 steps at 20 minute refresh time is a 2880 minute (48 hr) graph with 20 minute resolution.
 // with 2px per step, we get 10 minutes/px, and 288px per 48 hrs, leaving some space for graph labels
-float pressureStack[144] = {};                  // array to hold pressure data, fill with zeros
-const int lastIndex = (sizeof(pressureStack) / sizeof(pressureStack[0])) - 1;  // index to the last element in pressure array
+const int maxReadings = 144;
+Reading pressureStack[maxReadings] = {};    // array to hold pressure data, fill with zeros
+const int lastIndex = maxReadings - 1;      // index to the last element in pressure array
 
-float deltaPressure = 5000;     // 5k is arbitrary, it just needs to be out of range to prevent display on cold start
-float deltaPressure3h = 5000;
-float pascals;
-
-// button debounce vars
-//long lastDebounceTime = 0;
-//long debounceDelay = 300;
 
 // ============== touchscreen helpers ==========================
 
@@ -228,7 +217,7 @@ bool newScreenTap(Point* pPoint) {
       Serial.print(","); Serial.print(pPoint->y); Serial.println(")");
     }
   }
-  //delay(100);   // no delay: code above completely handles debouncing without blocking the loop
+  //delay(10);   // no delay: code above completely handles debouncing without blocking the loop
   return result;
 }
 
@@ -307,18 +296,81 @@ void mapTouchToScreen(TSPoint touch, Point* screen) {
 
 // ======== barometer and temperature helpers ==================
 void getBaroData() {
+  // returns: gPressure (global var)
+  //          hPa       (global var)
+  //          inchesHg  (global var)
   if (!baro.performReading()) {
     Serial.println("Error, failed to read barometer");
   }
   // continue anyway, for demo
-  tempC = baro.temperature;
-  tempF= tempC * 9 / 5 + 32;
-  Pa = baro.pressure + elevCorr;
-  hPa = Pa / 100;
-  inchesHg = 0.0002953 * Pa;
-  altMeters = baro.readAltitude(SEALEVELPRESSURE_HPA);
-  altFeet = altMeters * FEET_PER_METER;
+  gPressure = baro.pressure + elevCorr;   // Pressure is returned in the SI units of Pascals. 100 Pascals = 1 hPa = 1 millibar
+  hPa = gPressure / 100;
+  inchesHg = 0.0002953 * gPressure;
 }
+
+// ========== font management helpers ==========================
+/* Using fonts: https://learn.adafruit.com/adafruit-gfx-graphics-library/using-fonts
+
+  "Fonts" folder is inside \Documents\User\Arduino\libraries\Adafruit_GFX
+*/
+#include "Fonts/FreeSans18pt7b.h"   // we use double-size 18-pt font
+void initFontSizeBig() {            // otherwise the largest single-size font is 24-pt
+  tft.setFont(&FreeSans18pt7b);     // which looks smoother but is not big enough
+  tft.setTextSize(2);
+}
+#include "Fonts/FreeSans12pt7b.h"   // 12-pt font for local time and temperature
+void initFontSizeSmall() {
+  tft.setFont(&FreeSans12pt7b);
+  tft.setTextSize(1);
+}
+#include "Fonts/FreeSans9pt7b.h"    // smallest font for program name
+void initFontSizeSmallest() {
+  tft.setFont();                    // no arg = system font
+  tft.setTextSize(1);
+}
+
+// ========== splash screen helpers ============================
+// splash screen layout
+#define yRow1   54                // program title: "Barograph"
+#define yRow2   yRow1 + 28        // program version
+#define yRow3   yRow2 + 48        // author line 1
+#define yRow4   yRow3 + 32        // author line 2
+
+TextField txtSplash[] = {
+  //        text               x,y       color  
+  {PROGRAM_TITLE,    -1,yRow1,  cTEXTCOLOR}, // [0] program title, centered
+  {PROGRAM_VERSION,  -1,yRow2,  cLABEL},     // [1] normal size text, centered
+  {PROGRAM_LINE1,    -1,yRow3,  cLABEL},     // [2] credits line 1, centered
+  {PROGRAM_LINE2,    -1,yRow4,  cLABEL},     // [3] credits line 2, centered
+  {"Compiled " PROGRAM_COMPILED,       
+                     -1,228,    cTEXTCOLOR}, // [4] "Compiled", bottom row
+};
+const int numSplashFields = sizeof(txtSplash)/sizeof(TextField);
+
+void startSplashScreen() {
+  clearScreen();                                    // clear screen
+  txtSplash[0].setBackground(cBACKGROUND);          // set background for all TextFields
+  TextField::setTextDirty( txtSplash, numSplashFields ); // make sure all fields are updated
+
+  initFontSizeSmall();
+  for (int ii=0; ii<4; ii++) {
+    txtSplash[ii].print();
+  }
+
+  initFontSizeSmallest();
+  for (int ii=4; ii<numSplashFields; ii++) {
+    txtSplash[ii].print();
+  }
+}
+
+// ========== graph screen layout ==============================
+const int graphHeight = 135;    // in pixels
+const int xLeft = 31;           // in pixels
+const int xRight = 319;         // in pixels
+const int xMiddle = (xLeft + xRight)/2;
+const int yLine1 = 20;          // in pixels, top row, main screen
+const int yLine2 = yLine1 + 26;
+const int yLine3 = yLine1 + 52;
 
 // ========== screen helpers ===================================
 void blinky(int qty, int waitTime) {
@@ -329,139 +381,165 @@ void blinky(int qty, int waitTime) {
     delay(waitTime);
   }
 }
-void startSplashScreen() {
-  tft.setTextSize(2);
-
-  tft.setCursor(xLabel, yRow1);
-  tft.setTextColor(cTEXTCOLOR);
-  tft.print(PROGRAM_TITLE);
-
-  tft.setCursor(xLabel, yRow2);
-  tft.setTextColor(cLABEL);
-  tft.print(PROGRAM_VERSION);
-  
-  tft.setCursor(xLabel, yRow2 + 20);
-  tft.println(PROGRAM_LINE1);
-
-  tft.setCursor(xLabel, yRow2 + 40);
-  tft.println(PROGRAM_LINE2);
-
-  tft.setCursor(xLabel, yRow2 + 140);
-  tft.println("Compiled");
-
-  tft.setCursor(xLabel, yRow2 + 160);
-  tft.println(PROGRAM_COMPILED);
-
-}
 void clearScreen() {
   tft.fillScreen(cBACKGROUND);
 }
-void showReadings(int units, float pascals) {
-  clearScreen();
-  tft.setCursor(0, 0);
-  tft.setTextColor(cTEXTCOLOR);
-  tft.setTextSize(2);
 
-  switch (units) {
-    case 0:
-      tft.print(Pa / 3386.4, 2); tft.println(F(" inHg"));
-      Serial.print(Pa / 3386.4, 2); Serial.println(F(" inHg"));
-      break;
-    case 1:
-      tft.print(Pa / 100, 2); tft.println(F(" hPa"));
-      Serial.print(Pa / 100, 2); Serial.println(F(" hPa"));
-      break;
-  }
-  
+enum { valPressure, valHour1, valHour3,
+       unitPressure, unitHour1, unitHour3 };
+TextField txtReading[] = {
+  TextField{"30.00",  xIndent+72, yLine1, cTEXTCOLOR, FLUSHRIGHT},   // [valPressure]
+  TextField{"---",    xIndent+72, yLine2, cTEXTCOLOR, FLUSHRIGHT},   // [valHour1]
+  TextField{"---",    xIndent+72, yLine3, cTEXTCOLOR, FLUSHRIGHT},   // [valHour3]
+  TextField{"inHg",   xIndent+82, yLine1, cTEXTCOLOR},               // [unitPressure]
+  TextField{"inHg/h", xIndent+82, yLine2, cTEXTCOLOR},               // [unitHour1]
+  TextField{"inHg/3h",xIndent+82, yLine3, cTEXTCOLOR},               // [unitHour3]
+};
+const int numReadings = sizeof(txtReading) / sizeof(TextField);
+
+void showReadings(int units) {
+  clearScreen();
+  txtSplash[0].setBackground(cBACKGROUND);          // set background for all TextFields
+  TextField::setTextDirty( txtReading, numReadings ); // make sure all fields are updated
+  initFontSizeSmall();
+
+  printPressure();
   printDeltaP();
   printDeltaP3h();
   drawScale();
-  tickMarks(3, 5);      //args: (hours, height)
+  tickMarks(3, 5);      // args: (hours, height)
   tickMarks(6, 8);
-  scaleMarks(500, 5);   //args: (Pa, length)
+  scaleMarks(500, 5);   // args: (Pa, length)
   scaleMarks(1000, 8);
   drawGraph();
   drawIcon();
 }
 
-// blob this into printReadings()?
-void printDeltaP() {
-  tft.setTextColor(cTEXTCOLOR);
-  tft.setTextSize(2);
-  tft.setCursor(0, 26);
-  if (deltaPressure < -116) {
-    tft.setTextColor(0xF882);
+// ----- print current value of pressure reading
+void printPressure() {
+  float fPressure;
+  char* sUnits;
+  char inHg[] = "inHg";
+  char hPa[] = "hPa";
+  switch (units) {
+    case eEnglish:
+      fPressure = gPressure / 3386.4;
+      sUnits = inHg;
+      break;
+    case eMetric:
+      fPressure = gPressure / 100;
+      sUnits = hPa;
+      break;
+    default:
+      Serial.println("Internal Error! Unknown units");
+      break;
   }
-  if (units == 0) {
-    if (abs(deltaPressure) > 2000) {
-      tft.println(F("--- inHg/h"));
-      return;
-    }
-    tft.print(deltaPressure / 3386.4, 2); tft.println(F(" inHg/h"));
-  }
-  else {
-    if (abs(deltaPressure) > 400) {
-      tft.println(F("--- Pa/h"));
-      return;
-    }
-    tft.print(deltaPressure, 0); tft.println(F(" Pa/h"));
-  }
+  txtReading[valPressure].print( fPressure, 2 );
+  txtReading[unitPressure].print( sUnits );
+  Serial.print(fPressure, 2); Serial.println(sUnits);
 }
 
+// ----- print 1-hour pressure change
+void printDeltaP() {
+
+  // choose color
+  if (deltaPressure1h < -116) {
+    txtReading[valHour1].color = cSINKING;
+    txtReading[unitHour1].color = cSINKING;
+  } else {
+    txtReading[valHour1].color = cTEXTCOLOR;
+    txtReading[unitHour1].color = cTEXTCOLOR;
+  }
+  // show value of 1-hour change
+  switch (units) {
+    case eEnglish:
+      if (abs(deltaPressure1h) > 400) {
+        // no readings yet, show placeholder
+        txtReading[valHour1].print("---");
+      } else {
+        txtReading[valHour1].print( deltaPressure1h, 0 );
+      }
+      break;
+    case eMetric:
+      if (abs(deltaPressure1h) > 2000) {
+        // no readings yet, show placeholder
+        txtReading[valHour1].print("---");
+      } else {
+        txtReading[valHour1].print( deltaPressure1h / 3386.4, 2 );
+      }
+      break;
+  }
+  // show units of 1-hour change
+  txtReading[unitHour1].dirty = true;
+  txtReading[unitHour1].print();
+  Serial.print(". unitHour1 = "); Serial.println( txtReading[unitHour1].text );
+}
+
+// ----- print 3-hour pressure change
 void printDeltaP3h() {
-  tft.setTextColor(cTEXTCOLOR);  tft.setTextSize(2); tft.setCursor(0, 52);
+
+  // choose color
   if (deltaPressure3h < -348) {
-    tft.setTextColor(0xF882);
+    txtReading[valHour3].color = cSINKING;
+    txtReading[unitHour3].color = cSINKING;
+  } else {
+    txtReading[valHour3].color = cTEXTCOLOR;
+    txtReading[unitHour3].color = cTEXTCOLOR;
   }
-  if (units == 0) {
-    if (abs(deltaPressure3h) > 2000) {
-      tft.println(F("--- inHg/3h"));
-      return;
-    }
-    tft.print(deltaPressure3h / 3386.4, 2); tft.println(F(" inHg/3h"));
+  // show value of 3-hour change
+  switch (units) {
+    case eMetric:
+      if (abs(deltaPressure3h) > 2000) {
+        // no readings yet, show placeholder
+        txtReading[valHour3].print("---");
+      } else {
+        txtReading[valHour3].print( deltaPressure3h / 3386.4, 2 );  // pascals per inch Mercury
+      }
+      break;
+    case eEnglish:
+      if (abs(deltaPressure3h) > 400) {
+        // no readings yet, show placeholder
+        txtReading[valHour3].print("---");
+      } else {
+        txtReading[valHour3].print( deltaPressure3h, 0 );
+      }
+      break;
   }
-  else {
-    if (abs(deltaPressure3h) > 400) {
-      tft.println(F("--- Pa/3h"));
-      return;
-    }
-    tft.print(deltaPressure3h, 0); tft.println(F(" Pa/3h"));
-  }
+  // show units of 3-hour change 
+  txtReading[unitHour3].print();
+  Serial.print(". unitHour3 = "); Serial.println( txtReading[unitHour3].text );
 }
 
 void drawIcon() {
-  if ( -116 < deltaPressure && deltaPressure <= -50) {
-    //               x, y  bimap     w, h   color
-    tft.drawBitmap(230, 5, falling, 80, 80, cTEXTCOLOR);
-    return;
+  // todo - erase previous icon
+  if ( (-2000) < deltaPressure1h && deltaPressure1h <= (-200)) {
+    tft.drawBitmap(230, 5, vRapidlyFalling, 80, 80, cICON);
   }
-  else if ( (-200) < deltaPressure && deltaPressure <= (-116)) {
-    tft.drawBitmap(230, 5, rapidlyFalling, 80, 80, 0xF882);
-    return;
+  else if ( (-200) < deltaPressure1h && deltaPressure1h <= (-116)) {
+    tft.drawBitmap(230, 5, rapidlyFalling, 80, 80, cICON);
   }
-  else if ( (-2000) < deltaPressure && deltaPressure <= (-200)) {
-    tft.drawBitmap(230, 5, vRapidlyFalling, 80, 80, 0xF882);
-    return;
+  else if ( (-116) < deltaPressure1h && deltaPressure1h <= (-50)) {
+    //               x, y  bitmap    w, h   color
+    tft.drawBitmap(230, 5, falling, 80, 80, cICON);
   }
-  else if ( 50 <= deltaPressure && deltaPressure < 116) {
-    tft.drawBitmap(230, 5, rising, 80, 80, cTEXTCOLOR);
-    return;
+  else if ( (-50) <= deltaPressure1h && deltaPressure1h < 50) {
+    tft.drawBitmap(230, 5, rising, 80, 80, cICON);
   }
-  else if ( 116 <= deltaPressure && deltaPressure < 200) {
-    tft.drawBitmap(230, 5, rapidlyRising, 80, 80, cTEXTCOLOR);
-    return;
+  else if ( 50 <= deltaPressure1h && deltaPressure1h < 116) {
+    tft.drawBitmap(230, 5, rising, 80, 80, cICON);
   }
-  else if ( 200 <= deltaPressure && deltaPressure < 2000) {
-    tft.drawBitmap(230, 5, vRapidlyRising, 80, 80, cTEXTCOLOR);
-    return;
+  else if ( 116 <= deltaPressure1h && deltaPressure1h < 200) {
+    tft.drawBitmap(230, 5, rapidlyRising, 80, 80, cICON);
   }
-  tft.drawBitmap(230, 5, steady, 80, 80, cTEXTCOLOR);
+  else if ( 200 <= deltaPressure1h && deltaPressure1h < 2000) {
+    tft.drawBitmap(230, 5, vRapidlyRising, 80, 80, cICON);
+  }
+  tft.drawBitmap(230, 5, steady, 80, 80, cICON);   // catch-all, should not happen
 }
 
-void tickMarks(int t, int h) { //t in hours
-  int x = 319;
+void tickMarks(int t, int h) {    // t in hours
   int deltax = t * 6;
-  for (x = 319; x > 31; x = x - deltax) {
+  for (int x=xRight; x>xLeft; x = x - deltax) {
     tft.drawLine(x, 239 - yShift, x, 239 - yShift - h, cSCALECOLOR);
   }
 }
@@ -470,65 +548,109 @@ void scaleMarks(int p, int len) { //t in hours
   int y = 239 - yShift;
   int deltay = map(p, 0, maxP - minP, 0, graphHeight);
   for (y = 239 - yShift; y > 239 - graphHeight - yShift + 5; y = y - deltay) {
-    tft.drawLine(31, y, 31 + len, y, cSCALECOLOR);
-    tft.drawLine(319, y, 319 - len, y, cSCALECOLOR);
+    tft.drawLine(xLeft, y,  xLeft + len,  y, cSCALECOLOR);
+    tft.drawLine(xRight, y, xRight - len, y, cSCALECOLOR);
   }
 }
 
 void drawScale() {
-  //write limits of pressure scale in consistent units
-  tft.setTextColor(cSCALECOLOR);  tft.setTextSize(1);
-  if (units == 0) {
-    tft.setCursor(1, 233 - yShift);
-    tft.print(minP / 3386.4, 2);
-    tft.setCursor(1, 239 - graphHeight - yShift);
-    tft.print(maxP / 3386.4, 2);
-    tft.setCursor(1, 233 - (graphHeight / 2) - yShift);
-    tft.print((minP + (maxP - minP) / 2) / 3386.4, 2);
+  // write limits of pressure scale in consistent units
+  initFontSizeSmallest();
+  tft.setTextColor(cSCALECOLOR);
+  switch (units) {
+    case eEnglish:
+      tft.setCursor(1, 233 - yShift);
+      tft.print(minP / 3386.4, 1);
+      tft.setCursor(1, 239 - graphHeight - yShift);
+      tft.print(maxP / 3386.4, 1);
+      tft.setCursor(1, 233 - (graphHeight / 2) - yShift);
+      tft.print((minP + (maxP - minP) / 2) / 3386.4, 1);
+      break;
+    case eMetric:
+      tft.setCursor(10, 233 - yShift);
+      tft.print(minP / 100, 0);
+      tft.setCursor(4, 239 - graphHeight - yShift);
+      tft.print(maxP / 100, 0);
+      tft.setCursor(4, 236 - (graphHeight / 2) - yShift);
+      tft.print((minP + (maxP - minP) / 2) / 100, 0);
+      break;
+    default:
+      Serial.print("Internal Error: Unknown units ("); Serial.print(units); Serial.println(")");
+      break;
   }
-  else {
-    tft.setCursor(10, 233 - yShift);
-    tft.print(minP / 100, 0);
-    tft.setCursor(4, 239 - graphHeight - yShift);
-    tft.print(maxP / 100, 0);
-    tft.setCursor(4, 236 - (graphHeight / 2) - yShift);
-    tft.print((minP + (maxP - minP) / 2) / 100, 0);
+
+  // draw horizontal lines
+  const int yLine1 = 239 - graphHeight - yShift;
+  const int yLine2 = 239 - yShift;
+  const int yMid   = (yLine1 + yLine2)/2;
+  tft.drawLine(xLeft, yLine1, xRight, yLine1, cSCALECOLOR);
+  tft.drawLine(xLeft, yLine2, xRight, yLine2, cSCALECOLOR);
+  for (int ii=xLeft; ii<xRight; ii+=10) {   // dotted line
+    tft.drawPixel(ii, yMid, cSCALECOLOR);
+    tft.drawPixel(ii+1, yMid, cSCALECOLOR);
   }
-  //draw horizontal lines
-  tft.drawLine(31, 239 - graphHeight - yShift, 319, 239 - graphHeight - yShift, cSCALECOLOR);
-  tft.drawLine(31, 239 - yShift, 319, 239 - yShift, cSCALECOLOR);
-  //draw vertical lines, and label 24, 48 hrs
-  tft.drawLine(319, 239 - graphHeight - yShift, 319, 239 - yShift, cSCALECOLOR);
-  tft.drawLine(175, 239 - graphHeight - yShift, 175, 239 - yShift, cSCALECOLOR);
-  tft.drawLine(31, 239 - graphHeight - yShift, 31, 239 - yShift, cSCALECOLOR);
-  tft.setCursor(175, 232);
+
+  // draw vertical lines
+  tft.drawLine(xRight,  239 - graphHeight - yShift, xRight,  239 - yShift, cSCALECOLOR);
+  tft.drawLine(xMiddle, 239 - graphHeight - yShift, xMiddle, 239 - yShift, cSCALECOLOR);
+  tft.drawLine(xLeft,   239 - graphHeight - yShift, xLeft,   239 - yShift, cSCALECOLOR);
+
+  // label vertical lines at 24, 48 hours
+  tft.setCursor(xMiddle, 232);
   tft.print(24);
-  tft.setCursor(31, 232);;
+  tft.setCursor(xLeft, 232);;
   tft.print(48);
 }
 
 void drawGraph() {
-  int i = lastIndex;
   int deltax = 2;
-  int x = 319;
-  for (i = lastIndex; i > 0 ; i--) {
-    int p1 =  map(pressureStack[i], minP, maxP, 0, graphHeight);
-    int p2 =  map(pressureStack[i - 1], minP, maxP, 0, graphHeight);
-    if (pressureStack[i - 1] != 0) {
-      tft.drawLine(x, 239 - p1 - yShift, x - deltax, 239 - p2 - yShift, 0x07E0);
+  int x = xRight;
+  for (int ii = lastIndex; ii > 0 ; ii--) {
+    int p1 =  map(pressureStack[ii-0].pressure, minP, maxP, 0, graphHeight);
+    int p2 =  map(pressureStack[ii-1].pressure, minP, maxP, 0, graphHeight);
+    if (pressureStack[ii - 1].pressure != 0) {
+      tft.drawLine(x, 239 - p1 - yShift, x - deltax, 239 - p2 - yShift, cGRAPHCOLOR);
     }
     x = x - deltax;
   }
-
 }
+
 void adjustUnits() {
-  units++;
-  if (units > 1) {
-    units = 0;
+  if (units == eMetric) {
+    units = eEnglish;
+  } else {
+    units = eMetric;
   }
-  Serial.print("Units changed to: "); Serial.println(units);
+
+  char sInchesHg[] = "inHg";
+  char sInchesHg1h[] = "inHg/1h";
+  char sInchesHg3h[] = "inHg/3h";
+  char sHectoPa[] = "hPa";
+  char sPascal1h[] = "Pa/h";
+  char sPascal3h[] = "Pa/3h";
+  switch (units) {
+    case eEnglish:
+      Serial.print("Units changed to English: "); Serial.println(units);
+      txtReading[unitPressure].print( sInchesHg );
+      txtReading[unitHour1].print( sInchesHg1h );
+      txtReading[unitHour3].print( sInchesHg3h );
+      break;
+    case eMetric:
+      Serial.print("Units changed to Metric: "); Serial.println(units);
+      txtReading[unitPressure].print( sHectoPa );
+      txtReading[unitHour1].print( sPascal1h );
+      txtReading[unitHour3].print( sPascal3h );
+      break;
+    default:
+      Serial.println("Internal Error! Unknown units");
+      break;
+  }
+
+  Serial.print("- unitPressure = "); Serial.println( txtReading[unitPressure].text );
+  Serial.print("- unitHour1 = "); Serial.println( txtReading[unitHour1].text );
+  Serial.print("- unitHour3 = "); Serial.println( txtReading[unitHour3].text );
   getBaroData();
-  showReadings(units, Pa);
+  showReadings(units);
 }
 
 // ----- console Serial port helper
@@ -609,33 +731,13 @@ void setup() {
 
   delay(4000);
   clearScreen();
-/*
-// --> bmp3_defs.h
-
-// API success codes
-#define BMP3_OK        INT8_C(0)
-
-// API error codes
-#define BMP3_E_NULL_PTR                   INT8_C(-1)
-#define BMP3_E_DEV_NOT_FOUND              INT8_C(-2)
-#define BMP3_E_INVALID_ODR_OSR_SETTINGS   INT8_C(-3)
-#define BMP3_E_CMD_EXEC_FAILED            INT8_C(-4)
-#define BMP3_E_CONFIGURATION_ERR          INT8_C(-5)
-#define BMP3_E_INVALID_LEN                INT8_C(-6)
-#define BMP3_E_COMM_FAIL                  INT8_C(-7)
-#define BMP3_E_FIFO_WATERMARK_NOT_REACHED INT8_C(-8)
-
-// API warning codes
-#define BMP3_W_SENSOR_NOT_ENABLED         UINT8_C(1)
-#define BMP3_W_INVALID_FIFO_REQ_FRAME_CNT UINT8_C(2)
-*/
 
   // ----- init barometer
   if (!baro.begin()) {
     Serial.println("Error, unable to initialize BMP388, check your wiring");
-    tft.setCursor(0, 80);
+    tft.setCursor(0, yLine1);
     tft.setTextColor(cWARN);
-    tft.setTextSize(3);
+    initFontSizeSmall();
     tft.println("Error!\n Unable to init\n  BMP388 sensor\n   check wiring");
     delay(4000);
   }
@@ -648,12 +750,12 @@ void setup() {
 
   // Get first data point (done twice because first reading is always bad)
   getBaroData();
-  pressureStack[lastIndex] = Pa + elevCorr;
-  showReadings(units, pressureStack[lastIndex]);
+  pressureStack[lastIndex].pressure = gPressure + elevCorr;
+  showReadings(units);
 
   getBaroData();
-  pressureStack[lastIndex] = Pa + elevCorr;
-  showReadings(units, pressureStack[lastIndex]);
+  pressureStack[lastIndex].pressure = gPressure + elevCorr;
+  showReadings(units);
 }
 
 //=========== main work loop ===================================
@@ -676,10 +778,10 @@ void loop() {
 
   // check for crashing pressure and blink a LED if it's happening
   if (millis() - prevTimer3 > CHECK_CRASH_INTERVAL) {
-    if ( (-200) < deltaPressure && deltaPressure <= (-116)) {
+    if ( (-200) < deltaPressure1h && deltaPressure1h <= (-116)) {
       blinky(2, 500);
     }
-    else if ( (-2000) < deltaPressure && deltaPressure <= (-200)) {
+    else if ( (-2000) < deltaPressure1h && deltaPressure1h <= (-200)) {
       blinky(5, 200);
     }
     prevTimer3 = millis();
@@ -689,7 +791,7 @@ void loop() {
   // every 5 minutes acquire/print temp and pressure
   if (millis() - prevTimer1 > READ_BAROMETER_INTERVAL) {
     getBaroData();
-    showReadings(units, Pa);
+    showReadings(units);
 
     // every 20 minutes log, display, and graph pressure/delta pressure
     if (millis() - prevTimer2 > LOG_PRESSURE_INTERVAL) {  // 1200000 for 20 minutes
@@ -698,31 +800,20 @@ void loop() {
       for (i = 0; i < lastIndex; i++) {
         pressureStack[i] = pressureStack[i + 1];
       }
-      //and tack on the latest pressure
-      pressureStack[lastIndex] = Pa;
+      // and put the latest pressure onto the stack
+      pressureStack[lastIndex].pressure = gPressure;
+      //pressureStack[lastIndex].hh = GPS.hour;     // todo
+      //pressureStack[lastIndex].mm = GPS.minute;   // todo
+      //pressureStack[lastIndex].ss = GPS.seconds;  // todo
       
       //calculate pressure change and reprint all to screen
-      deltaPressure = pressureStack[lastIndex] - pressureStack[140];
-      deltaPressure3h = pressureStack[lastIndex] - pressureStack[134];
-      showReadings(units, Pa);
+      deltaPressure1h = pressureStack[lastIndex].pressure - pressureStack[140].pressure;    // todo: replace magic numbers
+      deltaPressure3h = pressureStack[lastIndex].pressure - pressureStack[134].pressure;
+      showReadings(units);
       prevTimer2 = millis();
     }
     prevTimer1 = millis();
   }
-
-  // check if user wants to change the display units
-  //if ( (millis() - lastDebounceTime) > debounceDelay) {
-  //  if (digitalRead(unitPin) == LOW) {
-  //    units++;
-  //    if (units > 1) {
-  //      units = 0;
-  //    }
-  //    //Serial.println(units);
-  //    getData();
-  //    printReadings(units, Pa);
-  //    lastDebounceTime = millis();
-  //  }
-  //}
 
   // if there's touchscreen input, handle it
   Point touch;
@@ -732,6 +823,6 @@ void loop() {
     //tft.fillCircle(touch.x, touch.y, radius, cWARN);  // debug - show dot
     //touchHandled = true;      // debug - true=stay on same screen
 
-    adjustUnits();             // change between "inches mercury" and "millibars" units
+    adjustUnits();              // change between "inches mercury" and "millibars" units
   }
 }
