@@ -73,6 +73,7 @@ class TextField {
       if (dirty || strcmp(textPrev, pText)) {
         eraseOld();
         printNew(pText);
+        strncpy(text, pText, sizeof(text));
         strncpy(textPrev, pText, sizeof(textPrev));
         dirty = false;
       }
@@ -92,6 +93,10 @@ class TextField {
       char temp[ str.length()+1 ];
       str.toCharArray(temp, sizeof(temp));
       print(temp); // delegate to this->print(char*)
+    }
+    void print(const float f, const int digits) {     // float
+      String sFloat = String(f, digits);
+      print(sFloat);
     }
     static void setTextDirty(TextField* pTable, int count) {
       // Mark all text fields "dirty" to force reprinting them at next usage

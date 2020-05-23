@@ -70,7 +70,6 @@ class TextField {
 
     void print(const char* pText) { // dynamic text
       // main central print routine
-      //Serial.print("~ old("); Serial.print(textPrev);
       if (dirty || strcmp(textPrev, pText)) {
         eraseOld();
         printNew(pText);
@@ -78,7 +77,6 @@ class TextField {
         strncpy(textPrev, pText, sizeof(textPrev));
         dirty = false;
       }
-      //Serial.print(") ~ new("); Serial.print(pText); Serial.println(")");
     }
     void print() {                  // static text
       // delegate to this->print(char*)
@@ -98,7 +96,6 @@ class TextField {
     }
     void print(const float f, const int digits) {     // float
       String sFloat = String(f, digits);
-      Serial.print("Printing number("); Serial.print(f, digits); Serial.print(") as text("); Serial.print(sFloat); Serial.println(")");
       print(sFloat);
     }
     static void setTextDirty(TextField* pTable, int count) {
