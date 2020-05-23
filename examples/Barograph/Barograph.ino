@@ -22,7 +22,10 @@
          2. Adafruit 3.2" TFT color LCD display ILI-9341
             Spec: http://adafru.it/1743
 
-         3. Adafruit BMP388 - Precision Barometric Pressure and Altimeter
+         3. Adafruit Ultimate GPS
+            Spec: https://www.adafruit.com/product/746
+
+         4. Adafruit BMP388 - Precision Barometric Pressure and Altimeter
             Spec: https://www.adafruit.com/product/3966
 
 */
@@ -31,6 +34,7 @@
 #include "SPI.h"                    // Serial Peripheral Interface
 #include "Adafruit_GFX.h"           // Core graphics display library
 #include "Adafruit_ILI9341.h"       // TFT color display library
+#include "Adafruit_GPS.h"           // Ultimate GPS library
 #include "TouchScreen.h"            // Touchscreen built in to 3.2" Adafruit TFT display
 #include "Adafruit_BMP3XX.h"        // Precision barometric and temperature sensor
 #include "TextField.h"              // Optimize TFT display text for proportional fonts
@@ -39,10 +43,12 @@
 
 // ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE   "Barograph Demo"
-#define PROGRAM_VERSION "v0.12"
+#define PROGRAM_VERSION "v0.13"
 #define PROGRAM_LINE1   "Barry K7BWH"
 #define PROGRAM_LINE2   "John KM7O"
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
+
+#define SCREEN_ROTATION 1   // 1=landscape, 3=landscape 180-degrees
 
 //--------------CONFIG--------------
 //float elevCorr = 4241;  // elevation correction in Pa, 
@@ -129,6 +135,18 @@ const uint32_t colorGreen  = pixel.Color(OFF,    HALFBR, OFF);
 const uint32_t colorBlue   = pixel.Color(OFF,    OFF,    BRIGHT);
 const uint32_t colorPurple = pixel.Color(HALFBR, OFF,    HALFBR);
 
+// ---------- GPS ----------
+/* "Ultimate GPS" pin wiring is connected to a dedicated hardware serial port
+    available on an Arduino Mega, Arduino Feather and others.
+
+    The GPS' LED indicates status:
+        1-sec blink = searching for satellites
+        15-sec blink = position fix found
+*/
+
+// Hardware serial port for GPS
+Adafruit_GPS GPS(&Serial1);
+
 // ------------ typedef's
 struct Point {
   int x, y;
@@ -140,7 +158,6 @@ struct Reading {
 
 // ------------ definitions
 const int howLongToWait = 2;  // max number of seconds at startup waiting for Serial port to console
-#define SCREEN_ROTATION 1     // 1=landscape, 3=landscape 180-degrees
 
 #define FEET_PER_METER 3.28084
 #define SEA_LEVEL_PRESSURE_HPA (1013.25)
@@ -664,6 +681,21 @@ void waitForSerial(int howLong) {
   }
 }
 
+void showActivityBar(int row, uint16_t foreground, uint16_t background) {
+  static int addDotX = 10;                    // current screen column, 0..319 pixels
+  static int rmvDotX = 0;
+  static int count = 0;
+  const int SCALEF = 2048;                    // how much to slow it down so it becomes visible
+
+  count = (count + 1) % SCALEF;
+  if (count == 0) {
+    addDotX = (addDotX + 1) % tft.width();    // advance
+    rmvDotX = (rmvDotX + 1) % tft.width();    // advance
+    tft.drawPixel(addDotX, row, foreground);  // write new
+    tft.drawPixel(rmvDotX, row, background);  // erase old
+  }
+}
+
 //=========== setup ============================================
 void setup() {
 
@@ -676,6 +708,17 @@ void setup() {
   Serial.println("Compiled " PROGRAM_COMPILED);       // Report our compiled date
   Serial.println(__FILE__);                           // Report our source code file name
 
+  // ----- init GPS
+  GPS.begin(9600);                              // 9600 NMEA is the default baud rate for Adafruit MTK GPS's
+  delay(200);                                   // is delay really needed?
+  GPS.sendCommand(PMTK_SET_BAUD_57600);         // set baud rate to 57600
+  delay(200);
+  GPS.begin(57600);
+  GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA); // turn on RMC (recommended minimum) and GGA (fix data) including altitude
+
+  //GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);    // 1 Hz update rate
+  GPS.sendCommand(PMTK_SET_NMEA_UPDATE_200_MILLIHERTZ); // Once every 5 seconds update
+
   Serial.print("Last element index = "); Serial.println(lastIndex);
 
   // ----- init TFT backlight
@@ -684,7 +727,7 @@ void setup() {
 
   // ----- init TFT display
   tft.begin();                        // initialize TFT display
-  tft.setRotation(SCREEN_ROTATION);   // landscape (default is portrait)
+  tft.setRotation(SCREEN_ROTATION);   // 1=landscape (default is 0=portrait)
   clearScreen();
 
   // ----- init Feather M4 onboard lights
@@ -729,7 +772,7 @@ void setup() {
   // ----- announce ourselves
   startSplashScreen();
 
-  delay(4000);
+  delay(4000);         // milliseconds
   clearScreen();
 
   // ----- init barometer
@@ -825,4 +868,9 @@ void loop() {
 
     adjustUnits();              // change between "inches mercury" and "millibars" units
   }
+
+
+  // make a small progress bar crawl along bottom edge
+  // this gives a sense of how frequently the main loop is executing
+  //showActivityBar(239, ILI9341_RED, ILI9341_BLACK);
 }
