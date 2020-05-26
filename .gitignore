@@ -359,3 +359,6 @@ MigrationBackup/
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
 *.bak
+.vscode/tasks.json
+.vscode/launch.json
+.vscode/arduino.json
