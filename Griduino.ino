@@ -565,22 +565,19 @@ void waitForSerial(int howLong) {
 
 //=========== distance helpers =================================
 
-String calcDistanceLat(double fromLat, double toLat) {
+double calcDistanceLat(double fromLat, double toLat) {
   // calculate distance in N-S direction (miles)
   // returns 4-character String
-  String sDistance("12.3");   // result
 
-  const double R = 3958.8;             // average Earth radius (miles)
+  const double R = 3958.8;            // average Earth radius (miles)
   double angleDegrees = fabs(fromLat - toLat);
   double angleRadians = angleDegrees / degreesPerRadian;
   double distance = angleRadians * R;
-  sDistance = String(distance, 1);
-  return sDistance;
+  return distance;
 }
-String calcDistanceLong(double lat, double fromLong, double toLong) {
+double calcDistanceLong(double lat, double fromLong, double toLong) {
   // calculate distance in E-W direction (degrees)
   // returns 4-character String (miles)
-  String sDistance("123.4");   // result
 
   const double R = 3958.8;             // average Earth radius (miles)
   const double degreesPerRadian = 57.2957795; // conversion factor
@@ -588,6 +585,7 @@ String calcDistanceLong(double lat, double fromLong, double toLong) {
   double angleDegrees = fabs(fromLong - toLong);
   double angleRadians = angleDegrees / degreesPerRadian * scaleFactor;
   double distance = angleRadians * R;
+  /*
   if (distance > 100.0) {
     sDistance = String(distance, 0) + " ";  // make strlen=4
   } else if (distance > 10.0) {
@@ -595,7 +593,8 @@ String calcDistanceLong(double lat, double fromLong, double toLong) {
   } else {
     sDistance = String(distance, 2);
   }
-  return sDistance;
+  */
+  return distance;
 }
 
 //==============================================================
@@ -620,7 +619,6 @@ String calcDistanceLong(double lat, double fromLong, double toLong) {
 
 // create an instance of the model
 Model model;
-//model.restore();      // get prev location from non-volatile memory, if available
 
 //==============================================================
 //
@@ -802,6 +800,11 @@ void setup() {
   runUnitTest();                      // see "unit_test.cpp"
   #endif
 
+  // ----- init first data shown with last known position and driving track history
+  model.restore();
+  model.gHaveGPSfix = false;          // assume no satellite signal yet
+  model.gSatellites = 0;
+
   // ----- announce ourselves
   startSplashScreen();
 
@@ -883,19 +886,17 @@ void loop() {
     gaUpdateView[gViewIndex]();       // update display first, and then...
 
     sendMorseGrid4(model.gsGridName); // announce new grid by Morse code
-
-    model.grid4dirty = true;
-    model.grid6dirty = true;
   }
 
   // if there's touchscreen input, handle it
   Point touch;
   if (newScreenTap(&touch)) {
-    bool touchHandled = gaOnTouch[gViewIndex](touch);
 
     //const int radius = 3;     // debug
     //tft.fillCircle(touch.x, touch.y, radius, cWARN);  // debug - show dot
     //touchHandled = true;      // debug - true=stay on same screen
+
+    bool touchHandled = gaOnTouch[gViewIndex](touch);
 
     if (!touchHandled) {
       // not handled by one of the views, so run our default action
@@ -909,5 +910,5 @@ void loop() {
 
   // make a small progress bar crawl along bottom edge
   // this gives a sense of how frequently the main loop is executing
-  showActivityBar(239, ILI9341_RED, ILI9341_BLACK);
+  showActivityBar(tft.height()-1, ILI9341_RED, cBACKGROUND);
 }

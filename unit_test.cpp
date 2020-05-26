@@ -17,8 +17,8 @@
 float nextGridLineEast(float longitudeDegrees);       // Griduino.ino
 float nextGridLineWest(float longitudeDegrees);       // Griduino.ino
 String calcLocator(double lat, double lon);           // Griduino.ino
-String calcDistanceLat(double fromLat, double toLat); // Griduino.ino
-String calcDistanceLong(double lat, double fromLong, double toLong);  // Griduino.ino
+double calcDistanceLat(double fromLat, double toLat); // Griduino.ino
+double calcDistanceLong(double lat, double fromLong, double toLong);  // Griduino.ino
 void initFontSizeBig();                     // Griduino.ino
 void initFontSizeSmall();                   // Griduino.ino
 void initFontSizeSystemSmall();             // Griduino.ino
@@ -80,18 +80,18 @@ void testCalcLocator(String sExpected, double lat, double lon) {
 
 // =============================================================
 // Testing "distance helper" routines in Griduino.cpp
-void testDistanceLat(String sExpected, double fromLat, double toLat) {
+void testDistanceLat(double expected, double fromLat, double toLat) {
   // unit test helper function to calculate N-S distances
-  String sResult = calcDistanceLat(fromLat, toLat);
-  Serial.print("N-S Distance Test: expected = "); Serial.print(sExpected);
-  Serial.print(", result = "); Serial.println(sResult);
+  double distance = calcDistanceLat(fromLat, toLat);
+  Serial.print("N-S Distance Test: expected = "); Serial.print(expected,2);
+  Serial.print(", result = "); Serial.println(distance, 4);
 }
-void testDistanceLong(String sExpected, double lat, double fromLong, double toLong) {
+void testDistanceLong(double expected, double lat, double fromLong, double toLong) {
   // unit test helper function to calculate E-W distances
-  String sResult = calcDistanceLong(lat, fromLong, toLong);
-  Serial.print("E-W Distance Test: expected = "); Serial.print(sExpected);
-  Serial.print(", result = "); Serial.print(sResult);
-  if (sResult == sExpected) {
+  double result = calcDistanceLong(lat, fromLong, toLong);
+  Serial.print("E-W Distance Test: expected = "); Serial.print(expected,2);
+  Serial.print(", result = "); Serial.print(result,2);
+  if ((expected/1.01)<=result && result <= (expected*1.01)) {
     Serial.println("");
   }
   else {
@@ -101,6 +101,7 @@ void testDistanceLong(String sExpected, double lat, double fromLong, double toLo
 // =============================================================
 // verify Morse Code
 void verifyMorseCode() {
+  Serial.print("-------- verifyMorseCode() at line "); Serial.println(__LINE__);
   dacMorse.setup();
   dacMorse.dump();
   
@@ -127,43 +128,95 @@ void verifyMorseCode() {
 // =============================================================
 // verify Save/Restore Volume settings in SDRAM
 void verifySaveRestoreVolume() {
+  Serial.print("-------- verifySaveRestoreVolume() at line "); Serial.println(__LINE__);
+
   #define TEST_CONFIG_FILE    CONFIG_FOLDER "/test.cfg"   // strictly 8.3 names
   #define TEST_CONFIG_VERSION "Test v01"
   #define TEST_CONFIG_VALUE   5
+  int writeValue = TEST_CONFIG_VALUE;
+  int readValue = 0;    // different from "writeValue"
 
   // sample data to read/write
-  SaveRestore configWrite(TEST_CONFIG_FILE, TEST_CONFIG_VERSION, TEST_CONFIG_VALUE);
+  SaveRestore configWrite(TEST_CONFIG_FILE, TEST_CONFIG_VERSION);
   SaveRestore configRead(TEST_CONFIG_FILE, TEST_CONFIG_VERSION);
 
-  if (configWrite.writeConfig()) {  // test writing data to SDRAM -- be sure to watch serial console log
-    Serial.println("Success, config stored to SDRAM");
+  if (configWrite.writeConfig( (byte*) &writeValue, sizeof(writeValue))) {  // test writing data to SDRAM -- be sure to watch serial console log
+    Serial.println("Success, integer stored to SDRAM");
   } else {
-    Serial.println("ERROR! Unable to save config to SDRAM");
+    Serial.println("ERROR! Unable to save integer to SDRAM");
   }
 
-  if (configRead.readConfig()) {    // test reading same data back from SDRAM
-    Serial.println("Success, configuration restored from SDRAM");
+  if (configRead.readConfig( (byte*) &readValue, sizeof(readValue))) {    // test reading same data back from SDRAM
+    Serial.println("Success, integer restored from SDRAM");
+    if (readValue == writeValue) {
+      Serial.println("Success, correct value was restored");
+    } else {
+      Serial.println("ERROR! The value restored did NOT match the value saved");
+    }
+  } else {
+    Serial.println("ERROR! Unable to restore integer from SDRAM");
+  }
+  configWrite.remove( TEST_CONFIG_FILE );
+}
+// =============================================================
+void verifySaveRestoreArray() {
+  Serial.print("-------- verifySaveRestoreArray() at line "); Serial.println(__LINE__);
+
+  #define TEST_ARRAY_FILE   CONFIG_FOLDER "/testarry.cfg"
+  #define TEST_ARRAY_VERS   "Array v01"
+  int iData[21];
+  const int numData = sizeof(iData)/sizeof(int);
+  for (int ii=0; ii<numData; ii++) {
+    iData[ii] = ii;
+  }
+  
+  SaveRestore writeArray(TEST_ARRAY_FILE, TEST_ARRAY_VERS);
+  SaveRestore readArray(TEST_ARRAY_FILE, TEST_ARRAY_VERS);
+
+  if (writeArray.writeConfig( (byte*) &iData, sizeof(iData))) {  // test writing data to SDRAM -- be sure to watch serial console log
+    Serial.println("Success, array stored to SDRAM");
+  } else {
+    Serial.println("ERROR! Failed to save array to SDRAM");
+  }
+
+  int iResult[numData];
+  if (readArray.readConfig( (byte*) &iResult, sizeof(iResult))) {    // test reading same data back from SDRAM
+    Serial.println("Success, array retrieved from SDRAM");
+    bool success = true;    // assume successful comparisons
+    for (int ii=0; ii<numData; ii++) {
+      if (iResult[ii] != iData[ii]) {
+        success = false;
+        char temp[100];
+        snprintf(temp, sizeof(temp), 
+                "ERROR! Array index (%d) value restored (%d) did NOT match the value saved (%d)", 
+                                     ii,             iResult[ii],                    iData[ii]);
+        Serial.println(temp);
+      }
+    }
+    if (success) {
+      Serial.println("Success, all values correct in array restored from SDRAM");
+    }
   } else {
     Serial.println("ERROR! Unable to restore from SDRAM");
   }
+  writeArray.remove( TEST_ARRAY_FILE );
 }
 // =============================================================
 // verify save/restore GPS model state in SDRAM
 void verifySaveRestoreGPSModel() {
-  #define TEST_GPS_STATE_FILE    CONFIG_FOLDER "/test_gps.cfg"   // strictly 8.3 naming
-  #define TEST_GPS_STATE_VERSION "Test v01"
-  Serial.print("verifySaveRestoreGPSModel() at line "); Serial.println(__LINE__);
+  #define TEST_GPS_STATE_FILE   CONFIG_FOLDER "/test_gps.cfg"   // strictly 8.3 naming
+  #define TEST_GPS_STATE_VERS   "Test v01"
+  Serial.print("-------- verifySaveRestoreGPSModel() at line "); Serial.println(__LINE__);
 
-  // sample data to read/write
-  Model gpsmodel;
+  Model gpsModel;     // sample data to read/write, a different object than used in model.cpp
 
-  if (gpsmodel.save()) {
+  if (gpsModel.save()) {
     Serial.println("Success, GPS model stored to SDRAM");
   } else {
     Serial.println("ERROR! Failed to save GPS model to SDRAM");
   }
 
-  if (gpsmodel.restore()) {    // test reading same data back from SDRAM
+  if (gpsModel.restore()) {    // test reading same data back from SDRAM
     Serial.println("Success, GPS model restored from SDRAM");
   } else {
     Serial.println("ERROR! Failed to retrieve GPS model from SDRAM");
@@ -173,7 +226,7 @@ void verifySaveRestoreGPSModel() {
 // verify writing proportional font
 void verifyWritingProportionalFont() {
   // visual test: if this code works correctly, each string will exactly erase the previous one
-  Serial.print("verifyWritingProportionalFont() at line "); Serial.println(__LINE__);
+  Serial.print("-------- verifyWritingProportionalFont() at line "); Serial.println(__LINE__);
 
   initFontSizeBig();
   int waitTime = 400;    // fast=10 msec, easy-to-read=1000 msec
@@ -192,7 +245,7 @@ void verifyWritingProportionalFont() {
 // verify painting individual bread crumbs (locations)
 void verifyBreadCrumbs() {
   // plotting a series of pushpins (bread crumb trail)
-  Serial.print("verifyBreadCrumbs() at line "); Serial.println(__LINE__);
+  Serial.print("-------- verifyBreadCrumbs() at line "); Serial.println(__LINE__);
   
   // move the model to known location (CN87)
   model.gsGridName = "CN87";
@@ -237,7 +290,7 @@ void verifyBreadCrumbs() {
 // =============================================================
 // verify painting a trail of bread crumbs (locations)
 void verifyBreadCrumbTrail1() {
-  Serial.print("verifyBreadCrumbTrail1() at line "); Serial.println(__LINE__);
+  Serial.print("-------- verifyBreadCrumbTrail1() at line "); Serial.println(__LINE__);
   
   // initialize the canvas to draw on
   startGridScreen();              // clear and draw normal screen
@@ -262,36 +315,66 @@ void verifyBreadCrumbTrail1() {
   model.clearHistory();     // clean up so it is not re-displayed by main program
 }
 // =============================================================
-// verify painting a trail of bread crumbs (locations)
-void verifyBreadCrumbTrail2() {
-  Serial.print("verifyBreadCrumbTrail2() at line "); Serial.println(__LINE__);
-  
-  // initialize the canvas to draw on
-  startGridScreen();              // clear and draw normal screen
-  txtTest.dirty = true;
-  txtTest.print();
+// GPS test helper
+void generateSineWave(Model* pModel) {
 
   // fill history table with a sine wave
-  double startLat = 47.5;              // 10% outside of CN87
+  double startLat = 47.5;             // 10% outside of CN87
   double startLong = -124.0 - 0.6;
-  int steps = model.numHistory;   // number of loops
-  double stepsize = (125.5 - 121.5) / steps;   // degrees longitude to move each loop
-  double amplitude = 0.65;         // degrees latitude, maximum sine wave
+  int steps = pModel->numHistory;     // number of loops
+  double stepsize = (125.5 - 121.5)/steps;   // degrees longitude to move each loop
+  double amplitude = 0.65;            // degrees latitude, maximum sine wave
 
-  model.clearHistory();
   for (int ii = 0; ii < steps; ii++) {
     float longitude = startLong + (ii * stepsize);
     float latitude = startLat + amplitude*sin(longitude * 150 / degreesPerRadian);
-    PointGPS location{latitude,longitude};
-    model.remember( location, GPS.hour, GPS.minute, GPS.seconds );
+    PointGPS location{ latitude, longitude };
+    pModel->remember( location, GPS.hour, GPS.minute, GPS.seconds );
   }
-  //model.dumpHistory();             // did it remember? dump history to console
-  updateGridScreen();
-  model.clearHistory();     // clean up so it is not re-displayed by main program
+  //Serial.println("---History as known by generateSineWave()...");
+  //pModel->dumpHistory();            // did it remember? (go review serial console)
+}
+// =============================================================
+// verify painting a trail of bread crumbs (locations)
+void verifyBreadCrumbTrail2() {
+  Serial.print("-------- verifyBreadCrumbTrail2() at line "); Serial.println(__LINE__);
+  
+  // initialize the canvas to draw on
+  startGridScreen();              // clear and draw normal screen
+  txtTest.dirty = true;           // paint big "Test" in upper left
+  txtTest.print();
+
+  model.clearHistory();
+  generateSineWave(&model);        // fill GPS model with known test data
+
+  Serial.println(". History as known by verifyBreadCrumbTrail2()...");
+  model.dumpHistory();            // did it remember? (go review serial console)
+  updateGridScreen();             // does it look like a sine wave? (go look at TFT display)
+}
+// =============================================================
+// save GPS route to non-volatile memory
+void verifySaveTrail() {
+  Serial.print("-------- verifySaveTrail() at line "); Serial.println(__LINE__);
+
+  Model testModel;                // create an instance of the model for this test
+  
+  generateSineWave(&testModel);   // generate known data to be saved
+
+  // save this to non-volatile memory (todo)
+  Serial.print(". Save trail to non-volatile memory (todo) line "); Serial.println(__LINE__);
+    
+}
+// =============================================================
+// restore GPS route from non-volatile memory
+void verifyRestoreTrail() {
+  Serial.print("-------- verifyRestoreTrail() at line "); Serial.println(__LINE__);
+  Serial.println("todo");
 }
 // =============================================================
 // deriving grid square from lat-long coordinates
 void verifyDerivingGridSquare() {
+  Serial.print("-------- verifyDerivingGridSquare() at line "); Serial.println(__LINE__);
+
   // Expected values from: https://www.movable-type.co.uk/scripts/latlong.html
   //              expected     lat        long
   testCalcLocator("CN87us",  47.753000, -122.28470);  // user must read console log for failure messages
@@ -303,20 +386,24 @@ void verifyDerivingGridSquare() {
 // =============================================================
 // verify computing distance
 void verifyComputingDistance() {
+  Serial.print("-------- verifyComputingDistance() at line "); Serial.println(__LINE__);
+
   //              expected    fromLat     toLat
-  testDistanceLat("30.1",    47.56441,   48.00000);         // from home to north, 48.44 km = 30.10 miles
-  testDistanceLat("39.0",    47.56441,   47.00000);         //  "    "   "  south, 62.76 km = 39.00 miles
+  testDistanceLat(  30.1,    47.56441,   48.00000);         // from home to north, 48.44 km = 30.10 miles
+  testDistanceLat(  39.0,    47.56441,   47.00000);         //  "    "   "  south, 62.76 km = 39.00 miles
   //              expected   lat     fromLong    toLong
-  testDistanceLong("13.2", 47.7531, -122.2845, -122.0000);  //  "    "   "  east,  x.xx km =  x.xx miles
-  testDistanceLong("79.7", 47.7531, -122.2845, -124.0000);  //  "    "   "  west,  xx.x km = xx.xx miles
-  testDistanceLong("52.9", 67.5000, -158.0000, -156.0000);  // width of BP17 Alaska, 85.1 km = 52.88 miles
-  testDistanceLong("93.4", 47.5000, -124.0000, -122.0000);  // width of CN87 Seattle, 150.2 km = 93.33 miles
-  testDistanceLong("113 ", 35.5000, -116.0000, -118.0000);  // width of DM15 California is >100 miles, 181 km = 112.47 miles
-  testDistanceLong("138 ",  0.5000,  -80.0000,  -78.0000);  // width of FJ00 Ecuador is the largest possible, 222.4 km = 138.19 miles
+  testDistanceLong(  13.2, 47.7531, -122.2845, -122.0000);  //  "    "   "  east,  x.xx km =  x.xx miles
+  testDistanceLong(  79.7, 47.7531, -122.2845, -124.0000);  //  "    "   "  west,  xx.x km = xx.xx miles
+  testDistanceLong(  52.9, 67.5000, -158.0000, -156.0000);  // width of BP17 Alaska, 85.1 km = 52.88 miles
+  testDistanceLong(  93.4, 47.5000, -124.0000, -122.0000);  // width of CN87 Seattle, 150.2 km = 93.33 miles
+  testDistanceLong( 113.0, 35.5000, -116.0000, -118.0000);  // width of DM15 California is >100 miles, 181 km = 112.47 miles
+  testDistanceLong( 138.0,  0.5000,  -80.0000,  -78.0000);  // width of FJ00 Ecuador is the largest possible, 222.4 km = 138.19 miles
 }
 // =============================================================
 // verify finding gridlines on E and W
 void verifyComputingGridLines() {
+  Serial.print("-------- verifyComputingGridLines() at line "); Serial.println(__LINE__);
+
   //                  expected  fromLongitude
   testNextGridLineEast(-122.0, -122.2836);
   testNextGridLineWest(-124.0, -122.2836);
@@ -329,6 +416,7 @@ void verifyComputingGridLines() {
 }
 // =============================================================
 void countDown(int iSeconds) {
+  Serial.print("Counting "); Serial.print(iSeconds); Serial.println(" sec...");
   initFontSizeSystemSmall();
   tft.setTextSize(2);
   tft.setTextColor(ILI9341_BLACK, ILI9341_WHITE);
@@ -355,19 +443,25 @@ void runUnitTest() {
   tft.print("  --Open console monitor to see unit test results--");
   delay(1000);
 
-  verifyMorseCode();                // verify Morse code
-  verifySaveRestoreVolume();        // verify save/restore Volume settings in SDRAM
-  verifySaveRestoreGPSModel();      // verify save/restore GPS model state in SDRAM
-  verifyWritingProportionalFont();  // verify writing proportional font
+  verifyMorseCode();                            // verify Morse code
+  verifySaveRestoreVolume();    countDown(15);  // verify save/restore an integer setting in SDRAM
+  verifySaveRestoreArray();     countDown(20);  // verify save/restore an array in SDRAM
+  verifySaveRestoreGPSModel();  countDown(20);  // verify save/restore GPS model state in SDRAM
+  verifyWritingProportionalFont();              // verify writing proportional font
   
-  verifyBreadCrumbs();         countDown(4);   // verify pushpins near the four corners
-  verifyBreadCrumbTrail1();    countDown(5);  // verify painting the bread crumb trail
-  verifyBreadCrumbTrail2();    countDown(10);  // verify painting the bread crumb trail
+  verifyBreadCrumbs();          countDown(4);   // verify pushpins near the four corners
+  verifyBreadCrumbTrail1();     countDown(5);   // verify painting the bread crumb trail
+  verifyBreadCrumbTrail2();     countDown(10);  // verify painting the bread crumb trail
+  verifySaveTrail();            countDown(20);  // save GPS route to non-volatile memory
+  verifyRestoreTrail();         countDown(5);   // restore GPS route from non-volatile memory
 
-  verifyDerivingGridSquare(); countDown(4);   // verify deriving grid square from lat-long coordinates
+  verifyDerivingGridSquare();   countDown(5);   // verify deriving grid square from lat-long coordinates
   verifyComputingDistance();        // verify computing distance
   verifyComputingGridLines();       // verify finding gridlines on E and W
 
   countDown(10);                    // give user time to inspect display appearance for unit test problems
+
+  model.clearHistory();             // clean up our mess after unit test
+  Serial.print("-------- End Unit Test at line "); Serial.println(__LINE__);
 }
 #endif // RUN_UNIT_TESTS

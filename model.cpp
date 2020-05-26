@@ -8,6 +8,7 @@
 #include <Arduino.h>
 #include <Adafruit_GPS.h>         // Ultimate GPS library
 #include "constants.h"
+#include "save_restore.h"
 
 // ---------- global variables ----------
 // prefix 'g' for global, 'gs' for global string, 'ga' for global array
@@ -19,8 +20,8 @@
 // ========== extern ==================================
 extern Adafruit_GPS GPS;
 String calcLocator(double lat, double lon);
-String calcDistanceLat(double fromLat, double toLat);
-String calcDistanceLong(double lat, double fromLong, double toLong);
+double calcDistanceLat(double fromLat, double toLat);
+double calcDistanceLong(double lat, double fromLong, double toLong);
 float nextGridLineEast(float longitudeDegrees);
 float nextGridLineWest(float longitudeDegrees);
 float nextGridLineSouth(float latitudeDegrees);
@@ -51,8 +52,6 @@ class Model {
     String gsLongitude = INIT_LONG;
 
     String gsGridName = INIT_GRID6;   // e.g. "CN77tt", placeholder grids to show at power-on
-    bool   grid4dirty = true;         // true = need to update grid4 displayed text (set by model, cleared by view)
-    bool   grid6dirty = true;         // true = need to update grid6 displayed text (set by model, cleared by view)
 
     String gsGridNorth = "CN78";      // e.g. "CN78"
     String gsGridEast = "CN87";       // e.g. "CN87"
@@ -70,24 +69,72 @@ class Model {
   protected:
     int    gPrevFix = false;          // previous value of GPS.fix(), to help detect "signal lost"
     String sPrevGrid4 = INIT_GRID4;   // previous value of gsGridName, to help detect "enteredNewGrid()"
-    String sPrevGrid6 = "";           // previous value of gsGridName
 
   public:
     // Constructor - create and initialize member variables
     Model() { }
 
     // save current GPS state to non-volatile memory
+    const char MODEL_FILE[25] = "/Griduino/gpsmodel.cfg";  // CONFIG_FOLDER
+    const char MODEL_VERS[15] = "GPS Model v01";
     int save() {
-      // returns 1=success, 0=failure
-      // todo
-      return 0;                       // return failure
+      SaveRestore sdram(MODEL_FILE, MODEL_VERS);
+      if (sdram.writeConfig( (byte*) this, sizeof(Model))) {
+        Serial.println("Success, GPS Model stored to SDRAM");
+      } else {
+        Serial.println("ERROR! Failed to save GPS Model object to SDRAM");
+        return 0;     // return failure
+      }
+      return 1;       // return success
     }
 
     // restore current GPS state from non-volatile memory
     int restore() {
-      // returns 1=success, 0=failure
-      // todo
-      return 0;                       // return failure
+      SaveRestore sdram(MODEL_FILE, MODEL_VERS);
+      Model tempModel;
+      if (sdram.readConfig( (byte*) &tempModel, sizeof(Model))) {
+        // warning: this can corrupt our object's data if something failed
+        // so we blob the bytes to a work area and copy individual values
+        Serial.println("Success, GPS Model restored from SDRAM");
+        copyFrom( tempModel );
+      } else {
+        Serial.println("ERROR! Failed to restore GPS Model object to SDRAM");
+        return 0;     // return failure
+      }
+      // note: the caller is responsible for fixups to the model, e.g., indicate 'lost satellite signal'
+      return 1;       // return success
+    }
+
+    // pick'n pluck values from another "Model" instance
+    void copyFrom(const Model from) {
+      return;   // debug
+      
+      gLatitude = from.gLatitude;     // GPS position, floating point, decimal degrees
+      gLongitude = from.gLongitude;   // GPS position, floating point, decimal degrees
+      gAltitude = from.gAltitude;     // Altitude in meters above MSL
+      gHaveGPSfix = false;            // assume no fix yet
+      gSatellites = 0;                // assume no satellites yet
+      gSpeed = 0.0;                   // assume speed unknown
+      gAngle = 0.0;                   // assume direction of travel unknown
+
+      gsLatitude = from.gsLatitude;   // GPS position, string, decimal degrees
+      gsLongitude = from.gsLongitude;
+
+      gsGridName = from.gsGridName;
+
+      gsGridNorth = from.gsGridNorth; // e.g. "CN78"
+      gsGridEast = from.gsGridEast;   // e.g. "CN87"
+      gsGridSouth = from.gsGridSouth; // e.g. "CN76"
+      gsGridWest = from.gsGridWest;   // e.g. "CN67"
+      gsDistanceNorth = from.gsDistanceNorth;  // distance in miles to next grid crossing
+      gsDistanceEast = from.gsDistanceEast;
+      gsDistanceSouth = from.gsDistanceSouth;
+      gsDistanceWest = from.gsDistanceWest;
+
+      for (int ii=0; ii<numHistory; ii++) {
+        history[ii] = from.history[ii];
+      }
+      nextHistoryItem = from.nextHistoryItem;
     }
 
     // the Model will update its internal state on a schedule determined by the Controller
@@ -121,13 +168,6 @@ class Model {
 
         String grid4 = gsGridName.substring(0, 4);
         String grid6 = gsGridName.substring(4, 6);
-        if (grid4 != sPrevGrid4) {
-          grid4dirty = true;
-        }
-        if (grid6 != sPrevGrid6) {
-          grid6dirty = true;
-          sPrevGrid6 = grid6;
-        }
 
         gHaveGPSfix = true;
       } else {
@@ -168,7 +208,7 @@ class Model {
     void dumpHistory() {
       Serial.println("History review........");
       Serial.print("Number of items = "); Serial.println(numHistory);
-      for (int ii=0; ii<numHistory; ii++) {
+      for (int ii=0; ii<5 /*numHistory*/; ii++) {
         Location item = history[ii];
         Serial.print(ii); 
         Serial.print(". GPS("); 
@@ -189,8 +229,6 @@ class Model {
         Serial.print("Prev grid: "); Serial.print(sPrevGrid4);
         Serial.print(" New grid: "); Serial.println(gsGridName);
         sPrevGrid4 = newGrid4;
-        grid4dirty = true;      // 'dirty' flags are set by model, cleared by view
-        grid6dirty = true;
         return true;
       } else {
         return false;
@@ -205,7 +243,7 @@ class Model {
         gHaveGPSfix = false;
         Serial.println("Lost GPS positioning");
       } else if (!gPrevFix && GPS.fix) {
-        Serial.println("Gained GPS position");
+        Serial.println("Acquired GPS position lock");
       }
       gPrevFix = GPS.fix;
       return lostFix;

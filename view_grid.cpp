@@ -139,15 +139,27 @@ void drawPositionLL(String sLat, String sLong) {
   }
   txtGrid[LATLONG].print(sTemp);          // latitude-longitude
 
+}
+
+void drawNumSatellites() {
+  initFontSizeSystemSmall();
+
+  char sTemp[4];    // strlen("12#") = 3
   if (model.gSatellites<10) {
-    sprintf(sTemp, " %d#", model.gSatellites);
+    snprintf(sTemp, sizeof(sTemp), " %d#", model.gSatellites);
   } else {
-    sprintf(sTemp, "%d#", model.gSatellites);
+    snprintf(sTemp, sizeof(sTemp), "%d#", model.gSatellites);
   }
   txtGrid[NUMSAT].print(sTemp);           // number of satellites
+ 
+}
 
+void drawAltitude() {
+  initFontSizeSystemSmall();
+
+  char sTemp[8];      // strlen("12345'") = 6
   int altFeet = model.gAltitude * feetPerMeters;
-  sprintf(sTemp, "%d'", altFeet);
+  snprintf(sTemp, sizeof(sTemp), "%d'", altFeet);
   txtGrid[ALTITUDE].print(sTemp);         // altitude
 }
 
@@ -330,9 +342,11 @@ void updateGridScreen() {
   PointGPS myLocation{ model.gLatitude, model.gLongitude }; // current location
   
   drawGridName(model.gsGridName);   // huge letters centered on screen
+  drawAltitude();                   // height above sea level
+  drawNumSatellites();
   drawPositionLL(model.gsLatitude, model.gsLongitude);  // lat-long of current position
   //drawCompassPoints();              // sprinkle N-S-E-W around grid square
-  drawBoxLatLong();                   // identify coordinates of grid square box
+  //drawBoxLatLong();                 // identify coordinates of grid square box
   drawNeighborGridNames();            // sprinkle names around outside box
   drawNeighborDistances();            // this is the main goal of the whole project
   plotRoute(model.history, model.numHistory, gridOrigin);   // show route track
@@ -344,16 +358,20 @@ void startGridScreen() {
   txtGrid[0].setBackground(ILI9341_BLACK);          // set background for all TextFields in this view
   TextField::setTextDirty( txtGrid, numTextGrid );
 
-  String lngMiles = calcDistanceLong(model.gLatitude, 0.0, minLong);
-  Serial.print("Minimum visible E-W movement x=long="); Serial.print(minLong,6); Serial.print(" degrees = "); Serial.print(lngMiles); Serial.println(" miles");
-  String latMiles = calcDistanceLat(0.0, minLat);
-  Serial.print("Minimum visible N-S movement y=lat="); Serial.print(minLat,6); Serial.print(" degrees = "); Serial.print(latMiles); Serial.println(" miles");
+  double lngMiles = calcDistanceLong(model.gLatitude, 0.0, minLong);
+  Serial.print("Minimum visible E-W movement x=long="); 
+  Serial.print(minLong,6); Serial.print(" degrees = "); 
+  Serial.print(lngMiles,2); Serial.println(" miles");
+
+  //Serial.print("@fencepost: view_grid.cpp line "); Serial.println(__LINE__);  // debug
+  double latMiles = calcDistanceLat(0.0, minLat);
+  Serial.print("Minimum visible N-S movement y=lat="); 
+  Serial.print(minLat,6); Serial.print(" degrees = "); 
+  Serial.print(latMiles,2); Serial.println(" miles");
 
   initFontSizeSmall();
   drawGridOutline();                // box outline around grid
   //tft.drawRect(0, 0, gScreenWidth, gScreenHeight, ILI9341_BLUE);  // debug: border around screen
-  model.grid4dirty = true;          // reset the "previous grid" to trigger the new one to show
-  model.grid6dirty = true;
 
   updateGridScreen();               // fill in values immediately, don't wait for the main loop to eventually get around to it
 }
