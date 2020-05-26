@@ -2,6 +2,7 @@
   TFT Touchscreen Demo - Touch screen with X, Y and Z (pressure) readings
 
   Date:     2019-11-15 created v6
+            2020-05-12 updated TouchScreen code
 
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
@@ -26,30 +27,22 @@
 
 */
 
-#include "SPI.h"                  // Serial Peripheral Interface
-#include "Adafruit_GFX.h"         // Core graphics display library
-#include "Adafruit_ILI9341.h"     // TFT color display library
-#include "TouchScreen.h"          // Touchscreen built in to 3.2" Adafruit TFT display
+#include "SPI.h"                    // Serial Peripheral Interface
+#include "Adafruit_GFX.h"           // Core graphics display library
+#include "Adafruit_ILI9341.h"       // TFT color display library
+#include "TouchScreen.h"            // Touchscreen built in to 3.2" Adafruit TFT display
 
-// ------- Identity for console
+// ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE   "Touch Screen Demo"
 #define PROGRAM_VERSION "v0.9"
 #define PROGRAM_LINE1   "Barry K7BWH"
 #define PROGRAM_LINE2   "John KM7O"
+#define PROGRAM_COMPILED __DATE__ " " __TIME__
 
-#define SCREEN_ROTATION 3         // 1=landscape rsu, 3=landscape usd
+#define SCREEN_ROTATION 1   // 1=landscape, 3=landscape 180-degrees
 
 // ---------- Hardware Wiring ----------
-/*                                Arduino       Adafruit
-  ___Label__Description______________Mega_______Feather M4__________Resource____
-TFT Power:
-   GND  - Ground                  - ground      - J2 Pin 13
-   VIN  - VCC                     - 5v          - Pin 10 J5 Vusb
-TFT Resistive touch:
-   X+   - Touch Horizontal axis   - Digital  4  - A3  (Pin 4 J5)
-   X-   - Touch Horizontal        - Analog  A3  - A4  (J2 Pin 8)  - uses analog A/D
-   Y+   - Touch Vertical axis     - Analog  A2  - A5  (J2 Pin 7)  - uses analog A/D
-   Y-   - Touch Vertical          - Digital  5  - D9  (Pin 5 J5)
+/* Same as Griduino platform
 */
 
 // TFT display and SD card share the hardware SPI interface, and have
@@ -65,8 +58,6 @@ TFT Resistive touch:
 
 #elif defined(ARDUINO_AVR_MEGA2560)
   #define TFT_BL   6    // TFT backlight
-  #define SD_CCS   7    // SD card select pin - Mega
-  #define SD_CD    8    // SD card detect pin - Mega
   #define TFT_DC   9    // TFT display/command pin
   #define TFT_CS  10    // TFT chip select pin
 
@@ -104,37 +95,35 @@ Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 TouchScreen ts = TouchScreen(PIN_XP, PIN_YP, PIN_XM, PIN_YM, 295);
 
 // ------------ typedef's
-typedef struct {
-  int x;
-  int y;
-} Point;
+struct Point {
+  int x, y;
+};
 
 // ------------ definitions
-#define gScreenWidth 320      // pixels wide
+#define gScreenWidth 320      // pixels wide, landscape orientation
 
 // ----- screen layout
-// using default fonts - screen pixel coordinates will identify top left of character cell
+// When using default system fonts, screen pixel coordinates will identify top left of character cell
 
 // splash screen layout
 const int xLabel = 8;             // indent labels, slight margin on left edge of screen
-#define yRow1   0                 // program title: "Griduino GMT Clock"
+#define yRow1   0                 // title: "Touchscreen Demo"
 #define yRow2   yRow1 + 40        // program version
 #define yRow3   yRow2 + 20        // compiled date
 #define yRow4   yRow3 + 20        // author line 1
 #define yRow5   yRow4 + 20        // author line 2
 #define yRow6   yRow5 + 40        // "Pressure threshhold = "
 
-
 // ----- color scheme
 // RGB 565 color code: http://www.barth-dev.de/online/rgb565-color-picker/
 #define cBACKGROUND     0x00A             // 0,   0,  10 = darker than ILI9341_NAVY, but not black
-#define cTEXTCOLOR      ILI9341_CYAN      // 0, 255, 255
+#define cTEXTCOLOR       ILI9341_CYAN     // 0, 255, 255
 #define cTEXTFAINT      0x514             // 0, 160, 160 = blue, between CYAN and DARKCYAN
 #define cLABEL          ILI9341_GREEN
-#define cVALUE          ILI9341_YELLOW
-#define cINPUT          ILI9341_WHITE
-#define cBUTTONFILL     ILI9341_NAVY
-#define cBUTTONOUTLINE  ILI9341_BLUE      // 0,   0, 255 = darker than cyan
+#define cVALUE           ILI9341_YELLOW
+#define cINPUT           ILI9341_WHITE
+#define cBUTTONFILL      ILI9341_NAVY
+#define cBUTTONOUTLINE   ILI9341_BLUE     // 0,   0, 255 = darker than cyan
 #define cWARN           0xF844            // brighter than ILI9341_RED but not pink
 
 // ============== touchscreen helpers ==========================
@@ -169,26 +158,42 @@ bool newScreenTap(Point* pPoint) {
       Serial.print(","); Serial.print(pPoint->y); Serial.println(")");
     }
   }
-  //delay(100);   // no delay: code above completely handles debouncing without blocking the loop
+  //delay(10);   // no delay: code above completely handles debouncing without blocking the loop
   return result;
 }
 
+// 2020-05-12 barry@k7bwh.com
+// We need to replace TouchScreen::pressure() and implement TouchScreen::isTouching()
+
 // 2020-05-03 CraigV and barry@k7bwh.com
+uint16_t myPressure(void) {
+  pinMode(PIN_XP, OUTPUT);   digitalWrite(PIN_XP, LOW);   // Set X+ to ground
+  pinMode(PIN_YM, OUTPUT);   digitalWrite(PIN_YM, HIGH);  // Set Y- to VCC
+
+  digitalWrite(PIN_XM, LOW); pinMode(PIN_XM, INPUT);      // Hi-Z X-
+  digitalWrite(PIN_YP, LOW); pinMode(PIN_YP, INPUT);      // Hi-Z Y+
+
+  int z1 = analogRead(PIN_XM);
+  int z2 = 1023-analogRead(PIN_YP);
+
+  return (uint16_t) ((z1+z2)/2);
+}
+
 // "isTouching()" is defined in touch.h but is not implemented Adafruit's TouchScreen library
 // Note - For Griduino, if this function takes longer than 8 msec it can cause erratic GPS readings
 // so we recommend against using https://forum.arduino.cc/index.php?topic=449719.0
 bool TouchScreen::isTouching(void) {
   #define TOUCHPRESSURE 200       // Minimum pressure we consider true pressing
   static bool button_state = false;
-  uint16_t pres_val = pressure();
+  uint16_t pres_val = ::myPressure();
 
   if ((button_state == false) && (pres_val > TOUCHPRESSURE)) {
-    Serial.println("button down");     // debug
+    Serial.print(". pressed, pressure = "); Serial.println(pres_val);     // debug
     button_state = true;
   }
 
   if ((button_state == true) && (pres_val < TOUCHPRESSURE)) {
-    Serial.println("button up");       // debug
+    Serial.print(". released, pressure = "); Serial.println(pres_val);       // debug
     button_state = false;
   }
 
@@ -230,7 +235,7 @@ void mapTouchToScreen(TSPoint touch, Point* screen) {
   return;
 }
 
-// ========== screen helpers ===================================
+// ========== splash screen helpers ============================
 void startSplashScreen() {
   tft.setTextSize(2);
 
@@ -256,23 +261,22 @@ void startSplashScreen() {
   tft.print("Pressure threshhold: ");
   tft.print(ts.pressureThreshhold);
 }
-
 void clearScreen() {
   tft.fillScreen(cBACKGROUND);
 }
 
 void showActivityBar(int row, uint16_t foreground, uint16_t background) {
-  static int addDotX = 10;                   // current screen column, 0..319 pixels
+  static int addDotX = 10;                    // current screen column, 0..319 pixels
   static int rmvDotX = 0;
   static int count = 0;
-  const int SCALEF = 32;                     // how much to slow it down so it becomes visible
+  const int SCALEF = 2048;                    // how much to slow it down so it becomes visible
 
   count = (count + 1) % SCALEF;
   if (count == 0) {
-    addDotX = (addDotX + 1) % gScreenWidth;   // advance
-    rmvDotX = (rmvDotX + 1) % gScreenWidth;   // advance
-    tft.drawPixel(addDotX, row, foreground);   // write new
-    tft.drawPixel(rmvDotX, row, background);   // erase old
+    addDotX = (addDotX + 1) % tft.width();    // advance
+    rmvDotX = (rmvDotX + 1) % tft.width();    // advance
+    tft.drawPixel(addDotX, row, foreground);  // write new
+    tft.drawPixel(rmvDotX, row, background);  // erase old
   }
 }
 
@@ -280,10 +284,10 @@ void showActivityBar(int row, uint16_t foreground, uint16_t background) {
 void setup() {
 
   // ----- init serial monitor
-  Serial.begin(115200);           // init for debuggging in the Arduino IDE
+  Serial.begin(115200);                               // init for debuggging in the Arduino IDE
 
   Serial.println(PROGRAM_TITLE " " PROGRAM_VERSION);  // Report our program name to console
-  Serial.println("Compiled " __DATE__ " " __TIME__);  // Report our compiled date
+  Serial.println("Compiled " PROGRAM_COMPILED);       // Report our compiled date
   Serial.println(__FILE__);                           // Report our source code file name
 
   // ----- init TFT backlight
@@ -323,6 +327,7 @@ void loop() {
   // if there's touchscreen input, handle it
   Point touch;
   if (newScreenTap(&touch)) {
+
     const int radius = 3;    // debug
     tft.fillCircle(touch.x, touch.y, radius, cVALUE);  // debug
 

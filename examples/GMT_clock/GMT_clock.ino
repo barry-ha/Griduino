@@ -4,6 +4,8 @@
   Date:     2020-04-22 created
             2020-04-29 added touch adjustment of local time zone
             2020-05-01 added save/restore to nonvolatile RAM
+            2020-05-12 updated TouchScreen code
+            2020-05-13 proportional fonts
 
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
@@ -34,12 +36,17 @@
 #include "TouchScreen.h"            // Touchscreen built in to 3.2" Adafruit TFT display
 #include "Adafruit_BMP3XX.h"        // Precision barometric and temperature sensor
 #include "save_restore.h"           // Save configuration in non-volatile RAM
+#include "TextField.h"              // Optimize TFT display text for proportional fonts
 
-// ------- Identity for console
+// ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE   "Griduino GMT Clock"
-#define PROGRAM_VERSION "v0.06"
+#define PROGRAM_VERSION "v0.10"
 #define PROGRAM_LINE1   "Barry K7BWH"
 #define PROGRAM_LINE2   "John KM7O"
+#define PROGRAM_COMPILED __DATE__ " " __TIME__
+
+//#define ECHO_GPS_SENTENCE           // comment out to quiet down the serial monitor
+//#define SHOW_TOUCH_TARGET           // comment out for production
 
 // ========== forward reference ================================
 void timePlus();
@@ -63,9 +70,8 @@ void timeMinus();
 
 #elif defined(ARDUINO_AVR_MEGA2560)
   #define TFT_BL   6    // TFT backlight
-  #define SD_CCS   7    // SD card select pin - Mega
-  #define SD_CD    8    // SD card detect pin - Mega
   #define TFT_DC   9    // TFT display/command pin
+  #define TFT_CS  10    // TFT chip select pin
   #define BMP_CS  13    // BMP388 sensor, chip select
 
 #else
@@ -104,8 +110,9 @@ TouchScreen ts = TouchScreen(PIN_XP, PIN_YP, PIN_XM, PIN_YM, 295);
 // ---------- Barometric and Temperature Sensor
 Adafruit_BMP3XX baro(BMP_CS); // hardware SPI
 
-// ---------- Onboard LED
-#define RED_LED 13    // diagnostics RED LED
+// ---------- Feather's onboard lights
+#define RED_LED 13          // diagnostics RED LED
+//efine PIN_LED 13          // already defined in Feather's board variant.h
 
 // ---------- GPS ----------
 /* "Ultimate GPS" pin wiring is connected to a dedicated hardware serial port
@@ -120,103 +127,73 @@ Adafruit_BMP3XX baro(BMP_CS); // hardware SPI
 Adafruit_GPS GPS(&Serial1);
 
 // ------------ typedef's
-typedef struct {
-  int x;
-  int y;
-} Point;
-
-// ------------ definitions
-const int howLongToWait = 6;  // max number of seconds at startup waiting for Serial port to console
-#define gScreenWidth 320      // pixels wide
-#define gScreenHeight 240     // pixels high
-
-// ------------ global scope
-int gTimeZone = -7;                     // default local time Pacific (-7 hours), saved in nonvolatile memory
-int gSatellites = 0;                    // number of satellites
-int gTextSize;                          // no such function as "tft.getTextSize()" so remember it on our own
-int gUnitFontWidth, gUnitFontHeight;    // character cell size for TextSize(1)
-int gCharWidth, gCharHeight;            // character cell size for TextSize(n)
-
-// ----- screen layout
-// using default fonts - screen pixel coordinates will identify top left of character cell
-
-// splash screen layout
-const int xLabel = 8;             // indent labels, slight margin on left edge of screen
-#define yRow1   0                 // program title: "Griduino GMT Clock"
-#define yRow2   yRow1 + 40        // program version
-#define yRow3   yRow2 + 20        // author line 1
-#define yRow4   yRow3 + 20        // author line 2
-
-// main screen layout
-const Point gmtTime   = {  16, 44 };            // "01:23:45"
-const Point gmtDate   = {  90, gmtTime.y+58 };  // "Apr 29, 2020"
-const Point xyTemp    = { 126, gmtDate.y+30 };  // "78.9 F"
-const Point addHours  = {   8, 212 };           // "+8 hr"
-const Point localTime = { 116, 212 };           // "09:23:45"
-const Point buttonPlus = {  64, 204 };          // [ + ]
-const Point buttonMinus= { 226, 204 };          // [ - ]
-const Point birds     = { 286, 212 };           // "3 satellites"
-
-// ----- color scheme
-// RGB 565 color code: http://www.barth-dev.de/online/rgb565-color-picker/
-#define cBACKGROUND     0x00A             // 0,   0,  10 = darker than ILI9341_NAVY, but not black
-#define cTEXTCOLOR      ILI9341_CYAN      // 0, 255, 255
-#define cTEXTFAINT      0x514             // 0, 160, 160 = blue, between CYAN and DARKCYAN
-#define cLABEL          ILI9341_GREEN
-#define cVALUE          ILI9341_YELLOW
-#define cINPUT          ILI9341_WHITE
-#define cBUTTONFILL     ILI9341_NAVY
-#define cBUTTONOUTLINE  ILI9341_BLUE      // 0,   0, 255 = darker than cyan
-#define cWARN           0xF844            // brighter than ILI9341_RED but not pink
-
+struct Point {
+  int x, y;
+};
+struct Rect {
+  Point ul;
+  Point size;
+  bool contains(const Point touch) {
+    if (ul.x <= touch.x && touch.x <= ul.x+size.x
+     && ul.y <= touch.y && touch.y <= ul.y+size.y) {
+      return true;
+     } else {
+      return false;
+     }
+  }
+};
 typedef void (*simpleFunction)();
 typedef struct {
   char text[26];
-  int x;
-  int y;
-  int w;
-  int h;
+  int x, y;
+  int w, h;
+  Rect hitTarget;
   int radius;
   uint16_t color;
   simpleFunction function;
 } Button;
 
-// ========== constants ===============================
+// ------------ definitions
+const int howLongToWait = 4;  // max number of seconds at startup waiting for Serial port to console
+#define SCREEN_ROTATION 1     // 1=landscape, 3=landscape 180 degrees
 
-const int margin = xLabel;        // slight margin between button border and edge of screen
-const int btnRadius = 4;          // rounded corners
-const int btnWidth = 36;          // small and inconspicuous 
-const int btnHeight = 30;
-const int nTimeButtons = 2;
-Button timeButtons[nTimeButtons] = {
-  // text           x,y                     w,h              r       color       function
-  {"+",  buttonPlus.x,buttonPlus.y,  btnWidth,btnHeight, btnRadius, cTEXTCOLOR, timePlus  },  // Up
-  {"-", buttonMinus.x,buttonMinus.y, btnWidth,btnHeight, btnRadius, cTEXTCOLOR, timeMinus },  // Down
-};
+// ------------ global scope
+int gTimeZone = -7;                     // default local time Pacific (-7 hours), saved in nonvolatile memory
+int gSatellites = 0;                    // number of satellites
+
+// ----- color scheme
+// RGB 565 color code: http://www.barth-dev.de/online/rgb565-color-picker/
+#define cBACKGROUND     0x00A             // 0,   0,  10 = darker than ILI9341_NAVY, but not black
+//efine cSCALECOLOR     ILI9341_YELLOW
+#define cTEXTCOLOR      ILI9341_CYAN      // 0, 255, 255
+#define cTEXTFAINT      0x514             // 0, 160, 160 = blue, between CYAN and DARKCYAN
+#define cLABEL          ILI9341_GREEN
+#define cVALUE          ILI9341_YELLOW
+#define cINPUT          ILI9341_WHITE
+//efine cHIGHLIGHT      ILI9341_WHITE
+#define cBUTTONFILL     ILI9341_NAVY
+#define cBUTTONOUTLINE  ILI9341_BLUE      // 0,   0, 255 = darker than cyan
+#define cBUTTONLABEL    ILI9341_YELLOW
+#define cWARN           0xF844            // brighter than ILI9341_RED but not pink
+
+// ========== constants ===============================
 
 // ============== GPS helpers ==================================
 void processGPS() {
   // keep track of number of GPS satellites in view as a confidence indicator
   gSatellites = GPS.satellites;
 
-  // this sketch doesn't use GPS position, so we ignore NMEA sentences (except #satellites)
-  // IF the GPS has a battery, then its realtime clock remembers the time
+  // this sketch doesn't use GPS lat/long, so we ignore NMEA sentences (except #satellites)
+  // IF the GPS has a battery, then its RTC (realtime clock) remembers the time
   // and for all practical purposes the GMT reading is always right.
 }
 
-// Formatted GMT time
-void getTime(char* result, int len) {
-  // result = char[10] = string buffer to modify
-  int hh = GPS.hour;                      // 24-hour clock, 0..23
-  int mm = GPS.minute;
-  int ss = GPS.seconds;
-  snprintf(result, len, "%02d:%02d:%02d",
-                         hh,  mm,  ss);
-}
 // Formatted Local time
 void getTimeLocal(char* result, int len) {
-  // result = char[10] = string buffer to modify
-  int hh = (GPS.hour + gTimeZone) % 24;   // 24-hour clock, to match GMT time
+  // @param result = char[10] = string buffer to modify
+  // @param len = string buffer length
+  int hh = GPS.hour + gTimeZone;      // 24-hour clock (format matches GMT time)
+  hh = (hh + 24) % 24;                // ensure positive number of hours
   int mm = GPS.minute;
   int ss = GPS.seconds;
   snprintf(result, len, "%02d:%02d:%02d",
@@ -242,7 +219,7 @@ void getDate(char* result, int maxlen) {
   // @param result = char[15] = string buffer to modify
   // @param maxlen = string buffer length
   // Note that GPS can have a valid date without a position; we can't rely on GPS.fix()
-  // to know if the date is correct or not. So we deduce it from the y/m/d values.
+  // to know if the date is correct or not. So we deduce it from the yy/mm/dd values.
   char sDay[3];       // "12"
   char sYear[5];      // "2020"
   char aMonth[][4] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "err" };
@@ -294,26 +271,42 @@ bool newScreenTap(Point* pPoint) {
       Serial.print(","); Serial.print(pPoint->y); Serial.println(")");
     }
   }
-  //delay(100);   // no delay: code above completely handles debouncing without blocking the loop
+  //delay(10);   // no delay: code above completely handles debouncing without blocking the loop
   return result;
 }
 
+// 2020-05-12 barry@k7bwh.com
+// We need to replace TouchScreen::pressure() and implement TouchScreen::isTouching()
+
 // 2020-05-03 CraigV and barry@k7bwh.com
+uint16_t myPressure(void) {
+  pinMode(PIN_XP, OUTPUT);   digitalWrite(PIN_XP, LOW);   // Set X+ to ground
+  pinMode(PIN_YM, OUTPUT);   digitalWrite(PIN_YM, HIGH);  // Set Y- to VCC
+
+  digitalWrite(PIN_XM, LOW); pinMode(PIN_XM, INPUT);      // Hi-Z X-
+  digitalWrite(PIN_YP, LOW); pinMode(PIN_YP, INPUT);      // Hi-Z Y+
+
+  int z1 = analogRead(PIN_XM);
+  int z2 = 1023-analogRead(PIN_YP);
+
+  return (uint16_t) ((z1+z2)/2);
+}
+
 // "isTouching()" is defined in touch.h but is not implemented Adafruit's TouchScreen library
 // Note - For Griduino, if this function takes longer than 8 msec it can cause erratic GPS readings
 // so we recommend against using https://forum.arduino.cc/index.php?topic=449719.0
 bool TouchScreen::isTouching(void) {
   #define TOUCHPRESSURE 200       // Minimum pressure we consider true pressing
   static bool button_state = false;
-  uint16_t pres_val = pressure();
+  uint16_t pres_val = ::myPressure();
 
   if ((button_state == false) && (pres_val > TOUCHPRESSURE)) {
-    Serial.println("button down");     // debug
+    Serial.print(". pressed, pressure = "); Serial.println(pres_val);     // debug
     button_state = true;
   }
 
   if ((button_state == true) && (pres_val < TOUCHPRESSURE)) {
-    Serial.println("button up");       // debug
+    Serial.print(". released, pressure = "); Serial.println(pres_val);       // debug
     button_state = false;
   }
 
@@ -343,12 +336,15 @@ void mapTouchToScreen(TSPoint touch, Point* screen) {
   //
   // Typical measured pressures=200..549
 
-  screen->x = 0;
-  screen->y = 0;
-
   // setRotation(1) = landscape orientation = x-,y-axis exchanged
-  screen->x = map(touch.y, 100, 900,  0, tft.width());
-  screen->y = map(touch.x, 900, 100,  0, tft.height());
+  //          map(value    in_min,in_max, out_min,out_max)
+  screen->x = map(touch.y,  225,825,      0, tft.width());
+  screen->y = map(touch.x,  800,300,      0, tft.height());
+  if (SCREEN_ROTATION == 3) {
+    // if display is flipped, then also flip both x,y touchscreen coords
+    screen->x = tft.width() - screen->x;
+    screen->y = tft.height() - screen->y;
+  }
   return;
 }
 
@@ -363,132 +359,214 @@ float getTemperature() {
   return tempF;
 }
 
-// ========== screen helpers ===================================
-void startSplashScreen() {
+// ========== font management helpers ==========================
+/* Using fonts: https://learn.adafruit.com/adafruit-gfx-graphics-library/using-fonts
+
+  "Fonts" folder is inside \Documents\User\Arduino\libraries\Adafruit_GFX
+*/
+#include "Fonts/FreeSans18pt7b.h"   // we use double-size 18-pt font
+void initFontSizeBig() {            // otherwise the largest single-size font is 24-pt
+  tft.setFont(&FreeSans18pt7b);     // which looks smoother but is not big enough
   tft.setTextSize(2);
-
-  tft.setCursor(xLabel, yRow1);
-  tft.setTextColor(cTEXTCOLOR);
-  tft.print(PROGRAM_TITLE);
-
-  tft.setCursor(xLabel, yRow2);
-  tft.setTextColor(cLABEL);
-  tft.print(PROGRAM_VERSION);
-  
-  tft.setCursor(xLabel, yRow2 + 20);
-  tft.println(PROGRAM_LINE1);
-
-  tft.setCursor(xLabel, yRow2 + 40);
-  tft.println(PROGRAM_LINE2);
-
-  delay(2000);
-  clearScreen();
-  
-  tft.setCursor(xLabel, yRow1);
-  tft.setTextColor(cTEXTCOLOR);
-  tft.print(PROGRAM_TITLE);
 }
+#include "Fonts/FreeSans12pt7b.h"   // 12-pt font for local time and temperature
+void initFontSizeSmall() {
+  tft.setFont(&FreeSans12pt7b);
+  tft.setTextSize(1);
+}
+#include "Fonts/FreeSans9pt7b.h"    // smallest font for program name
+void initFontSizeSmallest() {
+  tft.setFont(&FreeSans9pt7b);
+  tft.setTextSize(1);
+}
+
+// ========== splash screen helpers ============================
+// splash screen layout
+#define yRow1   54                // program title: "Griduino GMT Clock"
+#define yRow2   yRow1 + 28        // program version
+#define yRow3   yRow2 + 48        // author line 1
+#define yRow4   yRow3 + 32        // author line 2
+
+TextField txtSplash[] = {
+  //        text               x,y       color  
+  {PROGRAM_TITLE,    -1,yRow1,  cTEXTCOLOR}, // [0] program title, centered
+  {PROGRAM_VERSION,  -1,yRow2,  cLABEL},     // [1] normal size text, centered
+  {PROGRAM_LINE1,    -1,yRow3,  cLABEL},     // [2] credits line 1, centered
+  {PROGRAM_LINE2,    -1,yRow4,  cLABEL},     // [3] credits line 2, centered
+  {"Compiled " PROGRAM_COMPILED,       
+                     -1,228,    cTEXTCOLOR}, // [4] "Compiled", bottom row
+};
+const int numSplashFields = sizeof(txtSplash)/sizeof(TextField);
+
+void startSplashScreen() {
+  clearScreen();                                    // clear screen
+  txtSplash[0].setBackground(cBACKGROUND);          // set background for all TextFields
+  TextField::setTextDirty( txtSplash, numSplashFields ); // make sure all fields are updated
+
+  initFontSizeSmall();
+  for (int ii=0; ii<4; ii++) {
+    txtSplash[ii].print();
+  }
+
+  initFontSizeSmallest();
+  for (int ii=4; ii<numSplashFields; ii++) {
+    txtSplash[ii].print();
+  }
+}
+
+// ========== main clock view helpers ==========================
+// these are names for the array indexes, must be named in same order as below
+enum txtIndex {
+  TITLE=0, 
+  HOURS, COLON1, MINUTES, COLON2, SECONDS,
+  GMTDATE, DEGREES, LOCALTIME, TIMEZONE, NUMSATS,
+};
+
+TextField txtClock[] = {
+  // text             x,y    color             index
+  {PROGRAM_TITLE,    -1, 14, cTEXTCOLOR},  // [TITLE]     program title, centered
+  {"hh",             12, 90, cVALUE},      // [HOURS]     giant clock hours
+  {":",              94, 90, cVALUE},      // [COLON1]    :
+  {"mm",            120, 90, cVALUE},      // [MINUTES]   giant clock minutes
+  {":",             206, 90, cVALUE},      // [COLON2]    :
+  {"ss",            230, 90, cVALUE},      // [SECONDS]   giant clock seconds
+  {"MMM dd, yyyy",   94,130, cVALUE},      // [GMTDATE]   GMT date
+  {"12.3 F",        132,164, cVALUE},      // [DEGREES]   Temperature
+  {"hh:mm:ss",      118,226, cTEXTCOLOR},  // [LOCALTIME] Local time
+  {"-7h",             8,226, cTEXTFAINT},  // [TIMEZONE]  addHours time zone
+  {"6#",            308,226, cTEXTFAINT, FLUSHRIGHT},  // [NUMSATS]   numSats
+};
+const int numClockFields = sizeof(txtClock)/sizeof(TextField);
+
+Button timeButtons[] = {
+  // For "GMT_clock" we have rather small modest +/- buttons, meant to visually
+  // fade a little into the background. However, we want larger touch-targets to 
+  // make them easy to press.
+  //
+  // 3.2" display is 320 x 240 pixels, landscape, (y=239 reserved for activity bar)
+  //
+  // label  origin   size      touch-target     
+  // text    x,y      w,h      x,y      w,h   radius  color     function
+  {  "+",   66,204,  36,30, { 30,180, 110,59},  4,  cTEXTCOLOR, timePlus  },  // Up
+  {  "-",  226,204,  36,30, {190,180, 110,59},  4,  cTEXTCOLOR, timeMinus },  // Down
+};
+const int nTimeButtons = sizeof(timeButtons)/sizeof(Button);
+
 void startViewScreen() {
   // one-time setup for static info on the display
 
+  clearScreen();
+  initFontSizeSmallest();
+  txtClock[TITLE].print();
+
+  initFontSizeBig();
+  for (int ii=HOURS; ii<=SECONDS; ii++) {
+    txtClock[ii].print();
+  }
+
+  initFontSizeSmall();
+  for (int ii=GMTDATE; ii<=NUMSATS; ii++) {
+    txtClock[ii].print();
+  }
+
   // ----- draw buttons
+  initFontSizeSmall();
   for (int ii=0; ii<nTimeButtons; ii++) {
     Button item = timeButtons[ii];
     tft.fillRoundRect(item.x, item.y, item.w, item.h, item.radius, cBUTTONFILL);
     tft.drawRoundRect(item.x, item.y, item.w, item.h, item.radius, cBUTTONOUTLINE);
 
-    tft.setCursor(item.x+item.w/2-4, item.y+item.h/2-6);
+    #ifdef SHOW_TOUCH_TARGETS
+    tft.drawRect(item.hitTarget.ul.x, item.hitTarget.ul.y,  // debug: draw outline around hit target
+                 item.hitTarget.size.x, item.hitTarget.size.y, 
+                 cBUTTONOUTLINE); 
+    #endif
+
+    tft.setCursor(item.x+item.w/2-7, item.y+item.h/2+5);
     tft.setTextColor(item.color);
     tft.print(item.text);
   }
 
   // debug: show centerline on display
-  //tft.drawLine(gScreenWidth/2,0, gScreenWidth/2,gScreenHeight, cWARN); // debug
-
+  //tft.drawLine(tft.width()/2,0, tft.width()/2,tft.height(), cWARN); // debug
 }
 
 void updateView() {
 /*
   +-----------------------------------------+
-  | Griduino GMT Clock                      |... yRow1
-  |  HHHHH HHHH  :  MMMM MMMM  : SSSS SSSS  |... yGMTTime
+  |            Griduino GMT Clock           |
   |  HHHHH HHHH  :  MMMM MMMM  : SSSS SSSS  |
   |  HHHHH HHHH  :  MMMM MMMM  : SSSS SSSS  |
   |  HHHHH HHHH  :  MMMM MMMM  : SSSS SSSS  |
   |  HHHHH HHHH  :  MMMM MMMM  : SSSS SSSS  |
-  |  GMT Date: Apr 29, 2020                 |... yGMTDate
-  |  Temp:  101.7 F                         |... yTemperature
+  |  HHHHH HHHH  :  MMMM MMMM  : SSSS SSSS  |
   |                                         |
-  |  Local: HH : MM : SS                    |... yLocalTime
+  |         GMT Date: Apr 29, 2020          |
   |                                         |
-  +-------+                         +-------+... yButton
-  | +1 hr |                         | -1 hr |... yAdjust
+  |              Temp:  101.7 F             |
+  |                                         |
+  +-------+                         +-------+
+  | +1 hr |    Local: HH:MM:SS      | -1 hr |
   +-------+-------------------------+-------+
 */  
-  tft.setTextSize(6);
-
   // GMT Time
-  char sTime[10];         // strlen("19:54:14") = 8
-  getTime(sTime, sizeof(sTime));
-  tft.setTextColor(cVALUE, cBACKGROUND);
-  tft.setCursor(gmtTime.x, gmtTime.y);
-  tft.print(sTime);
+  char sHour[8], sMinute[8], sSeconds[8];
+  snprintf(sHour,   sizeof(sHour), "%02d", GPS.hour);
+  snprintf(sMinute, sizeof(sMinute), "%02d", GPS.minute);
+  snprintf(sSeconds,sizeof(sSeconds), "%02d", GPS.seconds);
 
-  tft.setTextSize(2);
+  Serial.print("GMT = ("); Serial.print(sHour);
+  Serial.print("):(");     Serial.print(sMinute);
+  Serial.print("):(");     Serial.print(sSeconds);
+  Serial.println(")");
+  
+  initFontSizeBig();
+  txtClock[HOURS].print(sHour);
+  txtClock[MINUTES].print(sMinute);
+  txtClock[SECONDS].print(sSeconds);
+  txtClock[COLON2].dirty = true;
+  txtClock[COLON2].print();
+
+  initFontSizeSmall();
 
   // GMT Date
   char sDate[16];         // strlen("Jan 12, 2020 ") = 14
   getDate(sDate, sizeof(sDate));
-  strcat(sDate, " "); // append blank to erase possible trailing character on month rollover
-  tft.setCursor(gmtDate.x, gmtDate.y);
-  tft.setTextColor(cVALUE, cBACKGROUND);
-  tft.print(sDate);       // todo
+  txtClock[GMTDATE].print(sDate);
 
   // Temperature
   float t = getTemperature();
-  tft.setCursor(xyTemp.x, xyTemp.y);
-  tft.setTextColor(cVALUE, cBACKGROUND);
-  tft.print(t, 1);
-  tft.print(" F");
+  double intpart;
+  double fractpart= modf(t, &intpart);
+
+  int degr = (int) intpart;
+  int frac = (int) fractpart*10;
+  
+  char sTemp[9];         // strlen("123.4 F") = 7
+  snprintf(sTemp, sizeof(sTemp), "%d.%d F", degr, frac);
+  txtClock[DEGREES].print(sTemp);
 
   // Hours to add/subtract from GMT for local time
-  tft.setCursor(addHours.x, addHours.y);
-  tft.setTextColor(cTEXTFAINT, cBACKGROUND);
-  if (gTimeZone >= 0) {
-    tft.print("+");
-  }
-  tft.print(gTimeZone);
-  tft.print("h");
-  if (gTimeZone >-10 && gTimeZone < 10) {
-    // erase possible leftover trailing character
-    tft.print(" ");
-  }
+  char sign[2] = { 0, 0 };              // prepend a plus-sign when >=0
+  sign[0] = (gTimeZone>=0) ? '+' : 0;   // (don't need to add a minus-sign bc the print stmt does that for us)
+  char sTimeZone[6];      // strlen("-10h") = 4
+  snprintf(sTimeZone, sizeof(sTimeZone), "%s%dh", sign, gTimeZone);
+  txtClock[TIMEZONE].print(sTimeZone);
 
   // Local Time
+  char sTime[10];         // strlen("01:23:45") = 8
   getTimeLocal(sTime, sizeof(sTime));
-  tft.setCursor(localTime.x, localTime.y);
-  tft.setTextColor(cTEXTCOLOR, cBACKGROUND);
-  tft.print(sTime);
+  txtClock[LOCALTIME].print(sTime);
 
   // Satellite Count
-  tft.setCursor(birds.x, birds.y);
-  tft.setTextColor(cTEXTFAINT, cBACKGROUND);
-  tft.print(gSatellites);
-  tft.print("#");
+  char sBirds[4];         // strlen("5#") = 2
+  snprintf(sBirds, sizeof(sBirds), "%d#", gSatellites);
+  // change colors by number of birds
+  txtClock[NUMSATS].color = (gSatellites<1) ? cWARN : cTEXTFAINT;
+  txtClock[NUMSATS].print(sBirds);
+  //txtClock[NUMSATS].dump();   // debug
 }
 
-/* Using fonts: https://learn.adafruit.com/adafruit-gfx-graphics-library/using-fonts
-*/
-
-int getOffsetToCenterText(String text) {
-  // measure width of given text in current font and 
-  // calculate X-offset to make it centered left-right on screen
-  
-  int16_t x1, y1;
-  uint16_t w, h;
-  tft.getTextBounds(text, 0, 0, &x1, &y1, &w, &h);  // compute "pixels wide"
-  return (gScreenWidth - w) / 2;
-}
 void clearScreen() {
   tft.fillScreen(cBACKGROUND);
 }
@@ -532,25 +610,31 @@ void timeMinus() {
 
 //=========== distance helpers =================================
 
-int gAddDotX = 10;                     // current screen column, 0..319 pixels
-int gRmvDotX = 0;
 void showActivityBar(int row, uint16_t foreground, uint16_t background) {
-  gAddDotX = (gAddDotX + 1) % gScreenWidth;   // advance
-  gRmvDotX = (gRmvDotX + 1) % gScreenWidth;   // advance
-  tft.drawPixel(gAddDotX, row, foreground);   // write new
-  tft.drawPixel(gRmvDotX, row, background);   // erase old
+  static int addDotX = 10;                    // current screen column, 0..319 pixels
+  static int rmvDotX = 0;
+  static int count = 0;
+  const int SCALEF = 2048;                    // how much to slow it down so it becomes visible
+
+  count = (count + 1) % SCALEF;
+  if (count == 0) {
+    addDotX = (addDotX + 1) % tft.width();   // advance
+    rmvDotX = (rmvDotX + 1) % tft.width();   // advance
+    tft.drawPixel(addDotX, row, foreground);  // write new
+    tft.drawPixel(rmvDotX, row, background);  // erase old
+  }
 }
 
 //=========== setup ============================================
 void setup() {
 
   // ----- init serial monitor
-  Serial.begin(115200);           // init for debuggging in the Arduino IDE
-  waitForSerial(howLongToWait);   // wait for developer to connect debugging console
+  Serial.begin(115200);                               // init for debuggging in the Arduino IDE
+  waitForSerial(howLongToWait);                       // wait for developer to connect debugging console
 
   // now that Serial is ready and connected (or we gave up)...
   Serial.println(PROGRAM_TITLE " " PROGRAM_VERSION);  // Report our program name to console
-  Serial.println("Compiled " __DATE__ " " __TIME__);  // Report our compiled date
+  Serial.println("Compiled " PROGRAM_COMPILED);       // Report our compiled date
   Serial.println(__FILE__);                           // Report our source code file name
 
   // ----- init GPS
@@ -563,7 +647,6 @@ void setup() {
 
   GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);    // 1 Hz update rate
   //GPS.sendCommand(PMTK_SET_NMEA_UPDATE_200_MILLIHERTZ); // Once every 5 seconds update
-  //GPS.sendCommand(PGCMD_ANTENNA);             // Request updates on whether antenna is connected or not (comment out to keep quiet)
 
   // ----- query GPS
   Serial.print("Sending command to query GPS Firmware version");
@@ -581,18 +664,44 @@ void setup() {
 
   // ----- init TFT display
   tft.begin();                        // initialize TFT display
-  tft.setRotation(1);                 // landscape (default is portrait)
+  tft.setRotation(SCREEN_ROTATION);   // 1=landscape (default is 0=portrait)
   clearScreen();
+  // ----- announce ourselves
+  startSplashScreen();
+
+  delay(4000);         // milliseconds
 
   // ----- init barometer
   if (!baro.begin()) {
     Serial.println("Error, unable to initialize BMP388, check your wiring");
-    tft.setCursor(0, 80);
-    tft.setTextColor(cWARN);
-    tft.setTextSize(3);
-    tft.println("Error!\n Unable to init\n  BMP388 sensor\n   check wiring");
-    delay(4000);
+
+    #define RETRYLIMIT 10
+    TextField txtError[] = {
+      //        text                 x,y     color  
+      {"Error!",                    12, 32,  cWARN},       // [0]
+      {"Unable to init barometer",  12, 62,  cWARN},       // [1]
+      {"Please check your wiring",  12, 92,  cWARN},       // [2]
+      {"Retrying...",               12,152,  cWARN},       // [3]
+      {"1",                        150,152,  cTEXTCOLOR, FLUSHRIGHT},  // [4]
+      {"of 50",                    162,152,  cWARN},       // [5]
+    };
+    const int numErrorFields = sizeof(txtError)/sizeof(TextField);
+
+    initFontSizeSmall();
+    clearScreen();
+    for (int ii=0; ii<numErrorFields; ii++) {
+      txtError[ii].print();
+    }
+
+    for (int ii=1; ii<=RETRYLIMIT; ii++) {
+      txtError[4].print(ii);
+      if (baro.begin()) {
+        break;  // success, baro sensor finally initialized
+      }
+      delay(1000);
+    }
   }
+
   // Set up BMP388 oversampling and filter initialization
   // baro.setTemperatureOversampling(BMP3_OVERSAMPLING_2X);
 
@@ -603,9 +712,6 @@ void setup() {
   }
   Serial.print("Time zone restored to "); Serial.println(gTimeZone);
 
-  // ----- announce ourselves
-  startSplashScreen();
-
   startViewScreen();
 }
 
@@ -615,7 +721,7 @@ void setup() {
 uint32_t prevTimeGPS = millis();
 const int GPS_PROCESS_INTERVAL = 1000;  // milliseconds between updating the model's GPS data
 uint32_t prevTimeTouch = millis();
-const int TOUCH_PROCESS_INTERVAL = 10;  // milliseconds between polling for touches
+const int TOUCH_PROCESS_INTERVAL = 5;   // milliseconds between polling for touches
 
 void loop() {
 
@@ -638,7 +744,9 @@ void loop() {
       // this also sets the newNMEAreceived() flag to false
       return;
     } else {
+      #ifdef ECHO_GPS_SENTENCE
       Serial.print(GPS.lastNMEA());   // debug
+      #endif
     }
   }
 
@@ -650,21 +758,26 @@ void loop() {
     updateView();                     // update current screen
   }
 
-  // periodically check for screen touch
+  // if there's touchscreen input, handle it
   if (millis() - prevTimeTouch > TOUCH_PROCESS_INTERVAL) {
     prevTimeTouch = millis();         // start another interval
     Point touch;
     if (newScreenTap(&touch)) {
-      if (touch.x < gScreenWidth / 2) {
-        timePlus();                   // left half screen
-      } else {
-        timeMinus();                  // right half screen
+
+      #ifdef SHOW_TOUCH_TARGET
+      tft.fillCircle(touch.x, touch.y, 3, cWARN);  // debug - show dot, radius=3
+      #endif
+
+      for (int ii=0; ii<nTimeButtons; ii++) {
+        if (timeButtons[ii].hitTarget.contains( touch )) {
+          timeButtons[ii].function(); // dispatch to timePlus() or timeMinus()
+          Serial.print("Hit! target = "); Serial.println(ii);
+        }
       }
     }
   }
 
   // make a small progress bar crawl along bottom edge
   // this gives a sense of how frequently the main loop is executing
-  delay(2);         // slow down activity bar so it can be seen
-  showActivityBar(239, ILI9341_RED, ILI9341_BLACK);
+  showActivityBar(tft.height()-1, ILI9341_RED, cBACKGROUND);
 }

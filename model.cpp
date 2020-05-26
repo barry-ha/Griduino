@@ -24,6 +24,7 @@ String calcDistanceLong(double lat, double fromLong, double toLong);
 float nextGridLineEast(float longitudeDegrees);
 float nextGridLineWest(float longitudeDegrees);
 float nextGridLineSouth(float latitudeDegrees);
+bool isVisibleDistance(const PointGPS from, const PointGPS to); // view_grid.cpp
 
 // ========== constants =======================
 // These initial values are displayed until GPS gets comes up with better info.
@@ -61,6 +62,11 @@ class Model {
     String gsDistanceEast = "15.5";   // placeholder distances to show at power-on
     String gsDistanceSouth = "63.4";
     String gsDistanceWest = "81.4";   // Strings: https://www.arduino.cc/en/Reference/StringLibrary
+
+    Location history[200];            // remember a list of GPS coordinates
+    int nextHistoryItem = 0;          // index of next item to write
+    const int numHistory = sizeof(history)/sizeof(Location);
+
   protected:
     int    gPrevFix = false;          // previous value of GPS.fix(), to help detect "signal lost"
     String sPrevGrid4 = INIT_GRID4;   // previous value of gsGridName, to help detect "enteredNewGrid()"
@@ -134,6 +140,47 @@ class Model {
       gAngle = GPS.angle;
     }
 
+    void clearHistory() {
+      // wipe clean the array of lat/long that we remember
+      for (uint ii=0; ii<numHistory; ii++) {
+        history[ii].reset();
+      }
+      nextHistoryItem = 0;
+    }
+    void remember(PointGPS vLoc, int vHour, int vMinute, int vSecond) {
+      // save this GPS location and timestamp in internal array
+      // so that we can display it as a breadcrumb trail
+
+      int prevIndex = nextHistoryItem - 1;  // find prev location in circular buffer
+      if (prevIndex < 0) {
+        prevIndex = numHistory-1;
+      }
+      PointGPS prevLoc = history[prevIndex].loc;
+      if (isVisibleDistance(vLoc, prevLoc)) {
+        history[nextHistoryItem].loc = vLoc;
+        history[nextHistoryItem].hh = vHour;
+        history[nextHistoryItem].mm = vMinute;
+        history[nextHistoryItem].ss = vSecond;
+
+        nextHistoryItem = (++nextHistoryItem % numHistory);
+      }
+    }
+    void dumpHistory() {
+      Serial.println("History review........");
+      Serial.print("Number of items = "); Serial.println(numHistory);
+      for (int ii=0; ii<numHistory; ii++) {
+        Location item = history[ii];
+        Serial.print(ii); 
+        Serial.print(". GPS("); 
+        Serial.print(item.loc.lat,3); Serial.print(",");
+        Serial.print(item.loc.lng,3); Serial.print(") ");
+        Serial.print("Time("); 
+        Serial.print(item.hh); Serial.print(":"); 
+        Serial.print(item.mm); Serial.print(":"); 
+        Serial.print(item.ss); Serial.print(")");
+        Serial.println(" ");
+      }
+    }
     bool enteredNewGrid() {
       // grid-crossing detector
       // returns TRUE if the first four characters of 'gsGridName' have changed
@@ -150,15 +197,15 @@ class Model {
       }
     }
     bool signalLost() {
-      // GPS "signal lost" detector
+      // GPS "lost satellite lock" detector
       // returns TRUE only once on the transition from GPS lock to no-lock
-      bool lostFix;
+      bool lostFix = false;     // assume no transition
       if (gPrevFix && !GPS.fix) {
         lostFix = true;
         gHaveGPSfix = false;
-        Serial.println("Lost GPS signal.");
-      } else {
-        lostFix = false;
+        Serial.println("Lost GPS positioning");
+      } else if (!gPrevFix && GPS.fix) {
+        Serial.println("Gained GPS position");
       }
       gPrevFix = GPS.fix;
       return lostFix;

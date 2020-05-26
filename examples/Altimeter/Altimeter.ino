@@ -2,6 +2,7 @@
   Altimeter -- a functional altimeter with comparison to GPS altitudes
 
   Date:     2020-03-06 created 0.9
+            2020-05-12 updated TouchScreen code
 
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
@@ -19,7 +20,7 @@
             | Griduino Altimeter Demo         |. . .line1
             |                                 |
             | Barometer:      17.8 feet       |. . .line2
-            | GPS:           123.4 feet       |. . .line3
+            | GPS (5#):      123.4 feet       |. . .line3
             |                                 |
             | Enter your current local        |. . .line4
             | pressure at sea level:          |. . .line5
@@ -46,18 +47,21 @@
 */
 
 #include <Wire.h>
-#include "SPI.h"                  // Serial Peripheral Interface
-#include "Adafruit_GFX.h"         // Core graphics display library
-#include "Adafruit_ILI9341.h"     // TFT color display library
-#include "Adafruit_GPS.h"         // Ultimate GPS library
-#include "TouchScreen.h"          // Touchscreen built in to 3.2" Adafruit TFT display
-#include "Adafruit_BMP3XX.h"      // Precision barometric sensor
+#include "SPI.h"                    // Serial Peripheral Interface
+#include "Adafruit_GFX.h"           // Core graphics display library
+#include "Adafruit_ILI9341.h"       // TFT color display library
+#include "Adafruit_GPS.h"           // Ultimate GPS library
+#include "TouchScreen.h"            // Touchscreen built in to 3.2" Adafruit TFT display
+#include "Adafruit_BMP3XX.h"        // Precision barometric and temperature sensor
 
-// ------- Identity for console
-#define PROGRAM_TITLE   "Griduino Altimeter Demo"
-#define PROGRAM_VERSION "v0.9"
+// ------- Identity for splash screen and console --------
+#define PROGRAM_TITLE   "Griduino Altimeter"
+#define PROGRAM_VERSION "v0.10"
 #define PROGRAM_LINE1   "Barry K7BWH"
 #define PROGRAM_LINE2   "John KM7O"
+#define PROGRAM_COMPILED __DATE__ " " __TIME__
+
+#define SCREEN_ROTATION 1   // 1=landscape, 3=landscape 180-degrees
 
 // ---------- Hardware Wiring ----------
 /*                                Arduino       Adafruit
@@ -87,17 +91,20 @@ GPS:
    <TX  - data out of GPS         - RX1 pin 19  - RX  (J2 Pin 3)  - uses hardware UART
 */
 
-// TFT display and SD card share the hardware SPI interface, and have
-// separate 'select' pins to identify the active device on the bus.
 #if defined(SAMD_SERIES)
   // Adafruit Feather M4 Express pin definitions
   // To compile for Feather M0/M4, install "additional boards manager"
   // https://learn.adafruit.com/adafruit-feather-m4-express-atsamd51/setup
   
   #define TFT_BL   4    // TFT backlight
-  #define TFT_CS   5    // TFT select pin
+  #define TFT_CS   5    // TFT chip select pin
   #define TFT_DC  12    // TFT display/command pin
+  #define BMP_CS  13    // BMP388 sensor, chip select
 
+#elif defined(ARDUINO_AVR_MEGA2560)
+  #define TFT_BL   6    // TFT backlight
+  #define TFT_DC   9    // TFT display/command pin
+  #define TFT_CS  10    // TFT chip select pin
   #define BMP_CS  13    // BMP388 sensor, chip select
 
 #else
@@ -113,7 +120,7 @@ Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 // For touch point precision, we need to know the resistance
 // between X+ and X- Use any multimeter to read it
 // This sketch has only two touch areas to make it easy for operator to select
-// "top half" and "bottom half" without looking. Exact precision is not essential.
+// "top half" and "bottom half" without looking. Touch target precision is not essential.
 // "up" on the left, and "down" on the right. Touch target precision is not essential.
 #if defined(SAMD_SERIES)
   // Adafruit Feather M4 Express pin definitions
@@ -121,6 +128,12 @@ Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
   #define PIN_XM  A4    // Touchscreen X- must be an analog pin, use "An" notation
   #define PIN_YP  A5    // Touchscreen Y+ must be an analog pin, use "An" notation
   #define PIN_YM   9    // Touchscreen Y- can be a digital pin
+#elif defined(ARDUINO_AVR_MEGA2560)
+  // Arduino Mega 2560 and others
+  #define PIN_XP   4    // Touchscreen X+ can be a digital pin
+  #define PIN_XM  A3    // Touchscreen X- must be an analog pin, use "An" notation
+  #define PIN_YP  A2    // Touchscreen Y+ must be an analog pin, use "An" notation
+  #define PIN_YM   5    // Touchscreen Y- can be a digital pin
 #else
   // todo: Unknown platform
   #warning You need to define pins for your hardware
@@ -128,13 +141,12 @@ Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 #endif
 TouchScreen ts = TouchScreen(PIN_XP, PIN_YP, PIN_XM, PIN_YM, 295);
 
-// ---------- Barometric Sensor
+// ---------- Barometric and Temperature Sensor
 Adafruit_BMP3XX baro(BMP_CS); // hardware SPI
 
-// ---------- Onboard LED
-#define RED_LED 13    // diagnostics RED LED
-
-//const int ledPin = 14;     // for blinking
+// ---------- Feather's onboard lights
+#define RED_LED 13          // diagnostics RED LED
+//efine PIN_LED 13          // already defined in Feather's board variant.h
 
 // ---------- GPS ----------
 /* "Ultimate GPS" pin wiring is connected to a dedicated hardware serial port
@@ -149,56 +161,54 @@ Adafruit_BMP3XX baro(BMP_CS); // hardware SPI
 Adafruit_GPS GPS(&Serial1);
 
 // ------------ typedef's
-typedef struct {
-  int x;
-  int y;
-} Point;
+struct Point {
+  int x, y;
+};
 
 typedef struct {
   char text[26];
-  int x;
-  int y;
+  int x, y;
   uint16_t color;
 } Label;
 
 typedef struct {
   char text[26];
-  int x;
-  int y;
-  int w;
-  int h;
+  int x, y;
+  int w, h;
   int radius;
   uint16_t color;
 } Button;
 
 // ------------ definitions
+const int howLongToWait = 6;  // max number of seconds at startup waiting for Serial port to console
 #define gScreenWidth 320      // pixels wide, landscape orientation
 #define gScreenHeight 240     // pixels high
+#define SCREEN_ROTATION  1    // 1=landscape, 3=landscape 180 degrees
 #define FEET_PER_METER 3.28084
 
-const int howLongToWait = 8;  // max number of seconds at startup waiting for Serial port to console
-
 // ----- screen layout
-// screen pixel coordinates for top left of character cell
-#define yRow1   0            // title: "Griduino Altimeter Demo"
-#define yRow2   yRow1 + 40   // barometer reading
-#define yRow3   yRow2 + 24   // GPS altitude
-#define yRow4   138          // label: "Your current local"
-#define yRow5   yRow4 + 20   // label: "pressure at sea level:"
-#define yRow6   yRow5 + 42   // value: "1016.2 hPa"
-const int xLabel = 8;        // indent labels, slight margin to left edge of screen
+// When using default system fonts, screen pixel coordinates will identify top left of character cell
+const int xLabel = 8;             // indent labels, slight margin on left edge of screen
+#define yRow1   0                 // title: "Griduino Altimeter"
+#define yRow2   yRow1 + 40        // more text
+#define yRow3   yRow2 + 24        // GPS altitude
+#define yRow4   138               // label: "Your current local"
+#define yRow5   yRow4 + 20        // label: "pressure at sea level:"
+#define yRow6   yRow5 + 42        // value: "1016.2 hPa"
 
 // ----- color scheme
-#define cBACKGROUND   0x00A   // a little darker than ILI9341_NAVY, but not black
-#define cSCALECOLOR   0xF844  // color picker: http://www.barth-dev.de/online/rgb565-color-picker/
-#define cTEXTCOLOR    ILI9341_CYAN
-#define cLABEL        ILI9341_GREEN
-#define cVALUE        ILI9341_YELLOW
-#define cINPUT        ILI9341_WHITE
-#define cBUTTONFILL    ILI9341_NAVY
-#define cBUTTONOUTLINE ILI9341_CYAN
-#define cBUTTONLABEL   ILI9341_YELLOW
-#define cWARN         0xF844        // a little brighter than ILI9341_RED
+// RGB 565 color code: http://www.barth-dev.de/online/rgb565-color-picker/
+#define cBACKGROUND      0x00A             // 0,   0,  10 = darker than ILI9341_NAVY, but not black
+#define cSCALECOLOR      0xF844            // color picker: http://www.barth-dev.de/online/rgb565-color-picker/
+#define cTEXTCOLOR       ILI9341_CYAN      // 0, 255, 255
+#define cLABEL           ILI9341_GREEN
+#define cVALUE           ILI9341_YELLOW
+#define cINPUT           ILI9341_WHITE
+//#define cHIGHLIGHT     ILI9341_WHITE
+#define cBUTTONFILL      ILI9341_NAVY
+#define cBUTTONOUTLINE   ILI9341_CYAN
+#define cBUTTONLABEL     ILI9341_YELLOW
+#define cWARN            0xF844            // brighter than ILI9341_RED but not pink
 
 // ------------ global GPS data
 double gLatitude = 0;               // GPS position, floating point, decimal degrees
@@ -262,6 +272,52 @@ bool newScreenTap(Point* pPoint) {
   return result;
 }
 
+// 2020-05-12 barry@k7bwh.com
+// We need to replace TouchScreen::pressure() and implement TouchScreen::isTouching()
+
+// 2020-05-03 CraigV and barry@k7bwh.com
+uint16_t myPressure(void) {
+  pinMode(PIN_XP, OUTPUT);   digitalWrite(PIN_XP, LOW);   // Set X+ to ground
+  pinMode(PIN_YM, OUTPUT);   digitalWrite(PIN_YM, HIGH);  // Set Y- to VCC
+
+  digitalWrite(PIN_XM, LOW); pinMode(PIN_XM, INPUT);      // Hi-Z X-
+  digitalWrite(PIN_YP, LOW); pinMode(PIN_YP, INPUT);      // Hi-Z Y+
+
+  int z1 = analogRead(PIN_XM);
+  int z2 = 1023-analogRead(PIN_YP);
+
+  return (uint16_t) ((z1+z2)/2);
+}
+
+// "isTouching()" is defined in touch.h but is not implemented Adafruit's TouchScreen library
+// Note - For Griduino, if this function takes longer than 8 msec it can cause erratic GPS readings
+// so we recommend against using https://forum.arduino.cc/index.php?topic=449719.0
+bool TouchScreen::isTouching(void) {
+  #define TOUCHPRESSURE 200       // Minimum pressure we consider true pressing
+  static bool button_state = false;
+  uint16_t pres_val = ::myPressure();
+
+  if ((button_state == false) && (pres_val > TOUCHPRESSURE)) {
+    Serial.print(". pressed, pressure = "); Serial.println(pres_val);     // debug
+    button_state = true;
+  }
+
+  if ((button_state == true) && (pres_val < TOUCHPRESSURE)) {
+    Serial.print(". released, pressure = "); Serial.println(pres_val);       // debug
+    button_state = false;
+  }
+
+  // Clean the touchScreen settings after function is used
+  // Because LCD may use the same pins
+  // todo - is this actually necessary?
+  //pinMode(_xm, OUTPUT);     digitalWrite(_xm, LOW);
+  //pinMode(_yp, OUTPUT);     digitalWrite(_yp, HIGH);
+  //pinMode(_ym, OUTPUT);     digitalWrite(_ym, LOW);
+  //pinMode(_xp, OUTPUT);     digitalWrite(_xp, HIGH);
+
+  return button_state;
+}
+
 void mapTouchToScreen(TSPoint touch, Point* screen) {
   // convert from X+,Y+ resistance measurements to screen coordinates
   // param touch = resistance readings from touchscreen
@@ -277,12 +333,15 @@ void mapTouchToScreen(TSPoint touch, Point* screen) {
   //
   // Typical measured pressures=200..549
 
-  screen->x = 0;
-  screen->y = 0;
-
   // setRotation(1) = landscape orientation = x-,y-axis exchanged
-  screen->x = map(touch.y, 100, 900,  0, tft.width());
-  screen->y = map(touch.x, 900, 100,  0, tft.height());
+  //          map(value    in_min,in_max, out_min,out_max)
+  screen->x = map(touch.y,  225,825,      0, tft.width());
+  screen->y = map(touch.x,  800,300,      0, tft.height());
+  if (SCREEN_ROTATION == 3) {
+    // if display is flipped, then also flip both x,y touchscreen coords
+    screen->x = tft.width() - screen->x;
+    screen->y = tft.height() - screen->y;
+  }
   return;
 }
 
@@ -332,7 +391,7 @@ void echoGPSinfo() {
 
   if (GPS.fix) {
     //Serial.print("   Loc("); Serial.print(gsLatitude); Serial.print(","); Serial.print(gsLongitude);
-    Serial.print("   Quality("); Serial.print((int)GPS.fixquality);
+    Serial.print("     Quality("); Serial.print((int)GPS.fixquality);
     Serial.print(") Sats("); Serial.print((int)GPS.satellites);
     Serial.print(") Speed("); Serial.print(GPS.speed); Serial.print(" knots");
     Serial.print(") Angle("); Serial.print(GPS.angle);
@@ -341,7 +400,7 @@ void echoGPSinfo() {
   }
 }
 
-// ============== barometer helpers ============================
+// ======== barometer and temperature helpers ==================
 void getBaroData() {
   if (!baro.performReading()) {
     Serial.println("Error, failed to read barometer");
@@ -364,15 +423,46 @@ void decreaseSeaLevelPressure() {
   gSeaLevelPressure -= 0.1;
 }
 
-// ============== Screen Helpers ===============================
+// ========== screen helpers ===================================
+void startSplashScreen() {
+  tft.setTextSize(2);
+
+  tft.setCursor(xLabel, yRow1);
+  tft.setTextColor(cTEXTCOLOR);
+  tft.print(PROGRAM_TITLE);
+
+  tft.setCursor(xLabel, yRow2);
+  tft.setTextColor(cLABEL);
+  tft.print(PROGRAM_VERSION);
+  
+  tft.setCursor(xLabel, yRow2 + 20);
+  tft.println(PROGRAM_LINE1);
+
+  tft.setCursor(xLabel, yRow2 + 40);
+  tft.println(PROGRAM_LINE2);
+
+  tft.setCursor(xLabel, yRow2 + 140);
+  tft.println("Compiled");
+
+  tft.setCursor(xLabel, yRow2 + 160);
+  tft.println(PROGRAM_COMPILED);
+
+  delay(2000);
+  clearScreen();
+  
+  tft.setCursor(xLabel, yRow1);
+  tft.setTextColor(cTEXTCOLOR);
+  tft.print(PROGRAM_TITLE);
+}
 void clearScreen() {
   tft.fillScreen(cBACKGROUND);
 }
+
 void showReadings() {
   tft.setCursor(xLabel, yRow1);
   tft.setTextColor(cTEXTCOLOR);
   tft.setTextSize(2);
-  tft.print("Griduino Altimeter Demo");
+  tft.print(PROGRAM_TITLE);
 
   tft.setCursor(xLabel, yRow2);
   tft.setTextColor(cLABEL);
@@ -382,8 +472,15 @@ void showReadings() {
   tft.println(" feet  ");
 
   tft.setCursor(xLabel, yRow3);
-  tft.setTextColor(cLABEL);
-  tft.print("GPS:       ");
+  tft.setTextColor(cLABEL, cBACKGROUND);
+  tft.print("GPS ");
+  char sSats[10];
+  if (GPS.satellites < 10) {
+    snprintf(sSats, sizeof(sSats), "(%d#):  ", GPS.satellites);
+  } else {
+    snprintf(sSats, sizeof(sSats), "(%d#): ", GPS.satellites);
+  }
+  tft.print(sSats);
   if (GPS.fix) {
     tft.setTextColor(cVALUE, cBACKGROUND);
     tft.print(GPS.altitude * FEET_PER_METER, 1);
@@ -450,12 +547,12 @@ void waitForSerial(int howLong) {
 void setup() {
 
   // ----- init serial monitor
-  Serial.begin(115200);           // init for debuggging in the Arduino IDE
-  waitForSerial(howLongToWait);   // wait for developer to connect debugging console
+  Serial.begin(115200);                               // init for debuggging in the Arduino IDE
+  waitForSerial(howLongToWait);                       // wait for developer to connect debugging console
 
   // now that Serial is ready and connected (or we gave up)...
   Serial.println(PROGRAM_TITLE " " PROGRAM_VERSION);  // Report our program name to console
-  Serial.println("Compiled " __DATE__ " " __TIME__);  // Report our compiled date
+  Serial.println("Compiled " PROGRAM_COMPILED);       // Report our compiled date
   Serial.println(__FILE__);                           // Report our source code file name
 
   // ----- init GPS
@@ -476,7 +573,7 @@ void setup() {
 
   // ----- init TFT display
   tft.begin();                        // initialize TFT display
-  tft.setRotation(1);                 // landscape (default is portrait)
+  tft.setRotation(SCREEN_ROTATION);   // landscape (default is portrait)
   clearScreen();
 
   // ----- announce ourselves
@@ -496,7 +593,7 @@ void setup() {
   tft.setCursor(xLabel, yRow2 + 40);
   tft.println(PROGRAM_LINE2);
 
-  delay(3000);
+  delay(2000);
   clearScreen();
 /*
 // --> bmp3_defs.h
@@ -590,6 +687,11 @@ void loop() {
   // if there's touchscreen input, handle it
   Point touch;
   if (newScreenTap(&touch)) {
+
+    //const int radius = 3;     // debug
+    //tft.fillCircle(touch.x, touch.y, radius, cWARN);  // debug - show dot
+    //touchHandled = true;      // debug - true=stay on same screen
+
     if (touch.x < gScreenWidth / 2) {
       increaseSeaLevelPressure();
     } else {

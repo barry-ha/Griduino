@@ -157,7 +157,7 @@ int SaveRestore::writeConfig() {
   return result;
 }
 
-// ----- private helper -----
+// ----- private helpers -----
 int SaveRestore::openFlash() {
   // returns 1=success, 0=failure
   
