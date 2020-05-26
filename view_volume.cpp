@@ -128,18 +128,19 @@ void volMute() {
 // ----- load from SDRAM -----
 int loadConfigVolume() {
   SaveRestore config(VOLUME_CONFIG_FILE, CONFIG_VOLUME_VERSION);
-  int result = config.readConfig();
+  int tempVolIndex;
+  int result = config.readConfig( (byte*) &tempVolIndex, sizeof(tempVolIndex) );
   if (result) {
-    gVolIndex = constrain( config.intSetting, 0, 10);
-    setVolume( gVolIndex );
+    gVolIndex = constrain( tempVolIndex, 0, 10);  // global volume index
+    setVolume( gVolIndex );                       // set the hardware to this volume index
     Serial.print(". Loaded volume setting: "); Serial.println(gVolIndex);
   }
   return result;
 }
 // ----- save to SDRAM -----
 void saveConfigVolume() {
-  SaveRestore config(VOLUME_CONFIG_FILE, CONFIG_VOLUME_VERSION, gVolIndex);
-  config.writeConfig();
+  SaveRestore config(VOLUME_CONFIG_FILE, CONFIG_VOLUME_VERSION);
+  config.writeConfig( (byte*) &gVolIndex, sizeof(gVolIndex) );
 }
 
 // ========== volume screen view ===============================
