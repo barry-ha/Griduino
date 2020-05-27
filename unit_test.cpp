@@ -13,7 +13,7 @@
 #include "model.cpp"                // Class Model (for model-view-controller)
 #include "TextField.h"              // Optimize TFT display text for proportional fonts
 
-// ----- extern
+// ========== extern ==================================
 float nextGridLineEast(float longitudeDegrees);       // Griduino.ino
 float nextGridLineWest(float longitudeDegrees);       // Griduino.ino
 String calcLocator(double lat, double lon);           // Griduino.ino
