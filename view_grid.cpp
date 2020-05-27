@@ -354,7 +354,7 @@ void updateGridScreen() {
 }
 void startGridScreen() {
   // called once each time this view becomes active
-  tft.fillScreen(ILI9341_BLACK);    // clear screen
+  tft.fillScreen(ILI9341_BLACK);      // clear screen
   txtGrid[0].setBackground(ILI9341_BLACK);          // set background for all TextFields in this view
   TextField::setTextDirty( txtGrid, numTextGrid );
 
