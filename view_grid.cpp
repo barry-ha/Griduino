@@ -38,7 +38,8 @@ extern Model model;                 // "model" portion of model-view-controller
 void initFontSizeBig();             // Griduino.ino
 void initFontSizeSmall();           // Griduino.ino
 void initFontSizeSystemSmall();     // Griduino.ino
-//void drawProportionalText(int ulX, int ulY, String prevText, String newText, bool dirty);
+float nextGridLineEast(float longitudeDegrees);       // Griduino.ino
+float nextGridLineWest(float longitudeDegrees);       // Griduino.ino
 
 // ============== constants ====================================
 const int gMarginX = 70;            // define space for grid outline on screen
@@ -82,14 +83,14 @@ enum txtIndex {
   N_COMPASS,   S_COMPASS,   E_COMPASS,   W_COMPASS,
   N_DISTANCE,  S_DISTANCE,  E_DISTANCE,  W_DISTANCE,
   N_GRIDNAME,  S_GRIDNAME,  E_GRIDNAME,  W_GRIDNAME,
-  N_BOXDEGREES,S_BOXDEGREES,E_BOXDEGREES,W_BOXDEGREES,
+  N_BOX_LAT,S_BOX_LAT,E_BOX_LONG,W_BOX_LONG,
 };
                                             
 TextField txtGrid[] = {
   //         text      x,y     color
   TextField("CN77",  101,101,  cGRIDNAME),      // GRID4: center of screen
   TextField("tt",    138,139,  cGRIDNAME),      // GRID6: center of screen
-  TextField("47.1234,-123.5678", 4,223, cWARN), // LATLONG: left-adj on bottom row
+  TextField("47.1234,-123.4567", 4,223, cWARN), // LATLONG: left-adj on bottom row
   TextField("123'",  315,196,  cWARN, FLUSHRIGHT),  // ALTITUDE: just above bottom row
   TextField("99#",   311,221,  cWARN, FLUSHRIGHT),  // NUMSAT: lower right corner
   TextField( "N",    156, 47,  cCOMPASS ),      // N_COMPASS: centered left-right
@@ -104,10 +105,10 @@ TextField txtGrid[] = {
   TextField("CN86",  102,207,  cGRIDNAME),      // S_GRIDNAME
   TextField("CN97",  256,102,  cGRIDNAME),      // E_GRIDNAME
   TextField("CN77",    0,102,  cGRIDNAME),      // W_GRIDNAME
-  TextField("48",     56, 44,  cBOXDEGREES, FLUSHRIGHT),  // N_BOXDEGREES
-  TextField("47",     56,188,  cBOXDEGREES, FLUSHRIGHT),  // S_BOXDEGREES
-  TextField("122",   243, 20,  cBOXDEGREES),              // E_BOXDEGREES
-  TextField("124",    72, 20,  cBOXDEGREES, FLUSHRIGHT),  // W_BOXDEGREES
+  TextField("48",     56, 44,  cBOXDEGREES, FLUSHRIGHT),  // N_BOX_LAT
+  TextField("47",     56,190,  cBOXDEGREES, FLUSHRIGHT),  // S_BOX_LAT
+  TextField("122",   243, 20,  cBOXDEGREES),              // E_BOX_LONG
+  TextField("124",    72, 20,  cBOXDEGREES, FLUSHRIGHT),  // W_BOX_LONG
 };
 const int numTextGrid = sizeof(txtGrid)/sizeof(TextField);
 
@@ -169,41 +170,22 @@ void drawCompassPoints() {
     txtGrid[ii].print();
   }
 }
+
 void drawBoxLatLong() {
-  //return;   // disabled because it makes the screen too busy
-            // also disabled because it always shows 47-48 and 122-124 degrees
-
   initFontSizeSmall();
-  for (int ii=N_BOXDEGREES; ii<=W_BOXDEGREES; ii++) {
-    txtGrid[ii].print();
-  }
+  txtGrid[N_BOX_LAT].print( ceil(model.gLatitude) );    // latitude of N,S box edges
+  txtGrid[S_BOX_LAT].print( floor(model.gLatitude) );
+  txtGrid[E_BOX_LONG].print( nextGridLineEast(model.gLongitude) ); // longitude of E,W box edges
+  txtGrid[W_BOX_LONG].print( nextGridLineWest(model.gLongitude) );
+  
   int radius = 3;
-  //                          x                          y                r     color
-  tft.drawCircle(txtGrid[N_BOXDEGREES].x+7, txtGrid[N_BOXDEGREES].y-14, radius, cBOXDEGREES); // draw circle to represent "degrees"
-  tft.drawCircle(txtGrid[S_BOXDEGREES].x+7, txtGrid[S_BOXDEGREES].y-14, radius, cBOXDEGREES);
-  //t.drawCircle(txtGrid[E_BOXDEGREES].x+7, txtGrid[E_BOXDEGREES].y-14, radius, cBOXDEGREES);  // todo: where to put "degrees" on FLUSHLEFT number?
-  tft.drawCircle(txtGrid[W_BOXDEGREES].x+7, txtGrid[W_BOXDEGREES].y-14, radius, cBOXDEGREES);
-
-  /* *****
-  tft.setTextColor(cCOMPASS, ILI9341_BLACK);
-
-  tft.setCursor(gCharWidth * 1 / 2, gTopRowY);
-  Serial.print("West degrees x,y = "); Serial.print(gCharWidth * 1 / 2); Serial.print(","); Serial.println(gTopRowY);
-  tft.print("124");   // TODO: read this from the model
-
-  tft.setCursor(gScreenWidth - gMarginX + gCharWidth, gTopRowY);
-  Serial.print("East degrees x,y = "); Serial.print(gScreenWidth - gMarginX + gCharWidth); Serial.print(","); Serial.println(gTopRowY);
-  tft.print("122");
-
-  tft.setCursor(gCharWidth * 3 / 2, gMarginY + gCharHeight / 4);
-  Serial.print("North degrees x,y = "); Serial.print(gCharWidth * 3 / 2); Serial.print(","); Serial.println(gMarginY + gCharHeight / 4);
-  tft.print("48");
-
-  tft.setCursor(gCharWidth * 3 / 2, gScreenHeight - gMarginY - gCharHeight);
-  Serial.print("South degrees x,y = "); Serial.print(gCharWidth * 3 / 2); Serial.print(","); Serial.println(gScreenHeight - gMarginY - gCharHeight);
-  tft.print("47");
-  ***** */
+  // draw "degree" symbol at:       x                        y        r     color
+  tft.drawCircle(txtGrid[N_BOX_LAT].x+7,  txtGrid[N_BOX_LAT].y-14,  radius, cBOXDEGREES); // draw circle to represent "degrees"
+  tft.drawCircle(txtGrid[S_BOX_LAT].x+7,  txtGrid[S_BOX_LAT].y-14,  radius, cBOXDEGREES);
+  //t.drawCircle(txtGrid[E_BOX_LONG].x+7, txtGrid[E_BOX_LONG].y-14, radius, cBOXDEGREES); // no room for "degrees" on FLUSHLEFT number?
+  tft.drawCircle(txtGrid[W_BOX_LONG].x+7, txtGrid[W_BOX_LONG].y-14, radius, cBOXDEGREES);
 }
+
 void drawNeighborGridNames() {
   initFontSizeSmall();
   txtGrid[N_GRIDNAME].print(model.gsGridNorth);
@@ -211,6 +193,7 @@ void drawNeighborGridNames() {
   txtGrid[E_GRIDNAME].print(model.gsGridEast);
   txtGrid[W_GRIDNAME].print(model.gsGridWest);
 }
+
 void drawNeighborDistances() {
   initFontSizeSmall();
   txtGrid[N_DISTANCE].print(model.gsDistanceNorth);
@@ -345,9 +328,9 @@ void updateGridScreen() {
   drawAltitude();                   // height above sea level
   drawNumSatellites();
   drawPositionLL(model.gsLatitude, model.gsLongitude);  // lat-long of current position
-  //drawCompassPoints();              // sprinkle N-S-E-W around grid square
-  //drawBoxLatLong();                 // identify coordinates of grid square box
-  drawNeighborGridNames();            // sprinkle names around outside box
+  //drawCompassPoints();              // show N-S-E-W compass points (disabled, it makes the screen too busy)
+  //drawBoxLatLong();                 // show coordinates of box (disabled, it makes the screen too busy)
+  drawNeighborGridNames();            // show 4-digit names of nearby squares
   drawNeighborDistances();            // this is the main goal of the whole project
   plotRoute(model.history, model.numHistory, gridOrigin);   // show route track
   plotCurrentPosition(myLocation, gridOrigin);    // show current pushpin
