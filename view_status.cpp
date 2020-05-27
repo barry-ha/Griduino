@@ -63,12 +63,12 @@ TextField txtLabels[numLabels] = {
 // ----- dynamic screen text
 const int numText = 6;
 TextField txtValues[numText] = {
-  TextField(valueX, yRow1, cVALUE),     // 0. GMT time
-  TextField(valueX, yRow2, cVALUE),     // 1. GMT date
-  TextField(valueX, yRow3, cHIGHLIGHT), // 2. Grid6, brighter color because "grid" is important
-  TextField(valueX, yRow4, cVALUE),     // 3. Altitude
-  TextField(valueX, yRow5, cVALUE),     // 4. Satellites
-  TextField(  64,   yRow6, cVALUE),     // 5. lat/long
+  TextField(valueX, yRow1, cVALUE),     // [0] GMT time
+  TextField(valueX, yRow2, cVALUE),     // [1] GMT date
+  TextField(valueX, yRow3, cHIGHLIGHT), // [2] Grid6, brighter color because "grid" is important
+  TextField(valueX, yRow4, cVALUE),     // [3] Altitude
+  TextField(valueX, yRow5, cVALUE),     // [4] Satellites
+  TextField(  64,   yRow6, cVALUE),     // [5] lat/long
 };
 
 // ========== helpers ==========================================
@@ -189,6 +189,7 @@ void startStatScreen() {
   // called once each time this view becomes active
   tft.fillScreen(cBACKGROUND);      // clear screen
   txtValues[0].setBackground(cBACKGROUND);                   // set background for all TextFields in this view
+  TextField::setTextDirty( txtLabels, numLabels );
   TextField::setTextDirty( txtValues, numText );             // make sure all fields get re-printed on screen change
   initFontSizeSmall();
 
