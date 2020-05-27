@@ -7,21 +7,14 @@
 
 #include <Arduino.h>
 #include <Adafruit_GPS.h>         // Ultimate GPS library
-#include "constants.h"
-#include "save_restore.h"
-
-// ---------- global variables ----------
-// prefix 'g' for global, 'gs' for global string, 'ga' for global array
-
-// ------------ typedef's
-
-// ------------ definitions
+#include "constants.h"              // Griduino constants and colors
+#include "save_restore.h"           // Configuration data in nonvolatile RAM
 
 // ========== extern ==================================
 extern Adafruit_GPS GPS;
-String calcLocator(double lat, double lon);
-double calcDistanceLat(double fromLat, double toLat);
-double calcDistanceLong(double lat, double fromLong, double toLong);
+String calcLocator(double lat, double lon);           // Griduino.ino
+double calcDistanceLat(double fromLat, double toLat); // Griduino.ino
+double calcDistanceLong(double lat, double fromLong, double toLong);  // Griduino.ino
 float nextGridLineEast(float longitudeDegrees);
 float nextGridLineWest(float longitudeDegrees);
 float nextGridLineSouth(float latitudeDegrees);
