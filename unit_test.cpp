@@ -260,9 +260,6 @@ void verifyBreadCrumbs() {
 
   delay(3000);    // time for serial monitor to connect, and human to look at TFT display
 
-  const int gBoxWidth = 180;          // same as in view_grid.cpp
-  const int gBoxHeight = 160;         // same as in view_grid.cpp
-
   float xPixelsPerDegree = gBoxWidth / gridWidthDegrees;    // grid square = 2.0 degrees wide E-W
   float yPixelsPerDegree = gBoxHeight / gridHeightDegrees;  // grid square = 1.0 degrees high N-S
 

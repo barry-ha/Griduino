@@ -618,7 +618,11 @@ double calcDistanceLong(double lat, double fromLong, double toLong) {
 #include "model.cpp"
 
 // create an instance of the model
-Model model;
+#ifdef USE_SIMULATED_GPS
+  MockModel model;  // debug: simulated travel (see model.cpp)
+#else
+  Model model;      // normal: use real GPS hardware
+#endif
 
 //==============================================================
 //

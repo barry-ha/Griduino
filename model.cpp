@@ -130,47 +130,56 @@ class Model {
       nextHistoryItem = from.nextHistoryItem;
     }
 
+    // read GPS hardware
+    virtual void getGPS() {
+      if (GPS.fix) {
+        gLatitude = GPS.latitudeDegrees;    // position as double-precision float
+        gLongitude = GPS.longitudeDegrees;
+        gAltitude = GPS.altitude;
+        gHaveGPSfix = true;
+      } else {
+        gHaveGPSfix = false;
+      }
+
+      // read hardware regardless of GPS signal acquisition
+      gSatellites = GPS.satellites;
+      gSpeed = GPS.speed * mphPerKnots;
+      gAngle = GPS.angle;
+    }
+
     // the Model will update its internal state on a schedule determined by the Controller
     void processGPS() {
+      getGPS();
       echoGPSinfo();    // send GPS statistics to serial console for debug
 
       if (GPS.fix) {
         // update model
-        gLatitude = GPS.latitudeDegrees;    // position as double-precision float
-        gLongitude = GPS.longitudeDegrees;
-        gAltitude = GPS.altitude;
-
-        gsLatitude = String(GPS.latitudeDegrees, 4);   // compatible with TFT display
-        gsLongitude = String(GPS.longitudeDegrees, 4);
-        gsGridName = ::calcLocator(GPS.latitudeDegrees, GPS.longitudeDegrees);
-        gsGridNorth = ::calcLocator(GPS.latitudeDegrees + 1.0, GPS.longitudeDegrees).substring(0, 4);
-        gsGridSouth = ::calcLocator(GPS.latitudeDegrees - 1.0, GPS.longitudeDegrees).substring(0, 4);
-        gsGridEast = ::calcLocator(GPS.latitudeDegrees, GPS.longitudeDegrees + 2.0).substring(0, 4);
-        gsGridWest = ::calcLocator(GPS.latitudeDegrees, GPS.longitudeDegrees - 2.0).substring(0, 4);
+        gsLatitude = String(gLatitude, 4);   // compatible with TFT display
+        gsLongitude = String(gLongitude, 4);
+        gsGridName = ::calcLocator(gLatitude, gLongitude);
+        gsGridNorth = ::calcLocator(gLatitude + 1.0, gLongitude).substring(0, 4);
+        gsGridSouth = ::calcLocator(gLatitude - 1.0, gLongitude).substring(0, 4);
+        gsGridEast = ::calcLocator(gLatitude, gLongitude + 2.0).substring(0, 4);
+        gsGridWest = ::calcLocator(gLatitude, gLongitude - 2.0).substring(0, 4);
 
         // N-S: find nearest integer grid lines
-        gsDistanceNorth = ::calcDistanceLat(GPS.latitudeDegrees, ceil(GPS.latitudeDegrees));
-        gsDistanceSouth = ::calcDistanceLat(GPS.latitudeDegrees, floor(GPS.latitudeDegrees));
+        gsDistanceNorth = ::calcDistanceLat(gLatitude, ceil(gLatitude));
+        gsDistanceSouth = ::calcDistanceLat(gLatitude, floor(gLatitude));
 
         // E-W: find nearest EVEN numbered grid lines
-        int eastLine = ::nextGridLineEast(GPS.longitudeDegrees);
-        int westLine = ::nextGridLineWest(GPS.longitudeDegrees);
+        int eastLine = ::nextGridLineEast(gLongitude);
+        int westLine = ::nextGridLineWest(gLongitude);
 
-        gsDistanceEast = ::calcDistanceLong(GPS.latitudeDegrees, GPS.longitudeDegrees, eastLine);
-        gsDistanceWest = ::calcDistanceLong(GPS.latitudeDegrees, GPS.longitudeDegrees, westLine);
+        gsDistanceEast = ::calcDistanceLong(gLatitude, gLongitude, eastLine);
+        gsDistanceWest = ::calcDistanceLong(gLatitude, gLongitude, westLine);
 
         String grid4 = gsGridName.substring(0, 4);
         String grid6 = gsGridName.substring(4, 6);
 
-        gHaveGPSfix = true;
       } else {
         // nothing - leave current info as-is and displayed on screen
         // it's not unusual to lose GPS lock so don't distract driver
-        gHaveGPSfix = false;
       }
-      gSatellites = GPS.satellites;
-      gSpeed = GPS.speed * mphPerKnots;
-      gAngle = GPS.angle;
     }
 
     void clearHistory() {
@@ -300,7 +309,7 @@ class Model {
     
     // Provide formatted GMT date/time "2019-12-31  10:11:12"
     void getDateTime(char* result) {
-      // result = char[25] = string buffer to modify
+      // input: result = char[25] = string buffer to modify
       //if (GPS.fix) {
         int yy = GPS.year;
         if (yy >= 19) {
@@ -341,6 +350,75 @@ class Model {
         }
       #endif
     }
+};
+// ========== class MockModel ======================
+// A derived class with a single replacement function to pretend
+// about the GPS location for the sake fo testing.
+
+class MockModel : public Model {
+  // Generate a simulated travel path for demonstrations and testing
+  // Note: GPS Position: Simulated
+  //       Realtime Clock: Actual time as given by hardware
+
+  protected:
+    const double lngDegreesPerPixel = gridWidthDegrees / gBoxWidth;    // grid square = 2.0 degrees wide E-W
+    const double latDegreesPerPixel = gridHeightDegrees / gBoxHeight;  // grid square = 1.0 degrees high N-S
+  
+    const PointGPS midCN87{47.50, -123.0};  // center of CN87
+    const PointGPS llCN87 {47.35, -123.8};  // lower left of CN87
+    unsigned long startTime = 0;
+  
+  public:
+    // read GPS hardware
+    void getGPS() {
+      if (GPS.fix) {
+        gLatitude = llCN87.lat;
+        gLongitude = llCN87.lng;
+        gAltitude = GPS.altitude;
+
+        if (startTime == 0) {
+          // one-time single initialization
+          startTime = millis();
+        }
+        
+        switch (1) {
+          // Simulated GPS readings
+          case 0: // ----- move slowly due north forever from starting position
+            gLatitude += (millis() - startTime) / 1000.0 / gBoxHeight;
+            break;
+
+          case 1: // ----- move slowly east forever from starting position
+            gLongitude += (millis() - startTime) / 1000.0 / gBoxWidth;
+            break;
+
+          case 2:
+            // --------------------
+            // move by 70% of a grid square north, over a span of one minute
+            gLatitude += GPS.seconds/60.0*0.70;
+
+            // sin wave, amplitude is 70% width of 2-degree grid, complete sine wave period in one minute
+            gLongitude += 0.7 * gridWidthDegrees * sin((GPS.minute*60.0 + GPS.seconds)/600.0 * 2.0 * PI);
+
+            // Simulated altitude (meters)
+            gAltitude += float(GPS.seconds)/60.0*100.0;
+            break;
+        }
+        // position as double-precision float
+        //gLatitude = GPS.latitudeDegrees + gridHeightDegrees;  // e.g. CN87 -> CN88
+        //gLongitude = GPS.longitudeDegrees + gridWidthDegrees; // e.g. CN87 -> CN97
+        
+        gHaveGPSfix = true;
+      } else {
+        
+        gHaveGPSfix = false;
+      }
+
+      // read hardware regardless of GPS signal acquisition
+      gSatellites = GPS.satellites;
+      gSpeed = GPS.speed * mphPerKnots;
+      gAngle = GPS.angle;
+    }
+
 };
 
 #endif // _GRIDUINO_MODEL_CPP

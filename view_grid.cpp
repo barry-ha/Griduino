@@ -44,8 +44,8 @@ float nextGridLineWest(float longitudeDegrees);       // Griduino.ino
 // ============== constants ====================================
 const int gMarginX = 70;            // define space for grid outline on screen
 const int gMarginY = 26;            // and position text relative to this outline
-const int gBoxWidth = 180;          // ~= (gScreenWidth - 2*gMarginX);
-const int gBoxHeight = 160;         // ~= (gScreenHeight - 3*gMarginY);
+//nst int gBoxWidth = 180;          // grid square width as shown on display, pixels (see constants.h)
+//nst int gBoxHeight = 160;         // grid square height as shown on display, pixels (see constants.h)
 
 // vertical placement of text rows
 /* currently unused (mostly replaced by txtGrid[])
