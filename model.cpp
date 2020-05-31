@@ -373,6 +373,10 @@ class MockModel : public Model {
   
   public:
     // SIMULATED read GPS hardware
+    // Funny note!
+    //    The simulated ground speeds are:
+    //    1-degree north-south in one minute is about (70 miles / minute) = 4,200 mph
+    //    2-degrees east-west in one minute is about (100 miles / minute) = 7,000 mph
     void getGPS() {
       if (GPS.fix) {
         gLatitude = llCN87.lat;
@@ -383,39 +387,36 @@ class MockModel : public Model {
           // one-time single initialization
           startTime = millis();
         }
+        float secondHand = (millis() - startTime) / 1000.0;  // count seconds since bootup
         
-        switch (2) {
+        switch (4) {
           // Simulated GPS readings
           case 0: // ----- move slowly NORTH forever from starting position
-            gLatitude = midCN87.lat + (millis() - startTime) / 1000.0 / gBoxHeight;
+            gLatitude = midCN87.lat + secondHand / gBoxHeight;
             gLongitude = midCN87.lng;
             break;
 
           case 1: // ----- move slowly EAST forever from starting position
             gLatitude = llCN87.lat;
-            gLongitude = llCN87.lng + (millis() - startTime) / 1000.0 / gBoxWidth;
+            gLongitude = llCN87.lng + secondHand / gBoxWidth;
             break;
 
           case 2: // ----- move slowly NE forever from starting position
-            gLatitude = midCN87.lat + (millis() - startTime) / 1000.0 / gBoxHeight;
-            gLongitude = llCN87.lng + (millis() - startTime) / 1000.0 / gBoxWidth;
+            gLatitude = midCN87.lat + secondHand / gBoxHeight;
+            gLongitude = llCN87.lng + secondHand / gBoxWidth;
             break;
 
-          case 3:
-            // --------------------
-            // move by 70% of a grid square north, over a span of one minute
-            gLatitude += GPS.seconds/60.0*0.70;
+          case 3: // ----- move slowly NORTH forever, with sine wave left-right
+            gLatitude = midCN87.lat + secondHand / gBoxHeight;
+            gLongitude = midCN87.lng + 0.7 * gridWidthDegrees * sin(secondHand/800.0 * 2.0 * PI);
+            gAltitude += float(GPS.seconds)/60.0*100.0;   // Simulated altitude (meters)
+            break;
 
-            // sin wave, amplitude is 70% width of 2-degree grid, complete sine wave period in one minute
-            gLongitude += 0.7 * gridWidthDegrees * sin((GPS.minute*60.0 + GPS.seconds)/600.0 * 2.0 * PI);
-
-            // Simulated altitude (meters)
-            gAltitude += float(GPS.seconds)/60.0*100.0;
+          case 4: // ----- move in oval around a single grid
+            gLatitude = midCN87.lat + 0.6 * gridHeightDegrees * cos(secondHand/800.0 * 2.0 * PI);
+            gLongitude = midCN87.lng + 0.6 * gridWidthDegrees * sin(secondHand/800.0 * 2.0 * PI);
             break;
         }
-        // position as double-precision float
-        //gLatitude = GPS.latitudeDegrees + gridHeightDegrees;  // e.g. CN87 -> CN88
-        //gLongitude = GPS.longitudeDegrees + gridWidthDegrees; // e.g. CN87 -> CN97
         
         gHaveGPSfix = true;
       } else {
