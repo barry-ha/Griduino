@@ -55,9 +55,12 @@ class Model {
     String gsDistanceSouth = "63.4";
     String gsDistanceWest = "81.4";   // Strings: https://www.arduino.cc/en/Reference/StringLibrary
 
-    Location history[200];            // remember a list of GPS coordinates
+    Location history[400];            // remember a list of GPS coordinates
     int nextHistoryItem = 0;          // index of next item to write
     const int numHistory = sizeof(history)/sizeof(Location);
+    // Size of array history: Our goal is to keep track of a good day's travel, at least 250 miles.
+    // If 180 pixels horiz = 100 miles, then we need (250*180/100) = 450 entries.
+    // If 160 pixels vert = 70 miles, then we need (250*160/70) = 570 entries.
 
   protected:
     int    gPrevFix = false;          // previous value of gHaveGPSfix, to help detect "signal lost"

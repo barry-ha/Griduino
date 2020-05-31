@@ -798,6 +798,14 @@ void setup() {
   // ----- init touch screen
   ts.pressureThreshhold = 200;
 
+  // ----- report on our memory hog
+  char temp[200];
+  Serial.println("Large resources:");
+  snprintf(temp, sizeof(temp), 
+          "  Model.history[%d] uses %d bytes/entry = %d bytes total size",
+             model.numHistory, sizeof(Location), sizeof(model.history));
+  Serial.println(temp);
+
   // ----- run unit tests, if allowed by "#define RUN_UNIT_TESTS"
   #ifdef RUN_UNIT_TESTS
   void runUnitTest();                 // extern declaration
@@ -808,16 +816,6 @@ void setup() {
   model.restore();
   model.gHaveGPSfix = false;          // assume no satellite signal yet
   model.gSatellites = 0;
-
-  // ----- announce ourselves
-  startSplashScreen();
-
-  /* debug: removed to speed up testing.....
-  // at 18 wpm, it takes 12 seconds to send "de k7bwh es km7o" 
-  dacMorse.setMessage("de k7bwh es km7o");
-  dacMorse.sendBlocking();            // TODO - send non-blocking
-  ..... */
-  delay(1000);
 
   startHelpScreen();
   delay(2000);
