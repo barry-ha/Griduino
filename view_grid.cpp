@@ -314,22 +314,30 @@ void plotRoute(Location* marker, const int numMarkers, const PointGPS origin) {
   }
 }
 // =============================================================
-void plotVehicle(const Point screen, uint16_t carColor) {
-  int plotX = screen.x;
-  int plotY = screen.y;
-  
-  if (0 < plotX && plotX < gScreenWidth
-   && 0 < plotY && plotY < gScreenHeight) {
-    // ----- circle
-    //const int radius = 3;   // size of pushpin
-    //tft.fillCircle(plotX, plotY, radius-1, ILI9341_BLACK);  // erase the circle's background
-    //tft.drawCircle(plotX, plotY, radius, carColor);         // draw new circle
-    // ----- triangle
-    const int size = 4;
-    tft.drawTriangle(screen.x-size, screen.y+size,
-                     screen.x+size, screen.y+size,
-                     screen.x,      screen.y-size,
-                     carColor);
+void plotVehicle(const Point car, uint16_t carColor) {
+  // put a symbol on the screen to represent the vechicle
+  // choose what shape you like at compile-time
+  // if you're an over-achiever, write new code so a triangle indicates direction of travel
+  int radius, size, w, h;
+  switch (3) {
+    case 1:   // ----- circle
+      radius = 3;
+      tft.fillCircle(car.x, car.y, radius-1, ILI9341_BLACK);  // erase the circle's background
+      tft.drawCircle(car.x, car.y, radius, carColor);         // draw new circle
+      break;
+
+    case 2:   // ----- triangle
+      size = 4;
+      tft.drawTriangle(car.x-size, car.y+size,
+                       car.x+size, car.y+size,
+                       car.x,      car.y-size,
+                       carColor);
+      break;
+
+    case 3:   // ----- square
+      w = h = 8;
+      tft.drawRect(car.x-w/2, car.y-h/2, w, h, carColor);
+      break;
   }
 }
 // =============================================================
