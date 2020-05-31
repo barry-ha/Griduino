@@ -80,10 +80,10 @@ void drawGridOutline() {
 // these are names for the array indexes for readability, must be named in same order as below
 enum txtIndex {
   GRID4=0, GRID6, LATLONG, ALTITUDE, NUMSAT,
-  N_COMPASS,   S_COMPASS,   E_COMPASS,   W_COMPASS,
-  N_DISTANCE,  S_DISTANCE,  E_DISTANCE,  W_DISTANCE,
-  N_GRIDNAME,  S_GRIDNAME,  E_GRIDNAME,  W_GRIDNAME,
-  N_BOX_LAT,S_BOX_LAT,E_BOX_LONG,W_BOX_LONG,
+  N_COMPASS,  S_COMPASS,  E_COMPASS,  W_COMPASS,
+  N_DISTANCE, S_DISTANCE, E_DISTANCE, W_DISTANCE,
+  N_GRIDNAME, S_GRIDNAME, E_GRIDNAME, W_GRIDNAME,
+  N_BOX_LAT,  S_BOX_LAT,  E_BOX_LONG, W_BOX_LONG,
 };
                                             
 TextField txtGrid[] = {
@@ -240,8 +240,11 @@ void translateGPStoScreen(Point* result, const PointGPS loc, const PointGPS orig
 // =============================================================
 void plotRoute(Location* marker, const int numMarkers, const PointGPS origin) {
   // show route track history bread crumb trail
-  //Serial.print("plotRoute() at line "); Serial.println(__LINE__);
+  //Serial.print("plotRoute() at line "); Serial.println(__LINE__);   // debug
   //Serial.print("~ Plot relative to origin("); Serial.print(origin.lat); Serial.print(","); Serial.print(origin.lng); Serial.println(")");
+  //model.dumpHistory();    // debug
+
+  Point prevPixel{0,0};     // keep track of previous dot plotted
 
   for (int ii=0; ii<numMarkers; ii++) {     // loop through Location[] array of history
     Location mark = marker[ii];
@@ -249,7 +252,64 @@ void plotRoute(Location* marker, const int numMarkers, const PointGPS origin) {
       Point screen;
       PointGPS spot{mark.loc.lat, mark.loc.lng};
       translateGPStoScreen(&screen, spot, origin);
-      tft.drawPixel(screen.x, screen.y, ILI9341_CYAN);
+      
+      // erase a few dots around this to make it more visible
+      // but! which dots to erase depend on what direction we're moving
+      // let's try detecting the giant green grid letters, and selectively erasing them
+      //       (fail - there is no API to read a pixel)
+      // let's try detecting the direction of travel
+      if (prevPixel.x == screen.x
+       && prevPixel.y == screen.y) {
+        // nothing changed, erase nothing
+      } else {
+        /*
+         * this works great for simple horiz/vert movement
+         * but not so much for diagonal lines
+         */
+        if (prevPixel.y == screen.y) {
+          // horizontal movement
+          tft.drawPixel(screen.x, screen.y-1, ILI9341_BLACK);
+          tft.drawPixel(screen.x, screen.y+1, ILI9341_BLACK);
+        } else if (prevPixel.x == screen.x) {
+          // vertical movement
+          tft.drawPixel(screen.x-1, screen.y, ILI9341_BLACK);
+          tft.drawPixel(screen.x+1, screen.y, ILI9341_BLACK);
+        } else {
+          // let's try constructing the perdendicular and drawing a 3-pixel long line
+          // y = mx+b, where m is the slope, b is the y-intercept
+          /* 
+           * Result: the below is fugly because it uses fine details that are not 
+           * smooth nor anti-aliased. It works but it's commented out.
+           */
+          /*
+          float slope = (screen.y - prevPixel.y)/(screen.x - prevPixel.x);
+          float m = -1.0 / slope;
+          float b = float(screen.y) - (m * screen.x);
+
+          if (abs(m) > 1.0) {
+            // the perpendicular line is closer to vertical
+            // so erase in x-direction a little left/right
+            int xLeft = screen.x-1;
+            int xRight = screen.x+1;
+            int yLeft = (int)m*xLeft + b; // y=mx+b
+            int yRight = (int)m*xRight + b;
+            tft.drawLine(xLeft,yLeft, xRight,yRight, ILI9341_BLACK);
+          } else {
+            // the perpendicular line is closer to horizontal
+            // so erase in y-direction a little above/below
+            int yTop = screen.y-1;
+            int yBot = screen.y+1;
+            int xTop = (int)(yTop-b)/m; // x=(y-b)/m
+            int xBot = (int)(yBot-b)/m;
+            tft.drawLine(xTop,yTop, xBot,yBot, ILI9341_BLACK);
+          }
+          */
+        }
+      }
+
+      // plot this location
+      tft.drawPixel(screen.x, screen.y, cBREADCRUMB);
+      prevPixel = screen;
     }
   }
 }
@@ -261,7 +321,7 @@ void plotCurrentPosition(const PointGPS loc /*double fLat, double fLong*/, const
 
   if (loc.lat == 0.0) return;
 
-  const int radius = 2;   // size of pushpin
+  const int radius = 3;   // size of pushpin
 
   float degreesX = loc.lng - origin.lng;            // longitude: distance from left edge of grid (degrees)
   float degreesY = loc.lat - origin.lat;            // latitude: distance from bottom edge of grid
@@ -333,7 +393,7 @@ void updateGridScreen() {
   drawNeighborGridNames();            // show 4-digit names of nearby squares
   drawNeighborDistances();            // this is the main goal of the whole project
   plotRoute(model.history, model.numHistory, gridOrigin);   // show route track
-  plotCurrentPosition(myLocation, gridOrigin);    // show current pushpin
+  //plotCurrentPosition(myLocation, gridOrigin);    // show current pushpin
 }
 void startGridScreen() {
   // called once each time this view becomes active

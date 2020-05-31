@@ -149,8 +149,11 @@ class Model {
 
     // the Model will update its internal state on a schedule determined by the Controller
     void processGPS() {
-      getGPS();
+      getGPS();         // read the hardware for location
       echoGPSinfo();    // send GPS statistics to serial console for debug
+
+      PointGPS whereAmI{gLatitude, gLongitude};
+      remember(whereAmI, GPS.hour, GPS.minute, GPS.seconds);
 
       if (GPS.fix) {
         // update model
@@ -364,12 +367,12 @@ class MockModel : public Model {
     const double lngDegreesPerPixel = gridWidthDegrees / gBoxWidth;    // grid square = 2.0 degrees wide E-W
     const double latDegreesPerPixel = gridHeightDegrees / gBoxHeight;  // grid square = 1.0 degrees high N-S
   
-    const PointGPS midCN87{47.50, -123.0};  // center of CN87
-    const PointGPS llCN87 {47.35, -123.8};  // lower left of CN87
+    const PointGPS midCN87{47.50, -123.00};  // center of CN87
+    const PointGPS llCN87 {47.40, -123.35};  // lower left of CN87
     unsigned long startTime = 0;
   
   public:
-    // read GPS hardware
+    // SIMULATED read GPS hardware
     void getGPS() {
       if (GPS.fix) {
         gLatitude = llCN87.lat;
@@ -381,17 +384,24 @@ class MockModel : public Model {
           startTime = millis();
         }
         
-        switch (1) {
+        switch (2) {
           // Simulated GPS readings
-          case 0: // ----- move slowly due north forever from starting position
-            gLatitude += (millis() - startTime) / 1000.0 / gBoxHeight;
+          case 0: // ----- move slowly NORTH forever from starting position
+            gLatitude = midCN87.lat + (millis() - startTime) / 1000.0 / gBoxHeight;
+            gLongitude = midCN87.lng;
             break;
 
-          case 1: // ----- move slowly east forever from starting position
-            gLongitude += (millis() - startTime) / 1000.0 / gBoxWidth;
+          case 1: // ----- move slowly EAST forever from starting position
+            gLatitude = llCN87.lat;
+            gLongitude = llCN87.lng + (millis() - startTime) / 1000.0 / gBoxWidth;
             break;
 
-          case 2:
+          case 2: // ----- move slowly NE forever from starting position
+            gLatitude = midCN87.lat + (millis() - startTime) / 1000.0 / gBoxHeight;
+            gLongitude = llCN87.lng + (millis() - startTime) / 1000.0 / gBoxWidth;
+            break;
+
+          case 3:
             // --------------------
             // move by 70% of a grid square north, over a span of one minute
             gLatitude += GPS.seconds/60.0*0.70;

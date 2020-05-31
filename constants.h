@@ -25,7 +25,7 @@ const double degreesPerRadian = 57.2957795;
 
 // ------- Select features ---------
 //#define RUN_UNIT_TESTS            // comment out to save boot-up time
-//#define USE_SIMULATED_GPS         // comment out to use real GPS, or else it simulates driving around (see model.cpp)
+#define USE_SIMULATED_GPS         // comment out to use real GPS, or else it simulates driving around (see model.cpp)
 //#define ECHO_GPS                  // use this to see GPS detailed info on IDE console for debug
 //#define ECHO_GPS_SENTENCE         // use this to see once-per-second GPS sentences
 
@@ -45,6 +45,7 @@ const double degreesPerRadian = 57.2957795;
 #define cHIGHLIGHT      ILI9341_WHITE
 #define cBUTTONFILL     ILI9341_NAVY
 #define cBUTTONOUTLINE  ILI9341_CYAN
+#define cBREADCRUMB     ILI9341_CYAN
 //efine cBOXDEGREES     0x0514            // 0, 160, 160 = blue, between CYAN and DARKCYAN
 #define cBOXDEGREES     0x0410            // 0, 128, 128 = blue, between CYAN and DARKCYAN
 #define cBUTTONLABEL    ILI9341_YELLOW

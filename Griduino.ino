@@ -887,8 +887,7 @@ void loop() {
   }
 
   if (model.enteredNewGrid()) {
-    gaUpdateView[gViewIndex]();       // update display first, and then...
-
+    gaStartView[gViewIndex]();        // update display, ensure any leftover breadcrumb trail is erased, and then...
     sendMorseGrid4(model.gsGridName); // announce new grid by Morse code
   }
 
