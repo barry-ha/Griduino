@@ -89,9 +89,9 @@ enum txtIndex {
 TextField txtGrid[] = {
   //         text      x,y     color
   TextField("CN77",  101,101,  cGRIDNAME),      // GRID4: center of screen
-  TextField("tt",    138,139,  cGRIDNAME),      // GRID6: center of screen
+  TextField("tt",    138,141,  cGRIDNAME),      // GRID6: center of screen
   TextField("47.1234,-123.4567", 4,223, cWARN), // LATLONG: left-adj on bottom row
-  TextField("123'",  315,196,  cWARN, FLUSHRIGHT),  // ALTITUDE: just above bottom row
+  TextField("123'",  313,196,  cWARN, FLUSHRIGHT),  // ALTITUDE: just above bottom row
   TextField("99#",   311,221,  cWARN, FLUSHRIGHT),  // NUMSAT: lower right corner
   TextField( "N",    156, 47,  cCOMPASS ),      // N_COMPASS: centered left-right
   TextField( "S",    156,181,  cCOMPASS ),      // S_COMPASS
@@ -314,14 +314,32 @@ void plotRoute(Location* marker, const int numMarkers, const PointGPS origin) {
   }
 }
 // =============================================================
-void plotCurrentPosition(const PointGPS loc /*double fLat, double fLong*/, const PointGPS origin) {
+void plotVehicle(const Point screen, uint16_t carColor) {
+  int plotX = screen.x;
+  int plotY = screen.y;
+  
+  if (0 < plotX && plotX < gScreenWidth
+   && 0 < plotY && plotY < gScreenHeight) {
+    // ----- circle
+    //const int radius = 3;   // size of pushpin
+    //tft.fillCircle(plotX, plotY, radius-1, ILI9341_BLACK);  // erase the circle's background
+    //tft.drawCircle(plotX, plotY, radius, carColor);         // draw new circle
+    // ----- triangle
+    const int size = 4;
+    tft.drawTriangle(screen.x-size, screen.y+size,
+                     screen.x+size, screen.y+size,
+                     screen.x,      screen.y-size,
+                     carColor);
+  }
+}
+// =============================================================
+Point prevVehicle;
+void plotCurrentPosition(const PointGPS loc, const PointGPS origin) {
   // drop a bread crumb inside the grid's box, proportional to your position within the grid
   // input:  loc    = double precision float, GPS coordinates of current position
   //         origin = GPS coordinates of currently displayed grid square, lower left corner
 
-  if (loc.lat == 0.0) return;
-
-  const int radius = 3;   // size of pushpin
+  if (loc.lat == 0.0) return;                       // ignore uninitialized lat/long
 
   float degreesX = loc.lng - origin.lng;            // longitude: distance from left edge of grid (degrees)
   float degreesY = loc.lat - origin.lat;            // latitude: distance from bottom edge of grid
@@ -329,51 +347,12 @@ void plotCurrentPosition(const PointGPS loc /*double fLat, double fLong*/, const
   float fracGridX = degreesX / gridWidthDegrees;    // E-W position as fraction of grid width, 0-1
   float fracGridY = degreesY / gridHeightDegrees;   // N-S position as fraction of grid height, 0-1
 
-  if (false) {
-    // previous OLD code
-  // our drawing canvas is a box the size of the screen, minus an outside margin on all sides reserved for text
-  // TFT screen coordinate system origin (0,0) in upper left corner, positive numbers go right/down
-  // and the real-world lat-long system origin (0,0) in lower left corner, positive numbers go right/up
-  // breadcrumb trail must fit the box drawn by drawGridOutline() e.g. (gMarginX, gMarginY, gBoxWidth, gBoxHeight)
-  int llCanvasX = gMarginX;                   // canvas lower left corner (pixels)
-  int llCanvasY = gMarginY + gBoxHeight;
-
-  int canvasWidth = gBoxWidth;                // canvas dimensions (pixels)
-  int canvasHeight = gBoxHeight;
-
-  int plotX = llCanvasX + canvasWidth * fracGridX; // pushpin location on canvas (pixels)
-  int plotY = llCanvasY - canvasHeight * fracGridY;
-
-  /*** 
-    Serial.print("   ");
-    Serial.print("Plot: lat-long("); Serial.print(loc.lng);     Serial.print(","); Serial.print(loc.lat);      Serial.print(")");
-    Serial.print(", degrees(");      Serial.print(degreesX);    Serial.print(","); Serial.print(degreesY);     Serial.print(")");
-    //rial.print(", canvas(");       Serial.print(canvasWidth); Serial.print(","); Serial.print(canvasHeight); Serial.print(")");
-    Serial.print(", fracGridXY(");   Serial.print(fracGridX);   Serial.print(","); Serial.print(fracGridY);    Serial.print(")");
-    Serial.print(", plotXY(");       Serial.print(plotX);       Serial.print(","); Serial.print(plotY);        Serial.print(")");
-    Serial.println(" ");
-  /* ***/
-
-  tft.fillCircle(plotX, plotY, radius, ILI9341_BLACK);  // erase the circle's background
-  tft.drawCircle(plotX, plotY, radius, ILI9341_ORANGE); // draw new circle
-  tft.drawPixel(plotX, plotY, ILI9341_WHITE);           // with a cherry in the middle
-    
-  } else {
-    // proposed NEW code
-    // our drawing canvas is the entire screen
-
-    Point result;
-    translateGPStoScreen(&result, loc, origin);
-    int plotX = result.x;
-    int plotY = result.y;
-    
-    if (plotX > 0 && plotX < gScreenWidth
-     && plotY > 0 && plotY < gScreenHeight) {
-      tft.fillCircle(plotX, plotY, radius, ILI9341_BLACK);  // erase the circle's background
-      tft.drawCircle(plotX, plotY, radius, ILI9341_ORANGE); // draw new circle
-      tft.drawPixel(plotX, plotY, ILI9341_WHITE);           // with a cherry in the middle
-    }
-  }
+  // our drawing canvas is the entire screen
+  Point result;
+  translateGPStoScreen(&result, loc, origin);
+  plotVehicle( prevVehicle, ILI9341_BLACK );        // erase old vehicle
+  plotVehicle( result, ILI9341_CYAN );              // plot new vehicle
+  prevVehicle = result;
 }
 // ========== grid screen view =================================
 void updateGridScreen() {
@@ -392,8 +371,8 @@ void updateGridScreen() {
   //drawBoxLatLong();                 // show coordinates of box (disabled, it makes the screen too busy)
   drawNeighborGridNames();            // show 4-digit names of nearby squares
   drawNeighborDistances();            // this is the main goal of the whole project
+  plotCurrentPosition(myLocation, gridOrigin);    // show current pushpin
   plotRoute(model.history, model.numHistory, gridOrigin);   // show route track
-  //plotCurrentPosition(myLocation, gridOrigin);    // show current pushpin
 }
 void startGridScreen() {
   // called once each time this view becomes active
