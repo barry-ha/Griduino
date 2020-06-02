@@ -125,9 +125,8 @@ void updateStatusScreen() {
   txtValues[1].print(sDate);
 
   // ----- grid square
-  char sGrid[10];
-  String tmp = model.gsGridName;
-  tmp.toCharArray(sGrid, sizeof(sGrid)-1);
+  char sGrid[10];         // strlen("CN87us") = 6
+  calcLocator(sGrid, model.gLatitude, model.gLongitude, 6);
   txtValues[2].print(sGrid);
   
   // ----- altitude

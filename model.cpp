@@ -15,12 +15,13 @@
 
 // ========== extern ==================================
 extern Adafruit_GPS GPS;
-String calcLocator(double lat, double lon);           // Griduino.ino
-double calcDistanceLat(double fromLat, double toLat); // Griduino.ino
+void calcLocator(char* result, double lat, double lon, int precision); // Griduino.ino
+double calcDistanceLat(double fromLat, double toLat);   // Griduino.ino
 double calcDistanceLong(double lat, double fromLong, double toLong);  // Griduino.ino
 float nextGridLineEast(float longitudeDegrees);
 float nextGridLineWest(float longitudeDegrees);
 float nextGridLineSouth(float latitudeDegrees);
+void floatToCharArray(char* result, int maxlen, double fValue, int decimalPlaces);  // Griduino.ino
 bool isVisibleDistance(const PointGPS from, const PointGPS to); // view_grid.cpp
 
 // ========== constants =======================
@@ -28,9 +29,6 @@ bool isVisibleDistance(const PointGPS from, const PointGPS to); // view_grid.cpp
 
 #define INIT_GRID6 "CN77tt";   // initialize to a nearby grid for demo but not
 #define INIT_GRID4 "CN77";     // to my home grid CN87, so that GPS lock will announce where we are in Morse code
-
-#define INIT_LAT  "waiting";   // show this after losing GPS lock
-#define INIT_LONG " for GPS";  //
 
 // ========== class Model ======================
 class Model {
@@ -44,20 +42,6 @@ class Model {
     float  gSpeed = 0.0;              // current speed over ground in MPH
     float  gAngle = 0.0;              // direction of travel, degrees from true north
 
-    String gsLatitude = INIT_LAT;     // GPS position, string, decimal degrees
-    String gsLongitude = INIT_LONG;
-
-    String gsGridName = INIT_GRID6;   // e.g. "CN77tt", placeholder grids to show at power-on
-
-    String gsGridNorth = "CN78";      // e.g. "CN78"
-    String gsGridEast = "CN87";       // e.g. "CN87"
-    String gsGridSouth = "CN76";      // e.g. "CN76"
-    String gsGridWest = "CN67";       // e.g. "CN67"
-    String gsDistanceNorth = "17.3";  // distance in miles to next grid crossing
-    String gsDistanceEast = "15.5";   // placeholder distances to show at power-on
-    String gsDistanceSouth = "63.4";
-    String gsDistanceWest = "81.4";   // Strings: https://www.arduino.cc/en/Reference/StringLibrary
-
     Location history[400];            // remember a list of GPS coordinates
     int nextHistoryItem = 0;          // index of next item to write
     const int numHistory = sizeof(history)/sizeof(Location);
@@ -66,8 +50,8 @@ class Model {
     // If 160 pixels vert = 70 miles, then we need (250*160/70) = 570 entries.
 
   protected:
-    int    gPrevFix = false;          // previous value of gHaveGPSfix, to help detect "signal lost"
-    String sPrevGrid4 = INIT_GRID4;   // previous value of gsGridName, to help detect "enteredNewGrid()"
+    int  gPrevFix = false;          // previous value of gHaveGPSfix, to help detect "signal lost"
+    char sPrevGrid4[5] = INIT_GRID4;   // previous value of gsGridName, to help detect "enteredNewGrid()"
 
   public:
     // Constructor - create and initialize member variables
@@ -116,20 +100,6 @@ class Model {
       gSpeed = 0.0;                   // assume speed unknown
       gAngle = 0.0;                   // assume direction of travel unknown
 
-      gsLatitude = from.gsLatitude;   // GPS position, string, decimal degrees
-      gsLongitude = from.gsLongitude;
-
-      gsGridName = from.gsGridName;
-
-      gsGridNorth = from.gsGridNorth; // e.g. "CN78"
-      gsGridEast = from.gsGridEast;   // e.g. "CN87"
-      gsGridSouth = from.gsGridSouth; // e.g. "CN76"
-      gsGridWest = from.gsGridWest;   // e.g. "CN67"
-      gsDistanceNorth = from.gsDistanceNorth;  // distance in miles to next grid crossing
-      gsDistanceEast = from.gsDistanceEast;
-      gsDistanceSouth = from.gsDistanceSouth;
-      gsDistanceWest = from.gsDistanceWest;
-
       for (int ii=0; ii<numHistory; ii++) {
         history[ii] = from.history[ii];
       }
@@ -161,35 +131,6 @@ class Model {
 
       PointGPS whereAmI{gLatitude, gLongitude};
       remember(whereAmI, GPS.hour, GPS.minute, GPS.seconds);
-
-      if (gHaveGPSfix) {
-        // update model
-        gsLatitude = String(gLatitude, 4);   // compatible with TFT display
-        gsLongitude = String(gLongitude, 4);
-        gsGridName = ::calcLocator(gLatitude, gLongitude);
-        gsGridNorth = ::calcLocator(gLatitude + 1.0, gLongitude).substring(0, 4);
-        gsGridSouth = ::calcLocator(gLatitude - 1.0, gLongitude).substring(0, 4);
-        gsGridEast = ::calcLocator(gLatitude, gLongitude + 2.0).substring(0, 4);
-        gsGridWest = ::calcLocator(gLatitude, gLongitude - 2.0).substring(0, 4);
-
-        // N-S: find nearest integer grid lines
-        gsDistanceNorth = ::calcDistanceLat(gLatitude, ceil(gLatitude));
-        gsDistanceSouth = ::calcDistanceLat(gLatitude, floor(gLatitude));
-
-        // E-W: find nearest EVEN numbered grid lines
-        int eastLine = ::nextGridLineEast(gLongitude);
-        int westLine = ::nextGridLineWest(gLongitude);
-
-        gsDistanceEast = ::calcDistanceLong(gLatitude, gLongitude, eastLine);
-        gsDistanceWest = ::calcDistanceLong(gLatitude, gLongitude, westLine);
-
-        String grid4 = gsGridName.substring(0, 4);
-        String grid6 = gsGridName.substring(4, 6);
-
-      } else {
-        // nothing - leave current info as-is and displayed on screen
-        // it's not unusual to lose GPS lock so don't distract driver
-      }
     }
 
     void clearHistory() {
@@ -219,7 +160,7 @@ class Model {
         // now the GPS location is saved in history array, now protect 
         // the array in non-volatile memory in case of power loss
         #ifdef USE_SIMULATED_GPS
-          const int SAVE_INTERVAL = 8;
+          const int SAVE_INTERVAL = 41; // reduce number of erase/write cycles to sdram
         #else
           const int SAVE_INTERVAL = 2;
         #endif
@@ -247,12 +188,13 @@ class Model {
     }
     bool enteredNewGrid() {
       // grid-crossing detector
-      // returns TRUE if the first four characters of 'gsGridName' have changed
-      String newGrid4 = gsGridName.substring(0, 4);
-      if (newGrid4 != sPrevGrid4) {
+      // returns TRUE if the first four characters of grid name have changed
+      char newGrid4[5];   // strlen("CN87us") = 6
+      calcLocator(newGrid4, gLatitude, gLongitude, 4);
+      if (strcmp(newGrid4, sPrevGrid4) != 0) {
         Serial.print("Prev grid: "); Serial.print(sPrevGrid4);
-        Serial.print(" New grid: "); Serial.println(gsGridName);
-        sPrevGrid4 = newGrid4;
+        Serial.print(" New grid: "); Serial.println(newGrid4);
+        strncpy(sPrevGrid4, newGrid4, sizeof(sPrevGrid4));
         return true;
       } else {
         return false;
@@ -277,21 +219,11 @@ class Model {
       // we want SOME indication to not trust the readings
       // but make it low-key to not distract the driver
       // TODO - architecturally, it seems like this subroutine should be part of the view (not model)
-      gsLatitude = INIT_LAT;    // GPS position, string
-      gsLongitude = INIT_LONG;
+      //strncpy(gsLatitude, sizeof(gsLatitude), INIT_LAT);    // GPS position, string
+      //strncpy(gsLongitude, sizeof(gsLongitude), INIT_LONG);
     }
 
-    // Formatted GMT time
-    void getTime(char* result) {
-      // result = char[10] = string buffer to modify
-        int hh = GPS.hour;
-        int mm = GPS.minute;
-        int ss = GPS.seconds;
-        snprintf(result, 10, "%02d:%02d:%02d",
-                               hh,  mm,  ss);
-    }
-
-    // Does the GPS report a valid date?
+    // Did the GPS report a valid date?
     bool isDateValid(int yy, int mm, int dd) {
       if (yy < 19) {
         return false;
@@ -303,6 +235,16 @@ class Model {
         return false;
       }
       return true;
+    }
+
+    // Formatted GMT time
+    void getTime(char* result) {
+      // result = char[10] = string buffer to modify
+        int hh = GPS.hour;
+        int mm = GPS.minute;
+        int ss = GPS.seconds;
+        snprintf(result, 10, "%02d:%02d:%02d",
+                               hh,  mm,  ss);
     }
 
     // Formatted GMT date "Jan 12, 2020"

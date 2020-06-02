@@ -16,7 +16,7 @@
 // ========== extern ==================================
 float nextGridLineEast(float longitudeDegrees);       // Griduino.ino
 float nextGridLineWest(float longitudeDegrees);       // Griduino.ino
-String calcLocator(double lat, double lon);           // Griduino.ino
+void calcLocator(char* result, double lat, double lon, int precision); // Griduino.ino
 double calcDistanceLat(double fromLat, double toLat); // Griduino.ino
 double calcDistanceLong(double lat, double fromLong, double toLong);  // Griduino.ino
 void initFontSizeBig();                     // Griduino.ino
@@ -54,27 +54,27 @@ void testNextGridLineEast(float fExpected, double fLongitude) {
 void testNextGridLineWest(float fExpected, double fLongitude) {
   // unit test helper for finding grid line crossings
   float result = nextGridLineWest(fLongitude);
-  //~Serial.print("Grid Crossing West: given = "); //~Serial.print(fLongitude);
-  //~Serial.print(", expected = "); //~Serial.print(fExpected);
-  //~Serial.print(", result = "); //~Serial.print(result);
+  Serial.print("Grid Crossing West: given = "); Serial.print(fLongitude);
+  Serial.print(", expected = "); Serial.print(fExpected);
+  Serial.print(", result = "); Serial.print(result);
   if (result == fExpected) {
-    //~Serial.println("");
+    Serial.println("");
   }
   else {
-    //~Serial.println(" <-- Unequal");
+    Serial.println(" <-- Unequal");
   }
 }
-void testCalcLocator(String sExpected, double lat, double lon) {
+void testCalcLocator(const char* sExpected, double lat, double lon) {
   // unit test helper function to display results
-  String sResult;
-  sResult = calcLocator(lat, lon);
-  //~Serial.print("Test: expected = "); //~Serial.print(sExpected);
-  //~Serial.print(", gResult = "); //~Serial.print(sResult);
-  if (sResult == sExpected) {
-    //~Serial.println("");
+  char sResult[7];      // strlen("CN87us") = 6
+  calcLocator(sResult, lat, lon, 6);
+  Serial.print("Test: expected = "); Serial.print(sExpected);
+  Serial.print(", gResult = "); Serial.print(sResult);
+  if (strcmp(sResult, sExpected) == 0) {
+    Serial.println("");
   }
   else {
-    //~Serial.println(" <-- Unequal");
+    Serial.println(" <-- Unequal");
   }
 }
 
@@ -248,7 +248,7 @@ void verifyBreadCrumbs() {
   Serial.print("-------- verifyBreadCrumbs() at line "); Serial.println(__LINE__);
   
   // move the model to known location (CN87)
-  model.gsGridName = "CN87";
+  //model.gsGridName = "CN87";
   model.gLatitude = 47.737451;    // CN87
   model.gLongitude = -122.274711; // CN87
 
@@ -357,9 +357,7 @@ void verifySaveTrail() {
   
   generateSineWave(&testModel);   // generate known data to be saved
 
-  // save this to non-volatile memory (todo)
-  Serial.print(". Save trail to non-volatile memory (todo) line "); Serial.println(__LINE__);
-    
+  // this is automatically saved to non-volatile memory by the model.remember()
 }
 // =============================================================
 // restore GPS route from non-volatile memory
@@ -441,12 +439,12 @@ void runUnitTest() {
   delay(1000);
 
   //verifyMorseCode();                            // verify Morse code
-  verifySaveRestoreVolume();    countDown(10);  // verify save/restore an integer setting in SDRAM
-  verifySaveRestoreArray();     countDown(20);  // verify save/restore an array in SDRAM
-  verifySaveRestoreGPSModel();  countDown(20);  // verify save/restore GPS model state in SDRAM
+  verifySaveRestoreVolume();    countDown( 5);  // verify save/restore an integer setting in SDRAM
+  verifySaveRestoreArray();     countDown(10);  // verify save/restore an array in SDRAM
+  verifySaveRestoreGPSModel();  countDown(10);  // verify save/restore GPS model state in SDRAM
   verifyWritingProportionalFont();              // verify writing proportional font
   
-  verifyBreadCrumbs();          countDown(4);   // verify pushpins near the four corners
+  verifyBreadCrumbs();          countDown(5);   // verify pushpins near the four corners
   verifyBreadCrumbTrail1();     countDown(5);   // verify painting the bread crumb trail
   verifyBreadCrumbTrail2();     countDown(10);  // verify painting the bread crumb trail
   verifySaveTrail();            countDown(20);  // save GPS route to non-volatile memory

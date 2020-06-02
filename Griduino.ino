@@ -519,10 +519,10 @@ float nextGridLineWest(float longitudeDegrees) {
 float nextGridLineSouth(float latitudeDegrees) {
   return floor(latitudeDegrees);
 }
-String calcLocator(double lat, double lon) {
+void calcLocator(char* result, double lat, double lon, int precision) {
   // Converts from lat/long to Maidenhead Grid Locator
   // From: https://ham.stackexchange.com/questions/221/how-can-one-convert-from-lat-long-to-grid-square
-  char result[7];
+  // Input: char result[7];
   int o1, o2, o3;
   int a1, a2, a3;
   double remainder;
@@ -547,10 +547,18 @@ String calcLocator(double lat, double lon) {
   result[1] = (char)a1 + 'A';
   result[2] = (char)o2 + '0';
   result[3] = (char)a2 + '0';
-  result[4] = (char)o3 + 'a';
-  result[5] = (char)a3 + 'a';
-  result[6] = (char)0;
-  return (String)result;
+  result[4] = (char)0;
+  if (precision > 4) {
+    result[4] = (char)o3 + 'a';
+    result[5] = (char)a3 + 'a';
+    result[6] = (char)0;
+  }
+  return;
+}
+
+void floatToCharArray(char* result, int maxlen, double fValue, int decimalPlaces) {
+  String temp = String(fValue, decimalPlaces);
+  temp.toCharArray(result, maxlen);
 }
 
 // ----- console Serial port helper
@@ -886,8 +894,10 @@ void loop() {
   }
 
   if (model.enteredNewGrid()) {
-    gaStartView[gViewIndex]();        // update display, ensure any leftover breadcrumb trail is erased, and then...
-    sendMorseGrid4(model.gsGridName); // announce new grid by Morse code
+    gaStartView[gViewIndex]();        // update display
+    char newGrid4[5];
+    calcLocator(newGrid4, model.gLatitude, model.gLongitude, 4);
+    sendMorseGrid4( newGrid4 );       // announce new grid by Morse code
   }
 
   // if there's touchscreen input, handle it

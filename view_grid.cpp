@@ -40,6 +40,7 @@ void initFontSizeSmall();           // Griduino.ino
 void initFontSizeSystemSmall();     // Griduino.ino
 float nextGridLineEast(float longitudeDegrees);       // Griduino.ino
 float nextGridLineWest(float longitudeDegrees);       // Griduino.ino
+void floatToCharArray(char* result, int maxlen, double fValue, int decimalPlaces);  // Griduino.ino
 
 // ============== constants ====================================
 const int gMarginX = 70;            // define space for grid outline on screen
@@ -125,15 +126,15 @@ void drawGridName(String newGridName) {
   txtGrid[GRID6].print(grid5_6);
 }
 
-void drawPositionLL(String sLat, String sLong) {
+void drawPositionLL(double fLat, double fLong) {
   initFontSizeSystemSmall();
 
   // the message line shows either or a position (lat,long) or a message (waiting for GPS)
   char sTemp[27];       // why 27? Small system font will fit 26 characters on one row
   if (model.gHaveGPSfix) {
     char latitude[10], longitude[10];
-    sLat.toCharArray(latitude, sizeof(latitude));
-    sLong.toCharArray(longitude, sizeof(longitude));
+    floatToCharArray(latitude, sizeof(latitude), fLat, 4);
+    floatToCharArray(longitude, sizeof(longitude), fLong, 4);
     snprintf(sTemp, sizeof(sTemp), "%s, %s", latitude, longitude);
   } else {
     strcpy(sTemp, "Waiting for GPS");
@@ -188,19 +189,53 @@ void drawBoxLatLong() {
 
 void drawNeighborGridNames() {
   initFontSizeSmall();
-  txtGrid[N_GRIDNAME].print(model.gsGridNorth);
-  txtGrid[S_GRIDNAME].print(model.gsGridSouth);
-  txtGrid[E_GRIDNAME].print(model.gsGridEast);
-  txtGrid[W_GRIDNAME].print(model.gsGridWest);
+  char nGrid[5], sGrid[5], eGrid[5], wGrid[5];
+
+  calcLocator(nGrid, model.gLatitude+1.0, model.gLongitude, 4);
+  calcLocator(sGrid, model.gLatitude-1.0, model.gLongitude, 4);
+  calcLocator(eGrid, model.gLatitude, model.gLongitude+2.0, 4);
+  calcLocator(wGrid, model.gLatitude, model.gLongitude-2.0, 4);
+
+  txtGrid[N_GRIDNAME].print(nGrid);
+  txtGrid[S_GRIDNAME].print(sGrid);
+  txtGrid[E_GRIDNAME].print(eGrid);
+  txtGrid[W_GRIDNAME].print(wGrid);
 }
 
 void drawNeighborDistances() {
   initFontSizeSmall();
-  txtGrid[N_DISTANCE].print(model.gsDistanceNorth);
-  txtGrid[S_DISTANCE].print(model.gsDistanceSouth);
-  txtGrid[E_DISTANCE].print(model.gsDistanceEast);
-  txtGrid[W_DISTANCE].print(model.gsDistanceWest);
+
+  // N-S: find nearest integer grid lines
+  float fNorth = calcDistanceLat(model.gLatitude, ceil(model.gLatitude));
+  if (fNorth < 10.0) {
+    txtGrid[N_DISTANCE].print( fNorth, 2 );
+  } else {
+    txtGrid[N_DISTANCE].print( fNorth, 1 );
+  }
+  float fSouth = calcDistanceLat(model.gLatitude, floor(model.gLatitude));
+  if (fSouth < 10.0) {
+    txtGrid[S_DISTANCE].print( fSouth, 2 );
+  } else {
+    txtGrid[S_DISTANCE].print( fSouth, 1 );
+  }
+  
+  // E-W: find nearest EVEN numbered grid lines
+  int eastLine = ::nextGridLineEast(model.gLongitude);
+  int westLine = ::nextGridLineWest(model.gLongitude);
+  float fEast = calcDistanceLong(model.gLatitude, model.gLongitude, eastLine);
+  float fWest = calcDistanceLong(model.gLatitude, model.gLongitude, westLine);
+  if (fEast < 10.0) {
+    txtGrid[E_DISTANCE].print( fEast, 2 );
+  } else {
+    txtGrid[E_DISTANCE].print( fEast, 1 );
+  }
+  if (fWest < 10.0) {
+    txtGrid[W_DISTANCE].print( fWest, 2 );
+  } else {
+    txtGrid[W_DISTANCE].print( fWest, 1 );
+  }
 }
+
 // =============================================================
 void translateGPStoScreen(Point* result, const PointGPS loc, const PointGPS origin) {
   // result = screen coordinates of given GPS coordinates
@@ -371,10 +406,12 @@ void updateGridScreen() {
 
   PointGPS myLocation{ model.gLatitude, model.gLongitude }; // current location
   
-  drawGridName(model.gsGridName);   // huge letters centered on screen
+  char grid6[7];
+  calcLocator(grid6, model.gLatitude, model.gLongitude, 6);
+  drawGridName(grid6);              // huge letters centered on screen
   drawAltitude();                   // height above sea level
   drawNumSatellites();
-  drawPositionLL(model.gsLatitude, model.gsLongitude);  // lat-long of current position
+  drawPositionLL(model.gLatitude, model.gLongitude);  // lat-long of current position
   //drawCompassPoints();              // show N-S-E-W compass points (disabled, it makes the screen too busy)
   //drawBoxLatLong();                 // show coordinates of box (disabled, it makes the screen too busy)
   drawNeighborGridNames();            // show 4-digit names of nearby squares
