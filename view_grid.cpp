@@ -38,13 +38,14 @@ extern Model model;                 // "model" portion of model-view-controller
 void initFontSizeBig();             // Griduino.ino
 void initFontSizeSmall();           // Griduino.ino
 void initFontSizeSystemSmall();     // Griduino.ino
-//void drawProportionalText(int ulX, int ulY, String prevText, String newText, bool dirty);
+float nextGridLineEast(float longitudeDegrees);       // Griduino.ino
+float nextGridLineWest(float longitudeDegrees);       // Griduino.ino
 
 // ============== constants ====================================
 const int gMarginX = 70;            // define space for grid outline on screen
 const int gMarginY = 26;            // and position text relative to this outline
-const int gBoxWidth = 180;          // ~= (gScreenWidth - 2*gMarginX);
-const int gBoxHeight = 160;         // ~= (gScreenHeight - 3*gMarginY);
+//nst int gBoxWidth = 180;          // grid square width as shown on display, pixels (see constants.h)
+//nst int gBoxHeight = 160;         // grid square height as shown on display, pixels (see constants.h)
 
 // vertical placement of text rows
 /* currently unused (mostly replaced by txtGrid[])
@@ -79,18 +80,18 @@ void drawGridOutline() {
 // these are names for the array indexes for readability, must be named in same order as below
 enum txtIndex {
   GRID4=0, GRID6, LATLONG, ALTITUDE, NUMSAT,
-  N_COMPASS,   S_COMPASS,   E_COMPASS,   W_COMPASS,
-  N_DISTANCE,  S_DISTANCE,  E_DISTANCE,  W_DISTANCE,
-  N_GRIDNAME,  S_GRIDNAME,  E_GRIDNAME,  W_GRIDNAME,
-  N_BOXDEGREES,S_BOXDEGREES,E_BOXDEGREES,W_BOXDEGREES,
+  N_COMPASS,  S_COMPASS,  E_COMPASS,  W_COMPASS,
+  N_DISTANCE, S_DISTANCE, E_DISTANCE, W_DISTANCE,
+  N_GRIDNAME, S_GRIDNAME, E_GRIDNAME, W_GRIDNAME,
+  N_BOX_LAT,  S_BOX_LAT,  E_BOX_LONG, W_BOX_LONG,
 };
                                             
 TextField txtGrid[] = {
   //         text      x,y     color
   TextField("CN77",  101,101,  cGRIDNAME),      // GRID4: center of screen
-  TextField("tt",    138,139,  cGRIDNAME),      // GRID6: center of screen
-  TextField("47.1234,-123.5678", 4,223, cWARN), // LATLONG: left-adj on bottom row
-  TextField("123'",  315,196,  cWARN, FLUSHRIGHT),  // ALTITUDE: just above bottom row
+  TextField("tt",    138,141,  cGRIDNAME),      // GRID6: center of screen
+  TextField("47.1234,-123.4567", 4,223, cWARN), // LATLONG: left-adj on bottom row
+  TextField("123'",  313,196,  cWARN, FLUSHRIGHT),  // ALTITUDE: just above bottom row
   TextField("99#",   311,221,  cWARN, FLUSHRIGHT),  // NUMSAT: lower right corner
   TextField( "N",    156, 47,  cCOMPASS ),      // N_COMPASS: centered left-right
   TextField( "S",    156,181,  cCOMPASS ),      // S_COMPASS
@@ -104,10 +105,10 @@ TextField txtGrid[] = {
   TextField("CN86",  102,207,  cGRIDNAME),      // S_GRIDNAME
   TextField("CN97",  256,102,  cGRIDNAME),      // E_GRIDNAME
   TextField("CN77",    0,102,  cGRIDNAME),      // W_GRIDNAME
-  TextField("48",     56, 44,  cBOXDEGREES, FLUSHRIGHT),  // N_BOXDEGREES
-  TextField("47",     56,188,  cBOXDEGREES, FLUSHRIGHT),  // S_BOXDEGREES
-  TextField("122",   243, 20,  cBOXDEGREES),              // E_BOXDEGREES
-  TextField("124",    72, 20,  cBOXDEGREES, FLUSHRIGHT),  // W_BOXDEGREES
+  TextField("48",     56, 44,  cBOXDEGREES, FLUSHRIGHT),  // N_BOX_LAT
+  TextField("47",     56,190,  cBOXDEGREES, FLUSHRIGHT),  // S_BOX_LAT
+  TextField("122",   243, 20,  cBOXDEGREES),              // E_BOX_LONG
+  TextField("124",    72, 20,  cBOXDEGREES, FLUSHRIGHT),  // W_BOX_LONG
 };
 const int numTextGrid = sizeof(txtGrid)/sizeof(TextField);
 
@@ -139,15 +140,27 @@ void drawPositionLL(String sLat, String sLong) {
   }
   txtGrid[LATLONG].print(sTemp);          // latitude-longitude
 
+}
+
+void drawNumSatellites() {
+  initFontSizeSystemSmall();
+
+  char sTemp[4];    // strlen("12#") = 3
   if (model.gSatellites<10) {
-    sprintf(sTemp, " %d#", model.gSatellites);
+    snprintf(sTemp, sizeof(sTemp), " %d#", model.gSatellites);
   } else {
-    sprintf(sTemp, "%d#", model.gSatellites);
+    snprintf(sTemp, sizeof(sTemp), "%d#", model.gSatellites);
   }
   txtGrid[NUMSAT].print(sTemp);           // number of satellites
+ 
+}
 
+void drawAltitude() {
+  initFontSizeSystemSmall();
+
+  char sTemp[8];      // strlen("12345'") = 6
   int altFeet = model.gAltitude * feetPerMeters;
-  sprintf(sTemp, "%d'", altFeet);
+  snprintf(sTemp, sizeof(sTemp), "%d'", altFeet);
   txtGrid[ALTITUDE].print(sTemp);         // altitude
 }
 
@@ -157,41 +170,22 @@ void drawCompassPoints() {
     txtGrid[ii].print();
   }
 }
+
 void drawBoxLatLong() {
-  //return;   // disabled because it makes the screen too busy
-            // also disabled because it always shows 47-48 and 122-124 degrees
-
   initFontSizeSmall();
-  for (int ii=N_BOXDEGREES; ii<=W_BOXDEGREES; ii++) {
-    txtGrid[ii].print();
-  }
+  txtGrid[N_BOX_LAT].print( ceil(model.gLatitude) );    // latitude of N,S box edges
+  txtGrid[S_BOX_LAT].print( floor(model.gLatitude) );
+  txtGrid[E_BOX_LONG].print( nextGridLineEast(model.gLongitude) ); // longitude of E,W box edges
+  txtGrid[W_BOX_LONG].print( nextGridLineWest(model.gLongitude) );
+  
   int radius = 3;
-  //                          x                          y                r     color
-  tft.drawCircle(txtGrid[N_BOXDEGREES].x+7, txtGrid[N_BOXDEGREES].y-14, radius, cBOXDEGREES); // draw circle to represent "degrees"
-  tft.drawCircle(txtGrid[S_BOXDEGREES].x+7, txtGrid[S_BOXDEGREES].y-14, radius, cBOXDEGREES);
-  //t.drawCircle(txtGrid[E_BOXDEGREES].x+7, txtGrid[E_BOXDEGREES].y-14, radius, cBOXDEGREES);  // todo: where to put "degrees" on FLUSHLEFT number?
-  tft.drawCircle(txtGrid[W_BOXDEGREES].x+7, txtGrid[W_BOXDEGREES].y-14, radius, cBOXDEGREES);
-
-  /* *****
-  tft.setTextColor(cCOMPASS, ILI9341_BLACK);
-
-  tft.setCursor(gCharWidth * 1 / 2, gTopRowY);
-  Serial.print("West degrees x,y = "); Serial.print(gCharWidth * 1 / 2); Serial.print(","); Serial.println(gTopRowY);
-  tft.print("124");   // TODO: read this from the model
-
-  tft.setCursor(gScreenWidth - gMarginX + gCharWidth, gTopRowY);
-  Serial.print("East degrees x,y = "); Serial.print(gScreenWidth - gMarginX + gCharWidth); Serial.print(","); Serial.println(gTopRowY);
-  tft.print("122");
-
-  tft.setCursor(gCharWidth * 3 / 2, gMarginY + gCharHeight / 4);
-  Serial.print("North degrees x,y = "); Serial.print(gCharWidth * 3 / 2); Serial.print(","); Serial.println(gMarginY + gCharHeight / 4);
-  tft.print("48");
-
-  tft.setCursor(gCharWidth * 3 / 2, gScreenHeight - gMarginY - gCharHeight);
-  Serial.print("South degrees x,y = "); Serial.print(gCharWidth * 3 / 2); Serial.print(","); Serial.println(gScreenHeight - gMarginY - gCharHeight);
-  tft.print("47");
-  ***** */
+  // draw "degree" symbol at:       x                        y        r     color
+  tft.drawCircle(txtGrid[N_BOX_LAT].x+7,  txtGrid[N_BOX_LAT].y-14,  radius, cBOXDEGREES); // draw circle to represent "degrees"
+  tft.drawCircle(txtGrid[S_BOX_LAT].x+7,  txtGrid[S_BOX_LAT].y-14,  radius, cBOXDEGREES);
+  //t.drawCircle(txtGrid[E_BOX_LONG].x+7, txtGrid[E_BOX_LONG].y-14, radius, cBOXDEGREES); // no room for "degrees" on FLUSHLEFT number?
+  tft.drawCircle(txtGrid[W_BOX_LONG].x+7, txtGrid[W_BOX_LONG].y-14, radius, cBOXDEGREES);
 }
+
 void drawNeighborGridNames() {
   initFontSizeSmall();
   txtGrid[N_GRIDNAME].print(model.gsGridNorth);
@@ -199,6 +193,7 @@ void drawNeighborGridNames() {
   txtGrid[E_GRIDNAME].print(model.gsGridEast);
   txtGrid[W_GRIDNAME].print(model.gsGridWest);
 }
+
 void drawNeighborDistances() {
   initFontSizeSmall();
   txtGrid[N_DISTANCE].print(model.gsDistanceNorth);
@@ -245,8 +240,11 @@ void translateGPStoScreen(Point* result, const PointGPS loc, const PointGPS orig
 // =============================================================
 void plotRoute(Location* marker, const int numMarkers, const PointGPS origin) {
   // show route track history bread crumb trail
-  //Serial.print("plotRoute() at line "); Serial.println(__LINE__);
+  //Serial.print("plotRoute() at line "); Serial.println(__LINE__);   // debug
   //Serial.print("~ Plot relative to origin("); Serial.print(origin.lat); Serial.print(","); Serial.print(origin.lng); Serial.println(")");
+  //model.dumpHistory();    // debug
+
+  Point prevPixel{0,0};     // keep track of previous dot plotted
 
   for (int ii=0; ii<numMarkers; ii++) {     // loop through Location[] array of history
     Location mark = marker[ii];
@@ -254,19 +252,102 @@ void plotRoute(Location* marker, const int numMarkers, const PointGPS origin) {
       Point screen;
       PointGPS spot{mark.loc.lat, mark.loc.lng};
       translateGPStoScreen(&screen, spot, origin);
-      tft.drawPixel(screen.x, screen.y, ILI9341_CYAN);
+      
+      // erase a few dots around this to make it more visible
+      // but! which dots to erase depend on what direction we're moving
+      // let's try detecting the giant green grid letters, and selectively erasing them
+      //       (fail - there is no API to read a pixel)
+      // let's try detecting the direction of travel
+      if (prevPixel.x == screen.x
+       && prevPixel.y == screen.y) {
+        // nothing changed, erase nothing
+      } else {
+        /*
+         * this works great for simple horiz/vert movement
+         * but not so much for diagonal lines
+         */
+        if (prevPixel.y == screen.y) {
+          // horizontal movement
+          tft.drawPixel(screen.x, screen.y-1, ILI9341_BLACK);
+          tft.drawPixel(screen.x, screen.y+1, ILI9341_BLACK);
+        } else if (prevPixel.x == screen.x) {
+          // vertical movement
+          tft.drawPixel(screen.x-1, screen.y, ILI9341_BLACK);
+          tft.drawPixel(screen.x+1, screen.y, ILI9341_BLACK);
+        } else {
+          // let's try constructing the perdendicular and drawing a 3-pixel long line
+          // y = mx+b, where m is the slope, b is the y-intercept
+          /* 
+           * Result: the below is fugly because it uses fine details that are not 
+           * smooth nor anti-aliased. It works but it's commented out.
+           */
+          /*
+          float slope = (screen.y - prevPixel.y)/(screen.x - prevPixel.x);
+          float m = -1.0 / slope;
+          float b = float(screen.y) - (m * screen.x);
+
+          if (abs(m) > 1.0) {
+            // the perpendicular line is closer to vertical
+            // so erase in x-direction a little left/right
+            int xLeft = screen.x-1;
+            int xRight = screen.x+1;
+            int yLeft = (int)m*xLeft + b; // y=mx+b
+            int yRight = (int)m*xRight + b;
+            tft.drawLine(xLeft,yLeft, xRight,yRight, ILI9341_BLACK);
+          } else {
+            // the perpendicular line is closer to horizontal
+            // so erase in y-direction a little above/below
+            int yTop = screen.y-1;
+            int yBot = screen.y+1;
+            int xTop = (int)(yTop-b)/m; // x=(y-b)/m
+            int xBot = (int)(yBot-b)/m;
+            tft.drawLine(xTop,yTop, xBot,yBot, ILI9341_BLACK);
+          }
+          */
+        }
+      }
+
+      // plot this location
+      tft.drawPixel(screen.x, screen.y, cBREADCRUMB);
+      prevPixel = screen;
     }
   }
 }
 // =============================================================
-void plotCurrentPosition(const PointGPS loc /*double fLat, double fLong*/, const PointGPS origin) {
+void plotVehicle(const Point car, uint16_t carColor) {
+  // put a symbol on the screen to represent the vechicle
+  // choose what shape you like at compile-time
+  // if you're an over-achiever, write new code so a triangle indicates direction of travel
+  int radius, size, w, h;
+  switch (3) {
+    case 1:   // ----- circle
+      radius = 3;
+      tft.fillCircle(car.x, car.y, radius-1, ILI9341_BLACK);  // erase the circle's background
+      tft.drawCircle(car.x, car.y, radius, carColor);         // draw new circle
+      break;
+
+    case 2:   // ----- triangle
+      size = 4;
+      tft.drawTriangle(car.x-size, car.y+size,
+                       car.x+size, car.y+size,
+                       car.x,      car.y-size,
+                       carColor);
+      break;
+
+    case 3:   // ----- square
+      w = h = 8;
+      tft.drawRect(car.x-w/2, car.y-h/2, w, h, carColor);
+      break;
+  }
+}
+// =============================================================
+Point prevVehicle;
+void plotCurrentPosition(const PointGPS loc, const PointGPS origin) {
   // drop a bread crumb inside the grid's box, proportional to your position within the grid
   // input:  loc    = double precision float, GPS coordinates of current position
   //         origin = GPS coordinates of currently displayed grid square, lower left corner
 
-  if (loc.lat == 0.0) return;
-
-  const int radius = 2;   // size of pushpin
+  if (loc.lat == 0.0) return;                       // ignore uninitialized lat/long
 
   float degreesX = loc.lng - origin.lng;            // longitude: distance from left edge of grid (degrees)
   float degreesY = loc.lat - origin.lat;            // latitude: distance from bottom edge of grid
@@ -274,51 +355,12 @@ void plotCurrentPosition(const PointGPS loc /*double fLat, double fLong*/, const
   float fracGridX = degreesX / gridWidthDegrees;    // E-W position as fraction of grid width, 0-1
   float fracGridY = degreesY / gridHeightDegrees;   // N-S position as fraction of grid height, 0-1
 
-  if (false) {
-    // previous OLD code
-  // our drawing canvas is a box the size of the screen, minus an outside margin on all sides reserved for text
-  // TFT screen coordinate system origin (0,0) in upper left corner, positive numbers go right/down
-  // and the real-world lat-long system origin (0,0) in lower left corner, positive numbers go right/up
-  // breadcrumb trail must fit the box drawn by drawGridOutline() e.g. (gMarginX, gMarginY, gBoxWidth, gBoxHeight)
-  int llCanvasX = gMarginX;                   // canvas lower left corner (pixels)
-  int llCanvasY = gMarginY + gBoxHeight;
-
-  int canvasWidth = gBoxWidth;                // canvas dimensions (pixels)
-  int canvasHeight = gBoxHeight;
-
-  int plotX = llCanvasX + canvasWidth * fracGridX; // pushpin location on canvas (pixels)
-  int plotY = llCanvasY - canvasHeight * fracGridY;
-
-  /*** 
-    Serial.print("   ");
-    Serial.print("Plot: lat-long("); Serial.print(loc.lng);     Serial.print(","); Serial.print(loc.lat);      Serial.print(")");
-    Serial.print(", degrees(");      Serial.print(degreesX);    Serial.print(","); Serial.print(degreesY);     Serial.print(")");
-    //rial.print(", canvas(");       Serial.print(canvasWidth); Serial.print(","); Serial.print(canvasHeight); Serial.print(")");
-    Serial.print(", fracGridXY(");   Serial.print(fracGridX);   Serial.print(","); Serial.print(fracGridY);    Serial.print(")");
-    Serial.print(", plotXY(");       Serial.print(plotX);       Serial.print(","); Serial.print(plotY);        Serial.print(")");
-    Serial.println(" ");
-  /* ***/
-
-  tft.fillCircle(plotX, plotY, radius, ILI9341_BLACK);  // erase the circle's background
-  tft.drawCircle(plotX, plotY, radius, ILI9341_ORANGE); // draw new circle
-  tft.drawPixel(plotX, plotY, ILI9341_WHITE);           // with a cherry in the middle
-    
-  } else {
-    // proposed NEW code
-    // our drawing canvas is the entire screen
-
-    Point result;
-    translateGPStoScreen(&result, loc, origin);
-    int plotX = result.x;
-    int plotY = result.y;
-    
-    if (plotX > 0 && plotX < gScreenWidth
-     && plotY > 0 && plotY < gScreenHeight) {
-      tft.fillCircle(plotX, plotY, radius, ILI9341_BLACK);  // erase the circle's background
-      tft.drawCircle(plotX, plotY, radius, ILI9341_ORANGE); // draw new circle
-      tft.drawPixel(plotX, plotY, ILI9341_WHITE);           // with a cherry in the middle
-    }
-  }
+  // our drawing canvas is the entire screen
+  Point result;
+  translateGPStoScreen(&result, loc, origin);
+  plotVehicle( prevVehicle, ILI9341_BLACK );        // erase old vehicle
+  plotVehicle( result, ILI9341_CYAN );              // plot new vehicle
+  prevVehicle = result;
 }
 // ========== grid screen view =================================
 void updateGridScreen() {
@@ -330,30 +372,36 @@ void updateGridScreen() {
   PointGPS myLocation{ model.gLatitude, model.gLongitude }; // current location
   
   drawGridName(model.gsGridName);   // huge letters centered on screen
+  drawAltitude();                   // height above sea level
+  drawNumSatellites();
   drawPositionLL(model.gsLatitude, model.gsLongitude);  // lat-long of current position
-  //drawCompassPoints();              // sprinkle N-S-E-W around grid square
-  drawBoxLatLong();                   // identify coordinates of grid square box
-  drawNeighborGridNames();            // sprinkle names around outside box
+  //drawCompassPoints();              // show N-S-E-W compass points (disabled, it makes the screen too busy)
+  //drawBoxLatLong();                 // show coordinates of box (disabled, it makes the screen too busy)
+  drawNeighborGridNames();            // show 4-digit names of nearby squares
   drawNeighborDistances();            // this is the main goal of the whole project
-  plotRoute(model.history, model.numHistory, gridOrigin);   // show route track
   plotCurrentPosition(myLocation, gridOrigin);    // show current pushpin
+  plotRoute(model.history, model.numHistory, gridOrigin);   // show route track
 }
 void startGridScreen() {
   // called once each time this view becomes active
-  tft.fillScreen(ILI9341_BLACK);    // clear screen
+  tft.fillScreen(ILI9341_BLACK);      // clear screen
   txtGrid[0].setBackground(ILI9341_BLACK);          // set background for all TextFields in this view
   TextField::setTextDirty( txtGrid, numTextGrid );
 
-  String lngMiles = calcDistanceLong(model.gLatitude, 0.0, minLong);
-  Serial.print("Minimum visible E-W movement x=long="); Serial.print(minLong,6); Serial.print(" degrees = "); Serial.print(lngMiles); Serial.println(" miles");
-  String latMiles = calcDistanceLat(0.0, minLat);
-  Serial.print("Minimum visible N-S movement y=lat="); Serial.print(minLat,6); Serial.print(" degrees = "); Serial.print(latMiles); Serial.println(" miles");
+  double lngMiles = calcDistanceLong(model.gLatitude, 0.0, minLong);
+  Serial.print("Minimum visible E-W movement x=long="); 
+  Serial.print(minLong,6); Serial.print(" degrees = "); 
+  Serial.print(lngMiles,2); Serial.println(" miles");
+
+  //Serial.print("@fencepost: view_grid.cpp line "); Serial.println(__LINE__);  // debug
+  double latMiles = calcDistanceLat(0.0, minLat);
+  Serial.print("Minimum visible N-S movement y=lat="); 
+  Serial.print(minLat,6); Serial.print(" degrees = "); 
+  Serial.print(latMiles,2); Serial.println(" miles");
 
   initFontSizeSmall();
   drawGridOutline();                // box outline around grid
   //tft.drawRect(0, 0, gScreenWidth, gScreenHeight, ILI9341_BLUE);  // debug: border around screen
-  model.grid4dirty = true;          // reset the "previous grid" to trigger the new one to show
-  model.grid6dirty = true;
 
   updateGridScreen();               // fill in values immediately, don't wait for the main loop to eventually get around to it
 }

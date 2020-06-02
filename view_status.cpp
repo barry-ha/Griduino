@@ -63,12 +63,12 @@ TextField txtLabels[numLabels] = {
 // ----- dynamic screen text
 const int numText = 6;
 TextField txtValues[numText] = {
-  TextField(valueX, yRow1, cVALUE),     // 0. GMT time
-  TextField(valueX, yRow2, cVALUE),     // 1. GMT date
-  TextField(valueX, yRow3, cHIGHLIGHT), // 2. Grid6, brighter color because "grid" is important
-  TextField(valueX, yRow4, cVALUE),     // 3. Altitude
-  TextField(valueX, yRow5, cVALUE),     // 4. Satellites
-  TextField(  64,   yRow6, cVALUE),     // 5. lat/long
+  TextField(valueX, yRow1, cVALUE),     // [0] GMT time
+  TextField(valueX, yRow2, cVALUE),     // [1] GMT date
+  TextField(valueX, yRow3, cHIGHLIGHT), // [2] Grid6, brighter color because "grid" is important
+  TextField(valueX, yRow4, cVALUE),     // [3] Altitude
+  TextField(valueX, yRow5, cVALUE),     // [4] Satellites
+  TextField(  64,   yRow6, cVALUE),     // [5] lat/long
 };
 
 // ========== helpers ==========================================
@@ -152,43 +152,15 @@ void updateStatusScreen() {
   
   // ----- center lat/long on its own row
   char sLatLong[22];      // strlen("-xxx.xxxx,-yyy.yyyy") = 19
-  snprintf(sLatLong, 22, "%.4f,%.4f",
+  snprintf(sLatLong, 22, "%.4f, %.4f",
                 model.gLatitude, model.gLongitude);
   txtValues[5].print(sLatLong);
-
-  // ----- values
-  /* ***** todo
-  
-  sValue = String(model.gSpeed, 0);
-  sValue += String(" mph @ "); 
-  sValue += String(model.gAngle, 0);
-  printProportionalText(valueX, yRow5, sValue, cVALUE);
-  // += String(" deg");         // <-- don't use text (too big)
-  // += String(char(248));      // <-- can't use ASCII degree symbol (not in this proportional font)
-  int xx = tft.getCursorX() + 6;
-  int yy = tft.getCursorY() - 14;
-  tft.drawCircle(xx, yy, 3, cVALUE);    // simulate degrees with a circle
-
-  // ----- some items share bottom row
-  tft.drawLine(0,yRow5+14, gScreenWidth,yRow5+14, cSEPARATOR);
-  if (model.gHaveGPSfix) {
-    sValue = String("Yes");
-    printProportionalText(labelX, yRow7, "Yes", cVALUE);
-  } else {
-    printProportionalText(labelX, yRow7, "No ", cWARN);
-  }
-
-  sValue = String(model.gSatellites);
-  printProportionalText(valueX, yRow7, sValue, cVALUE);
-
-  sValue = String(model.gAltitude, 0) + " ft";
-  printProportionalText(190, yRow7, sValue, cVALUE);
-  ***** */
 }
 void startStatScreen() {
   // called once each time this view becomes active
   tft.fillScreen(cBACKGROUND);      // clear screen
   txtValues[0].setBackground(cBACKGROUND);                   // set background for all TextFields in this view
+  TextField::setTextDirty( txtLabels, numLabels );
   TextField::setTextDirty( txtValues, numText );             // make sure all fields get re-printed on screen change
   initFontSizeSmall();
 

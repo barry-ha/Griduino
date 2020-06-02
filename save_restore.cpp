@@ -4,9 +4,15 @@
   QSPI Flash chip on the Feather M4 breakout board has 2 MB capacity.
 
   This design serializes the C++ object by reading and writing a series
-  of fixed-length buffers in the config file. There is one config file
-  per C++ object; files are cheap so we don't share files for different
-  types of settings.
+  of fixed-length buffers in the config file:
+  Field 1: File name - stored inside file itself as a sanity check
+  Field 2: File version - sanity check to ensure 'restore' matches 'save'
+  Field 3: Data - base class stores an integer which is sufficient for
+                  simple things like Volume or TimeZone settings
+
+  There is one config file per C++ object; files are cheap so we don't 
+  share files for different types of settings. Every 'save' operation 
+  will erase and rewrite its associated data file.
 
   'SaveRestore' object is a base class. You can extend it by deriving
   another class, calling the base class methods first to read or write data,
@@ -30,7 +36,7 @@ Adafruit_FlashTransport_QSPI gFlashTransport;
 Adafruit_SPIFlash gFlash(&gFlashTransport);
 FatFileSystem gFatfs;          // file system object from SdFat
 
-// ========== helpers =================================
+// ========== debug helper ============================
 static void dumpHex(const char * text, char * buff, int len) {
   // debug helper to put data on console
   #ifdef RUN_UNIT_TESTS
@@ -46,7 +52,7 @@ static void dumpHex(const char * text, char * buff, int len) {
 }
 
 // ========== load configuration ======================
-int SaveRestore::readConfig() {
+int SaveRestore::readConfig(byte* pData, const int sizeData) {
   // returns 1=success, 0=failure
   int result = 1;             // assume success
   Serial.println("Starting to read config from SDRAM...");
@@ -64,20 +70,20 @@ int SaveRestore::readConfig() {
     return 0;
   }
   
-  // You can get the current position, remaining data, and total size of the file:
+  // Echo metadata about the file:
   Serial.print(". Total file size (bytes): "); Serial.println(readFile.size(), DEC);
-  //Serial.print(". Current position in file: "); Serial.println(readFile.position(), DEC);
-  //Serial.print(". Available data remaining to read: "); Serial.println(readFile.available(), DEC);
+  Serial.print(". Current position in file: "); Serial.println(readFile.position(), DEC);
+  Serial.print(". Available data remaining to read: "); Serial.println(readFile.available(), DEC);
 
   // read first field (filename) from config file...
   char temp[sizeof(fqFilename)];     // buffer size is as large as our largest member variable
   int count = readFile.read(temp, sizeof(fqFilename));
-  dumpHex("fqFilename", temp, sizeof(fqFilename));
+  dumpHex("fqFilename", temp, sizeof(fqFilename));    // debug
   if (count == -1) {
     Serial.print("Error, failed to read first field from ("); Serial.print(fqFilename); Serial.println(")");
     return 0;
   }
-  // verify filename stored inside file exactly matches expected
+  // verify first field (filename) stored inside file exactly matches expected
   if (strcmp(temp, this->fqFilename) != 0) {
     Serial.print("Error, unexpected filename ("); Serial.print(temp); Serial.println(")");
     return 0;
@@ -85,25 +91,25 @@ int SaveRestore::readConfig() {
 
   // read second field (version string) from config file...
   count = readFile.read(temp, sizeof(sVersion));
-  dumpHex("sVersion", temp, sizeof(sVersion));
+  dumpHex("sVersion", temp, sizeof(sVersion));    // debug
   if (count == -1) {
     Serial.print("Error, failed to read version number from ("); Serial.print(fqFilename); Serial.println(")");
     return 0;
   }
-  // verify version stored in file exactly matches expected
+  // verify second field (version string) stored in file exactly matches expected
   if (strcmp(temp, this->sVersion) != 0) {
     Serial.print("Error, unexpected version ("); Serial.print(temp); Serial.println(")");
     return 0;
   }
   // data looks good, read third field (setting) and use its value
-  count = readFile.read(temp, sizeof(intSetting));
-  dumpHex("intSetting", temp, sizeof(intSetting));
+  count = readFile.read(pData, sizeData);
+  dumpHex("pData", (char*)pData, sizeData);    // debug
   if (count == -1) {
-    Serial.print("Error, failed to read setting value from ("); Serial.print(fqFilename); Serial.println(")");
+    Serial.print("Error, failed to read integer value from ("); Serial.print(fqFilename); Serial.println(")");
     return 0;
   }
-  memcpy((void*)&intSetting, temp, sizeof(intSetting));
-  Serial.print(". Setting value: "); Serial.println(intSetting);
+
+  Serial.print(". Data length ("); Serial.print(sizeData); Serial.println(")");
   
   // close files and clean up
   readFile.close();           // TODO - don't close the file (derived classes need to append data)
@@ -112,7 +118,7 @@ int SaveRestore::readConfig() {
   return result;
 }
 // ========== save configuration ======================
-int SaveRestore::writeConfig() {
+int SaveRestore::writeConfig(const byte* pData, const int sizeData) {
   // initialize configuration file in file system, called by setup() if needed
   // assumes this is Feather M4 Express with 2 MB flash
   // returns 1=success, 0=failure
@@ -132,7 +138,7 @@ int SaveRestore::writeConfig() {
 
   Serial.print(". fqFilename ("); Serial.print(fqFilename); Serial.println(")");
   Serial.print(". sVersion ("); Serial.print(sVersion); Serial.println(")");
-  Serial.print(". intSetting ("); Serial.print(intSetting); Serial.println(")");
+  Serial.print(". Data length ("); Serial.print(sizeData); Serial.println(")");
   
   // write config data to file...
   int count;
@@ -146,7 +152,7 @@ int SaveRestore::writeConfig() {
     Serial.print("Error, failed to write version number into ("); Serial.print(fqFilename); Serial.println(")");
     return 0;
   }
-  count = writeFile.write((char*) &intSetting, sizeof(intSetting));
+  count = writeFile.write(pData, sizeData);
   if (count == -1) {
     Serial.print("Error, failed to write setting into ("); Serial.print(fqFilename); Serial.println(")");
     return 0;
@@ -157,7 +163,7 @@ int SaveRestore::writeConfig() {
   return result;
 }
 
-// ----- private helpers -----
+// ----- protected helpers -----
 int SaveRestore::openFlash() {
   // returns 1=success, 0=failure
   

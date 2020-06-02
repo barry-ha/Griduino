@@ -565,22 +565,19 @@ void waitForSerial(int howLong) {
 
 //=========== distance helpers =================================
 
-String calcDistanceLat(double fromLat, double toLat) {
+double calcDistanceLat(double fromLat, double toLat) {
   // calculate distance in N-S direction (miles)
   // returns 4-character String
-  String sDistance("12.3");   // result
 
-  const double R = 3958.8;             // average Earth radius (miles)
+  const double R = 3958.8;            // average Earth radius (miles)
   double angleDegrees = fabs(fromLat - toLat);
   double angleRadians = angleDegrees / degreesPerRadian;
   double distance = angleRadians * R;
-  sDistance = String(distance, 1);
-  return sDistance;
+  return distance;
 }
-String calcDistanceLong(double lat, double fromLong, double toLong) {
+double calcDistanceLong(double lat, double fromLong, double toLong) {
   // calculate distance in E-W direction (degrees)
   // returns 4-character String (miles)
-  String sDistance("123.4");   // result
 
   const double R = 3958.8;             // average Earth radius (miles)
   const double degreesPerRadian = 57.2957795; // conversion factor
@@ -588,6 +585,7 @@ String calcDistanceLong(double lat, double fromLong, double toLong) {
   double angleDegrees = fabs(fromLong - toLong);
   double angleRadians = angleDegrees / degreesPerRadian * scaleFactor;
   double distance = angleRadians * R;
+  /*
   if (distance > 100.0) {
     sDistance = String(distance, 0) + " ";  // make strlen=4
   } else if (distance > 10.0) {
@@ -595,7 +593,8 @@ String calcDistanceLong(double lat, double fromLong, double toLong) {
   } else {
     sDistance = String(distance, 2);
   }
-  return sDistance;
+  */
+  return distance;
 }
 
 //==============================================================
@@ -619,8 +618,11 @@ String calcDistanceLong(double lat, double fromLong, double toLong) {
 #include "model.cpp"
 
 // create an instance of the model
-Model model;
-//model.restore();      // get prev location from non-volatile memory, if available
+#ifdef USE_SIMULATED_GPS
+  MockModel model;  // debug: simulated travel (see model.cpp)
+#else
+  Model model;      // normal: use real GPS hardware
+#endif
 
 //==============================================================
 //
@@ -796,21 +798,24 @@ void setup() {
   // ----- init touch screen
   ts.pressureThreshhold = 200;
 
+  // ----- report on our memory hog
+  char temp[200];
+  Serial.println("Large resources:");
+  snprintf(temp, sizeof(temp), 
+          "  Model.history[%d] uses %d bytes/entry = %d bytes total size",
+             model.numHistory, sizeof(Location), sizeof(model.history));
+  Serial.println(temp);
+
   // ----- run unit tests, if allowed by "#define RUN_UNIT_TESTS"
   #ifdef RUN_UNIT_TESTS
   void runUnitTest();                 // extern declaration
   runUnitTest();                      // see "unit_test.cpp"
   #endif
 
-  // ----- announce ourselves
-  startSplashScreen();
-
-  /* debug: removed to speed up testing.....
-  // at 18 wpm, it takes 12 seconds to send "de k7bwh es km7o" 
-  dacMorse.setMessage("de k7bwh es km7o");
-  dacMorse.sendBlocking();            // TODO - send non-blocking
-  ..... */
-  delay(1000);
+  // ----- init first data shown with last known position and driving track history
+  model.restore();
+  model.gHaveGPSfix = false;          // assume no satellite signal yet
+  model.gSatellites = 0;
 
   startHelpScreen();
   delay(2000);
@@ -880,22 +885,19 @@ void loop() {
   }
 
   if (model.enteredNewGrid()) {
-    gaUpdateView[gViewIndex]();       // update display first, and then...
-
+    gaStartView[gViewIndex]();        // update display, ensure any leftover breadcrumb trail is erased, and then...
     sendMorseGrid4(model.gsGridName); // announce new grid by Morse code
-
-    model.grid4dirty = true;
-    model.grid6dirty = true;
   }
 
   // if there's touchscreen input, handle it
   Point touch;
   if (newScreenTap(&touch)) {
-    bool touchHandled = gaOnTouch[gViewIndex](touch);
 
     //const int radius = 3;     // debug
     //tft.fillCircle(touch.x, touch.y, radius, cWARN);  // debug - show dot
     //touchHandled = true;      // debug - true=stay on same screen
+
+    bool touchHandled = gaOnTouch[gViewIndex](touch);
 
     if (!touchHandled) {
       // not handled by one of the views, so run our default action
@@ -909,5 +911,5 @@ void loop() {
 
   // make a small progress bar crawl along bottom edge
   // this gives a sense of how frequently the main loop is executing
-  showActivityBar(239, ILI9341_RED, ILI9341_BLACK);
+  showActivityBar(tft.height()-1, ILI9341_RED, cBACKGROUND);
 }

@@ -40,10 +40,13 @@
 
 // ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE   "Griduino GMT Clock"
-#define PROGRAM_VERSION "v0.09"
+#define PROGRAM_VERSION "v0.10"
 #define PROGRAM_LINE1   "Barry K7BWH"
 #define PROGRAM_LINE2   "John KM7O"
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
+
+//#define ECHO_GPS_SENTENCE           // comment out to quiet down the serial monitor
+//#define SHOW_TOUCH_TARGET           // comment out for production
 
 // ========== forward reference ================================
 void timePlus();
@@ -127,18 +130,31 @@ Adafruit_GPS GPS(&Serial1);
 struct Point {
   int x, y;
 };
+struct Rect {
+  Point ul;
+  Point size;
+  bool contains(const Point touch) {
+    if (ul.x <= touch.x && touch.x <= ul.x+size.x
+     && ul.y <= touch.y && touch.y <= ul.y+size.y) {
+      return true;
+     } else {
+      return false;
+     }
+  }
+};
 typedef void (*simpleFunction)();
 typedef struct {
   char text[26];
   int x, y;
   int w, h;
+  Rect hitTarget;
   int radius;
   uint16_t color;
   simpleFunction function;
 } Button;
 
 // ------------ definitions
-const int howLongToWait = 6;  // max number of seconds at startup waiting for Serial port to console
+const int howLongToWait = 4;  // max number of seconds at startup waiting for Serial port to console
 #define SCREEN_ROTATION 1     // 1=landscape, 3=landscape 180 degrees
 
 // ------------ global scope
@@ -423,9 +439,16 @@ TextField txtClock[] = {
 const int numClockFields = sizeof(txtClock)/sizeof(TextField);
 
 Button timeButtons[] = {
-  // text  x,y      w,h  radius  color     function
-  { "+",  66,204,  36,30,  4,  cTEXTCOLOR, timePlus  },  // Up
-  { "-", 226,204,  36,30,  4,  cTEXTCOLOR, timeMinus },  // Down
+  // For "GMT_clock" we have rather small modest +/- buttons, meant to visually
+  // fade a little into the background. However, we want larger touch-targets to 
+  // make them easy to press.
+  //
+  // 3.2" display is 320 x 240 pixels, landscape, (y=239 reserved for activity bar)
+  //
+  // label  origin   size      touch-target     
+  // text    x,y      w,h      x,y      w,h   radius  color     function
+  {  "+",   66,204,  36,30, { 30,180, 110,59},  4,  cTEXTCOLOR, timePlus  },  // Up
+  {  "-",  226,204,  36,30, {190,180, 110,59},  4,  cTEXTCOLOR, timeMinus },  // Down
 };
 const int nTimeButtons = sizeof(timeButtons)/sizeof(Button);
 
@@ -452,6 +475,12 @@ void startViewScreen() {
     Button item = timeButtons[ii];
     tft.fillRoundRect(item.x, item.y, item.w, item.h, item.radius, cBUTTONFILL);
     tft.drawRoundRect(item.x, item.y, item.w, item.h, item.radius, cBUTTONOUTLINE);
+
+    #ifdef SHOW_TOUCH_TARGETS
+    tft.drawRect(item.hitTarget.ul.x, item.hitTarget.ul.y,  // debug: draw outline around hit target
+                 item.hitTarget.size.x, item.hitTarget.size.y, 
+                 cBUTTONOUTLINE); 
+    #endif
 
     tft.setCursor(item.x+item.w/2-7, item.y+item.h/2+5);
     tft.setTextColor(item.color);
@@ -692,7 +721,7 @@ void setup() {
 uint32_t prevTimeGPS = millis();
 const int GPS_PROCESS_INTERVAL = 1000;  // milliseconds between updating the model's GPS data
 uint32_t prevTimeTouch = millis();
-const int TOUCH_PROCESS_INTERVAL = 10;  // milliseconds between polling for touches
+const int TOUCH_PROCESS_INTERVAL = 5;   // milliseconds between polling for touches
 
 void loop() {
 
@@ -715,7 +744,9 @@ void loop() {
       // this also sets the newNMEAreceived() flag to false
       return;
     } else {
+      #ifdef ECHO_GPS_SENTENCE
       Serial.print(GPS.lastNMEA());   // debug
+      #endif
     }
   }
 
@@ -727,20 +758,26 @@ void loop() {
     updateView();                     // update current screen
   }
 
-  // periodically check for screen touch
+  // if there's touchscreen input, handle it
   if (millis() - prevTimeTouch > TOUCH_PROCESS_INTERVAL) {
     prevTimeTouch = millis();         // start another interval
     Point touch;
     if (newScreenTap(&touch)) {
-      if (touch.x < tft.width() / 2) {
-        timePlus();                   // left half screen
-      } else {
-        timeMinus();                  // right half screen
+
+      #ifdef SHOW_TOUCH_TARGET
+      tft.fillCircle(touch.x, touch.y, 3, cWARN);  // debug - show dot, radius=3
+      #endif
+
+      for (int ii=0; ii<nTimeButtons; ii++) {
+        if (timeButtons[ii].hitTarget.contains( touch )) {
+          timeButtons[ii].function(); // dispatch to timePlus() or timeMinus()
+          Serial.print("Hit! target = "); Serial.println(ii);
+        }
       }
     }
   }
 
   // make a small progress bar crawl along bottom edge
   // this gives a sense of how frequently the main loop is executing
-  showActivityBar(239, ILI9341_RED, ILI9341_BLACK);
+  showActivityBar(tft.height()-1, ILI9341_RED, cBACKGROUND);
 }
