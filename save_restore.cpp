@@ -56,6 +56,7 @@ int SaveRestore::readConfig(byte* pData, const int sizeData) {
   // returns 1=success, 0=failure
   int result = 1;             // assume success
   Serial.println("Starting to read config from SDRAM...");
+  Serial.print(". fqFilename ("); Serial.print(fqFilename); Serial.println(")");
     
   result = openFlash();       // open file system
   if (!result) {
