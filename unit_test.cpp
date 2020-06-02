@@ -213,13 +213,13 @@ void verifySaveRestoreGPSModel() {
   if (gpsModel.save()) {
     Serial.println("Success, GPS model stored to SDRAM");
   } else {
-    Serial.println("ERROR! Failed to save GPS model to SDRAM");
+    Serial.print("Unit test error: Failed to save GPS model to SDRAM, line "); Serial.println(__LINE__);
   }
 
   if (gpsModel.restore()) {    // test reading same data back from SDRAM
     Serial.println("Success, GPS model restored from SDRAM");
   } else {
-    Serial.println("ERROR! Failed to retrieve GPS model from SDRAM");
+    Serial.print("Unit test error: Failed to retrieve GPS model from SDRAM, line "); Serial.println(__LINE__);
   }
 }
 // =============================================================
@@ -440,8 +440,8 @@ void runUnitTest() {
   tft.print("  --Open console monitor to see unit test results--");
   delay(1000);
 
-  verifyMorseCode();                            // verify Morse code
-  verifySaveRestoreVolume();    countDown(15);  // verify save/restore an integer setting in SDRAM
+  //verifyMorseCode();                            // verify Morse code
+  verifySaveRestoreVolume();    countDown(10);  // verify save/restore an integer setting in SDRAM
   verifySaveRestoreArray();     countDown(20);  // verify save/restore an array in SDRAM
   verifySaveRestoreGPSModel();  countDown(20);  // verify save/restore GPS model state in SDRAM
   verifyWritingProportionalFont();              // verify writing proportional font
