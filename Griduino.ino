@@ -19,6 +19,7 @@
             v10.1 add GPS save/restore to visually power up in the same place as previous
             v12.0 refactors screen writing to class TextField
             v13.0 begin implementing our own TouchScreen functions
+            v15.0 adds simulated GPS track (class MockModel)
 
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
@@ -813,7 +814,7 @@ void setup() {
   #endif
 
   // ----- init first data shown with last known position and driving track history
-  model.restore();
+  //model.restore();
   model.gHaveGPSfix = false;          // assume no satellite signal yet
   model.gSatellites = 0;
 
