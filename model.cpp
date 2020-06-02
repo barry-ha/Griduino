@@ -3,6 +3,9 @@
 
 /* File: model.cpp
    Project: Griduino by Barry K7BWH
+
+   Note: All data must be self-contained so it can be save/restored in 
+         non-volatile memory; do not use String class because it's on the heap.
 */
 
 #include <Arduino.h>
@@ -94,7 +97,7 @@ class Model {
         Serial.println("Success, GPS Model restored from SDRAM");
         copyFrom( tempModel );
       } else {
-        Serial.println("ERROR! Failed to restore GPS Model object to SDRAM");
+        Serial.println("Error, failed to restore GPS Model object to SDRAM");
         return 0;     // return failure
       }
       // note: the caller is responsible for fixups to the model, e.g., indicate 'lost satellite signal'
@@ -212,7 +215,19 @@ class Model {
         history[nextHistoryItem].ss = vSecond;
 
         nextHistoryItem = (++nextHistoryItem % numHistory);
+
+        // now the GPS location is saved in history array, now protect 
+        // the array in non-volatile memory in case of power loss
+        #ifdef USE_SIMULATED_GPS
+          const int SAVE_INTERVAL = 8;
+        #else
+          const int SAVE_INTERVAL = 2;
+        #endif
+        if (nextHistoryItem % SAVE_INTERVAL == 0) {
+          save();   // filename is MODEL_FILE[25] defined above
+        }
       }
+
     }
     void dumpHistory() {
       Serial.println("History review........");
