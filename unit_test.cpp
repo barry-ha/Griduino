@@ -447,7 +447,7 @@ void runUnitTest() {
   verifyBreadCrumbs();          countDown(5);   // verify pushpins near the four corners
   verifyBreadCrumbTrail1();     countDown(5);   // verify painting the bread crumb trail
   verifyBreadCrumbTrail2();     countDown(10);  // verify painting the bread crumb trail
-  verifySaveTrail();            countDown(20);  // save GPS route to non-volatile memory
+  verifySaveTrail();            countDown(10);  // save GPS route to non-volatile memory
   verifyRestoreTrail();         countDown(5);   // restore GPS route from non-volatile memory
 
   verifyDerivingGridSquare();   countDown(5);   // verify deriving grid square from lat-long coordinates

@@ -72,43 +72,6 @@ TextField txtValues[numText] = {
 };
 
 // ========== helpers ==========================================
-void erasePrintProportionalText(int xx, int yy, int ww, String text, uint16_t cc) {
-  // TODO: remove this function, it is replaced by TextField object
-  // use this to specify the width to erase
-
-  // find the height of erasure
-  int16_t x1, y1;
-  uint16_t w, h;
-  tft.getTextBounds(text, xx, yy, &x1, &y1, &w, &h);
-
-  tft.fillRect(x1-4, y1-2, ww, h+4, cBACKGROUND); // erase the requested width of old text
-  //tft.drawRect(x1-4, y1-2, ww, h+4, cWARN);       // debug: show what area was erased
-
-  // print new text in same spot
-  tft.setCursor(xx, yy);
-  tft.setTextColor(cc);
-  tft.print(text);
-}
-void printProportionalText(int xx, int yy, String text, uint16_t cc) {
-  // Note about proportional fonts:
-  // 1. Text origin is bottom left corner
-  // 2. Rect origin is upper left corner
-  // 2. Printing text does not clear its own background
-
-  // erase old text, 
-  // and a few extra pixels around it, in case it was longer than the new text
-  int16_t x1, y1;
-  uint16_t w, h;
-  tft.getTextBounds(text, xx, yy, &x1, &y1, &w, &h);
-
-  tft.fillRect(x1-4, y1-2, w+10, h+4, cBACKGROUND); // erase the old text
-  tft.drawRect(x1-4, y1-2, w+10, h+4, cWARN);       // debug: show what area was erased
-
-  // print new text in same spot
-  tft.setCursor(xx, yy);
-  tft.setTextColor(cc);
-  tft.print(text);
-}
 
 // ========== start status screen view =========================
 void updateStatusScreen() {

@@ -93,7 +93,6 @@ TFT No connection:
   #define TFT_DC  12    // TFT display/command pin
 
 #else
-  // todo: Unknown platform
   #warning You need to define pins for your hardware
 
 #endif

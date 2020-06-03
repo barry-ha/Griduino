@@ -19,7 +19,8 @@
             v10.1 add GPS save/restore to visually power up in the same place as previous
             v12.0 refactors screen writing to class TextField
             v13.0 begin implementing our own TouchScreen functions
-            v15.0 adds simulated GPS track (class MockModel)
+            v15.0 add simulated GPS track (class MockModel)
+            v16.0 add GMT Clock view
 
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
@@ -148,7 +149,6 @@ On-board lights:
   #define BMP_CS  13    // BMP388 sensor, chip select
 
 #else
-  // todo: Unknown platform
   #warning You need to define pins for your hardware
 
 #endif
@@ -174,7 +174,6 @@ Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
   #define PIN_YP  A2    // Touchscreen Y+ must be an analog pin, use "An" notation
   #define PIN_YM   5    // Touchscreen Y- can be a digital pin
 #else
-  // todo: Unknown platform
   #warning You need to define pins for your hardware
 
 #endif

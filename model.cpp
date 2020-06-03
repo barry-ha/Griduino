@@ -218,7 +218,7 @@ class Model {
     void indicateSignalLost() {
       // we want SOME indication to not trust the readings
       // but make it low-key to not distract the driver
-      // TODO - architecturally, it seems like this subroutine should be part of the view (not model)
+      // todo - architecturally, it seems like this subroutine should be part of the view (not model)
       //strncpy(gsLatitude, sizeof(gsLatitude), INIT_LAT);    // GPS position, string
       //strncpy(gsLongitude, sizeof(gsLongitude), INIT_LONG);
     }

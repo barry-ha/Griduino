@@ -75,7 +75,6 @@ void timeMinus();
   #define BMP_CS  13    // BMP388 sensor, chip select
 
 #else
-  // todo: Unknown platform
   #warning You need to define pins for your hardware
 
 #endif
@@ -101,7 +100,6 @@ Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
   #define PIN_YP  A2    // Touchscreen Y+ must be an analog pin, use "An" notation
   #define PIN_YM   5    // Touchscreen Y- can be a digital pin
 #else
-  // todo: Unknown platform
   #warning You need to define pins for your hardware
 
 #endif
@@ -654,7 +652,7 @@ void setup() {
   GPS.sendCommand(PMTK_Q_RELEASE);    // Send query to GPS unit
                                       // expected reply: $PMTK705,AXN_2.10...
   // ----- init onboard LED
-  // todo: how to turn off the solid red led next to the USB connector?
+  // turn off the solid red led next to the USB connector
   pinMode(RED_LED, OUTPUT);           // diagnostics RED LED
   digitalWrite(RED_LED, LOW);         // this led defaults to "on" so turn it off
   

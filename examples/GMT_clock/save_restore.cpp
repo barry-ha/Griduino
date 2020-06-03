@@ -103,8 +103,7 @@ int SaveRestore::readConfig() {
   Serial.print(". Setting value: "); Serial.println(intSetting);
   
   // close files and clean up
-  readFile.close();           // TODO - don't close the file (derived classes need to append data)
-  //gFlash.end();             // this causes "undefined reference to 'Adafruit_SPIFlash::end()'
+  readFile.close();
 
   return result;
 }
@@ -152,8 +151,7 @@ int SaveRestore::writeConfig() {
     return 0;
   }
   
-  writeFile.close();           // TODO - don't close the file (derived classes need to append data)
-                               // until then we MUST close the file to flush the buffer
+  writeFile.close();
   return result;
 }
 
