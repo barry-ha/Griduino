@@ -46,6 +46,8 @@ const double degreesPerRadian = 57.2957795;
 #define cBUTTONFILL     ILI9341_NAVY
 #define cBUTTONOUTLINE  ILI9341_CYAN
 #define cBREADCRUMB     ILI9341_CYAN
+#define cTEXTCOLOR      ILI9341_CYAN
+#define cTEXTFAINT      0x0514            // 0, 160, 160 = blue, between CYAN and DARKCYAN
 //efine cBOXDEGREES     0x0514            // 0, 160, 160 = blue, between CYAN and DARKCYAN
 #define cBOXDEGREES     0x0410            // 0, 128, 128 = blue, between CYAN and DARKCYAN
 #define cBUTTONLABEL    ILI9341_YELLOW
@@ -61,11 +63,19 @@ struct PointGPS{
     double lat, lng;
 };
 
-struct Rectangle {
-  int left, top;
-  int width, height;
-  char label[12];
+struct Rect {
+  Point ul;
+  Point size;
+  bool contains(const Point touch) {
+    if (ul.x <= touch.x && touch.x <= ul.x+size.x
+     && ul.y <= touch.y && touch.y <= ul.y+size.y) {
+      return true;
+     } else {
+      return false;
+     }
+  }
 };
+
 struct Label {
   char text[26];
   int x, y;
@@ -81,6 +91,16 @@ typedef struct {
   uint16_t color;
   simpleFunction function;
 } Button;
+
+typedef struct {
+  char text[26];
+  int x, y;
+  int w, h;
+  Rect hitTarget;
+  int radius;
+  uint16_t color;
+  simpleFunction function;
+} TimeButton;
 
 class Location {
   public:

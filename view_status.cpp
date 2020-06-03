@@ -112,6 +112,8 @@ void printProportionalText(int xx, int yy, String text, uint16_t cc) {
 
 // ========== start status screen view =========================
 void updateStatusScreen() {
+  // called on every pass through main()
+
   initFontSizeSmall();
 
   // ----- GMT time
@@ -167,6 +169,9 @@ void startStatScreen() {
   for (int ii=0; ii<numLabels; ii++) {
     txtLabels[ii].print();
   }
+
+  // debug: show centerline on display
+  //tft.drawLine(tft.width()/2,0, tft.width()/2,tft.height(), cWARN); // debug
 
   updateStatusScreen();             // fill in values immediately, don't wait for the main loop to eventually get around to it
 }

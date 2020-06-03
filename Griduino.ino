@@ -77,6 +77,7 @@
 #include "Adafruit_ILI9341.h"       // TFT color display library
 #include "Adafruit_GPS.h"           // Ultimate GPS library
 #include "TouchScreen.h"            // Touchscreen built in to 3.2" Adafruit TFT display
+#include "Adafruit_BMP3XX.h"        // Precision barometric and temperature sensor
 #include "constants.h"              // Griduino constants and colors
 #include "DS1804.h"                 // DS1804 digital potentiometer library
 #include "save_restore.h"           // save/restore configuration data to SDRAM
@@ -133,6 +134,7 @@ On-board lights:
   #define TFT_BL   4    // TFT backlight
   #define TFT_CS   5    // TFT chip select pin
   #define TFT_DC  12    // TFT display/command pin
+  #define BMP_CS  13    // BMP388 sensor, chip select
 
   #define SD_CD   10    // SD card detect pin - Feather
   #define SD_CCS  11    // SD card select pin - Feather
@@ -143,6 +145,7 @@ On-board lights:
   #define SD_CD    8    // SD card detect pin - Mega
   #define TFT_DC   9    // TFT display/command pin
   #define TFT_CS  10    // TFT chip select pin
+  #define BMP_CS  13    // BMP388 sensor, chip select
 
 #else
   // todo: Unknown platform
@@ -177,8 +180,12 @@ Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 #endif
 TouchScreen ts = TouchScreen(PIN_XP, PIN_YP, PIN_XM, PIN_YM, 295);
 
-// ---------- Onboard LED
-#define RED_LED 13    // diagnostics RED LED
+// ---------- Barometric and Temperature Sensor
+Adafruit_BMP3XX baro(BMP_CS); // hardware SPI
+
+// ---------- Feather's onboard lights
+#define RED_LED 13          // diagnostics RED LED
+//efine PIN_LED 13          // already defined in Feather's board variant.h
 
 // ---------- GPS ----------
 /* "Ultimate GPS" pin wiring is connected to a dedicated hardware serial port
@@ -209,9 +216,10 @@ int gWordsPerMinute = 18;     // initial Morse code sending speed
 
 // ------------ definitions
 const int howLongToWait = 6;  // max number of seconds at startup waiting for Serial port to console
-const int gNumViews = 3;      // total number of different views (screens) we've implemented
+const int gNumViews = 4;      // total number of different views (screens) we've implemented
 int gViewIndex = 0;           // selects which view to show first
                               // init to a safe value, override in setup()
+                              // todo: save/restore the selected screen for power loss
 
 // ========== global scope =====================================
 int gTextSize;                          // no such function as "tft.getTextSize()" so remember it on our own
@@ -244,6 +252,10 @@ void saveConfigVolume();
 void updateSplashScreen();              // view_splash.cpp
 void startSplashScreen();
 bool onTouchSplash(Point touch);
+
+void updateTimeScreen();                // view_time.cpp
+void startTimeScreen();
+bool onTouchTime(Point touch);
 
 void updateHelpScreen();                // view_help.cpp
 void startHelpScreen();
@@ -282,7 +294,7 @@ bool newScreenTap(Point* pPoint) {
       Serial.print(","); Serial.print(pPoint->y); Serial.println(")");
     }
   }
-  //delay(100);   // no delay: code above completely handles debouncing without blocking the loop
+  //delay(10);   // no delay: code above completely handles debouncing without blocking the loop
   return result;
 }
 
@@ -435,6 +447,11 @@ void initFontSizeBig() {
   gCharWidth = gUnitFontWidth * gTextSize;
   gCharHeight = gUnitFontHeight * gTextSize;
 }
+#include "Fonts/FreeSans18pt7b.h"       // we use double-size 18-pt font
+void initFontSize36() {                 // otherwise the largest single-size font is 24-pt
+  tft.setFont(&FreeSans18pt7b);         // which looks smoother but is not big enough
+  tft.setTextSize(2);
+}
 #include "Fonts/FreeSans12pt7b.h"
 void initFontSizeSmall() {
   tft.setFont(&FreeSans12pt7b);
@@ -446,6 +463,13 @@ void initFontSizeSmall() {
   gCharWidth = gUnitFontWidth * gTextSize;
   gCharHeight = gUnitFontHeight * gTextSize;
 }
+
+#include "Fonts/FreeSans9pt7b.h"    // smallest font for program name
+void initFontSizeSmallest() {
+  tft.setFont(&FreeSans9pt7b);
+  tft.setTextSize(1);
+}
+
 void initFontSizeSystemSmall() {
   tft.setFont();
   gTextSize = 2;
@@ -458,6 +482,7 @@ void initFontSizeSystemSmall() {
   gCharWidth = gUnitFontWidth * gTextSize;
   gCharHeight = gUnitFontHeight * gTextSize;
 }
+
 int getOffsetToCenterText(String text) {
   // measure width of given text in current font and 
   // calculate X-offset to make it centered left-right on screen
@@ -594,15 +619,6 @@ double calcDistanceLong(double lat, double fromLong, double toLong) {
   double angleDegrees = fabs(fromLong - toLong);
   double angleRadians = angleDegrees / degreesPerRadian * scaleFactor;
   double distance = angleRadians * R;
-  /*
-  if (distance > 100.0) {
-    sDistance = String(distance, 0) + " ";  // make strlen=4
-  } else if (distance > 10.0) {
-    sDistance = String(distance, 1);
-  } else {
-    sDistance = String(distance, 2);
-  }
-  */
   return distance;
 }
 
@@ -646,6 +662,7 @@ double calcDistanceLong(double lat, double fromLong, double toLong) {
 //#include "view_help.cpp"
 //#include "view_grid.cpp"
 //#include "view_status.cpp"
+//#include "view_gmt.cpp"
 //#include "view_volume.cpp"
 
 //==============================================================
@@ -659,6 +676,7 @@ void (*gaUpdateView[])() = {
     // array of pointers to functions that take no arguments and return void
     updateGridScreen,     // first entry is the first view displayed after setup()
     updateStatusScreen,
+    updateTimeScreen,
     updateVolumeScreen,
     //updateSplashScreen,
     //updateHelpScreen,
@@ -666,6 +684,7 @@ void (*gaUpdateView[])() = {
 void (*gaStartView[])() = {
     startGridScreen,      // first entry is the first view displayed after setup()
     startStatScreen,
+    startTimeScreen,
     startVolumeScreen,
     //startSplashScreen,
     //startHelpScreen,
@@ -673,6 +692,7 @@ void (*gaStartView[])() = {
 bool (*gaOnTouch[])(Point touch) = {
     onTouchGrid,
     onTouchStatus,
+    onTouchTime,
     onTouchVolume,
     //onTouchSplash,
     //onTouchHelp,

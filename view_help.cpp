@@ -4,15 +4,15 @@
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
 
-  +-----------------------------------+
-  | Hint:                             |
-  |   Tap to change view              |
-  |                                   |
-  |-----------------------------------|
-  |                                   |
-  |   Tap to change brightness        |
-  |                                   |
-  +-----------------------------------+
+  +-----------------------------------------+
+  | Hint:                                   |
+  |    Tap to change view                   |
+  |                                         |
+  |-----------------------------------------|
+  |                                         |
+  |    Tap to change brightness             |
+  |                                         |
+  +-------+-------------------------+-------+
    
 */
 
@@ -46,6 +46,8 @@ Button helpButtons[nHelpButtons] = {
 
 // ========== help screen view =================================
 void updateHelpScreen() {
+  // called on every pass through main()
+
   // nothing to do in the main loop - this screen has no dynamic items
 }
 void startHelpScreen() {
