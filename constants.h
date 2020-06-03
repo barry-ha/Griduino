@@ -34,6 +34,9 @@ const double degreesPerRadian = 57.2957795;
                                     // c:\Users\barry\AppData\Local\Arduino15\packages\adafruit\hardware\samd\1.5.7\variants\feather_m4\variant.h
 #define CONFIG_FOLDER  "/Griduino"
 
+// ----- alias names for setFontSize()
+enum { eFONTGIANT=36, eFONTBIG=24, eFONTSMALL=12, eFONTSMALLEST=9, eFONTSYSTEM=0 };
+
 // ----- color scheme
 // RGB 565 color code: http://www.barth-dev.de/online/rgb565-color-picker/
 #define BACKGROUND      0x00A             // a little darker than ILI9341_NAVY
@@ -48,7 +51,7 @@ const double degreesPerRadian = 57.2957795;
 #define cBREADCRUMB     ILI9341_CYAN
 #define cTEXTCOLOR      ILI9341_CYAN
 #define cTEXTFAINT      0x0514            // 0, 160, 160 = blue, between CYAN and DARKCYAN
-//efine cBOXDEGREES     0x0514            // 0, 160, 160 = blue, between CYAN and DARKCYAN
+//define cBOXDEGREES    0x0514            // 0, 160, 160 = blue, between CYAN and DARKCYAN
 #define cBOXDEGREES     0x0410            // 0, 128, 128 = blue, between CYAN and DARKCYAN
 #define cBUTTONLABEL    ILI9341_YELLOW
 #define cCOMPASS        ILI9341_BLUE      // a little darker than cBUTTONOUTLINE

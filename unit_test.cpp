@@ -19,10 +19,7 @@ float nextGridLineWest(float longitudeDegrees);       // Griduino.ino
 void calcLocator(char* result, double lat, double lon, int precision); // Griduino.ino
 double calcDistanceLat(double fromLat, double toLat); // Griduino.ino
 double calcDistanceLong(double lat, double fromLong, double toLong);  // Griduino.ino
-void initFontSizeBig();                     // Griduino.ino
-void initFontSizeSmall();                   // Griduino.ino
-void initFontSizeSystemSmall();             // Griduino.ino
-void drawProportionalText(int ulX, int ulY, String prevText, String newText, bool dirty);
+void setFontSize(int font);                    // Griduino.ino
 void clearScreen();                         // Griduino.ino
 
 void updateGridScreen();                    // view_grid.cpp
@@ -222,25 +219,6 @@ void verifySaveRestoreGPSModel() {
   }
 }
 // =============================================================
-// verify writing proportional font
-void verifyWritingProportionalFont() {
-  // visual test: if this code works correctly, each string will exactly erase the previous one
-  Serial.print("-------- verifyWritingProportionalFont() at line "); Serial.println(__LINE__);
-
-  initFontSizeBig();
-  int waitTime = 400;    // fast=10 msec, easy-to-read=1000 msec
-
-  // visual test: check that prev text is fully erased when new text written
-  int middleRowY = tft.height()/2;
-  drawProportionalText(24, middleRowY, String("MM88"),   String("abc"), true); delay(waitTime);
-  drawProportionalText(24, middleRowY, String("abc"),    String("defghi"), true); delay(waitTime);
-  drawProportionalText(24, middleRowY, String("defghi"), String("jklmnop"), true); delay(waitTime);
-  drawProportionalText(24, middleRowY, String("jklmnop"),String("xyz"), true); delay(waitTime);
-  drawProportionalText(24, middleRowY, String("xyz"),    String("qrstu"), true); delay(waitTime);
-  drawProportionalText(24, middleRowY, String("qrstu"),  String("vwxyz0"), true); delay(waitTime);
-  drawProportionalText(24, middleRowY, String("vwxyz0"), String(""), true);
-}
-// =============================================================
 // verify painting individual bread crumbs (locations)
 void verifyBreadCrumbs() {
   // plotting a series of pushpins (bread crumb trail)
@@ -411,7 +389,7 @@ void verifyComputingGridLines() {
 // =============================================================
 void countDown(int iSeconds) {
   Serial.print("Counting "); Serial.print(iSeconds); Serial.println(" sec...");
-  initFontSizeSystemSmall();
+  setFontSize(0);
   tft.setTextSize(2);
   tft.setTextColor(ILI9341_BLACK, ILI9341_WHITE);
   for (int ii=iSeconds; ii>0; ii--) {
@@ -427,10 +405,12 @@ void runUnitTest() {
   tft.fillScreen(ILI9341_BLACK);
 
   // ----- announce ourselves
-  initFontSizeBig();
-  drawProportionalText(12 /*gCharWidth*/, 38 /*gCharHeight*/, String(""), String("--Unit Test--"), true);
+  setFontSize(24);
+  tft.setCursor(12, 38);
+  tft.setTextColor(ILI9341_WHITE);
+  tft.print( "--Unit Test--");
 
-  initFontSizeSystemSmall();
+  setFontSize(0);
   tft.setTextSize(1);
   tft.setTextColor(ILI9341_YELLOW);
   tft.setCursor(0, tft.height() - 12); // move to bottom row

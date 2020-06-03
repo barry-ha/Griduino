@@ -159,6 +159,9 @@ const int howLongToWait = 4;  // max number of seconds at startup waiting for Se
 int gTimeZone = -7;                     // default local time Pacific (-7 hours), saved in nonvolatile memory
 int gSatellites = 0;                    // number of satellites
 
+// ----- alias names for setFontSize()
+enum { eFONTGIANT=36, eFONTBIG=24, eFONTSMALL=12, eFONTSMALLEST=9, eFONTSYSTEM=0 };
+
 // ----- color scheme
 // RGB 565 color code: http://www.barth-dev.de/online/rgb565-color-picker/
 #define cBACKGROUND     0x00A             // 0,   0,  10 = darker than ILI9341_NAVY, but not black
@@ -173,8 +176,6 @@ int gSatellites = 0;                    // number of satellites
 #define cBUTTONOUTLINE  ILI9341_BLUE      // 0,   0, 255 = darker than cyan
 #define cBUTTONLABEL    ILI9341_YELLOW
 #define cWARN           0xF844            // brighter than ILI9341_RED but not pink
-
-// ============== constants ====================================
 
 // ============== GPS helpers ==================================
 void processGPS() {
@@ -362,21 +363,46 @@ float getTemperature() {
 
   "Fonts" folder is inside \Documents\User\Arduino\libraries\Adafruit_GFX
 */
-#include "Fonts/FreeSans18pt7b.h"   // we use double-size 18-pt font
-void initFontSizeBig() {            // otherwise the largest single-size font is 24-pt
-  tft.setFont(&FreeSans18pt7b);     // which looks smoother but is not big enough
-  tft.setTextSize(2);
+#include "Fonts/FreeSans18pt7b.h"       // eFONTGIANT    36 pt (see constants.h)
+#include "Fonts/FreeSansBold24pt7b.h"   // eFONTBIG      24 pt
+#include "Fonts/FreeSans12pt7b.h"       // eFONTSMALL    12 pt
+#include "Fonts/FreeSans9pt7b.h"        // eFONTSMALLEST  9 pt
+// (built-in)                           // eFONTSYSTEM    8 pt
+
+void setFontSize(int font) {
+  // input: "font" = point size
+  switch (font) {
+    case 36:  // eFONTGIANT
+      tft.setFont(&FreeSans18pt7b);
+      tft.setTextSize(2);
+      break;
+
+    case 24:  // eFONTBIG
+      tft.setFont(&FreeSansBold24pt7b);
+      tft.setTextSize(1);
+      break;
+
+    case 12:  // eFONTSMALL
+      tft.setFont(&FreeSans12pt7b);
+      tft.setTextSize(1);
+      break;
+
+    case 9:   // eFONTSMALLEST
+      tft.setFont(&FreeSans9pt7b);
+      tft.setTextSize(1);
+      break;
+
+    case 0:   // eFONTSYSTEM
+      tft.setFont();
+      tft.setTextSize(2);
+      break;
+
+    default:
+      Serial.print("Error, unknown font size ("); Serial.print(font); Serial.println(")");
+      break;
+  }
 }
-#include "Fonts/FreeSans12pt7b.h"   // 12-pt font for local time and temperature
-void initFontSizeSmall() {
-  tft.setFont(&FreeSans12pt7b);
-  tft.setTextSize(1);
-}
-#include "Fonts/FreeSans9pt7b.h"    // smallest font for program name
-void initFontSizeSmallest() {
-  tft.setFont(&FreeSans9pt7b);
-  tft.setTextSize(1);
-}
+
 
 // ========== splash screen helpers ============================
 // splash screen layout
@@ -401,12 +427,12 @@ void startSplashScreen() {
   txtSplash[0].setBackground(cBACKGROUND);          // set background for all TextFields
   TextField::setTextDirty( txtSplash, numSplashFields ); // make sure all fields are updated
 
-  initFontSizeSmall();
+  setFontSize(eFONTSMALL);
   for (int ii=0; ii<4; ii++) {
     txtSplash[ii].print();
   }
 
-  initFontSizeSmallest();
+  setFontSize(eFONTSMALLEST);
   for (int ii=4; ii<numSplashFields; ii++) {
     txtSplash[ii].print();
   }
@@ -454,21 +480,21 @@ void startViewScreen() {
   // one-time setup for static info on the display
 
   clearScreen();
-  initFontSizeSmallest();
+  setFontSize(eFONTSMALLEST);
   txtClock[TITLE].print();
 
-  initFontSizeBig();
+  setFontSize(eFONTGIANT);
   for (int ii=HOURS; ii<=SECONDS; ii++) {
     txtClock[ii].print();
   }
 
-  initFontSizeSmall();
+  setFontSize(eFONTSMALL);
   for (int ii=GMTDATE; ii<=NUMSATS; ii++) {
     txtClock[ii].print();
   }
 
   // ----- draw buttons
-  initFontSizeSmall();
+  setFontSize(eFONTSMALL);
   for (int ii=0; ii<nTimeButtons; ii++) {
     Button item = timeButtons[ii];
     tft.fillRoundRect(item.x, item.y, item.w, item.h, item.radius, cBUTTONFILL);
@@ -518,14 +544,14 @@ void updateView() {
   Serial.print("):(");     Serial.print(sSeconds);
   Serial.println(")");
   
-  initFontSizeBig();
+  setFontSize(eFONTGIANT);
   txtClock[HOURS].print(sHour);
   txtClock[MINUTES].print(sMinute);
   txtClock[SECONDS].print(sSeconds);
   txtClock[COLON2].dirty = true;
   txtClock[COLON2].print();
 
-  initFontSizeSmall();
+  setFontSize(eFONTSMALL);
 
   // GMT Date
   char sDate[16];         // strlen("Jan 12, 2020 ") = 14
@@ -685,7 +711,7 @@ void setup() {
     };
     const int numErrorFields = sizeof(txtError)/sizeof(TextField);
 
-    initFontSizeSmall();
+    setFontSize(eFONTSMALL);
     clearScreen();
     for (int ii=0; ii<numErrorFields; ii++) {
       txtError[ii].print();

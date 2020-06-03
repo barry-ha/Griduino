@@ -34,9 +34,7 @@
 extern Adafruit_ILI9341 tft;        // Griduino.ino
 extern Model model;                 // "model" portion of model-view-controller
 
-void initFontSizeBig();             // Griduino.ino
-void initFontSizeSmall();           // Griduino.ino
-void initFontSizeSystemSmall();     // Griduino.ino
+void setFontSize(int font);            // Griduino.ino
 float nextGridLineEast(float longitudeDegrees);       // Griduino.ino
 float nextGridLineWest(float longitudeDegrees);       // Griduino.ino
 void floatToCharArray(char* result, int maxlen, double fValue, int decimalPlaces);  // Griduino.ino
@@ -106,7 +104,7 @@ void drawGridName(String newGridName) {
   // huge lettering of current grid square
   // two lines: "CN87" and "us" below it
 
-  initFontSizeBig();
+  setFontSize(24);
 
   String grid1_4 = newGridName.substring(0, 4);
   String grid5_6 = newGridName.substring(4, 6);
@@ -116,7 +114,7 @@ void drawGridName(String newGridName) {
 }
 
 void drawPositionLL(double fLat, double fLong) {
-  initFontSizeSystemSmall();
+  setFontSize(0);
 
   // the message line shows either or a position (lat,long) or a message (waiting for GPS)
   char sTemp[27];       // why 27? Small system font will fit 26 characters on one row
@@ -133,7 +131,7 @@ void drawPositionLL(double fLat, double fLong) {
 }
 
 void drawNumSatellites() {
-  initFontSizeSystemSmall();
+  setFontSize(0);
 
   char sTemp[4];    // strlen("12#") = 3
   if (model.gSatellites<10) {
@@ -146,7 +144,7 @@ void drawNumSatellites() {
 }
 
 void drawAltitude() {
-  initFontSizeSystemSmall();
+  setFontSize(0);
 
   char sTemp[8];      // strlen("12345'") = 6
   int altFeet = model.gAltitude * feetPerMeters;
@@ -155,14 +153,14 @@ void drawAltitude() {
 }
 
 void drawCompassPoints() {
-  initFontSizeSmall();
+  setFontSize(12);
   for (int ii=N_COMPASS; ii<N_COMPASS+4; ii++) {
     txtGrid[ii].print();
   }
 }
 
 void drawBoxLatLong() {
-  initFontSizeSmall();
+  setFontSize(12);
   txtGrid[N_BOX_LAT].print( ceil(model.gLatitude) );    // latitude of N,S box edges
   txtGrid[S_BOX_LAT].print( floor(model.gLatitude) );
   txtGrid[E_BOX_LONG].print( nextGridLineEast(model.gLongitude) ); // longitude of E,W box edges
@@ -177,7 +175,7 @@ void drawBoxLatLong() {
 }
 
 void drawNeighborGridNames() {
-  initFontSizeSmall();
+  setFontSize(12);
   char nGrid[5], sGrid[5], eGrid[5], wGrid[5];
 
   calcLocator(nGrid, model.gLatitude+1.0, model.gLongitude, 4);
@@ -192,7 +190,7 @@ void drawNeighborGridNames() {
 }
 
 void drawNeighborDistances() {
-  initFontSizeSmall();
+  setFontSize(12);
 
   // N-S: find nearest integer grid lines
   float fNorth = calcDistanceLat(model.gLatitude, ceil(model.gLatitude));
@@ -425,7 +423,7 @@ void startGridScreen() {
   Serial.print(minLat,6); Serial.print(" degrees = "); 
   Serial.print(latMiles,2); Serial.println(" miles");
 
-  initFontSizeSmall();
+  setFontSize(12);
   drawGridOutline();                // box outline around grid
   //tft.drawRect(0, 0, gScreenWidth, gScreenHeight, ILI9341_BLUE);  // debug: border around screen
 

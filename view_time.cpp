@@ -50,10 +50,7 @@ extern Model model;                 // "model" portion of model-view-controller
 extern Adafruit_BMP3XX baro;        // Griduino.ino
 extern void getDate(char* result, int maxlen);  // model.cpp
 
-void initFontSize36();              // Griduino.ino
-void initFontSizeBig();             // Griduino.ino
-void initFontSizeSmall();           // Griduino.ino
-void initFontSizeSmallest();        // Griduino.ino
+void setFontSize(int font);            // Griduino.ino
 
 // ========== forward reference ================================
 void timePlus();
@@ -174,14 +171,14 @@ void updateTimeScreen() {
     Serial.print(sSeconds); Serial.println(" GMT");
   }
   
-  initFontSize36();
+  setFontSize(36);
   txtClock[HOURS].print(sHour);
   txtClock[MINUTES].print(sMinute);
   txtClock[SECONDS].print(sSeconds);
   txtClock[COLON2].dirty = true;
   txtClock[COLON2].print();
 
-  initFontSizeSmall();
+  setFontSize(12);
 
   // GMT Date
   char sDate[16];         // strlen("Jan 12, 2020 ") = 14
@@ -227,23 +224,23 @@ void startTimeScreen() {
   TextField::setTextDirty( txtClock, numClockFields );  // make sure all fields get re-printed on screen change
 
   // ----- draw page title
-  initFontSizeSmallest();
+  setFontSize(9);
   txtClock[TITLE].print();
 
   // ----- draw giant fields
-  initFontSize36();
+  setFontSize(36);
   for (int ii=HOURS; ii<=SECONDS; ii++) {
     txtClock[ii].print();
   }
 
   // ----- draw smaller text
-  initFontSizeSmall();
+  setFontSize(12);
   for (int ii=GMTDATE; ii<numClockFields; ii++) {
     txtClock[ii].print();
   }
 
   // ----- draw buttons
-  initFontSizeSmall();
+  setFontSize(12);
   for (int ii=0; ii<nTimeButtons; ii++) {
     TimeButton item = timeButtons[ii];
     tft.fillRoundRect(item.x, item.y, item.w, item.h, item.radius, cBUTTONFILL);
@@ -274,7 +271,7 @@ bool onTouchTime(Point touch) {
         item.function();            // do the thing
 
         //tft.setCursor(touch.x, touch.y);  // debug: show where hit
-        //initFontSizeSmall();
+        //setFontSize(12);
         //tft.print("x");
      }
   }

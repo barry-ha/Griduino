@@ -25,8 +25,7 @@
 extern Adafruit_ILI9341 tft;        // Griduino.ino
 
 void showNameOfView(String sName, uint16_t fgd, uint16_t bkg);  // Griduino.ino
-void initFontSizeBig();             // Griduino.ino
-void initFontSizeSmall();           // Griduino.ino
+void setFontSize(int font);            // Griduino.ino
 int getOffsetToCenterText(String text); // Griduino.ino
 
 // ============== constants ====================================
@@ -53,7 +52,7 @@ void updateHelpScreen() {
 void startHelpScreen() {
   // called once each time this view becomes active
   tft.fillScreen(cBACKGROUND);      // clear screen
-  initFontSizeSmall();
+  setFontSize(12);
 
   // ----- draw buttons
   for (int ii=0; ii<nHelpButtons; ii++) {

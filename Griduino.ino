@@ -1,26 +1,19 @@
 /*
   Griduino -- Grid Square Navigator with GPS
 
-  Date:     2019-12-20 created v9
-            2019-12-30 created v9.2
-            2020-01-01 created v9.3
-            2020-01-02 created v9.4
-            2020-03-05 created v10.0
-            2020-04-12 created v10.1
-
-  Changelog: v9.0 generates sound by synthesized sine wave intended for decent fidelity
-            from a small speaker. The hardware goal is for spoken-word output.
-            v9.2 adds Morse Code announcements via generated audio waveform on DAC.
-            v9.3 makes the Morse Code actually work, and replaces view_stat_screen
-            v9.4 adds a new view for controlling audio volume
-            v9.5,6,7 is regression test of GPS readings for stability
-            v9.8 adds saving settings in 2MB RAM
-            v10.0 add altimeter
-            v10.1 add GPS save/restore to visually power up in the same place as previous
-            v12.0 refactors screen writing to class TextField
-            v13.0 begin implementing our own TouchScreen functions
-            v15.0 add simulated GPS track (class MockModel)
-            v16.0 add GMT Clock view
+  Versions: 
+  2019-12-20  v9.0 generates sound by synthesized sine wave intended for decent fidelity
+                   from a small speaker. The hardware goal is for spoken-word output.
+  2019-12-30  v9.2 adds Morse Code announcements via generated audio waveform on DAC.
+  2020-01-01  v9.3 makes the Morse Code actually work, and replaces view_stat_screen
+  2020-01-02  v9.4 adds a new view for controlling audio volume
+              v9.8 adds saving settings in 2MB RAM
+              v10.0 add altimeter
+              v10.1 add GPS save/restore to visually power up in the same place as previous
+              v12.0 refactors screen writing to class TextField
+              v13.0 begin implementing our own TouchScreen functions
+              v15.0 add simulated GPS track (class MockModel)
+  2020-06-03  v16.0 add GMT Clock view
 
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
@@ -220,9 +213,6 @@ int gViewIndex = 0;           // selects which view to show first
                               // init to a safe value, override in setup()
                               // todo: save/restore the selected screen for power loss
 
-// ========== global scope =====================================
-int gTextSize;                          // no such function as "tft.getTextSize()" so remember it on our own
-
 // ---------- Morse Code ----------
 #include "morse_dac.h"      // Morse Code using digital-audio converter DAC0
 DACMorseSender dacMorse(DAC_PIN, gFrequency, gWordsPerMinute);
@@ -408,103 +398,60 @@ void mapTouchToScreen(TSPoint touch, Point* screen) {
 // ========== font management helpers ==========================
 /* Using fonts: https://learn.adafruit.com/adafruit-gfx-graphics-library/using-fonts
 
-  "Fonts" folder inside Adafruit_GFX, and here are some of the "Sans" fonts I tried.
-                                  sugg.
-  ---font name---             ---gTextSize---  ---unit size---
-  (default)                     gTextSize=5      6 x  8
-
-  FreeSans9pt7b.h
-  FreeSansBold9pt7b.h
-  FreeSansOblique9pt7b.h
-  FreeSansBoldOblique9pt7b.h    gTextSize=4     12 x 16
-
-  FreeSans12pt7b.h              gTextSize=3     15 x 20 \
-  FreeSansBold12pt7b.h          gTextSize=3     15 x 20  |
-  FreeSansOblique12pt7b.h       gTextSize=3     15 x 20  |
-  FreeSansBoldOblique12pt7b.h   gTextSize=3     16 x 20 /
-
-  FreeSans18pt7b.h
-  FreeSansBold18pt7b.h          gTextSize=2     22 x 30
-  FreeSansOblique18pt7b.h
-  FreeSansBoldOblique18pt7b.h   gTextSize=2     22 x 30
-
-  FreeSans24pt7b.h              gTextSize=2     30 x 38 \
-  FreeSansBold24pt7b.h          gTextSize=1     30 x 38  |  this font for big bold items
-  FreeSansOblique24pt7b.h       gTextSize=2     30 x 38  |
-  FreeSansBoldOblique24pt7b.h   gTextSize=1     30 x 38 /
+  "Fonts" folder is inside \Documents\User\Arduino\libraries\Adafruit_GFX
 */
-#include "Fonts/FreeSansBold24pt7b.h"   // comment out to save 10KB program space
-void initFontSizeBig() {
-  tft.setFont(&FreeSansBold24pt7b);
-  gTextSize = 1;
-  tft.setTextSize(gTextSize);
-}
-#include "Fonts/FreeSans18pt7b.h"       // we use double-size 18-pt font
-void initFontSize36() {                 // otherwise the largest single-size font is 24-pt
-  tft.setFont(&FreeSans18pt7b);         // which looks smoother but is not big enough
-  tft.setTextSize(2);
-}
-#include "Fonts/FreeSans12pt7b.h"
-void initFontSizeSmall() {
-  tft.setFont(&FreeSans12pt7b);
-  gTextSize = 1;
-  tft.setTextSize(gTextSize);
-}
+#include "Fonts/FreeSans18pt7b.h"       // eFONTGIANT    36 pt (see constants.h)
+#include "Fonts/FreeSansBold24pt7b.h"   // eFONTBIG      24 pt
+#include "Fonts/FreeSans12pt7b.h"       // eFONTSMALL    12 pt
+#include "Fonts/FreeSans9pt7b.h"        // eFONTSMALLEST  9 pt
+// (built-in)                           // eFONTSYSTEM    8 pt
 
-#include "Fonts/FreeSans9pt7b.h"    // smallest font for program name
-void initFontSizeSmallest() {
-  tft.setFont(&FreeSans9pt7b);
-  tft.setTextSize(1);
-}
+void setFontSize(int font) {
+  // input: "font" = point size
+  switch (font) {
+    case 36:  // eFONTGIANT
+      tft.setFont(&FreeSans18pt7b);
+      tft.setTextSize(2);
+      break;
 
-void initFontSizeSystemSmall() {
-  tft.setFont();
-  gTextSize = 2;
-  tft.setTextSize(gTextSize);
+    case 24:  // eFONTBIG
+      tft.setFont(&FreeSansBold24pt7b);
+      tft.setTextSize(1);
+      break;
 
-  // default font has character cell of 6px by 8px for TextSize(1) including margin.
-  // Other fonts are multiples of this, e.g. TextSize(2) = 12px by 16px
+    case 12:  // eFONTSMALL
+      tft.setFont(&FreeSans12pt7b);
+      tft.setTextSize(1);
+      break;
+
+    case 9:   // eFONTSMALLEST
+      tft.setFont(&FreeSans9pt7b);
+      tft.setTextSize(1);
+      break;
+
+    case 0:   // eFONTSYSTEM
+      tft.setFont();
+      tft.setTextSize(2);
+      break;
+
+    default:
+      Serial.print("Error, unknown font size ("); Serial.print(font); Serial.println(")");
+      break;
+  }
 }
 
 int getOffsetToCenterText(String text) {
   // measure width of given text in current font and 
   // calculate X-offset to make it centered left-right on screen
-  
   int16_t x1, y1;
   uint16_t w, h;
   tft.getTextBounds(text, 0, 0, &x1, &y1, &w, &h);  // compute "pixels wide"
   return (gScreenWidth - w) / 2;
 }
-void drawProportionalText(int ulX, int ulY, String prevText, String newText, bool dirty) {
-  // input: (x,y) of upper left corner
-  //        prevText = old text string to erase
-  //        newText  = new text string to write
-  //        dirty    = force refresh screen, even if value has not changed
 
-  if (!dirty && prevText == newText) {
-    // if the text is unchanged from previous write
-    // then don't do anything -  this avoids blinking during erase-then-write operation
-    return;
-  }
-
-  int16_t x1, y1;
-  uint16_t w, h;
-  tft.getTextBounds(prevText, ulX, ulY, &x1, &y1, &w, &h);
-  tft.fillRect(x1, y1, w, h, ILI9341_BLACK);  // erase the old text
-
-  // show new grid name, e.g. "CN87"
-  tft.setCursor(ulX, ulY);
-  tft.setTextSize(gTextSize);
-  tft.print(newText);
-
-  // debug: draw rectangle around new text
-  // If everything works perfectly, this rectangle will be erased via our next call
-  //tft.getTextBounds(newText, ulX, ulY, &x1, &y1, &w, &h);
-  //tft.drawRect(x1, y1, w, h, ILI9341_RED);
-}
 void showNameOfView(String sName, uint16_t fgd, uint16_t bkg) {
   // All our various "view" routines want to label themselves in the upper left corner
-  initFontSizeSystemSmall();
+  setFontSize(0);
   tft.setTextColor(fgd, bkg);
   tft.setCursor(1,1);
   tft.print(sName);
