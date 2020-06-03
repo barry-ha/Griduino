@@ -38,8 +38,8 @@ extern Adafruit_ILI9341 tft;        // Griduino.ino
 extern DACMorseSender dacMorse;   // morse code (so we can send audio samples)
 extern DS1804 volume;             // digital potentiometer
 
-void initFontSizeSmall();           // Griduino.ino
 void initFontSizeBig();             // Griduino.ino
+void initFontSizeSmall();           // Griduino.ino
 
 // ========== forward reference ================================
 void updateVolumeScreen();
@@ -190,6 +190,7 @@ void startVolumeScreen() {
   updateVolumeScreen();             // fill in values immediately, don't wait for loop() to eventually get around to it
 }
 bool onTouchVolume(Point touch) {
+  Serial.println("->->-> Touched volume screen.");
   bool handled = false;             // assume a touch target was not hit
   for (int ii=0; ii<nVolButtons; ii++) {
     Button item = volButtons[ii];

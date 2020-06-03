@@ -176,7 +176,7 @@ int gSatellites = 0;                    // number of satellites
 #define cBUTTONLABEL    ILI9341_YELLOW
 #define cWARN           0xF844            // brighter than ILI9341_RED but not pink
 
-// ========== constants ===============================
+// ============== constants ====================================
 
 // ============== GPS helpers ==================================
 void processGPS() {
@@ -671,7 +671,7 @@ void setup() {
 
   delay(4000);         // milliseconds
 
-  // ----- init barometer
+  // ----- init barometer/thermometer
   if (!baro.begin()) {
     Serial.println("Error, unable to initialize BMP388, check your wiring");
 
