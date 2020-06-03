@@ -822,7 +822,7 @@ void setup() {
   #endif
 
   // ----- init first data shown with last known position and driving track history
-  //model.restore();
+  model.restore();
   model.gHaveGPSfix = false;          // assume no satellite signal yet
   model.gSatellites = 0;
 

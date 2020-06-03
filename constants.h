@@ -3,7 +3,7 @@
 
 // ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE   "Griduino"
-#define PROGRAM_VERSION "v0.15"
+#define PROGRAM_VERSION "v0.16"
 #define PROGRAM_LINE1   "Barry K7BWH"
 #define PROGRAM_LINE2   "John KM7O"
 
@@ -25,7 +25,7 @@ const double degreesPerRadian = 57.2957795;
 
 // ------- Select features ---------
 //#define RUN_UNIT_TESTS            // comment out to save boot-up time
-#define USE_SIMULATED_GPS         // comment out to use real GPS, or else it simulates driving around (see model.cpp)
+//#define USE_SIMULATED_GPS         // comment out to use real GPS, or else it simulates driving around (see model.cpp)
 //#define ECHO_GPS                  // use this to see GPS detailed info on IDE console for debug
 //#define ECHO_GPS_SENTENCE         // use this to see once-per-second GPS sentences
 

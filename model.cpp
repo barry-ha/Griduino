@@ -42,7 +42,7 @@ class Model {
     float  gSpeed = 0.0;              // current speed over ground in MPH
     float  gAngle = 0.0;              // direction of travel, degrees from true north
 
-    Location history[400];            // remember a list of GPS coordinates
+    Location history[440];            // remember a list of GPS coordinates
     int nextHistoryItem = 0;          // index of next item to write
     const int numHistory = sizeof(history)/sizeof(Location);
     // Size of array history: Our goal is to keep track of a good day's travel, at least 250 miles.
@@ -90,7 +90,7 @@ class Model {
 
     // pick'n pluck values from another "Model" instance
     void copyFrom(const Model from) {
-      return;   // debug
+      //return;   // debug
       
       gLatitude = from.gLatitude;     // GPS position, floating point, decimal degrees
       gLongitude = from.gLongitude;   // GPS position, floating point, decimal degrees
@@ -160,7 +160,7 @@ class Model {
         // now the GPS location is saved in history array, now protect 
         // the array in non-volatile memory in case of power loss
         #ifdef USE_SIMULATED_GPS
-          const int SAVE_INTERVAL = 41; // reduce number of erase/write cycles to sdram
+          const int SAVE_INTERVAL = 23; // reduce number of erase/write cycles to sdram
         #else
           const int SAVE_INTERVAL = 2;
         #endif
