@@ -32,7 +32,6 @@
 
 // ========== extern ===========================================
 extern Adafruit_ILI9341 tft;        // Griduino.ino
-extern int gCharWidth, gCharHeight; // character cell size for TextSize(n)
 extern Model model;                 // "model" portion of model-view-controller
 
 void initFontSizeBig();             // Griduino.ino
@@ -45,16 +44,6 @@ void floatToCharArray(char* result, int maxlen, double fValue, int decimalPlaces
 // ============== constants ====================================
 const int gMarginX = 70;            // define space for grid outline on screen
 const int gMarginY = 26;            // and position text relative to this outline
-//nst int gBoxWidth = 180;          // grid square width as shown on display, pixels (see constants.h)
-//nst int gBoxHeight = 160;         // grid square height as shown on display, pixels (see constants.h)
-
-// vertical placement of text rows
-/* currently unused (mostly replaced by txtGrid[])
-const int gTopRowY = 20;            // ~= (gMarginY - gCharHeight - 2);
-const int gMiddleRowY = 104;        // ~= (gScreenHeight - gCharHeight) / 2;
-const int gBottomGridY = 207;       // ~= (gScreenHeight - gCharHeight - 3*gCharHeight);
-const int gMessageRowY = 215;       // ~= (gScreenHeight - gCharHeight -1);
-*/
 
 // ========== globals ==========================================
 

@@ -222,8 +222,6 @@ int gViewIndex = 0;           // selects which view to show first
 
 // ========== global scope =====================================
 int gTextSize;                          // no such function as "tft.getTextSize()" so remember it on our own
-int gUnitFontWidth, gUnitFontHeight;    // character cell size for TextSize(1)
-int gCharWidth, gCharHeight;            // character cell size for TextSize(n)
 
 // ---------- Morse Code ----------
 #include "morse_dac.h"      // Morse Code using digital-audio converter DAC0
@@ -440,11 +438,6 @@ void initFontSizeBig() {
   tft.setFont(&FreeSansBold24pt7b);
   gTextSize = 1;
   tft.setTextSize(gTextSize);
-
-  gUnitFontWidth = 32;
-  gUnitFontHeight = 38;
-  gCharWidth = gUnitFontWidth * gTextSize;
-  gCharHeight = gUnitFontHeight * gTextSize;
 }
 #include "Fonts/FreeSans18pt7b.h"       // we use double-size 18-pt font
 void initFontSize36() {                 // otherwise the largest single-size font is 24-pt
@@ -456,11 +449,6 @@ void initFontSizeSmall() {
   tft.setFont(&FreeSans12pt7b);
   gTextSize = 1;
   tft.setTextSize(gTextSize);
-
-  gUnitFontWidth = 16;
-  gUnitFontHeight = 20;
-  gCharWidth = gUnitFontWidth * gTextSize;
-  gCharHeight = gUnitFontHeight * gTextSize;
 }
 
 #include "Fonts/FreeSans9pt7b.h"    // smallest font for program name
@@ -476,10 +464,6 @@ void initFontSizeSystemSmall() {
 
   // default font has character cell of 6px by 8px for TextSize(1) including margin.
   // Other fonts are multiples of this, e.g. TextSize(2) = 12px by 16px
-  gUnitFontWidth = 6;
-  gUnitFontHeight = 8;
-  gCharWidth = gUnitFontWidth * gTextSize;
-  gCharHeight = gUnitFontHeight * gTextSize;
 }
 
 int getOffsetToCenterText(String text) {
@@ -661,7 +645,7 @@ double calcDistanceLong(double lat, double fromLong, double toLong) {
 //#include "view_help.cpp"
 //#include "view_grid.cpp"
 //#include "view_status.cpp"
-//#include "view_gmt.cpp"
+//#include "view_time.cpp"
 //#include "view_volume.cpp"
 
 //==============================================================

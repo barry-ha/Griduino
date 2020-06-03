@@ -28,8 +28,6 @@
 // ========== extern ===========================================
 extern Adafruit_ILI9341 tft;        // Griduino.ino
 extern int gTextSize;               // no such function as "tft.getTextSize()" so remember it on our own
-extern int gCharWidth, gCharHeight; // character cell size for TextSize(n)
-extern int gUnitFontWidth, gUnitFontHeight; // character cell size for TextSize(1)
 extern Model model;                 // "model" portion of model-view-controller
 
 void initFontSizeBig();             // Griduino.ino

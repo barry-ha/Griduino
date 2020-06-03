@@ -159,8 +159,10 @@ class Model {
 
         // now the GPS location is saved in history array, now protect 
         // the array in non-volatile memory in case of power loss
-        #ifdef USE_SIMULATED_GPS
-          const int SAVE_INTERVAL = 23; // reduce number of erase/write cycles to sdram
+        #if defined RUN_UNIT_TESTS
+          const int SAVE_INTERVAL = 9999;
+        #elif defined USE_SIMULATED_GPS
+          const int SAVE_INTERVAL = 29; // reduce number of erase/write cycles to sdram
         #else
           const int SAVE_INTERVAL = 2;
         #endif

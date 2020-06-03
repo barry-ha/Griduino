@@ -30,7 +30,6 @@ void startGridScreen();                     // view_grid.cpp
 
 // ----- globals
 extern Adafruit_ILI9341 tft;
-extern int gCharWidth, gCharHeight;         // character cell size for TextSize(n)
 extern DACMorseSender dacMorse;             // Morse code
 extern Model model;
 
@@ -416,7 +415,7 @@ void countDown(int iSeconds) {
   tft.setTextSize(2);
   tft.setTextColor(ILI9341_BLACK, ILI9341_WHITE);
   for (int ii=iSeconds; ii>0; ii--) {
-    tft.setCursor(2, gScreenHeight-gCharHeight-2);
+    tft.setCursor(2, gScreenHeight-16);
     tft.print(" Wait ");
     tft.print(ii);
     tft.print(" ");
@@ -429,12 +428,12 @@ void runUnitTest() {
 
   // ----- announce ourselves
   initFontSizeBig();
-  drawProportionalText(gCharWidth, gCharHeight, String(""), String("--Unit Test--"), true);
+  drawProportionalText(12 /*gCharWidth*/, 38 /*gCharHeight*/, String(""), String("--Unit Test--"), true);
 
   initFontSizeSystemSmall();
   tft.setTextSize(1);
   tft.setTextColor(ILI9341_YELLOW);
-  tft.setCursor(0, tft.height() - gCharHeight); // move to bottom row
+  tft.setCursor(0, tft.height() - 12); // move to bottom row
   tft.print("  --Open console monitor to see unit test results--");
   delay(1000);
 
