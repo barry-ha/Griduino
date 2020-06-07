@@ -79,8 +79,8 @@ TextField txtGrid[] = {
   TextField("CN77",  101,101,  cGRIDNAME),      // GRID4: center of screen
   TextField("tt",    138,141,  cGRIDNAME),      // GRID6: center of screen
   TextField("47.1234,-123.4567", 4,223, cWARN), // LATLONG: left-adj on bottom row
-  TextField("123'",  313,196,  cWARN, FLUSHRIGHT),  // ALTITUDE: just above bottom row
-  TextField("99#",   311,221,  cWARN, FLUSHRIGHT),  // NUMSAT: lower right corner
+  TextField("123'",  313,196,  cWARN, ALIGNRIGHT),  // ALTITUDE: just above bottom row
+  TextField("99#",   311,221,  cWARN, ALIGNRIGHT),  // NUMSAT: lower right corner
   TextField( "N",    156, 47,  cCOMPASS ),      // N_COMPASS: centered left-right
   TextField( "S",    156,181,  cCOMPASS ),      // S_COMPASS
   TextField( "E",    232,114,  cCOMPASS ),      // E_COMPASS: centered top-bottom
@@ -93,10 +93,10 @@ TextField txtGrid[] = {
   TextField("CN86",  102,207,  cGRIDNAME),      // S_GRIDNAME
   TextField("CN97",  256,102,  cGRIDNAME),      // E_GRIDNAME
   TextField("CN77",    0,102,  cGRIDNAME),      // W_GRIDNAME
-  TextField("48",     56, 44,  cBOXDEGREES, FLUSHRIGHT),  // N_BOX_LAT
-  TextField("47",     56,190,  cBOXDEGREES, FLUSHRIGHT),  // S_BOX_LAT
+  TextField("48",     56, 44,  cBOXDEGREES, ALIGNRIGHT),  // N_BOX_LAT
+  TextField("47",     56,190,  cBOXDEGREES, ALIGNRIGHT),  // S_BOX_LAT
   TextField("122",   243, 20,  cBOXDEGREES),              // E_BOX_LONG
-  TextField("124",    72, 20,  cBOXDEGREES, FLUSHRIGHT),  // W_BOX_LONG
+  TextField("124",    72, 20,  cBOXDEGREES, ALIGNRIGHT),  // W_BOX_LONG
 };
 const int numTextGrid = sizeof(txtGrid)/sizeof(TextField);
 
@@ -170,7 +170,7 @@ void drawBoxLatLong() {
   // draw "degree" symbol at:       x                        y        r     color
   tft.drawCircle(txtGrid[N_BOX_LAT].x+7,  txtGrid[N_BOX_LAT].y-14,  radius, cBOXDEGREES); // draw circle to represent "degrees"
   tft.drawCircle(txtGrid[S_BOX_LAT].x+7,  txtGrid[S_BOX_LAT].y-14,  radius, cBOXDEGREES);
-  //t.drawCircle(txtGrid[E_BOX_LONG].x+7, txtGrid[E_BOX_LONG].y-14, radius, cBOXDEGREES); // no room for "degrees" on FLUSHLEFT number?
+  //t.drawCircle(txtGrid[E_BOX_LONG].x+7, txtGrid[E_BOX_LONG].y-14, radius, cBOXDEGREES); // no room for "degrees" on ALIGNLEFT number?
   tft.drawCircle(txtGrid[W_BOX_LONG].x+7, txtGrid[W_BOX_LONG].y-14, radius, cBOXDEGREES);
 }
 

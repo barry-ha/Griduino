@@ -62,7 +62,7 @@ int gPrevVolIndex = -1;     // remembers previous volume setting to avoid erase/
 const int numVolFields = 3;
 TextField txtVolume[numVolFields] = {
   //        text             x,y      color  
-  TextField("0",            82,yRow2, cVALUE, FLUSHRIGHT),  // giant audio volume display
+  TextField("0",            82,yRow2, cVALUE, ALIGNRIGHT),  // giant audio volume display
   TextField("Audio Volume", 98,yRow1, cLABEL),              // normal size text labels
   TextField("of 10",        98,yRow2, cLABEL),
 };

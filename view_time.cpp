@@ -98,7 +98,7 @@ TextField txtClock[] = {
   {"12.3 F",        132,164, cVALUE},      // [DEGREES]   Temperature
   {"hh:mm:ss",      118,226, cTEXTCOLOR},  // [LOCALTIME] Local time
   {"-7h",             8,226, cTEXTFAINT},  // [TIMEZONE]  addHours time zone
-  {"6#",            308,226, cTEXTFAINT, FLUSHRIGHT},  // [NUMSATS]   numSats
+  {"6#",            308,226, cTEXTFAINT, ALIGNRIGHT},  // [NUMSATS]   numSats
 };
 const int numClockFields = sizeof(txtClock)/sizeof(TextField);
 
