@@ -1,8 +1,39 @@
-#ifndef _GRIDUINO_TEXTFIELD_H
-#define _GRIDUINO_TEXTFIELD_H
+//------------------------------------------------------------------------------
+//  File name: TextField.h
+//
+//  Description: Header file for Adafruit TFT display screens using proportional fonts.
+//
+//------------------------------------------------------------------------------
+//  The MIT License (MIT)
+//
+//  Copyright (c) 2020 Barry Hansen K7BWH
+//
+//  Permission is hereby granted, free of charge, to any person obtaining a copy
+//  of this software and associated documentation files (the "Software"), to deal
+//  in the Software without restriction, including without limitation the rights
+//  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+//  copies of the Software, and to permit persons to whom the Software is
+//  furnished to do so, subject to the following conditions:
+//
+//  The above copyright notice and this permission notice shall be included in
+//  all copies or substantial portions of the Software.
+//
+//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+//  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+//  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+//  THE SOFTWARE.
+//------------------------------------------------------------------------------
+#pragma once
 
-#define FLUSHLEFT 0       // align text toward left, using x=left edge of string
-#define FLUSHRIGHT 1      // align text toward right, using x=right edge of string
+#include "Adafruit_GFX.h"           // Core graphics display library
+#include "Adafruit_ILI9341.h"       // TFT color display library
+
+#define ALIGNLEFT 0       // align text toward left, using x=left edge of string
+#define ALIGNRIGHT 1      // align text toward right, using x=right edge of string
+#define ALIGNCENTER 2     // center text left-right
 
 class TextField {
   // Write dynamic text to the TFT display and optimize
@@ -11,27 +42,19 @@ class TextField {
   // Example Usage:
   //      Declare     TextField txtItem("Hello", 64,64, ILI9341_GREEN);
   //      Set bkg     txtItem.setBackground(ILI9341_BLACK);
-  //      Force       txtItem.setDirty();
+  //      Force       TextField::setTextDirty( itemArray[0], count );
   //      Print       txtItem.print();
   //
-  // To center text left-right, specify x = -1
-  //
   // Note about proportional fonts:
-  // 1. Text origin is bottom left corner
-  // 2. Rect origin is upper left corner
-  // 2. Printing text does not clear its own background
-
-  private:
-    static uint16_t cBackground; // background color
-    int16_t xPrev, yPrev;   // remember previous text area for next erasure
-    uint16_t wPrev, hPrev;
-    char textPrev[27];      // old text to be erased
+  //      1. Text origin is bottom left corner
+  //      2. Rect origin is upper left corner
+  //      3. Printing text in proportional font does not clear its own background
 
   public:
     char text[27];          // new text to draw
     int x, y;               // screen coordinates
     uint16_t color;         // text color
-    int align;              // FLUSHLEFT | FLUSHRIGHT
+    int align;              // ALIGNLEFT | ALIGNRIGHT | ALIGNCENTER
     bool dirty;             // true=force reprint even if old=new
 
     void dump() {
@@ -42,16 +65,16 @@ class TextField {
       snprintf(buf, sizeof(buf), " Erase x,y,w,h(%d,%d, %d,%d)", xPrev,yPrev, wPrev, hPrev);
       Serial.println(buf);
     }
-    // ctor - dynamic text field
-    TextField(int vxx, int vyy, uint16_t vcc, int valign=FLUSHLEFT) {
+    // ctor - text field where contents will come later
+    TextField(int vxx, int vyy, uint16_t vcc, int valign=ALIGNLEFT) {
       init("", vxx, vyy, vcc, valign);
     }
-    // ctor - static text field
-    TextField(const char vtxt[26], int vxx, int vyy, uint16_t vcc, int valign=FLUSHLEFT) {
+    // ctor - text field including its content
+    TextField(const char vtxt[26], int vxx, int vyy, uint16_t vcc, int valign=ALIGNLEFT) {
       init(vtxt, vxx, vyy, vcc, valign);
     }
-    // ctor - static String field
-    TextField(const String vstr, int vxx, int vyy, uint16_t vcc, int valign=FLUSHLEFT) {
+    // ctor - text field content specified by a "class String"
+    TextField(const String vstr, int vxx, int vyy, uint16_t vcc, int valign=ALIGNLEFT) {
       char temp[ vstr.length()+1 ];
       vstr.toCharArray(temp, sizeof(temp));
       init(temp, vxx, vyy, vcc, valign);
@@ -109,9 +132,13 @@ class TextField {
       cBackground = bkg;
     }
 
-  private:
+  protected:
+    static uint16_t cBackground;  // background color
+    int16_t xPrev, yPrev;         // remember previous text area for next erasure
+    uint16_t wPrev, hPrev;
+    char textPrev[27];            // old text to be erased
+
+  protected:
     void eraseOld();
     void printNew(const char* pText);
 };
-
-#endif // _GRIDUINO_TEXTFIELD_H

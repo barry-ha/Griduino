@@ -40,7 +40,7 @@
 
 // ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE   "Griduino GMT Clock"
-#define PROGRAM_VERSION "v0.10"
+#define PROGRAM_VERSION "v0.11"
 #define PROGRAM_LINE1   "Barry K7BWH"
 #define PROGRAM_LINE2   "John KM7O"
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
@@ -412,13 +412,13 @@ void setFontSize(int font) {
 #define yRow4   yRow3 + 32        // author line 2
 
 TextField txtSplash[] = {
-  //        text               x,y       color  
+  //     text               x,y       color  
   {PROGRAM_TITLE,    -1,yRow1,  cTEXTCOLOR}, // [0] program title, centered
   {PROGRAM_VERSION,  -1,yRow2,  cLABEL},     // [1] normal size text, centered
   {PROGRAM_LINE1,    -1,yRow3,  cLABEL},     // [2] credits line 1, centered
   {PROGRAM_LINE2,    -1,yRow4,  cLABEL},     // [3] credits line 2, centered
   {"Compiled " PROGRAM_COMPILED,       
-                     -1,228,    cTEXTCOLOR}, // [4] "Compiled", bottom row
+                          -1,228,    cTEXTCOLOR}, // [4] "Compiled", bottom row
 };
 const int numSplashFields = sizeof(txtSplash)/sizeof(TextField);
 
@@ -447,7 +447,7 @@ enum txtIndex {
 };
 
 TextField txtClock[] = {
-  // text             x,y    color             index
+  //       text             x,y    color             index
   {PROGRAM_TITLE,    -1, 14, cTEXTCOLOR},  // [TITLE]     program title, centered
   {"hh",             12, 90, cVALUE},      // [HOURS]     giant clock hours
   {":",              94, 90, cVALUE},      // [COLON1]    :
@@ -458,7 +458,7 @@ TextField txtClock[] = {
   {"12.3 F",        132,164, cVALUE},      // [DEGREES]   Temperature
   {"hh:mm:ss",      118,226, cTEXTCOLOR},  // [LOCALTIME] Local time
   {"-7h",             8,226, cTEXTFAINT},  // [TIMEZONE]  addHours time zone
-  {"6#",            308,226, cTEXTFAINT, FLUSHRIGHT},  // [NUMSATS]   numSats
+  {"6#",            308,226, cTEXTFAINT, ALIGNRIGHT},  // [NUMSATS]   numSats
 };
 const int numClockFields = sizeof(txtClock)/sizeof(TextField);
 
@@ -690,6 +690,7 @@ void setup() {
   tft.begin();                        // initialize TFT display
   tft.setRotation(SCREEN_ROTATION);   // 1=landscape (default is 0=portrait)
   clearScreen();
+
   // ----- announce ourselves
   startSplashScreen();
 
@@ -706,7 +707,7 @@ void setup() {
       {"Unable to init barometer",  12, 62,  cWARN},       // [1]
       {"Please check your wiring",  12, 92,  cWARN},       // [2]
       {"Retrying...",               12,152,  cWARN},       // [3]
-      {"1",                        150,152,  cTEXTCOLOR, FLUSHRIGHT},  // [4]
+      {"1",                        150,152,  cTEXTCOLOR, ALIGNRIGHT},  // [4]
       {"of 50",                    162,152,  cWARN},       // [5]
     };
     const int numErrorFields = sizeof(txtError)/sizeof(TextField);
