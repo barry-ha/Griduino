@@ -59,7 +59,7 @@ class TextField {
       char buf[128];
       snprintf(buf, sizeof(buf), "TextField('%s') x,y(%d,%d)", text, x, y);
       Serial.print(buf);
-      snprintf(buf, sizeof(buf), " Erase x,y,w,h(%d,%d, %d,%d)", xPrev,yPrev, wPrev, hPrev);
+      snprintf(buf, sizeof(buf), ". Erase x,y,w,h(%d,%d, %d,%d)", xPrev,yPrev, wPrev, hPrev);
       Serial.println(buf);
     }
     // ctor - text field where contents will come later
