@@ -38,8 +38,7 @@ extern Adafruit_ILI9341 tft;        // Griduino.ino
 extern DACMorseSender dacMorse;   // morse code (so we can send audio samples)
 extern DS1804 volume;             // digital potentiometer
 
-void initFontSizeSmall();           // Griduino.ino
-void initFontSizeBig();             // Griduino.ino
+void setFontSize(int font);            // Griduino.ino
 
 // ========== forward reference ================================
 void updateVolumeScreen();
@@ -63,7 +62,7 @@ int gPrevVolIndex = -1;     // remembers previous volume setting to avoid erase/
 const int numVolFields = 3;
 TextField txtVolume[numVolFields] = {
   //        text             x,y      color  
-  TextField("0",            82,yRow2, cVALUE, FLUSHRIGHT),  // giant audio volume display
+  TextField("0",            82,yRow2, cVALUE, ALIGNRIGHT),  // giant audio volume display
   TextField("Audio Volume", 98,yRow1, cLABEL),              // normal size text labels
   TextField("of 10",        98,yRow2, cLABEL),
 };
@@ -148,7 +147,7 @@ void updateVolumeScreen() {
   // called on every pass through main()
 
   // ----- volume
-  initFontSizeBig();
+  setFontSize(24);
   txtVolume[0].print(gVolIndex);
 }
 void startVolumeScreen() {
@@ -156,7 +155,7 @@ void startVolumeScreen() {
   tft.fillScreen(cBACKGROUND);      // clear screen
   txtVolume[0].setBackground(cBACKGROUND);                // set background for all TextFields in this view
   TextField::setTextDirty( txtVolume, numVolFields );     // make sure all fields get re-printed on screen change
-  initFontSizeSmall();
+  setFontSize(12);
 
   // ----- draw text fields
   for (int ii=1; ii<numVolFields; ii++) {       // start at [1], since [0] is a different font size
@@ -190,6 +189,7 @@ void startVolumeScreen() {
   updateVolumeScreen();             // fill in values immediately, don't wait for loop() to eventually get around to it
 }
 bool onTouchVolume(Point touch) {
+  Serial.println("->->-> Touched volume screen.");
   bool handled = false;             // assume a touch target was not hit
   for (int ii=0; ii<nVolButtons; ii++) {
     Button item = volButtons[ii];
@@ -199,7 +199,7 @@ bool onTouchVolume(Point touch) {
         item.function();            // do the thing
 
         //tft.setCursor(touch.x, touch.y);  // debug: show where hit
-        //initFontSizeSmall();
+        //setFontSize(12);
         //tft.print("x");
      }
   }

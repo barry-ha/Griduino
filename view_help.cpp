@@ -4,15 +4,15 @@
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
 
-  +-----------------------------------+
-  | Hint:                             |
-  |   Tap to change view              |
-  |                                   |
-  |-----------------------------------|
-  |                                   |
-  |   Tap to change brightness        |
-  |                                   |
-  +-----------------------------------+
+  +-----------------------------------------+
+  | Hint:                                   |
+  |    Tap to change view                   |
+  |                                         |
+  |-----------------------------------------|
+  |                                         |
+  |    Tap to change brightness             |
+  |                                         |
+  +-------+-------------------------+-------+
    
 */
 
@@ -25,8 +25,7 @@
 extern Adafruit_ILI9341 tft;        // Griduino.ino
 
 void showNameOfView(String sName, uint16_t fgd, uint16_t bkg);  // Griduino.ino
-void initFontSizeBig();             // Griduino.ino
-void initFontSizeSmall();           // Griduino.ino
+void setFontSize(int font);            // Griduino.ino
 int getOffsetToCenterText(String text); // Griduino.ino
 
 // ============== constants ====================================
@@ -46,12 +45,14 @@ Button helpButtons[nHelpButtons] = {
 
 // ========== help screen view =================================
 void updateHelpScreen() {
+  // called on every pass through main()
+
   // nothing to do in the main loop - this screen has no dynamic items
 }
 void startHelpScreen() {
   // called once each time this view becomes active
   tft.fillScreen(cBACKGROUND);      // clear screen
-  initFontSizeSmall();
+  setFontSize(12);
 
   // ----- draw buttons
   for (int ii=0; ii<nHelpButtons; ii++) {

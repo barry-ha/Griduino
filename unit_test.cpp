@@ -16,13 +16,10 @@
 // ========== extern ==================================
 float nextGridLineEast(float longitudeDegrees);       // Griduino.ino
 float nextGridLineWest(float longitudeDegrees);       // Griduino.ino
-String calcLocator(double lat, double lon);           // Griduino.ino
+void calcLocator(char* result, double lat, double lon, int precision); // Griduino.ino
 double calcDistanceLat(double fromLat, double toLat); // Griduino.ino
 double calcDistanceLong(double lat, double fromLong, double toLong);  // Griduino.ino
-void initFontSizeBig();                     // Griduino.ino
-void initFontSizeSmall();                   // Griduino.ino
-void initFontSizeSystemSmall();             // Griduino.ino
-void drawProportionalText(int ulX, int ulY, String prevText, String newText, bool dirty);
+void setFontSize(int font);                    // Griduino.ino
 void clearScreen();                         // Griduino.ino
 
 void updateGridScreen();                    // view_grid.cpp
@@ -30,7 +27,6 @@ void startGridScreen();                     // view_grid.cpp
 
 // ----- globals
 extern Adafruit_ILI9341 tft;
-extern int gCharWidth, gCharHeight;         // character cell size for TextSize(n)
 extern DACMorseSender dacMorse;             // Morse code
 extern Model model;
 
@@ -54,27 +50,27 @@ void testNextGridLineEast(float fExpected, double fLongitude) {
 void testNextGridLineWest(float fExpected, double fLongitude) {
   // unit test helper for finding grid line crossings
   float result = nextGridLineWest(fLongitude);
-  //~Serial.print("Grid Crossing West: given = "); //~Serial.print(fLongitude);
-  //~Serial.print(", expected = "); //~Serial.print(fExpected);
-  //~Serial.print(", result = "); //~Serial.print(result);
+  Serial.print("Grid Crossing West: given = "); Serial.print(fLongitude);
+  Serial.print(", expected = "); Serial.print(fExpected);
+  Serial.print(", result = "); Serial.print(result);
   if (result == fExpected) {
-    //~Serial.println("");
+    Serial.println("");
   }
   else {
-    //~Serial.println(" <-- Unequal");
+    Serial.println(" <-- Unequal");
   }
 }
-void testCalcLocator(String sExpected, double lat, double lon) {
+void testCalcLocator(const char* sExpected, double lat, double lon) {
   // unit test helper function to display results
-  String sResult;
-  sResult = calcLocator(lat, lon);
-  //~Serial.print("Test: expected = "); //~Serial.print(sExpected);
-  //~Serial.print(", gResult = "); //~Serial.print(sResult);
-  if (sResult == sExpected) {
-    //~Serial.println("");
+  char sResult[7];      // strlen("CN87us") = 6
+  calcLocator(sResult, lat, lon, 6);
+  Serial.print("Test: expected = "); Serial.print(sExpected);
+  Serial.print(", gResult = "); Serial.print(sResult);
+  if (strcmp(sResult, sExpected) == 0) {
+    Serial.println("");
   }
   else {
-    //~Serial.println(" <-- Unequal");
+    Serial.println(" <-- Unequal");
   }
 }
 
@@ -213,33 +209,14 @@ void verifySaveRestoreGPSModel() {
   if (gpsModel.save()) {
     Serial.println("Success, GPS model stored to SDRAM");
   } else {
-    Serial.println("ERROR! Failed to save GPS model to SDRAM");
+    Serial.print("Unit test error: Failed to save GPS model to SDRAM, line "); Serial.println(__LINE__);
   }
 
   if (gpsModel.restore()) {    // test reading same data back from SDRAM
     Serial.println("Success, GPS model restored from SDRAM");
   } else {
-    Serial.println("ERROR! Failed to retrieve GPS model from SDRAM");
+    Serial.print("Unit test error: Failed to retrieve GPS model from SDRAM, line "); Serial.println(__LINE__);
   }
-}
-// =============================================================
-// verify writing proportional font
-void verifyWritingProportionalFont() {
-  // visual test: if this code works correctly, each string will exactly erase the previous one
-  Serial.print("-------- verifyWritingProportionalFont() at line "); Serial.println(__LINE__);
-
-  initFontSizeBig();
-  int waitTime = 400;    // fast=10 msec, easy-to-read=1000 msec
-
-  // visual test: check that prev text is fully erased when new text written
-  int middleRowY = tft.height()/2;
-  drawProportionalText(24, middleRowY, String("MM88"),   String("abc"), true); delay(waitTime);
-  drawProportionalText(24, middleRowY, String("abc"),    String("defghi"), true); delay(waitTime);
-  drawProportionalText(24, middleRowY, String("defghi"), String("jklmnop"), true); delay(waitTime);
-  drawProportionalText(24, middleRowY, String("jklmnop"),String("xyz"), true); delay(waitTime);
-  drawProportionalText(24, middleRowY, String("xyz"),    String("qrstu"), true); delay(waitTime);
-  drawProportionalText(24, middleRowY, String("qrstu"),  String("vwxyz0"), true); delay(waitTime);
-  drawProportionalText(24, middleRowY, String("vwxyz0"), String(""), true);
 }
 // =============================================================
 // verify painting individual bread crumbs (locations)
@@ -248,7 +225,7 @@ void verifyBreadCrumbs() {
   Serial.print("-------- verifyBreadCrumbs() at line "); Serial.println(__LINE__);
   
   // move the model to known location (CN87)
-  model.gsGridName = "CN87";
+  //model.gsGridName = "CN87";
   model.gLatitude = 47.737451;    // CN87
   model.gLongitude = -122.274711; // CN87
 
@@ -357,9 +334,7 @@ void verifySaveTrail() {
   
   generateSineWave(&testModel);   // generate known data to be saved
 
-  // save this to non-volatile memory (todo)
-  Serial.print(". Save trail to non-volatile memory (todo) line "); Serial.println(__LINE__);
-    
+  // this is automatically saved to non-volatile memory by the model.remember()
 }
 // =============================================================
 // restore GPS route from non-volatile memory
@@ -414,11 +389,11 @@ void verifyComputingGridLines() {
 // =============================================================
 void countDown(int iSeconds) {
   Serial.print("Counting "); Serial.print(iSeconds); Serial.println(" sec...");
-  initFontSizeSystemSmall();
+  setFontSize(0);
   tft.setTextSize(2);
   tft.setTextColor(ILI9341_BLACK, ILI9341_WHITE);
   for (int ii=iSeconds; ii>0; ii--) {
-    tft.setCursor(2, gScreenHeight-gCharHeight-2);
+    tft.setCursor(2, gScreenHeight-16);
     tft.print(" Wait ");
     tft.print(ii);
     tft.print(" ");
@@ -430,26 +405,28 @@ void runUnitTest() {
   tft.fillScreen(ILI9341_BLACK);
 
   // ----- announce ourselves
-  initFontSizeBig();
-  drawProportionalText(gCharWidth, gCharHeight, String(""), String("--Unit Test--"), true);
+  setFontSize(24);
+  tft.setCursor(12, 38);
+  tft.setTextColor(ILI9341_WHITE);
+  tft.print( "--Unit Test--");
 
-  initFontSizeSystemSmall();
+  setFontSize(0);
   tft.setTextSize(1);
   tft.setTextColor(ILI9341_YELLOW);
-  tft.setCursor(0, tft.height() - gCharHeight); // move to bottom row
+  tft.setCursor(0, tft.height() - 12); // move to bottom row
   tft.print("  --Open console monitor to see unit test results--");
   delay(1000);
 
-  verifyMorseCode();                            // verify Morse code
-  verifySaveRestoreVolume();    countDown(15);  // verify save/restore an integer setting in SDRAM
-  verifySaveRestoreArray();     countDown(20);  // verify save/restore an array in SDRAM
-  verifySaveRestoreGPSModel();  countDown(20);  // verify save/restore GPS model state in SDRAM
+  //verifyMorseCode();                            // verify Morse code
+  verifySaveRestoreVolume();    countDown( 5);  // verify save/restore an integer setting in SDRAM
+  verifySaveRestoreArray();     countDown(10);  // verify save/restore an array in SDRAM
+  verifySaveRestoreGPSModel();  countDown(10);  // verify save/restore GPS model state in SDRAM
   verifyWritingProportionalFont();              // verify writing proportional font
   
-  verifyBreadCrumbs();          countDown(4);   // verify pushpins near the four corners
+  verifyBreadCrumbs();          countDown(5);   // verify pushpins near the four corners
   verifyBreadCrumbTrail1();     countDown(5);   // verify painting the bread crumb trail
   verifyBreadCrumbTrail2();     countDown(10);  // verify painting the bread crumb trail
-  verifySaveTrail();            countDown(20);  // save GPS route to non-volatile memory
+  verifySaveTrail();            countDown(10);  // save GPS route to non-volatile memory
   verifyRestoreTrail();         countDown(5);   // restore GPS route from non-volatile memory
 
   verifyDerivingGridSquare();   countDown(5);   // verify deriving grid square from lat-long coordinates

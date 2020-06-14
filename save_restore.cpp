@@ -56,6 +56,7 @@ int SaveRestore::readConfig(byte* pData, const int sizeData) {
   // returns 1=success, 0=failure
   int result = 1;             // assume success
   Serial.println("Starting to read config from SDRAM...");
+  Serial.print(". fqFilename ("); Serial.print(fqFilename); Serial.println(")");
     
   result = openFlash();       // open file system
   if (!result) {
@@ -112,7 +113,7 @@ int SaveRestore::readConfig(byte* pData, const int sizeData) {
   Serial.print(". Data length ("); Serial.print(sizeData); Serial.println(")");
   
   // close files and clean up
-  readFile.close();           // TODO - don't close the file (derived classes need to append data)
+  readFile.close();
   //gFlash.end();             // this causes "undefined reference to 'Adafruit_SPIFlash::end()'
 
   return result;
@@ -158,8 +159,7 @@ int SaveRestore::writeConfig(const byte* pData, const int sizeData) {
     return 0;
   }
   
-  writeFile.close();           // TODO - don't close the file (derived classes need to append data)
-                               // until then we MUST close the file to flush the buffer
+  writeFile.close();
   return result;
 }
 

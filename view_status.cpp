@@ -28,12 +28,9 @@
 // ========== extern ===========================================
 extern Adafruit_ILI9341 tft;        // Griduino.ino
 extern int gTextSize;               // no such function as "tft.getTextSize()" so remember it on our own
-extern int gCharWidth, gCharHeight; // character cell size for TextSize(n)
-extern int gUnitFontWidth, gUnitFontHeight; // character cell size for TextSize(1)
 extern Model model;                 // "model" portion of model-view-controller
 
-void initFontSizeBig();             // Griduino.ino
-void initFontSizeSmall();           // Griduino.ino
+void setFontSize(int font);            // Griduino.ino
 int getOffsetToCenterText(String text); // Griduino.ino
 
 // ============== constants ====================================
@@ -72,47 +69,12 @@ TextField txtValues[numText] = {
 };
 
 // ========== helpers ==========================================
-void erasePrintProportionalText(int xx, int yy, int ww, String text, uint16_t cc) {
-  // TODO: remove this function, it is replaced by TextField object
-  // use this to specify the width to erase
-
-  // find the height of erasure
-  int16_t x1, y1;
-  uint16_t w, h;
-  tft.getTextBounds(text, xx, yy, &x1, &y1, &w, &h);
-
-  tft.fillRect(x1-4, y1-2, ww, h+4, cBACKGROUND); // erase the requested width of old text
-  //tft.drawRect(x1-4, y1-2, ww, h+4, cWARN);       // debug: show what area was erased
-
-  // print new text in same spot
-  tft.setCursor(xx, yy);
-  tft.setTextColor(cc);
-  tft.print(text);
-}
-void printProportionalText(int xx, int yy, String text, uint16_t cc) {
-  // Note about proportional fonts:
-  // 1. Text origin is bottom left corner
-  // 2. Rect origin is upper left corner
-  // 2. Printing text does not clear its own background
-
-  // erase old text, 
-  // and a few extra pixels around it, in case it was longer than the new text
-  int16_t x1, y1;
-  uint16_t w, h;
-  tft.getTextBounds(text, xx, yy, &x1, &y1, &w, &h);
-
-  tft.fillRect(x1-4, y1-2, w+10, h+4, cBACKGROUND); // erase the old text
-  tft.drawRect(x1-4, y1-2, w+10, h+4, cWARN);       // debug: show what area was erased
-
-  // print new text in same spot
-  tft.setCursor(xx, yy);
-  tft.setTextColor(cc);
-  tft.print(text);
-}
 
 // ========== start status screen view =========================
 void updateStatusScreen() {
-  initFontSizeSmall();
+  // called on every pass through main()
+
+  setFontSize(12);
 
   // ----- GMT time
   char sTime[10];         // strlen("19:54:14") = 8
@@ -125,9 +87,8 @@ void updateStatusScreen() {
   txtValues[1].print(sDate);
 
   // ----- grid square
-  char sGrid[10];
-  String tmp = model.gsGridName;
-  tmp.toCharArray(sGrid, sizeof(sGrid)-1);
+  char sGrid[10];         // strlen("CN87us") = 6
+  calcLocator(sGrid, model.gLatitude, model.gLongitude, 6);
   txtValues[2].print(sGrid);
   
   // ----- altitude
@@ -162,12 +123,15 @@ void startStatScreen() {
   txtValues[0].setBackground(cBACKGROUND);                   // set background for all TextFields in this view
   TextField::setTextDirty( txtLabels, numLabels );
   TextField::setTextDirty( txtValues, numText );             // make sure all fields get re-printed on screen change
-  initFontSizeSmall();
+  setFontSize(12);
 
   // ----- labels
   for (int ii=0; ii<numLabels; ii++) {
     txtLabels[ii].print();
   }
+
+  // debug: show centerline on display
+  //tft.drawLine(tft.width()/2,0, tft.width()/2,tft.height(), cWARN); // debug
 
   updateStatusScreen();             // fill in values immediately, don't wait for the main loop to eventually get around to it
 }

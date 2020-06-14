@@ -32,28 +32,16 @@
 
 // ========== extern ===========================================
 extern Adafruit_ILI9341 tft;        // Griduino.ino
-extern int gCharWidth, gCharHeight; // character cell size for TextSize(n)
 extern Model model;                 // "model" portion of model-view-controller
 
-void initFontSizeBig();             // Griduino.ino
-void initFontSizeSmall();           // Griduino.ino
-void initFontSizeSystemSmall();     // Griduino.ino
+void setFontSize(int font);            // Griduino.ino
 float nextGridLineEast(float longitudeDegrees);       // Griduino.ino
 float nextGridLineWest(float longitudeDegrees);       // Griduino.ino
+void floatToCharArray(char* result, int maxlen, double fValue, int decimalPlaces);  // Griduino.ino
 
 // ============== constants ====================================
 const int gMarginX = 70;            // define space for grid outline on screen
 const int gMarginY = 26;            // and position text relative to this outline
-//nst int gBoxWidth = 180;          // grid square width as shown on display, pixels (see constants.h)
-//nst int gBoxHeight = 160;         // grid square height as shown on display, pixels (see constants.h)
-
-// vertical placement of text rows
-/* currently unused (mostly replaced by txtGrid[])
-const int gTopRowY = 20;            // ~= (gMarginY - gCharHeight - 2);
-const int gMiddleRowY = 104;        // ~= (gScreenHeight - gCharHeight) / 2;
-const int gBottomGridY = 207;       // ~= (gScreenHeight - gCharHeight - 3*gCharHeight);
-const int gMessageRowY = 215;       // ~= (gScreenHeight - gCharHeight -1);
-*/
 
 // ========== globals ==========================================
 
@@ -91,8 +79,8 @@ TextField txtGrid[] = {
   TextField("CN77",  101,101,  cGRIDNAME),      // GRID4: center of screen
   TextField("tt",    138,141,  cGRIDNAME),      // GRID6: center of screen
   TextField("47.1234,-123.4567", 4,223, cWARN), // LATLONG: left-adj on bottom row
-  TextField("123'",  313,196,  cWARN, FLUSHRIGHT),  // ALTITUDE: just above bottom row
-  TextField("99#",   311,221,  cWARN, FLUSHRIGHT),  // NUMSAT: lower right corner
+  TextField("123'",  313,196,  cWARN, ALIGNRIGHT),  // ALTITUDE: just above bottom row
+  TextField("99#",   311,221,  cWARN, ALIGNRIGHT),  // NUMSAT: lower right corner
   TextField( "N",    156, 47,  cCOMPASS ),      // N_COMPASS: centered left-right
   TextField( "S",    156,181,  cCOMPASS ),      // S_COMPASS
   TextField( "E",    232,114,  cCOMPASS ),      // E_COMPASS: centered top-bottom
@@ -105,10 +93,10 @@ TextField txtGrid[] = {
   TextField("CN86",  102,207,  cGRIDNAME),      // S_GRIDNAME
   TextField("CN97",  256,102,  cGRIDNAME),      // E_GRIDNAME
   TextField("CN77",    0,102,  cGRIDNAME),      // W_GRIDNAME
-  TextField("48",     56, 44,  cBOXDEGREES, FLUSHRIGHT),  // N_BOX_LAT
-  TextField("47",     56,190,  cBOXDEGREES, FLUSHRIGHT),  // S_BOX_LAT
+  TextField("48",     56, 44,  cBOXDEGREES, ALIGNRIGHT),  // N_BOX_LAT
+  TextField("47",     56,190,  cBOXDEGREES, ALIGNRIGHT),  // S_BOX_LAT
   TextField("122",   243, 20,  cBOXDEGREES),              // E_BOX_LONG
-  TextField("124",    72, 20,  cBOXDEGREES, FLUSHRIGHT),  // W_BOX_LONG
+  TextField("124",    72, 20,  cBOXDEGREES, ALIGNRIGHT),  // W_BOX_LONG
 };
 const int numTextGrid = sizeof(txtGrid)/sizeof(TextField);
 
@@ -116,7 +104,7 @@ void drawGridName(String newGridName) {
   // huge lettering of current grid square
   // two lines: "CN87" and "us" below it
 
-  initFontSizeBig();
+  setFontSize(24);
 
   String grid1_4 = newGridName.substring(0, 4);
   String grid5_6 = newGridName.substring(4, 6);
@@ -125,15 +113,15 @@ void drawGridName(String newGridName) {
   txtGrid[GRID6].print(grid5_6);
 }
 
-void drawPositionLL(String sLat, String sLong) {
-  initFontSizeSystemSmall();
+void drawPositionLL(double fLat, double fLong) {
+  setFontSize(0);
 
   // the message line shows either or a position (lat,long) or a message (waiting for GPS)
   char sTemp[27];       // why 27? Small system font will fit 26 characters on one row
   if (model.gHaveGPSfix) {
     char latitude[10], longitude[10];
-    sLat.toCharArray(latitude, sizeof(latitude));
-    sLong.toCharArray(longitude, sizeof(longitude));
+    floatToCharArray(latitude, sizeof(latitude), fLat, 4);
+    floatToCharArray(longitude, sizeof(longitude), fLong, 4);
     snprintf(sTemp, sizeof(sTemp), "%s, %s", latitude, longitude);
   } else {
     strcpy(sTemp, "Waiting for GPS");
@@ -143,7 +131,7 @@ void drawPositionLL(String sLat, String sLong) {
 }
 
 void drawNumSatellites() {
-  initFontSizeSystemSmall();
+  setFontSize(0);
 
   char sTemp[4];    // strlen("12#") = 3
   if (model.gSatellites<10) {
@@ -156,7 +144,7 @@ void drawNumSatellites() {
 }
 
 void drawAltitude() {
-  initFontSizeSystemSmall();
+  setFontSize(0);
 
   char sTemp[8];      // strlen("12345'") = 6
   int altFeet = model.gAltitude * feetPerMeters;
@@ -165,14 +153,14 @@ void drawAltitude() {
 }
 
 void drawCompassPoints() {
-  initFontSizeSmall();
+  setFontSize(12);
   for (int ii=N_COMPASS; ii<N_COMPASS+4; ii++) {
     txtGrid[ii].print();
   }
 }
 
 void drawBoxLatLong() {
-  initFontSizeSmall();
+  setFontSize(12);
   txtGrid[N_BOX_LAT].print( ceil(model.gLatitude) );    // latitude of N,S box edges
   txtGrid[S_BOX_LAT].print( floor(model.gLatitude) );
   txtGrid[E_BOX_LONG].print( nextGridLineEast(model.gLongitude) ); // longitude of E,W box edges
@@ -182,25 +170,59 @@ void drawBoxLatLong() {
   // draw "degree" symbol at:       x                        y        r     color
   tft.drawCircle(txtGrid[N_BOX_LAT].x+7,  txtGrid[N_BOX_LAT].y-14,  radius, cBOXDEGREES); // draw circle to represent "degrees"
   tft.drawCircle(txtGrid[S_BOX_LAT].x+7,  txtGrid[S_BOX_LAT].y-14,  radius, cBOXDEGREES);
-  //t.drawCircle(txtGrid[E_BOX_LONG].x+7, txtGrid[E_BOX_LONG].y-14, radius, cBOXDEGREES); // no room for "degrees" on FLUSHLEFT number?
+  //t.drawCircle(txtGrid[E_BOX_LONG].x+7, txtGrid[E_BOX_LONG].y-14, radius, cBOXDEGREES); // no room for "degrees" on ALIGNLEFT number?
   tft.drawCircle(txtGrid[W_BOX_LONG].x+7, txtGrid[W_BOX_LONG].y-14, radius, cBOXDEGREES);
 }
 
 void drawNeighborGridNames() {
-  initFontSizeSmall();
-  txtGrid[N_GRIDNAME].print(model.gsGridNorth);
-  txtGrid[S_GRIDNAME].print(model.gsGridSouth);
-  txtGrid[E_GRIDNAME].print(model.gsGridEast);
-  txtGrid[W_GRIDNAME].print(model.gsGridWest);
+  setFontSize(12);
+  char nGrid[5], sGrid[5], eGrid[5], wGrid[5];
+
+  calcLocator(nGrid, model.gLatitude+1.0, model.gLongitude, 4);
+  calcLocator(sGrid, model.gLatitude-1.0, model.gLongitude, 4);
+  calcLocator(eGrid, model.gLatitude, model.gLongitude+2.0, 4);
+  calcLocator(wGrid, model.gLatitude, model.gLongitude-2.0, 4);
+
+  txtGrid[N_GRIDNAME].print(nGrid);
+  txtGrid[S_GRIDNAME].print(sGrid);
+  txtGrid[E_GRIDNAME].print(eGrid);
+  txtGrid[W_GRIDNAME].print(wGrid);
 }
 
 void drawNeighborDistances() {
-  initFontSizeSmall();
-  txtGrid[N_DISTANCE].print(model.gsDistanceNorth);
-  txtGrid[S_DISTANCE].print(model.gsDistanceSouth);
-  txtGrid[E_DISTANCE].print(model.gsDistanceEast);
-  txtGrid[W_DISTANCE].print(model.gsDistanceWest);
+  setFontSize(12);
+
+  // N-S: find nearest integer grid lines
+  float fNorth = calcDistanceLat(model.gLatitude, ceil(model.gLatitude));
+  if (fNorth < 10.0) {
+    txtGrid[N_DISTANCE].print( fNorth, 2 );
+  } else {
+    txtGrid[N_DISTANCE].print( fNorth, 1 );
+  }
+  float fSouth = calcDistanceLat(model.gLatitude, floor(model.gLatitude));
+  if (fSouth < 10.0) {
+    txtGrid[S_DISTANCE].print( fSouth, 2 );
+  } else {
+    txtGrid[S_DISTANCE].print( fSouth, 1 );
+  }
+  
+  // E-W: find nearest EVEN numbered grid lines
+  int eastLine = ::nextGridLineEast(model.gLongitude);
+  int westLine = ::nextGridLineWest(model.gLongitude);
+  float fEast = calcDistanceLong(model.gLatitude, model.gLongitude, eastLine);
+  float fWest = calcDistanceLong(model.gLatitude, model.gLongitude, westLine);
+  if (fEast < 10.0) {
+    txtGrid[E_DISTANCE].print( fEast, 2 );
+  } else {
+    txtGrid[E_DISTANCE].print( fEast, 1 );
+  }
+  if (fWest < 10.0) {
+    txtGrid[W_DISTANCE].print( fWest, 2 );
+  } else {
+    txtGrid[W_DISTANCE].print( fWest, 1 );
+  }
 }
+
 // =============================================================
 void translateGPStoScreen(Point* result, const PointGPS loc, const PointGPS origin) {
   // result = screen coordinates of given GPS coordinates
@@ -371,10 +393,12 @@ void updateGridScreen() {
 
   PointGPS myLocation{ model.gLatitude, model.gLongitude }; // current location
   
-  drawGridName(model.gsGridName);   // huge letters centered on screen
+  char grid6[7];
+  calcLocator(grid6, model.gLatitude, model.gLongitude, 6);
+  drawGridName(grid6);              // huge letters centered on screen
   drawAltitude();                   // height above sea level
   drawNumSatellites();
-  drawPositionLL(model.gsLatitude, model.gsLongitude);  // lat-long of current position
+  drawPositionLL(model.gLatitude, model.gLongitude);  // lat-long of current position
   //drawCompassPoints();              // show N-S-E-W compass points (disabled, it makes the screen too busy)
   //drawBoxLatLong();                 // show coordinates of box (disabled, it makes the screen too busy)
   drawNeighborGridNames();            // show 4-digit names of nearby squares
@@ -399,7 +423,7 @@ void startGridScreen() {
   Serial.print(minLat,6); Serial.print(" degrees = "); 
   Serial.print(latMiles,2); Serial.println(" miles");
 
-  initFontSizeSmall();
+  setFontSize(12);
   drawGridOutline();                // box outline around grid
   //tft.drawRect(0, 0, gScreenWidth, gScreenHeight, ILI9341_BLUE);  // debug: border around screen
 

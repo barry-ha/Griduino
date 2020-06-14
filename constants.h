@@ -3,7 +3,7 @@
 
 // ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE   "Griduino"
-#define PROGRAM_VERSION "v0.15"
+#define PROGRAM_VERSION "v0.16"
 #define PROGRAM_LINE1   "Barry K7BWH"
 #define PROGRAM_LINE2   "John KM7O"
 
@@ -25,7 +25,7 @@ const double degreesPerRadian = 57.2957795;
 
 // ------- Select features ---------
 //#define RUN_UNIT_TESTS            // comment out to save boot-up time
-#define USE_SIMULATED_GPS         // comment out to use real GPS, or else it simulates driving around (see model.cpp)
+//#define USE_SIMULATED_GPS         // comment out to use real GPS, or else it simulates driving around (see model.cpp)
 //#define ECHO_GPS                  // use this to see GPS detailed info on IDE console for debug
 //#define ECHO_GPS_SENTENCE         // use this to see once-per-second GPS sentences
 
@@ -33,6 +33,9 @@ const double degreesPerRadian = 57.2957795;
 //#define EXTERNAL_FLASH_USE_QSPI   // 2020-02-11 added by BarryH, since it seems to be missing from 
                                     // c:\Users\barry\AppData\Local\Arduino15\packages\adafruit\hardware\samd\1.5.7\variants\feather_m4\variant.h
 #define CONFIG_FOLDER  "/Griduino"
+
+// ----- alias names for setFontSize()
+enum { eFONTGIANT=36, eFONTBIG=24, eFONTSMALL=12, eFONTSMALLEST=9, eFONTSYSTEM=0 };
 
 // ----- color scheme
 // RGB 565 color code: http://www.barth-dev.de/online/rgb565-color-picker/
@@ -46,7 +49,9 @@ const double degreesPerRadian = 57.2957795;
 #define cBUTTONFILL     ILI9341_NAVY
 #define cBUTTONOUTLINE  ILI9341_CYAN
 #define cBREADCRUMB     ILI9341_CYAN
-//efine cBOXDEGREES     0x0514            // 0, 160, 160 = blue, between CYAN and DARKCYAN
+#define cTEXTCOLOR      ILI9341_CYAN
+#define cTEXTFAINT      0x0514            // 0, 160, 160 = blue, between CYAN and DARKCYAN
+//define cBOXDEGREES    0x0514            // 0, 160, 160 = blue, between CYAN and DARKCYAN
 #define cBOXDEGREES     0x0410            // 0, 128, 128 = blue, between CYAN and DARKCYAN
 #define cBUTTONLABEL    ILI9341_YELLOW
 #define cCOMPASS        ILI9341_BLUE      // a little darker than cBUTTONOUTLINE
@@ -61,11 +66,19 @@ struct PointGPS{
     double lat, lng;
 };
 
-struct Rectangle {
-  int left, top;
-  int width, height;
-  char label[12];
+struct Rect {
+  Point ul;
+  Point size;
+  bool contains(const Point touch) {
+    if (ul.x <= touch.x && touch.x <= ul.x+size.x
+     && ul.y <= touch.y && touch.y <= ul.y+size.y) {
+      return true;
+     } else {
+      return false;
+     }
+  }
 };
+
 struct Label {
   char text[26];
   int x, y;
@@ -81,6 +94,16 @@ typedef struct {
   uint16_t color;
   simpleFunction function;
 } Button;
+
+typedef struct {
+  char text[26];
+  int x, y;
+  int w, h;
+  Rect hitTarget;
+  int radius;
+  uint16_t color;
+  simpleFunction function;
+} TimeButton;
 
 class Location {
   public:

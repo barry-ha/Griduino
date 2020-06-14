@@ -84,7 +84,6 @@ int units = eEnglish;         // units on startup: 0=english=inches mercury, 1=m
   #define BMP_CS  13    // BMP388 sensor, chip select
 
 #else
-  // todo: Unknown platform
   #warning You need to define pins for your hardware
 
 #endif
@@ -109,7 +108,6 @@ Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
   #define PIN_YP  A2    // Touchscreen Y+ must be an analog pin, use "An" notation
   #define PIN_YM   5    // Touchscreen Y- can be a digital pin
 #else
-  // todo: Unknown platform
   #warning You need to define pins for your hardware
 
 #endif
