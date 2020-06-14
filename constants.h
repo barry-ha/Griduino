@@ -23,11 +23,12 @@ const float gridHeightDegrees = 1.0;
 #define mphPerKnots   1.15078
 const double degreesPerRadian = 57.2957795;
 
-// ------- Select features ---------
+// ------- Select testing features ---------
 //#define RUN_UNIT_TESTS            // comment out to save boot-up time
 //#define USE_SIMULATED_GPS         // comment out to use real GPS, or else it simulates driving around (see model.cpp)
 //#define ECHO_GPS                  // use this to see GPS detailed info on IDE console for debug
 //#define ECHO_GPS_SENTENCE         // use this to see once-per-second GPS sentences
+//#define SHOW_HIT_TARGETS          // use this to outline touchscreen sensitive buttons
 
 // ----- load/save configuration using SDRAM
 //#define EXTERNAL_FLASH_USE_QSPI   // 2020-02-11 added by BarryH, since it seems to be missing from 
