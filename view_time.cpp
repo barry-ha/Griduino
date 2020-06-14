@@ -246,15 +246,17 @@ void startTimeScreen() {
     tft.fillRoundRect(item.x, item.y, item.w, item.h, item.radius, cBUTTONFILL);
     tft.drawRoundRect(item.x, item.y, item.w, item.h, item.radius, cBUTTONOUTLINE);
 
+    // ----- label on top of button
+    tft.setCursor(item.x+item.w/2-7, item.y+item.h/2+5);
+    tft.setTextColor(item.color);
+    tft.print(item.text);
+
     #ifdef SHOW_TOUCH_TARGETS
     tft.drawRect(item.hitTarget.ul.x, item.hitTarget.ul.y,  // debug: draw outline around hit target
                  item.hitTarget.size.x, item.hitTarget.size.y, 
                  cBUTTONOUTLINE); 
     #endif
 
-    tft.setCursor(item.x+item.w/2-7, item.y+item.h/2+5);
-    tft.setTextColor(item.color);
-    tft.print(item.text);
   }
 
   // debug: show centerline on display
