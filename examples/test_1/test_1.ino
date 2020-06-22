@@ -421,18 +421,18 @@ void loop(void)
 		case btn_idle:
 			break;
 
-		case btn_click:
+		case btn_click:     // press short (< 200 msec)
 			Serial.println("btn_click");
 			tft.fillCircle(touch.x, touch.y, 3, ILI9341_YELLOW);
 			break;
 
-		case btn_press:
+		case btn_press:     // press medium (200..1000 msec)
 			Serial.println("btn_press");
 			clearScreen();
 			SplashScreen();
 			break;
 
-		case btn_long_press:
+		case btn_long_press:  // press long (> 1000 msec)
 			Serial.println("btn_long_press");
 			gScreenRotation = (gScreenRotation==1) ? 3 : 1;
 			tft.setRotation(gScreenRotation);											// landscape (default is portrait)
@@ -447,6 +447,7 @@ void loop(void)
 
 		case btn_click_press:
 			Serial.println("btn_click_press");
+      tft.fillCircle(touch.x, touch.y, 3, ILI9341_CYAN);
 			break;
 
 		case btn_click_long_press:
