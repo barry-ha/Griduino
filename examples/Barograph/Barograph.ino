@@ -61,7 +61,7 @@ const int yShift = 9;         // in pixels
 const int xIndent = 12;       // in pixels, text on main screen
 
 enum units { eMetric, eEnglish };
-int units = eEnglish;         // units on startup: 0=english=inches mercury, 1=metric=millibars
+int units = eMetric;         // units on startup: 0=english=inches mercury, 1=metric=millibars
 
 // ---------- Hardware Wiring ----------
 /* Same as Griduino platform
@@ -155,7 +155,8 @@ struct Reading {
 };
 
 // ------------ definitions
-const int howLongToWait = 2;  // max number of seconds at startup waiting for Serial port to console
+const int howLongToWait = 4;  // max number of seconds at startup waiting for Serial port to console
+#define SCREEN_ROTATION 1     // 1=landscape, 3=landscape 180 degrees
 
 #define FEET_PER_METER 3.28084
 #define SEA_LEVEL_PRESSURE_HPA (1013.25)
