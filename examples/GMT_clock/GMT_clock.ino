@@ -37,6 +37,7 @@
 #include "Adafruit_BMP3XX.h"        // Precision barometric and temperature sensor
 #include "save_restore.h"           // Save configuration in non-volatile RAM
 #include "TextField.h"              // Optimize TFT display text for proportional fonts
+#include "Adafruit_NeoPixel.h"
 
 // ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE   "Griduino GMT Clock"
@@ -109,8 +110,12 @@ TouchScreen ts = TouchScreen(PIN_XP, PIN_YP, PIN_XM, PIN_YM, 295);
 Adafruit_BMP3XX baro(BMP_CS); // hardware SPI
 
 // ---------- Feather's onboard lights
+//efine PIN_NEOPIXEL 8      // already defined in Feather's board variant.h
 #define RED_LED 13          // diagnostics RED LED
 //efine PIN_LED 13          // already defined in Feather's board variant.h
+
+#define NUMPIXELS 1         // Feather M4 has one NeoPixel on board
+Adafruit_NeoPixel pixel = Adafruit_NeoPixel(NUMPIXELS, PIN_NEOPIXEL, NEO_GRB + NEO_KHZ800);
 
 // ---------- GPS ----------
 /* "Ultimate GPS" pin wiring is connected to a dedicated hardware serial port
@@ -690,6 +695,12 @@ void setup() {
   tft.begin();                        // initialize TFT display
   tft.setRotation(SCREEN_ROTATION);   // 1=landscape (default is 0=portrait)
   clearScreen();
+
+  // ----- init Feather M4 onboard lights (in case previous state or program left the lights on)
+  pixel.begin();
+  pixel.clear();                      // turn off NeoPixel
+  digitalWrite(PIN_LED, LOW);         // turn off little red LED
+  Serial.println("NeoPixel initialized and turned off");
 
   // ----- announce ourselves
   startSplashScreen();
