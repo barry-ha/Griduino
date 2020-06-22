@@ -349,7 +349,8 @@ void verifyDerivingGridSquare() {
 
   // Expected values from: https://www.movable-type.co.uk/scripts/latlong.html
   //              expected     lat        long
-  testCalcLocator("CN87us",  47.753000, -122.28470);  // user must read console log for failure messages
+  testCalcLocator("CN87us",  47.753000, -122.28470);  // read console log for failure messages
+  testCalcLocator("CN85uk",  45.4231,   -122.2847 );  //
   testCalcLocator("EM66pd",  36.165926, -86.723285);  // +,-
   testCalcLocator("OF86cx", -33.014673, 116.230695);  // -,+
   testCalcLocator("FD54oq", -55.315349, -68.794971);  // -,-
@@ -421,7 +422,7 @@ void runUnitTest() {
   verifySaveRestoreVolume();    countDown( 5);  // verify save/restore an integer setting in SDRAM
   verifySaveRestoreArray();     countDown(10);  // verify save/restore an array in SDRAM
   verifySaveRestoreGPSModel();  countDown(10);  // verify save/restore GPS model state in SDRAM
-  verifyWritingProportionalFont();              // verify writing proportional font
+  //verifyWritingProportionalFont();              // verify writing proportional font
   
   verifyBreadCrumbs();          countDown(5);   // verify pushpins near the four corners
   verifyBreadCrumbTrail1();     countDown(5);   // verify painting the bread crumb trail
