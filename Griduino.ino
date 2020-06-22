@@ -351,7 +351,7 @@ bool TouchScreen::isTouching(void) {
   }
 
   if ((button_state == true) && (pres_val < TOUCHPRESSURE)) {
-    Serial.print(". released, pressure = "); Serial.println(pres_val);       // debug
+    //Serial.print(". released, pressure = "); Serial.println(pres_val);       // debug
     button_state = false;
   }
 
@@ -727,7 +727,7 @@ void setup() {
   volume.setWiperPosition( gWiper );  // set default volume in digital pot
 
   if (loadConfigVolume()) {           // view_volume.cpp
-    Serial.println("Successfully loaded Volume control settings");
+    //Serial.println("Successfully loaded Volume control settings");
   } else {
     Serial.println("Failed to load Volume control settings, re-initializing config file");
     saveConfigVolume();
@@ -776,6 +776,7 @@ void setup() {
   model.gHaveGPSfix = false;          // assume no satellite signal yet
   model.gSatellites = 0;
 
+  // one-time Help screen
   startHelpScreen();
   delay(2000);
 
