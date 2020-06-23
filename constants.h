@@ -6,6 +6,7 @@
 #define PROGRAM_VERSION "v0.16"
 #define PROGRAM_LINE1   "Barry K7BWH"
 #define PROGRAM_LINE2   "John KM7O"
+#define PROGRAM_COMPILED __DATE__ " " __TIME__
 
 #define SCREEN_ROTATION 1   // 1=landscape, 3=landscape 180-degrees
 #define gScreenWidth 320    // screen pixels wide
