@@ -28,7 +28,7 @@ const double degreesPerRadian = 57.2957795;
 //#define USE_SIMULATED_GPS         // comment out to use real GPS, or else it simulates driving around (see model.cpp)
 //#define ECHO_GPS                  // use this to see GPS detailed info on IDE console for debug
 //#define ECHO_GPS_SENTENCE         // use this to see once-per-second GPS sentences
-//#define SHOW_HIT_TARGETS          // use this to outline touchscreen sensitive buttons
+//#define SHOW_TOUCH_TARGETS        // use this to outline touchscreen sensitive buttons
 
 // ----- load/save configuration using SDRAM
 //#define EXTERNAL_FLASH_USE_QSPI   // 2020-02-11 added by BarryH, since it seems to be missing from 
@@ -87,16 +87,18 @@ struct Label {
 };
 
 typedef void (*simpleFunction)();
-typedef struct {
+struct Button {
   char text[26];
   int x, y;
   int w, h;
   int radius;
   uint16_t color;
   simpleFunction function;
-} Button;
+} ;
 
-typedef struct {
+struct TimeButton {
+  // TimeButton is like Button, but has a larger specifiable hit target
+  // This allows very small buttons with a large sensitive area to make it easy to press
   char text[26];
   int x, y;
   int w, h;
@@ -104,7 +106,7 @@ typedef struct {
   int radius;
   uint16_t color;
   simpleFunction function;
-} TimeButton;
+} ;
 
 class Location {
   public:

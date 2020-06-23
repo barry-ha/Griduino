@@ -449,6 +449,15 @@ int getOffsetToCenterText(String text) {
   return (gScreenWidth - w) / 2;
 }
 
+int getOffsetToCenterTextOnButton(String text, int leftEdge, int width ) {
+  // measure width of given text in current font and 
+  // calculate X-offset to make it centered left-right within given bounds
+  int16_t x1, y1;
+  uint16_t w, h;
+  tft.getTextBounds(text, 0, 0, &x1, &y1, &w, &h);  // compute "pixels wide"
+  return leftEdge + (width - w) / 2;
+}
+
 void showNameOfView(String sName, uint16_t fgd, uint16_t bkg) {
   // All our various "view" routines want to label themselves in the upper left corner
   setFontSize(0);
@@ -609,7 +618,7 @@ void (*gaUpdateView[])() = {
     updateTimeScreen,
     updateVolumeScreen,
     //updateSplashScreen,
-    //updateHelpScreen,
+    updateHelpScreen,
 };
 void (*gaStartView[])() = {
     startGridScreen,      // first entry is the first view displayed after setup()
@@ -617,7 +626,7 @@ void (*gaStartView[])() = {
     startTimeScreen,
     startVolumeScreen,
     //startSplashScreen,
-    //startHelpScreen,
+    startHelpScreen,
 };
 bool (*gaOnTouch[])(Point touch) = {
     onTouchGrid,
@@ -625,7 +634,7 @@ bool (*gaOnTouch[])(Point touch) = {
     onTouchTime,
     onTouchVolume,
     //onTouchSplash,
-    //onTouchHelp,
+    onTouchHelp,
 };
 void selectNewView() {
   Serial.print("selectNewView() from "); Serial.print(gViewIndex);
