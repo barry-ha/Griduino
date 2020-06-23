@@ -1,5 +1,5 @@
 /*
-  File: view_splash_screen.cpp
+  File: view_splash.cpp
 
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA

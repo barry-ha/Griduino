@@ -133,6 +133,17 @@ class Model {
       remember(whereAmI, GPS.hour, GPS.minute, GPS.seconds);
     }
 
+    int getHistoryCount() {
+      // how many history slots currently have valid position data
+      int count = 0;
+      for (uint ii=0; ii<numHistory; ii++) {
+        if (!history[ii].isEmpty()) {
+          count++;
+        }
+      }
+      return count;
+    }
+
     void clearHistory() {
       // wipe clean the array of lat/long that we remember
       for (uint ii=0; ii<numHistory; ii++) {

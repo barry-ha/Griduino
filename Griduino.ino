@@ -208,7 +208,7 @@ int gWordsPerMinute = 18;     // initial Morse code sending speed
 
 // ------------ definitions
 const int howLongToWait = 6;  // max number of seconds at startup waiting for Serial port to console
-const int gNumViews = 4;      // total number of different views (screens) we've implemented
+const int gNumViews = 5;      // total number of different views (screens) we've implemented
 int gViewIndex = 0;           // selects which view to show first
                               // init to a safe value, override in setup()
                               // todo: save/restore the selected screen for power loss
@@ -247,6 +247,10 @@ bool onTouchTime(Point touch);
 void updateHelpScreen();                // view_help.cpp
 void startHelpScreen();
 bool onTouchHelp(Point touch);
+
+void updateSettingsScreen();            // view_settings.cpp
+void startSettingsScreen();
+bool onTouchSettings(Point touch);
 
 // 2. Helper Functions
 // ============== touchscreen helpers ==========================
@@ -603,6 +607,7 @@ double calcDistanceLong(double lat, double fromLong, double toLong) {
 //#include "view_status.cpp"
 //#include "view_time.cpp"
 //#include "view_volume.cpp"
+//#include "view_settings.cpp"
 
 //==============================================================
 //
@@ -618,6 +623,7 @@ void (*gaUpdateView[])() = {
     updateTimeScreen,
     updateVolumeScreen,
     //updateSplashScreen,
+    updateSettingsScreen,
     updateHelpScreen,
 };
 void (*gaStartView[])() = {
@@ -626,6 +632,7 @@ void (*gaStartView[])() = {
     startTimeScreen,
     startVolumeScreen,
     //startSplashScreen,
+    startSettingsScreen,
     startHelpScreen,
 };
 bool (*gaOnTouch[])(Point touch) = {
@@ -634,6 +641,7 @@ bool (*gaOnTouch[])(Point touch) = {
     onTouchTime,
     onTouchVolume,
     //onTouchSplash,
+    onTouchSettings,
     onTouchHelp,
 };
 void selectNewView() {
