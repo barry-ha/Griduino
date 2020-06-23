@@ -6,7 +6,6 @@
 #include <arduino.h>
 #include "constants.h"              // Griduino constants and colors
 #ifdef RUN_UNIT_TESTS
-#include "Adafruit_GFX.h"           // Core graphics display library
 #include "Adafruit_ILI9341.h"       // TFT color display library
 #include "morse_dac.h"              // Morse code
 #include "save_restore.h"           // Configuration data in nonvolatile RAM
