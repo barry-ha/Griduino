@@ -14,6 +14,7 @@
               v13.0 begin implementing our own TouchScreen functions
               v15.0 add simulated GPS track (class MockModel)
   2020-06-03  v16.0 add GMT Clock view
+  2020-06-23  v17.0 add Settings control panel
 
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
@@ -402,7 +403,7 @@ void mapTouchToScreen(TSPoint touch, Point* screen) {
 // ========== font management helpers ==========================
 /* Using fonts: https://learn.adafruit.com/adafruit-gfx-graphics-library/using-fonts
 
-  "Fonts" folder is inside \Documents\User\Arduino\libraries\Adafruit_GFX
+  "Fonts" folder is inside \Documents\User\Arduino\libraries\Adafruit_GFX_Library\fonts
 */
 #include "Fonts/FreeSans18pt7b.h"       // eFONTGIANT    36 pt (see constants.h)
 #include "Fonts/FreeSansBold24pt7b.h"   // eFONTBIG      24 pt
