@@ -48,7 +48,7 @@ class TextField {
   //      3. Printing text in proportional font does not clear its own background
 
   public:
-    char text[27];          // new text to draw
+    char text[32];          // new text to draw
     int x, y;               // screen coordinates
     uint16_t color;         // text color
     int align;              // ALIGNLEFT | ALIGNRIGHT | ALIGNCENTER
@@ -133,9 +133,18 @@ class TextField {
     static uint16_t cBackground; // background color
     int16_t xPrev, yPrev;   // remember previous text area for next erasure
     uint16_t wPrev, hPrev;
-    char textPrev[27];      // old text to be erased
+    char textPrev[32];      // old text to be erased
 
   protected:
     void eraseOld();
     void printNew(const char* pText);
+};
+
+class TextButton : public TextField {
+  public:
+    Rect buttonArea;
+    Rect hitTarget;
+    int radius;
+  public:
+    void print();           // a "button" is a text field that draws its own outline
 };

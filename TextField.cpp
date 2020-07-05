@@ -3,8 +3,9 @@
  */
 
 #include <Arduino.h>
-#include "Adafruit_GFX.h"           // Core graphics display library
+//#include "Adafruit_GFX.h"           // Core graphics display library
 #include "Adafruit_ILI9341.h"       // TFT color display library
+#include "constants.h"              // Griduino constants and colors
 #include "TextField.h"              // Optimize TFT display text for proportional fonts
 
 // ========== extern ==================================
@@ -37,4 +38,40 @@ void TextField::printNew(const char* pText) {
 
   // remember region so it can be erased next time
   tft.getTextBounds(pText, leftedge, y, &xPrev, &yPrev, &wPrev, &hPrev);
+}
+
+void TextButton::print() {            // override base class: buttons draw their own outline
+  tft.fillRoundRect(buttonArea.ul.x, buttonArea.ul.y, 
+                    buttonArea.size.x, buttonArea.size.y, 
+                    radius, cBUTTONFILL);
+  tft.drawRoundRect(buttonArea.ul.x, buttonArea.ul.y, 
+                    buttonArea.size.x, buttonArea.size.y, 
+                    radius, cBUTTONOUTLINE);
+
+  // center text horizontally and vertically withing visible button boundary
+  int16_t x1, y1;
+  uint16_t w1, h1;
+  tft.getTextBounds(text, buttonArea.ul.x, buttonArea.ul.y, &x1, &y1, &w1, &h1);
+
+  int leftEdge = buttonArea.ul.x + buttonArea.size.x/2 - 1/2;
+  int topEdge = buttonArea.ul.y + buttonArea.size.y/2;
+
+  x = leftEdge;
+  y = topEdge;
+
+  Serial.print("Placement of text: "); Serial.println(text);
+  char temp[255];
+  snprintf(temp, sizeof(temp), 
+          ". button outline (%d,%d,%d,%d), text posn(%d,%d)",
+          buttonArea.ul.x, buttonArea.ul.y, buttonArea.size.x, buttonArea.size.y, leftEdge, topEdge);
+  Serial.println(temp);   // debug
+
+  #ifdef SHOW_TOUCH_TARGETS
+  tft.drawRect(hitTarget.ul.x, hitTarget.ul.y,  // debug: draw outline around hit target
+               hitTarget.size.x, hitTarget.size.y, 
+               cWARN); 
+  #endif
+  
+  // base class will draw text
+  TextField::print(text);
 }
