@@ -49,7 +49,8 @@ extern Model model;                 // "model" portion of model-view-controller
 extern Adafruit_BMP3XX baro;        // Griduino.ino
 extern void getDate(char* result, int maxlen);  // model.cpp
 
-void setFontSize(int font);            // Griduino.ino
+void setFontSize(int font);         // Griduino.ino
+int getOffsetToCenterTextOnButton(String text, int leftEdge, int width ); // Griduino.ino
 
 // ========== forward reference ================================
 void timePlus();
@@ -223,7 +224,7 @@ void startTimeScreen() {
   TextField::setTextDirty( txtClock, numClockFields );  // make sure all fields get re-printed on screen change
 
   // ----- draw page title
-  setFontSize(9);
+  setFontSize(eFONTSYSTEM);
   txtClock[TITLE].print();
 
   // ----- draw giant fields
@@ -232,8 +233,8 @@ void startTimeScreen() {
     txtClock[ii].print();
   }
 
-  // ----- draw smaller text
-  setFontSize(12);
+  // ----- draw regular text fields
+  setFontSize(eFONTSMALLEST);
   for (int ii=GMTDATE; ii<numClockFields; ii++) {
     txtClock[ii].print();
   }
@@ -246,16 +247,16 @@ void startTimeScreen() {
     tft.drawRoundRect(item.x, item.y, item.w, item.h, item.radius, cBUTTONOUTLINE);
 
     // ----- label on top of button
-    tft.setCursor(item.x+item.w/2-7, item.y+item.h/2+5);
+    int xx = getOffsetToCenterTextOnButton(item.text, item.x, item.w);
+    tft.setCursor(xx, item.y+item.h/2+5);
     tft.setTextColor(item.color);
     tft.print(item.text);
 
     #ifdef SHOW_TOUCH_TARGETS
     tft.drawRect(item.hitTarget.ul.x, item.hitTarget.ul.y,  // debug: draw outline around hit target
                  item.hitTarget.size.x, item.hitTarget.size.y, 
-                 cBUTTONOUTLINE); 
+                 cWARN);
     #endif
-
   }
 
   // debug: show centerline on display
