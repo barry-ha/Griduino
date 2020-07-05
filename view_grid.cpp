@@ -116,7 +116,7 @@ void drawPositionLL(double fLat, double fLong) {
   setFontSize(0);
 
   // the message line shows either or a position (lat,long) or a message (waiting for GPS)
-  char sTemp[27];       // why 27? Small system font will fit 26 characters on one row
+  char sTemp[27];       // why 27? Small system font will fit 26 characters on one row (smallest fits >32)
   if (model.gHaveGPSfix) {
     char latitude[10], longitude[10];
     floatToCharArray(latitude, sizeof(latitude), fLat, 4);
