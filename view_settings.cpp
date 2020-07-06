@@ -66,20 +66,27 @@ TextField txtSettings[] = {
 };
 const int numSettingsFields = sizeof(txtSettings)/sizeof(txtSettings[0]);
 
+enum buttonID {
+  eCLEAR,
+  eRECEIVER,
+  eSIMULATOR,
+  eFACTORYRESET,
+};
 TimeButton settingsButtons[] = {
   // label             origin     size      touch-target     
   // text                x,y       w,h      x,y      w,h  radius  color   function
-  {"Clear",        xButton, 30,  130,30, {140, 20, 180,50},  4,  cVALUE,  fClear    },   // Clear track history
-  {"GPS Receiver", xButton,100,  130,30, {138, 84, 180,46},  4,  cVALUE,  fReceiver },   // Satellite receiver
-  {"Simulator",    xButton,130,  130,30, {140,130, 180,47},  4,  cVALUE,  fSimulated},   // Simulated track
-  {"Factory Reset",xButton,180,  130,30, {138,174, 180,50},  4,  cVALUE,  fFactoryReset},// Factory Reset
+  {"Clear",        xButton, 30,  130,30, {140, 20, 180,50},  4,  cVALUE,  fClear    },   // [eCLEAR] Clear track history
+  {"GPS Receiver", xButton,100,  130,30, {138, 84, 180,46},  4,  cVALUE,  fReceiver },   // [eRECEIVER] Satellite receiver
+  {"Simulator",    xButton,130,  130,30, {140,130, 180,47},  4,  cVALUE,  fSimulated},   // [eSIMULATOR] Simulated track
+  {"Factory Reset",xButton,180,  130,30, {138,174, 180,50},  4,  cVALUE,  fFactoryReset},// [eFACTORYRESET] Factory Reset
 };
 const int nSettingsButtons = sizeof(settingsButtons)/sizeof(settingsButtons[0]);
 
 // ========== settings helpers =================================
 void fClear() {
-  // todo: clear the model history array
   Serial.println("->->-> Clicked CLEAR button.");
+  model.clearHistory();
+  model.save();
 }
 void fReceiver() {
   // todo: select GPS receiver data
@@ -97,7 +104,11 @@ void fFactoryReset() {
 // ========== settings screen view =============================
 void updateSettingsScreen() {
   // called on every pass through main()
-  // nothing to do in the main loop - this screen has no dynamic items
+
+  // fill in replacment strings
+  char temp[100];
+  snprintf(temp, sizeof(temp), "%d of %d", model.getHistoryCount(), model.numHistory );
+  txtSettings[TRAILCOUNT].print(temp);
 }
 void startSettingsScreen() {
   // called once each time this view becomes active
@@ -105,11 +116,6 @@ void startSettingsScreen() {
   txtSettings[0].setBackground(cBACKGROUND);                  // set background for all TextFields in this view
   TextField::setTextDirty( txtSettings, numSettingsFields );  // make sure all fields get re-printed on screen change
   setFontSize(eFONTSMALLEST);
-
-  // fill in replacment strings
-  char temp[100];
-  snprintf(temp, sizeof(temp), "%d of %d", model.getHistoryCount(), model.numHistory );
-  txtSettings[TRAILCOUNT].print(temp);
 
   // ----- draw regular text fields
   for (int ii=0; ii<numSettingsFields; ii++) {
@@ -137,12 +143,12 @@ void startSettingsScreen() {
   }
 
   // ----- show selected radio button
-  for (int ii=1; ii<=2; ii++) {
+  for (int ii=eRECEIVER; ii<=eSIMULATOR; ii++) {
     TimeButton item = settingsButtons[ii];
     int xCenter = item.x - 16;
     int yCenter = item.y + (item.h/2);
     tft.drawCircle(xCenter, yCenter, 7, cVALUE);
-    if (ii==1) {              // todo - figure out selected nutton
+    if (ii==1) {              // todo - figure out selected button
       tft.fillCircle(xCenter, yCenter, 4, cLABEL);
     }
   }
