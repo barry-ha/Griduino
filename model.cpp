@@ -327,7 +327,7 @@ class Model {
 };
 // ========== class MockModel ======================
 // A derived class with a single replacement function to pretend
-// about the GPS location for the sake fo testing.
+// about the GPS location for the sake of testing.
 
 class MockModel : public Model {
   // Generate a simulated travel path for demonstrations and testing
