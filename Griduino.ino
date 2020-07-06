@@ -536,8 +536,26 @@ void waitForSerial(int howLong) {
   // and the operator takes awhile to restart the console (Tools > Serial Monitor)
   // so give them a few seconds for this to settle before sending messages to IDE
   unsigned long targetTime = millis() + howLong*1000;
+  int x = 0;
+  int y = 0;
+  int w = gScreenWidth;
+  int h = gScreenHeight;
+  clearScreen();
+  
   while (millis() < targetTime) {
     if (Serial) break;
+    x += 2;
+    y += 2;
+    w -= 4;
+    h -= 4;
+    if (x > gScreenWidth) {
+      x = y = 0;
+      w = gScreenWidth;
+      h = gScreenHeight;
+      clearScreen();          // erase entire screen
+    }
+    tft.drawRect(x, y, w, h, cLABEL);   // look busy
+    delay(15);
   }
 }
 
@@ -623,8 +641,8 @@ void (*gaUpdateView[])() = {
     updateStatusScreen,
     updateTimeScreen,
     updateVolumeScreen,
-    //updateSplashScreen,
     updateSettingsScreen,
+    updateSplashScreen,
     updateHelpScreen,
 };
 void (*gaStartView[])() = {
@@ -632,8 +650,8 @@ void (*gaStartView[])() = {
     startStatScreen,
     startTimeScreen,
     startVolumeScreen,
-    //startSplashScreen,
     startSettingsScreen,
+    startSplashScreen,
     startHelpScreen,
 };
 bool (*gaOnTouch[])(Point touch) = {
@@ -641,8 +659,8 @@ bool (*gaOnTouch[])(Point touch) = {
     onTouchStatus,
     onTouchTime,
     onTouchVolume,
-    //onTouchSplash,
     onTouchSettings,
+    onTouchSplash,
     onTouchHelp,
 };
 void selectNewView() {
@@ -706,6 +724,11 @@ void showActivityBar(int row, uint16_t foreground, uint16_t background) {
 //=========== setup ============================================
 void setup() {
 
+  // ----- init TFT display
+  tft.begin();                        // initialize TFT display
+  tft.setRotation(SCREEN_ROTATION);   // landscape (default is portrait)
+  clearScreen();
+
   // ----- init serial monitor
   Serial.begin(115200);           // init for debuggging in the Arduino IDE
   waitForSerial(howLongToWait);   // wait for developer to connect debugging console
@@ -767,11 +790,6 @@ void setup() {
   pinMode(TFT_BL, OUTPUT);
   analogWrite(TFT_BL, 255);           // start at full brightness
 
-  // ----- init TFT display
-  tft.begin();                        // initialize TFT display
-  tft.setRotation(SCREEN_ROTATION);   // landscape (default is portrait)
-  clearScreen();
-
   // ----- init touch screen
   ts.pressureThreshhold = 200;
 
@@ -793,6 +811,10 @@ void setup() {
   model.restore();
   model.gHaveGPSfix = false;          // assume no satellite signal yet
   model.gSatellites = 0;
+
+  // one-time Splash screen
+  startSplashScreen();
+  delay(2000);
 
   // one-time Help screen
   startHelpScreen();
