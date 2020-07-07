@@ -42,7 +42,7 @@ class Model {
     float  gSpeed = 0.0;              // current speed over ground in MPH
     float  gAngle = 0.0;              // direction of travel, degrees from true north
 
-    Location history[440];            // remember a list of GPS coordinates
+    Location history[600];            // remember a list of GPS coordinates
     int nextHistoryItem = 0;          // index of next item to write
     const int numHistory = sizeof(history)/sizeof(Location);
     // Size of array history: Our goal is to keep track of a good day's travel, at least 250 miles.
@@ -50,8 +50,8 @@ class Model {
     // If 160 pixels vert = 70 miles, then we need (250*160/70) = 570 entries.
 
   protected:
-    int  gPrevFix = false;          // previous value of gHaveGPSfix, to help detect "signal lost"
-    char sPrevGrid4[5] = INIT_GRID4;   // previous value of gsGridName, to help detect "enteredNewGrid()"
+    int  gPrevFix = false;            // previous value of gHaveGPSfix, to help detect "signal lost"
+    char sPrevGrid4[5] = INIT_GRID4;  // previous value of gsGridName, to help detect "enteredNewGrid()"
 
   public:
     // Constructor - create and initialize member variables
@@ -59,7 +59,7 @@ class Model {
 
     // save current GPS state to non-volatile memory
     const char MODEL_FILE[25] = "/Griduino/gpsmodel.cfg";  // CONFIG_FOLDER
-    const char MODEL_VERS[15] = "GPS Model v01";
+    const char MODEL_VERS[15] = "GPS Model v02";
     int save() {
       SaveRestore sdram(MODEL_FILE, MODEL_VERS);
       if (sdram.writeConfig( (byte*) this, sizeof(Model))) {
@@ -84,7 +84,8 @@ class Model {
         Serial.println("Error, failed to restore GPS Model object to SDRAM");
         return 0;     // return failure
       }
-      // note: the caller is responsible for fixups to the model, e.g., indicate 'lost satellite signal'
+      // note: the caller is responsible for fixups to the model, 
+      // e.g., indicate 'lost satellite signal'
       return 1;       // return success
     }
 

@@ -29,7 +29,7 @@
 
 // ========== extern ===========================================
 extern Adafruit_ILI9341 tft;        // Griduino.ino
-extern Model model;                 // "model" portion of model-view-controller
+extern Model* model;                 // "model" portion of model-view-controller
 
 void setFontSize(int font);         // Griduino.ino
 int getOffsetToCenterTextOnButton(String text, int leftEdge, int width ); // Griduino.ino
@@ -85,8 +85,8 @@ const int nSettingsButtons = sizeof(settingsButtons)/sizeof(settingsButtons[0]);
 // ========== settings helpers =================================
 void fClear() {
   Serial.println("->->-> Clicked CLEAR button.");
-  model.clearHistory();
-  model.save();
+  model->clearHistory();
+  model->save();
 }
 void fReceiver() {
   // todo: select GPS receiver data
@@ -107,7 +107,7 @@ void updateSettingsScreen() {
 
   // fill in replacment strings
   char temp[100];
-  snprintf(temp, sizeof(temp), "%d of %d", model.getHistoryCount(), model.numHistory );
+  snprintf(temp, sizeof(temp), "%d of %d", model->getHistoryCount(), model->numHistory );
   txtSettings[TRAILCOUNT].print(temp);
 }
 void startSettingsScreen() {

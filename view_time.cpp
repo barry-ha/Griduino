@@ -45,7 +45,7 @@
 
 // ========== extern ===========================================
 extern Adafruit_ILI9341 tft;        // Griduino.ino
-extern Model model;                 // "model" portion of model-view-controller
+extern Model* model;                 // "model" portion of model-view-controller
 extern Adafruit_BMP3XX baro;        // Griduino.ino
 extern void getDate(char* result, int maxlen);  // model.cpp
 
@@ -182,7 +182,7 @@ void updateTimeScreen() {
 
   // GMT Date
   char sDate[16];         // strlen("Jan 12, 2020 ") = 14
-  model.getDate(sDate, sizeof(sDate));
+  model->getDate(sDate, sizeof(sDate));
   txtClock[GMTDATE].print(sDate);
 
   // Temperature
@@ -211,9 +211,9 @@ void updateTimeScreen() {
 
   // Satellite Count
   char sBirds[4];         // strlen("5#") = 2
-  snprintf(sBirds, sizeof(sBirds), "%d#", model.gSatellites);
+  snprintf(sBirds, sizeof(sBirds), "%d#", model->gSatellites);
   // change colors by number of birds
-  txtClock[NUMSATS].color = (model.gSatellites<1) ? cWARN : cTEXTFAINT;
+  txtClock[NUMSATS].color = (model->gSatellites<1) ? cWARN : cTEXTFAINT;
   txtClock[NUMSATS].print(sBirds);
   //txtClock[NUMSATS].dump();   // debug
 }

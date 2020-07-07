@@ -27,7 +27,7 @@ void startGridScreen();                     // view_grid.cpp
 // ----- globals
 extern Adafruit_ILI9341 tft;
 extern DACMorseSender dacMorse;             // Morse code
-extern Model model;
+extern Model* model;
 
 TextField txtTest("test", 1,21, ILI9341_WHITE);
 
@@ -224,9 +224,9 @@ void verifyBreadCrumbs() {
   Serial.print("-------- verifyBreadCrumbs() at line "); Serial.println(__LINE__);
   
   // move the model to known location (CN87)
-  //model.gsGridName = "CN87";
-  model.gLatitude = 47.737451;    // CN87
-  model.gLongitude = -122.274711; // CN87
+  //model->gsGridName = "CN87";
+  model->gLatitude = 47.737451;    // CN87
+  model->gLongitude = -122.274711; // CN87
 
   // initialize the canvas that we will draw upon
   startGridScreen();              // clear and draw normal screen
@@ -240,23 +240,23 @@ void verifyBreadCrumbs() {
   float yPixelsPerDegree = gBoxHeight / gridHeightDegrees;  // grid square = 1.0 degrees high N-S
 
   // ----- plot each corner, starting upper left, moving clockwise
-  model.gLatitude = 48.0 - 0.1;     // upper left
-  model.gLongitude = -124.0 + 0.1;
+  model->gLatitude = 48.0 - 0.1;     // upper left
+  model->gLongitude = -124.0 + 0.1;
   updateGridScreen();
   delay(500);
 
-  model.gLatitude = 48.0 - 0.1;     // upper right
-  model.gLongitude = -122.0 - 0.1;
+  model->gLatitude = 48.0 - 0.1;     // upper right
+  model->gLongitude = -122.0 - 0.1;
   updateGridScreen();
   delay(500);
 
-  model.gLatitude = 47.0 + 0.1;     // lower right
-  model.gLongitude = -122.0 - 0.1;
+  model->gLatitude = 47.0 + 0.1;     // lower right
+  model->gLongitude = -122.0 - 0.1;
   updateGridScreen();
   delay(500);
 
-  model.gLatitude = 47.0 + 0.1;     // lower left
-  model.gLongitude = -124.0 + 0.1;
+  model->gLatitude = 47.0 + 0.1;     // lower left
+  model->gLongitude = -124.0 + 0.1;
   updateGridScreen();
   delay(500);
 }
@@ -273,19 +273,19 @@ void verifyBreadCrumbTrail1() {
   // test 2: loop through locations that cross this grid
   float lat = 47.0 - 0.2;         // 10% outside of CN87
   float lon = -124.0 - 0.1;
-  int steps = model.numHistory;   // number of loops
+  int steps = model->numHistory;   // number of loops
   float stepsize = 1.0 / 250.0;   // number of degrees to move each loop
 
-  model.clearHistory();
+  model->clearHistory();
   for (int ii = 0; ii < steps; ii++) {
-    PointGPS item{ model.gLatitude = lat + (ii * stepsize),         // "plus" goes upward (north)
-                   model.gLongitude = lon + (ii * stepsize * 5/4)}; // "plus" goes rightward (east)
-    model.remember( item, GPS.hour, GPS.minute, GPS.seconds );
+    PointGPS item{ model->gLatitude = lat + (ii * stepsize),         // "plus" goes upward (north)
+                   model->gLongitude = lon + (ii * stepsize * 5/4)}; // "plus" goes rightward (east)
+    model->remember( item, GPS.hour, GPS.minute, GPS.seconds );
   }
 
   //dumpHistory();              // did it remember? dump history to monitor
   updateGridScreen();
-  model.clearHistory();     // clean up so it is not re-displayed by main program
+  model->clearHistory();     // clean up so it is not re-displayed by main program
 }
 // =============================================================
 // GPS test helper
@@ -317,11 +317,11 @@ void verifyBreadCrumbTrail2() {
   txtTest.dirty = true;           // paint big "Test" in upper left
   txtTest.print();
 
-  model.clearHistory();
+  model->clearHistory();
   generateSineWave(&model);        // fill GPS model with known test data
 
   Serial.println(". History as known by verifyBreadCrumbTrail2()...");
-  model.dumpHistory();            // did it remember? (go review serial console)
+  model->dumpHistory();            // did it remember? (go review serial console)
   updateGridScreen();             // does it look like a sine wave? (go look at TFT display)
 }
 // =============================================================
@@ -333,7 +333,7 @@ void verifySaveTrail() {
   
   generateSineWave(&testModel);   // generate known data to be saved
 
-  // this is automatically saved to non-volatile memory by the model.remember()
+  // this is automatically saved to non-volatile memory by the model->remember()
 }
 // =============================================================
 // restore GPS route from non-volatile memory
@@ -435,7 +435,7 @@ void runUnitTest() {
 
   countDown(10);                    // give user time to inspect display appearance for unit test problems
 
-  model.clearHistory();             // clean up our mess after unit test
+  model->clearHistory();             // clean up our mess after unit test
   Serial.print("-------- End Unit Test at line "); Serial.println(__LINE__);
 }
 #endif // RUN_UNIT_TESTS

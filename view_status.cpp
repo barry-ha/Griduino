@@ -27,7 +27,7 @@
 // ========== extern ===========================================
 extern Adafruit_ILI9341 tft;        // Griduino.ino
 extern int gTextSize;               // no such function as "tft.getTextSize()" so remember it on our own
-extern Model model;                 // "model" portion of model-view-controller
+extern Model* model;                 // "model" portion of model-view-controller
 
 void setFontSize(int font);            // Griduino.ino
 int getOffsetToCenterText(String text); // Griduino.ino
@@ -77,21 +77,21 @@ void updateStatusScreen() {
 
   // ----- GMT time
   char sTime[10];         // strlen("19:54:14") = 8
-  model.getTime(sTime);
+  model->getTime(sTime);
   txtValues[0].print(sTime);
 
   // ----- GMT date
   char sDate[15];         // strlen("Jan 12, 2020") = 13
-  model.getDate(sDate, sizeof(sDate));
+  model->getDate(sDate, sizeof(sDate));
   txtValues[1].print(sDate);
 
   // ----- grid square
   char sGrid[10];         // strlen("CN87us") = 6
-  calcLocator(sGrid, model.gLatitude, model.gLongitude, 6);
+  calcLocator(sGrid, model->gLatitude, model->gLongitude, 6);
   txtValues[2].print(sGrid);
   
   // ----- altitude
-  float altitude = model.gAltitude*feetPerMeters;
+  float altitude = model->gAltitude*feetPerMeters;
   String sValue = String(altitude, 0) + " ft";
   sValue.trim();        // remove leading blanks and whitespace
   char sAltitude[12];   // strlen("12345 ft") = 8
@@ -99,7 +99,7 @@ void updateStatusScreen() {
   txtValues[3].print(sAltitude);
 
   // ----- satellites
-  uint8_t numSatellites = model.gSatellites;
+  uint8_t numSatellites = model->gSatellites;
   uint16_t color;
   char sSatellites[6];     // strlen("none") = 4, strlen("4") = 1
   if (numSatellites > 0) {
@@ -113,7 +113,7 @@ void updateStatusScreen() {
   // ----- center lat/long on its own row
   char sLatLong[22];      // strlen("-xxx.xxxx,-yyy.yyyy") = 19
   snprintf(sLatLong, 22, "%.4f, %.4f",
-                model.gLatitude, model.gLongitude);
+                model->gLatitude, model->gLongitude);
   txtValues[5].print(sLatLong);
 }
 void startStatScreen() {

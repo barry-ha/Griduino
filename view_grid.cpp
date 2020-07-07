@@ -31,7 +31,7 @@
 
 // ========== extern ===========================================
 extern Adafruit_ILI9341 tft;        // Griduino.ino
-extern Model model;                 // "model" portion of model-view-controller
+extern Model* model;                 // "model" portion of model-view-controller
 
 void setFontSize(int font);            // Griduino.ino
 float nextGridLineEast(float longitudeDegrees);       // Griduino.ino
@@ -117,7 +117,7 @@ void drawPositionLL(double fLat, double fLong) {
 
   // the message line shows either or a position (lat,long) or a message (waiting for GPS)
   char sTemp[27];       // why 27? Small system font will fit 26 characters on one row (smallest fits >32)
-  if (model.gHaveGPSfix) {
+  if (model->gHaveGPSfix) {
     char latitude[10], longitude[10];
     floatToCharArray(latitude, sizeof(latitude), fLat, 4);
     floatToCharArray(longitude, sizeof(longitude), fLong, 4);
@@ -133,10 +133,10 @@ void drawNumSatellites() {
   setFontSize(0);
 
   char sTemp[4];    // strlen("12#") = 3
-  if (model.gSatellites<10) {
-    snprintf(sTemp, sizeof(sTemp), " %d#", model.gSatellites);
+  if (model->gSatellites<10) {
+    snprintf(sTemp, sizeof(sTemp), " %d#", model->gSatellites);
   } else {
-    snprintf(sTemp, sizeof(sTemp), "%d#", model.gSatellites);
+    snprintf(sTemp, sizeof(sTemp), "%d#", model->gSatellites);
   }
   txtGrid[NUMSAT].print(sTemp);           // number of satellites
  
@@ -146,7 +146,7 @@ void drawAltitude() {
   setFontSize(0);
 
   char sTemp[8];      // strlen("12345'") = 6
-  int altFeet = model.gAltitude * feetPerMeters;
+  int altFeet = model->gAltitude * feetPerMeters;
   snprintf(sTemp, sizeof(sTemp), "%d'", altFeet);
   txtGrid[ALTITUDE].print(sTemp);         // altitude
 }
@@ -160,10 +160,10 @@ void drawCompassPoints() {
 
 void drawBoxLatLong() {
   setFontSize(12);
-  txtGrid[N_BOX_LAT].print( ceil(model.gLatitude) );    // latitude of N,S box edges
-  txtGrid[S_BOX_LAT].print( floor(model.gLatitude) );
-  txtGrid[E_BOX_LONG].print( nextGridLineEast(model.gLongitude) ); // longitude of E,W box edges
-  txtGrid[W_BOX_LONG].print( nextGridLineWest(model.gLongitude) );
+  txtGrid[N_BOX_LAT].print( ceil(model->gLatitude) );    // latitude of N,S box edges
+  txtGrid[S_BOX_LAT].print( floor(model->gLatitude) );
+  txtGrid[E_BOX_LONG].print( nextGridLineEast(model->gLongitude) ); // longitude of E,W box edges
+  txtGrid[W_BOX_LONG].print( nextGridLineWest(model->gLongitude) );
   
   int radius = 3;
   // draw "degree" symbol at:       x                        y        r     color
@@ -177,10 +177,10 @@ void drawNeighborGridNames() {
   setFontSize(12);
   char nGrid[5], sGrid[5], eGrid[5], wGrid[5];
 
-  calcLocator(nGrid, model.gLatitude+1.0, model.gLongitude, 4);
-  calcLocator(sGrid, model.gLatitude-1.0, model.gLongitude, 4);
-  calcLocator(eGrid, model.gLatitude, model.gLongitude+2.0, 4);
-  calcLocator(wGrid, model.gLatitude, model.gLongitude-2.0, 4);
+  calcLocator(nGrid, model->gLatitude+1.0, model->gLongitude, 4);
+  calcLocator(sGrid, model->gLatitude-1.0, model->gLongitude, 4);
+  calcLocator(eGrid, model->gLatitude, model->gLongitude+2.0, 4);
+  calcLocator(wGrid, model->gLatitude, model->gLongitude-2.0, 4);
 
   txtGrid[N_GRIDNAME].print(nGrid);
   txtGrid[S_GRIDNAME].print(sGrid);
@@ -192,13 +192,13 @@ void drawNeighborDistances() {
   setFontSize(12);
 
   // N-S: find nearest integer grid lines
-  float fNorth = calcDistanceLat(model.gLatitude, ceil(model.gLatitude));
+  float fNorth = calcDistanceLat(model->gLatitude, ceil(model->gLatitude));
   if (fNorth < 10.0) {
     txtGrid[N_DISTANCE].print( fNorth, 2 );
   } else {
     txtGrid[N_DISTANCE].print( fNorth, 1 );
   }
-  float fSouth = calcDistanceLat(model.gLatitude, floor(model.gLatitude));
+  float fSouth = calcDistanceLat(model->gLatitude, floor(model->gLatitude));
   if (fSouth < 10.0) {
     txtGrid[S_DISTANCE].print( fSouth, 2 );
   } else {
@@ -206,10 +206,10 @@ void drawNeighborDistances() {
   }
   
   // E-W: find nearest EVEN numbered grid lines
-  int eastLine = ::nextGridLineEast(model.gLongitude);
-  int westLine = ::nextGridLineWest(model.gLongitude);
-  float fEast = calcDistanceLong(model.gLatitude, model.gLongitude, eastLine);
-  float fWest = calcDistanceLong(model.gLatitude, model.gLongitude, westLine);
+  int eastLine = ::nextGridLineEast(model->gLongitude);
+  int westLine = ::nextGridLineWest(model->gLongitude);
+  float fEast = calcDistanceLong(model->gLatitude, model->gLongitude, eastLine);
+  float fWest = calcDistanceLong(model->gLatitude, model->gLongitude, westLine);
   if (fEast < 10.0) {
     txtGrid[E_DISTANCE].print( fEast, 2 );
   } else {
@@ -263,7 +263,7 @@ void plotRoute(Location* marker, const int numMarkers, const PointGPS origin) {
   // show route track history bread crumb trail
   //Serial.print("plotRoute() at line "); Serial.println(__LINE__);   // debug
   //Serial.print("~ Plot relative to origin("); Serial.print(origin.lat); Serial.print(","); Serial.print(origin.lng); Serial.println(")");
-  //model.dumpHistory();    // debug
+  //model->dumpHistory();    // debug
 
   Point prevPixel{0,0};     // keep track of previous dot plotted
 
@@ -388,22 +388,22 @@ void updateGridScreen() {
   // called on every pass through main()
 
   // coordinates of lower-left corner of currently displayed grid square
-  PointGPS gridOrigin{ nextGridLineSouth(model.gLatitude), nextGridLineWest(model.gLongitude) };
+  PointGPS gridOrigin{ nextGridLineSouth(model->gLatitude), nextGridLineWest(model->gLongitude) };
 
-  PointGPS myLocation{ model.gLatitude, model.gLongitude }; // current location
+  PointGPS myLocation{ model->gLatitude, model->gLongitude }; // current location
   
   char grid6[7];
-  calcLocator(grid6, model.gLatitude, model.gLongitude, 6);
+  calcLocator(grid6, model->gLatitude, model->gLongitude, 6);
   drawGridName(grid6);              // huge letters centered on screen
   drawAltitude();                   // height above sea level
   drawNumSatellites();
-  drawPositionLL(model.gLatitude, model.gLongitude);  // lat-long of current position
+  drawPositionLL(model->gLatitude, model->gLongitude);  // lat-long of current position
   //drawCompassPoints();              // show N-S-E-W compass points (disabled, it makes the screen too busy)
   //drawBoxLatLong();                 // show coordinates of box (disabled, it makes the screen too busy)
   drawNeighborGridNames();            // show 4-digit names of nearby squares
   drawNeighborDistances();            // this is the main goal of the whole project
   plotCurrentPosition(myLocation, gridOrigin);    // show current pushpin
-  plotRoute(model.history, model.numHistory, gridOrigin);   // show route track
+  plotRoute(model->history, model->numHistory, gridOrigin);   // show route track
 }
 void startGridScreen() {
   // called once each time this view becomes active
@@ -411,7 +411,7 @@ void startGridScreen() {
   txtGrid[0].setBackground(ILI9341_BLACK);          // set background for all TextFields in this view
   TextField::setTextDirty( txtGrid, numTextGrid );
 
-  double lngMiles = calcDistanceLong(model.gLatitude, 0.0, minLong);
+  double lngMiles = calcDistanceLong(model->gLatitude, 0.0, minLong);
   Serial.print("Minimum visible E-W movement x=long="); 
   Serial.print(minLong,6); Serial.print(" degrees = "); 
   Serial.print(lngMiles,2); Serial.println(" miles");

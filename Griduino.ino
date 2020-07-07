@@ -10,11 +10,12 @@
               v9.8 adds saving settings in 2MB RAM
               v10.0 add altimeter
               v10.1 add GPS save/restore to visually power up in the same place as previous
-              v12.0 refactors screen writing to class TextField
-              v13.0 begin implementing our own TouchScreen functions
-              v15.0 add simulated GPS track (class MockModel)
-  2020-06-03  v16.0 add GMT Clock view
-  2020-06-23  v17.0 add Settings control panel
+              v0.12 refactors screen writing to class TextField
+              v0.13 begin implementing our own TouchScreen functions
+              v0.15 add simulated GPS track (class MockModel)
+  2020-06-03  v0.16 add GMT Clock view
+  2020-06-23  v0.17 add Settings control panel, and clear breadcrumb trail
+  2020-07-06  v0.18 runtime selection of GPS receiver vs simulated trail
 
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
@@ -605,11 +606,12 @@ double calcDistanceLong(double lat, double fromLong, double toLong) {
 #include "model.cpp"
 
 // create an instance of the model
-#ifdef USE_SIMULATED_GPS
-  MockModel model;  // debug: simulated travel (see model.cpp)
-#else
-  Model model;      // normal: use real GPS hardware
-#endif
+Model modelGPS;             // normal: use real GPS hardware
+MockModel modelSimulator;   // debug: simulated travel (see model.cpp)
+
+// at power-on, always use the real GPS readings 
+// because I don't want to bother saving/restoring this setting right now
+Model* model = &modelGPS;
 
 //==============================================================
 //
@@ -798,7 +800,7 @@ void setup() {
   Serial.println("Large resources:");
   snprintf(temp, sizeof(temp), 
           "  Model.history[%d] uses %d bytes/entry = %d bytes total size",
-             model.numHistory, sizeof(Location), sizeof(model.history));
+             model->numHistory, sizeof(Location), sizeof(model->history));
   Serial.println(temp);
 
   // ----- run unit tests, if allowed by "#define RUN_UNIT_TESTS"
@@ -808,9 +810,9 @@ void setup() {
   #endif
 
   // ----- init first data shown with last known position and driving track history
-  model.restore();
-  model.gHaveGPSfix = false;          // assume no satellite signal yet
-  model.gSatellites = 0;
+  model->restore();
+  model->gHaveGPSfix = false;          // assume no satellite signal yet
+  model->gSatellites = 0;
 
   // one-time Splash screen
   startSplashScreen();
@@ -867,7 +869,7 @@ void loop() {
   if (millis() - prevTimeGPS > GPS_PROCESS_INTERVAL) {
     prevTimeGPS = millis();           // restart another interval
 
-    model.processGPS();               // update model
+    model->processGPS();               // update model
 
     // update View - call the current viewing function
     gaUpdateView[gViewIndex]();       // update current view, eg, updateGridScreen()
@@ -879,15 +881,15 @@ void loop() {
   //}
 
   // if there's an alert, tell the user
-  if (model.signalLost()) {
-    model.indicateSignalLost();       // update model
+  if (model->signalLost()) {
+    model->indicateSignalLost();       // update model
     sendMorseLostSignal();            // announce GPS signal lost by Morse code
   }
 
-  if (model.enteredNewGrid()) {
+  if (model->enteredNewGrid()) {
     gaStartView[gViewIndex]();        // update display
     char newGrid4[5];
-    calcLocator(newGrid4, model.gLatitude, model.gLongitude, 4);
+    calcLocator(newGrid4, model->gLatitude, model->gLongitude, 4);
     sendMorseGrid4( newGrid4 );       // announce new grid by Morse code
   }
 
