@@ -29,8 +29,11 @@
 
 // ========== extern ===========================================
 extern Adafruit_ILI9341 tft;        // Griduino.ino
-extern Model* model;                 // "model" portion of model-view-controller
+extern Model* model;                // "model" portion of model-view-controller
 
+void fSetReceiver();                // Griduino.ino
+void fSetSimulated();               // Griduino.ino
+int fGetDataSource();               // Griduino.ino
 void setFontSize(int font);         // Griduino.ino
 int getOffsetToCenterTextOnButton(String text, int leftEdge, int width ); // Griduino.ino
 
@@ -58,9 +61,7 @@ TextField txtSettings[] = {
   TextField("Breadcrumb trail",      col1, 50, cVALUE),    // [TRAIL]
   TextField(   "%d crumbs",          col1, 70, cLABEL),    // [TRAILCOUNT]
   TextField("Route",                 col1,120, cVALUE),    // [GPSTYPE]
-  //xtField(   "[o] GPS Receiver",xButton,148, cLABEL), // [RECEIVER]   todo: make this a button
-  //xtField(   "[ ] Simulator",   xButton,168, cLABEL), // [SIMULATED]  todo: make this a button
-  TextField("All settings",          col1,200, cVALUE),    // [GPSTYPE]
+  //TextField("All settings",          col1,200, cVALUE),    // [GPSTYPE]
   TextField(PROGRAM_VERSION ",  " PROGRAM_COMPILED, 
                                      col1,234, cLABEL),    // [COMPILED]
 };
@@ -78,7 +79,7 @@ TimeButton settingsButtons[] = {
   {"Clear",        xButton, 30,  130,30, {140, 20, 180,50},  4,  cVALUE,  fClear    },   // [eCLEAR] Clear track history
   {"GPS Receiver", xButton,100,  130,30, {138, 84, 180,46},  4,  cVALUE,  fReceiver },   // [eRECEIVER] Satellite receiver
   {"Simulator",    xButton,130,  130,30, {140,130, 180,47},  4,  cVALUE,  fSimulated},   // [eSIMULATOR] Simulated track
-  {"Factory Reset",xButton,180,  130,30, {138,174, 180,50},  4,  cVALUE,  fFactoryReset},// [eFACTORYRESET] Factory Reset
+  //{"Factory Reset",xButton,180,  130,30, {138,174, 180,50},  4,  cVALUE,  fFactoryReset},// [eFACTORYRESET] Factory Reset
 };
 const int nSettingsButtons = sizeof(settingsButtons)/sizeof(settingsButtons[0]);
 
@@ -91,10 +92,12 @@ void fClear() {
 void fReceiver() {
   // todo: select GPS receiver data
   Serial.println("->->-> Clicked GPS RECEIVER button.");
+  fSetReceiver();       // use "class Model" for GPS receiver hardware
 }
 void fSimulated() {
   // todo: simulate satellite track
   Serial.println("->->-> Clicked GPS SIMULATOR button.");
+  fSetSimulated();      // use "class MockModel" for simulated track
 }
 void fFactoryReset() {
   // todo: simulate satellite track
@@ -105,10 +108,27 @@ void fFactoryReset() {
 void updateSettingsScreen() {
   // called on every pass through main()
 
-  // fill in replacment strings
+  // ----- fill in replacment string text
   char temp[100];
   snprintf(temp, sizeof(temp), "%d of %d", model->getHistoryCount(), model->numHistory );
   txtSettings[TRAILCOUNT].print(temp);
+
+  // ----- show selected radio buttons by filling in the circle
+  for (int ii=eRECEIVER; ii<=eSIMULATOR; ii++) {
+    TimeButton item = settingsButtons[ii];
+    int xCenter = item.x - 16;
+    int yCenter = item.y + (item.h/2);
+    int buttonFillColor = cBACKGROUND;
+
+    if (ii==eRECEIVER && fGetDataSource()==eGPSRECEIVER) {
+      buttonFillColor = cLABEL;
+    } 
+    if (ii==eSIMULATOR && fGetDataSource()==eGPSSIMULATOR) {
+      buttonFillColor = cLABEL;
+    }
+    tft.fillCircle(xCenter, yCenter, 4, buttonFillColor);
+  }
+
 }
 void startSettingsScreen() {
   // called once each time this view becomes active
@@ -142,15 +162,15 @@ void startSettingsScreen() {
     #endif
   }
 
-  // ----- show selected radio button
+  // ----- show outlines of radio buttons
   for (int ii=eRECEIVER; ii<=eSIMULATOR; ii++) {
     TimeButton item = settingsButtons[ii];
     int xCenter = item.x - 16;
     int yCenter = item.y + (item.h/2);
+
+    // outline the radio button
+    // the active button will be indicated in updateSettingsScreen()
     tft.drawCircle(xCenter, yCenter, 7, cVALUE);
-    if (ii==1) {              // todo - figure out selected button
-      tft.fillCircle(xCenter, yCenter, 4, cLABEL);
-    }
   }
 
   updateSettingsScreen();             // fill in values immediately, don't wait for the main loop to eventually get around to it

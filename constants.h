@@ -36,8 +36,20 @@ const double degreesPerRadian = 57.2957795;
                                     // c:\Users\barry\AppData\Local\Arduino15\packages\adafruit\hardware\samd\1.5.7\variants\feather_m4\variant.h
 #define CONFIG_FOLDER  "/Griduino"
 
+// ----- alias names for fGetDataSource()
+enum {
+  eGPSRECEIVER = 1,                 // use the GPS receiver hardware
+  eGPSSIMULATOR,                    // use a GPS simulator
+};
+
 // ----- alias names for setFontSize()
-enum { eFONTGIANT=36, eFONTBIG=24, eFONTSMALL=12, eFONTSMALLEST=9, eFONTSYSTEM=0 };
+enum {
+  eFONTGIANT    = 36,
+  eFONTBIG      = 24,
+  eFONTSMALL    = 12,
+  eFONTSMALLEST = 9,
+  eFONTSYSTEM   = 0
+};
 
 // ----- color scheme
 // RGB 565 color code: http://www.barth-dev.de/online/rgb565-color-picker/

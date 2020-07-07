@@ -607,11 +607,27 @@ double calcDistanceLong(double lat, double fromLong, double toLong) {
 
 // create an instance of the model
 Model modelGPS;             // normal: use real GPS hardware
-MockModel modelSimulator;   // debug: simulated travel (see model.cpp)
+MockModel modelSimulator;   // test: simulated travel (see model.cpp)
 
-// at power-on, always use the real GPS readings 
-// because I don't want to bother saving/restoring this setting right now
+// at power-on, we choose to always start with real GPS receiver hardware 
+// because I don't want to bother saving/restoring this selection right now
 Model* model = &modelGPS;
+
+void fSetReceiver() {
+  model = &modelGPS;        // use "class Model" for GPS receiver hardware
+}
+void fSetSimulated() {
+  model = &modelSimulator;  // use "class MockModel" for simulated track
+}
+int fGetDataSource() {
+  // this function allows the user interface to display which one is active
+  // returns: enum
+  if (model == &modelGPS) {
+    return eGPSRECEIVER;
+  } else {
+    return eGPSSIMULATOR;
+  }
+}
 
 //==============================================================
 //
