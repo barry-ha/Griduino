@@ -9,7 +9,6 @@
 # https://github.com/desktop/desktop/issues/1788
 *.psd 
 *.xlsx
-*.zip
 work_in_progress/
 
 # User-specific files
