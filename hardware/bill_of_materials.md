@@ -31,6 +31,8 @@ GPS display for vehicle dashboard showing position in the Maidenhead Locator Sys
 ## Hardware
 | Mfr         | Mfr Part No     | Digi-Key Part No | Reference     |  Qty  | USD$  | Ext$   | Description  |
 | ----------- | --------------- | ---------------- | ------------- | :---: | ----- | ------ | ------------ |
+| Panasonic   | CR1220          | P033-ND          | B1            |   1   |  1.00 |   1.00 | Lithium Battery 3-volt Coin Cell |
+| Keystone    | 1056            | 36-1056-ND       | BT1           |   1   |  1.50 |   1.50 | Battery Holder (Open) 12.5 mm |
 | CUI Devices | PJ-102A         | CP-102A-ND       | J1 jack       |   1   |  0.64 |   0.64 | Connector Power Jack 2X5.5 mm   |
 | CUI Devices | PP3-002A        | CP3-1000-ND      | J1 plug       |   1   |  1.29 |   1.29 | Connector Power Plug 2.1X5.5 mm |
 | Amphenol    | YO0421500000G   | 609-3920-ND      | J2            |   1   |  1.05 |   1.05 | Connector Screw Terminal 4pin   |
@@ -40,4 +42,4 @@ GPS display for vehicle dashboard showing position in the Maidenhead Locator Sys
 | Keystone    | 4952            | 36-4952-ND       | TP1-3, TP_GND |   4   |  0.21 |   0.84 | PC Test Point Loop |
 | JLC PCB     |                 |                  | PCB           |   1   |  5.00 |   5.00 | Printed Circuit Board |
 | Polycase    | QS-50MBT        | n/a              |               |   1   |  4.98 |   4.98 | Plastic Case, 4.5 x 3.5 x 1.25 |
-|             |                 |                  | **total**     |       |       | **18.79** |     |
+|             |                 |                  | **total**     |       |       | **21.29** |     |
