@@ -8,7 +8,7 @@ These assembly instructions are for the Rev.4 printed circuit board.
 
 ![](hardware/img/pcb-rev-4-img7034.jpg)
 
-**2. You Will Need:**
+**2. You Will Need**
 
 You must have:
 
@@ -17,18 +17,24 @@ You must have:
 * **Side cutters.** Once you have soldered the discrete components to the board, you will need to clip off the protruding wires. It is assumed that you will already have the necessary skills to solder this kit. If however you are not comfortable with through-hole electronic soldering, there are plenty of soldering tutorials available online.
 * **Philips-head screwdriver.** There are a couple of small screws holding the PCB into the case.
 
-It would be nice to have:
+It will be nice to have:
 
-* **Hobbyist bench vise.** You'll need a way to hold the PCB at a convenient height and angle for soldering parts. A small adjustable bench vise, such as a Panavise Model 89511, will make your task much easier. 
-* **Craft knife.** The plastic case will need small cutouts for power and speaker wires to reach the connectors. A very careful application of a sharp small knife can trim out the holes you need. A craft detail knife such as Fiskars 165110-1002 offers good safety and precision.
-* **Tiny flat head screwdriver.** If you use the 4-terminal strip after assembly (optional), it needs an unusually narrow-bladed screwdriver to reach the recessed screw heads.
+* **Hobbyist bench vise.** You'll need a way to hold the PCB at a convenient height and angle for soldering parts. A small adjustable bench vise, such as a Panavise Model 366, will make your task easier. This PCB is about 4-1/2" wide.
+
+ ![](hardware/img/panavise-366.png)
+ 
+* **Craft knife.** The plastic case will need small cutouts for power and speaker wires to reach the connectors. A very careful application of a sharp small knife can trim out the holes you need. A craft detail knife such as Fiskars 165110-1002 offers improved safety and precision.
+
+![](hardware/img/craft-knife-fiskars-165110.jpg)
+
 * **Solderless breadboard.** To solder header pins onto small board assemblies, temporarily using a solderless breadboard will hold pins in correct alignment.
+* **Tiny flat head screwdriver.** If you use the 4-terminal strip after assembly (optional), it needs an unusually narrow-bladed screwdriver to reach the recessed screw heads.
 * **Ohmmeter.** Use an ohmmeter or VOM (volt-ohm-milliameter) to measure resistors before installation to help guarantee you pick the right one for the right place.
 * **Scosche Magnetic Mount** You'll want a way to mount this in your vehicle within easy view of the driver. Griduino can most likely be adapted to almost any popular cellphone mounting system. A particularly convenient and interchangeable system is the **Scosche Magic Mount** product line. It has a magnetic base mounted to the dashboard, and a ferrous plate stuck on the back of a Griduino or cellphone. https://www.scosche.com/
  
 **3. Identifying the Components**
 
-Some components such as the connectors and PCB should be easy to identify.
+Some hardware such as the connectors and PCB should be easy to identify.
 
 There are two 8-pin DIPs (dual inline pin) chips. Inspect the silkscreen label to identify which is which. Then look closely for a notch at one end -- this helps locate Pin 1. The notch must be oriented the same direction as the semicircle on the PCB.
 
@@ -38,13 +44,13 @@ Small diodes are marked with a band on one end for polarity; the band must be or
 
 ![](hardware/img/diodes-img7040.jpg)
 
-Electrolytic capacitors are marked with an arrow or "-" to indicate polarity. Also note the "minus" lead is shorter than the other lead. The PCB locations are marked with a filled semicircle (minus) and a small "+" symbol on the other side. Install electrolytics flush on the PCB; this image shows extra lead length to show the board markings.
+Electrolytic capacitors are marked with an arrow or "-" to indicate polarity. Also note the "minus" lead is shorter than the other lead. The PCB locations are marked with a filled semicircle (minus) and a small "+" symbol on the other side. When you install electrolytics, mount them flush on the PCB; this image has extra lead length to show the board markings.
 
 ![](hardware/img/electrolytics-img7041.jpg)
 
 **4. Construction Step-By-Step**
 
-You should now be ready to build your Griduino. Here follows a step-by-step progression through the assembly process, in a recommended order. This order is not compulsory, however it has been chosen to ensure that smaller components are fitted before larger components that may make them difficult to reach for soldering. It is **strongly recommended** that you only unpack one component at a time: that which you are currently installing.
+You should now be ready to build your Griduino. Here is a step-by-step progression through the assembly process in a recommended order. This order is not compulsory, however it has been chosen to ensure that smaller components are fitted before larger components that may make them difficult to reach for soldering. It is **strongly recommended** that you only unpack one component at a time: that which you are currently installing.
 
 **Step 1: U3 Voltage Regulator**
 
@@ -69,7 +75,6 @@ Five electrolytic 47 uF capacitors - careful of polarity. The PCB is designed so
 **Step 6: U1 and U4, 8-pin DIPS**
 
 The two 8-pin DIPs (dual inline package) are soldered directly to the board. It is recommended to avoid using a socket so that vibration does not make them work loose over time. The notch on the chip must be aligned with the semicircle printed on the PCB.
-
 
 **Step 7: U5 GPS Breakout Board**
 
