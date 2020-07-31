@@ -24,20 +24,23 @@ These assembly instructions apply to Revision 4 of the printed circuit board.
 
 <h3>It will be nice to have:</h3>
 
-* **Hobbyist bench vise.** You'll need a way to hold the PCB at a convenient height and angle for soldering parts. A small adjustable bench vise, such as a Panavise Model 366, will make your task easier. This PCB is about 4-1/2" wide.<br/>
+* **Hobbyist bench vise.** You'll need a way to hold the PCB at a convenient height and angle for soldering parts. A small adjustable bench vise, such as a <a href="https://www.panavise.com/">Panavise Model 366</a>, will make your task easier. The Griduino PCB is about 4-1/2" wide.<br/>
  ![](hardware/img/panavise-366.png)
  
 * **Craft knife.** The plastic case will need small cutouts for power and speaker wires to reach the connectors. A very careful application of a sharp small knife can trim out the holes you need. A craft detail knife such as Fiskars 165110-1002 offers improved safety and precision.<br/>
 ![](hardware/img/craft-knife-fiskars-165110.jpg)
 
 * **Blue painters tape.** While soldering things upside down, an easy-to-remove tape can temporarily hold parts onto the PCB. When you do this, solder only one pin, double-check the parts are still tight on the PCB. If not, reheat the one pin and press on the part to re-seat it tightly. Then solder the remaining lead(s).
+
 * **Tiny flat head screwdriver.** If you use the 4-terminal strip after assembly (optional), it needs an unusually narrow-bladed screwdriver to reach the recessed screw heads.
+
 * **Ohmmeter.** Use an ohmmeter or VOM (volt-ohm-milliameter) to measure resistors before installation to help guarantee you pick the right one for the right place.
+
 * **Scosche Magnetic Mount** You'll want a way to mount this in your vehicle within easy view of the driver. The Griduino case can most likely be adapted to almost any popular cellphone mounting system. A particularly convenient and interchangeable system is the **Scosche Magic Mount** product line. It has a magnetic base mounted to the dashboard, and a ferrous plate stuck on the back of a Griduino or cellphone. https://www.scosche.com/
  
 <h2>3. Identifying the Components</h2>
 
-Some of this hardware, such as the connectors and PCB, should be easy to identify.
+Some of Griduino's hardware, such as the connectors and PCB, should be easy to identify.
 
 There are two 8-pin DIPs (dual inline pin) chips. Inspect the silkscreen label to identify which is which. Then look closely for a notch at one end -- this helps locate Pin 1. The notch must be oriented the same direction as the semicircle on the PCB.
 
@@ -57,7 +60,9 @@ You should now be ready to build your Griduino. Here is a step-by-step progressi
 
 <h3>Step 1: U3 Voltage Regulator</h3>
 
-Start with the small 3-terminal voltage regulator. This is not "through hole" so use a clothespin or surgical clamp or paper clip to hold it in place while soldering. The PCB is the heat sink so be sure to solder the big tab onto the board.
+Start with the small 3-terminal voltage regulator. This is surface-mounted and not a "through hole" component so use a clothespin or surgical clamp or paper clip to hold it in place while soldering. 
+
+Solder all four pins to the board. The PCB is the heat sink so be sure to solder the big tab onto the board.
 
 <h3>Step 2: Diodes</h3>
 
