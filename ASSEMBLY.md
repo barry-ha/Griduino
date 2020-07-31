@@ -12,7 +12,7 @@ These assembly instructions apply to Revision 4 of the printed circuit board.
 
 <h2>2. You Will Need</h2>
 
-You must have:
+<h3>You must have:</h3>
 
 * **A soldering iron.** A standard fine tipped iron suitable for use with conventional 0.1” pitch through-hole components.  It is recommended that you use a temperature controlled iron at a suitable temperature for your solder, if you have one.
 * **Decent quality solder, with a flux core.**  Any decent quality, thin, flux cored solder designed for electronic use should be suitable for assembling this kit. Solder size 0.50 mm is ideal. Do not use solder intended for plumbing.
@@ -22,7 +22,7 @@ You must have:
 ![](hardware/img/solderless-breadboard-img4024.jpg)
 
 
-It will be nice to have:
+<h3>It will be nice to have:</h3>
 
 * **Hobbyist bench vise.** You'll need a way to hold the PCB at a convenient height and angle for soldering parts. A small adjustable bench vise, such as a Panavise Model 366, will make your task easier. This PCB is about 4-1/2" wide.<br/>
  ![](hardware/img/panavise-366.png)
@@ -33,11 +33,11 @@ It will be nice to have:
 * **Blue painters tape.** While soldering things upside down, an easy-to-remove tape can temporarily hold parts onto the PCB. When you do this, solder only one pin, double-check the parts are still tight on the PCB. If not, reheat the one pin and press on the part to re-seat it tightly. Then solder the remaining lead(s).
 * **Tiny flat head screwdriver.** If you use the 4-terminal strip after assembly (optional), it needs an unusually narrow-bladed screwdriver to reach the recessed screw heads.
 * **Ohmmeter.** Use an ohmmeter or VOM (volt-ohm-milliameter) to measure resistors before installation to help guarantee you pick the right one for the right place.
-* **Scosche Magnetic Mount** You'll want a way to mount this in your vehicle within easy view of the driver. Griduino can most likely be adapted to almost any popular cellphone mounting system. A particularly convenient and interchangeable system is the **Scosche Magic Mount** product line. It has a magnetic base mounted to the dashboard, and a ferrous plate stuck on the back of a Griduino or cellphone. https://www.scosche.com/
+* **Scosche Magnetic Mount** You'll want a way to mount this in your vehicle within easy view of the driver. The Griduino case can most likely be adapted to almost any popular cellphone mounting system. A particularly convenient and interchangeable system is the **Scosche Magic Mount** product line. It has a magnetic base mounted to the dashboard, and a ferrous plate stuck on the back of a Griduino or cellphone. https://www.scosche.com/
  
 <h2>3. Identifying the Components</h2>
 
-Some hardware such as the connectors and PCB should be easy to identify.
+Some of this hardware, such as the connectors and PCB, should be easy to identify.
 
 There are two 8-pin DIPs (dual inline pin) chips. Inspect the silkscreen label to identify which is which. Then look closely for a notch at one end -- this helps locate Pin 1. The notch must be oriented the same direction as the semicircle on the PCB.
 
@@ -47,7 +47,7 @@ Small diodes are marked with a band on one end for polarity; the band must be or
 
 ![](hardware/img/diodes-img7040.jpg)
 
-Electrolytic capacitors are marked with an arrow or "-" to indicate polarity. Also note the "minus" lead is shorter than the other lead. The PCB locations are marked with a filled semicircle (minus) and a small "+" symbol on the other side. When you install electrolytics, mount them flush on the PCB; this image has extra lead length to show the board markings.
+Electrolytic capacitors are marked with an arrow or "-" to indicate the negative polarity terminal. Also note the "minus" lead is shorter than the other lead. The PCB locations are marked with a filled semicircle (minus) and a small "+" symbol on the other side. When you install electrolytics, mount them flush on the PCB; the image below has extra lead length to show the board markings.
 
 ![](hardware/img/electrolytics-img7041.jpg)
 
@@ -61,19 +61,29 @@ Start with the small 3-terminal voltage regulator. This is not "through hole" so
 
 <h3>Step 2: Diodes</h3>
 
-Three small diodes – careful of polarity; match the banded end (cathode) with board marking. In addition, the solder pad is square by the banded end.
+Insert the three small diodes, D1 - D3, being careful of polarity; match the banded end (cathode) with the board marking. Another visual indicator is the banded end has a square solder pad.
+
+Solder the diodes into place and snip off excess wire lengths.
 
 <h3>*Step 3: Resistors</h3>
 
 Measure the resistance of each resistor with your ohmmeter before installation. These items are very small and it's hard to read the color coded bands.
 
+Insert resistor R1 - R5 onto the PCB. Orient the color code bands in the same direction; this makes them easier to read.
+
+Solder the five resistors and snip off excess wire lengths. 
+
 <h3>Step 4: Small 0.1 uF Capacitors</h3>
 
-Four tiny 0.1 uF capacitors are all the same, but they're tiny so don't drop them. They are not polarized; however, it is good practice to orient their labels all in the same direction to make it easier to read their legends.
+The four tiny 0.1 uF capacitors are all the same, but they're tiny so don't drop them. They are not polarized; however, it is good practice to orient their labels all in the same direction to make it easier to read their legends.
+
+Solder the four small ceramic capacitors onto the PCB and snip off excess wire length.
 
 <h3>Step 5: Electrolytic Capacitors</h3>
 
-Five electrolytic 47 uF capacitors - careful of polarity. The PCB is designed so they are all oriented and installed in the same direction. Don't use tall capacitors - although they're electrically equivalent, they won't fit under the display board above them.
+Five electrolytic 47 uF capacitors - careful of polarity. The PCB is designed so they are all oriented and installed in the same direction. Don't substitute taller capacitors - although they're electrically equivalent, they won't fit under the display board above them.
+
+Solder only one lead of each electrolytic. Then check that the capacitor is flush with the board. If not, reheat the wire while pushing it down. Then solder the other lead. Snip off excess wire.
 
 <h3>Step 6: U1 and U4, 8-pin DIPS</h3>
 
