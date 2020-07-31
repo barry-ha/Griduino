@@ -16,21 +16,21 @@ These assembly instructions apply to Revision 4 of the printed circuit board.
 
 * **A soldering iron.** A standard fine tipped iron suitable for use with conventional 0.1” pitch through-hole components.  It is recommended that you use a temperature controlled iron at a suitable temperature for your solder, if you have one.
 * **Decent quality solder, with a flux core.**  Any decent quality, thin, flux cored solder designed for electronic use should be suitable for assembling this kit. Solder size 0.50 mm is ideal. Do not use solder intended for plumbing.
+* **Needle nose pliers.** The component's leads must be bent with small pliers for a good fit into holes. Small pliers are also good for picking up the smallest parts from a tray.
 * **Side cutters.** Once you have soldered the discrete components to the board, you will need to clip off the protruding wires. It is assumed that you will already have the necessary skills to solder this kit. If however you are not comfortable with through-hole electronic soldering, there are plenty of soldering tutorials available online.
 * **Philips-head screwdriver.** There are four small screws to attach the PCB into the case.
 * **Solderless breadboard.** To solder header pins onto small board assemblies, temporarily using a solderless breadboard will hold pins in correct alignment.<br/>
 ![](hardware/img/solderless-breadboard-img4024.jpg)
 
-
 <h3>It will be nice to have:</h3>
 
-* **Hobbyist bench vise.** You'll need a way to hold the PCB at a convenient height and angle for soldering parts. A small adjustable bench vise, such as a <a href="https://www.panavise.com/">Panavise Model 366</a>, will make your task easier. The Griduino PCB is about 4-1/2" wide.<br/>
+* **Hobbyist bench vise.** You'll need a way to hold the PCB at a convenient height and angle for soldering parts. A small adjustable bench vise, such as a <a href="https://www.panavise.com/">Panavise Model 366</a>, will make your task easier. Use a holder wide enough to grip the Griduino PCB of 4-1/2" width.<br/>
  ![](hardware/img/panavise-366.png)
  
 * **Craft knife.** The plastic case will need small cutouts for power and speaker wires to reach the connectors. A very careful application of a sharp small knife can trim out the holes you need. A craft detail knife such as Fiskars 165110-1002 offers improved safety and precision.<br/>
 ![](hardware/img/craft-knife-fiskars-165110.jpg)
 
-* **Blue painters tape.** While soldering things upside down, an easy-to-remove tape can temporarily hold parts onto the PCB. When you do this, solder only one pin, double-check the parts are still tight on the PCB. If not, reheat the one pin and press on the part to re-seat it tightly. Then solder the remaining lead(s).
+* **Blue painters tape.** While soldering things upside down, an easy-to-remove tape can temporarily hold parts onto the PCB. When you do this, solder only one pin, double-check the parts are still tight on the PCB. If not, reheat the one pin and press on the part to re-seat it tightly. Then solder the remaining leads.
 
 * **Tiny flat head screwdriver.** If you use the 4-terminal strip after assembly (optional), it needs an unusually narrow-bladed screwdriver to reach the recessed screw heads.
 
@@ -46,9 +46,13 @@ There are two 8-pin DIPs (dual inline pin) chips. Inspect the silkscreen label t
 
 ![](hardware/img/dip-chips-img7038.jpg)
 
-Small diodes are marked with a band on one end for polarity; the band must be oriented the same direction as the band on the PCB. The large zener protection diode is not polarized and can be installed in either direction.
+Small 1N4001 diodes are marked with a band on one end for polarity; the band must be oriented the same direction as the band on the PCB. 
 
 ![](hardware/img/diodes-img7040.jpg)
+
+The larger zener diode is a TVS protection diode (transient voltage suppressor) for clamping voltage spikes from exceeding +25 or -25 volts. It is bidirectional and not polarized and can be installed in either orientation.
+
+![](hardware/img/diode-tvs-img7051.jpg)
 
 Electrolytic capacitors are marked with an arrow or "-" to indicate the negative polarity terminal. Also note the "minus" lead is shorter than the other lead. The PCB locations are marked with a filled semicircle (minus) and a small "+" symbol on the other side. When you install electrolytics, mount them flush on the PCB; the image below has extra lead length to show the board markings.
 
@@ -62,13 +66,17 @@ You should now be ready to build your Griduino. Here is a step-by-step progressi
 
 Start with the small 3-terminal voltage regulator. This is surface-mounted and not a "through hole" component so use a clothespin or surgical clamp or paper clip to hold it in place while soldering. 
 
-Solder all four pins to the board. The PCB is the heat sink so be sure to solder the big tab onto the board.
+Solder one pin to the board. Remove your clamp. Solder the remaining pins. 
+
+![](hardware/img/voltage-reg-img7055.jpg)
 
 <h3>Step 2: Diodes</h3>
 
-Insert the three small diodes, D1 - D3, being careful of polarity; match the banded end (cathode) with the board marking. Another visual indicator is the banded end has a square solder pad.
+Insert the three small 1N4001 diodes, D1 - D3, being careful of polarity; match the banded end (cathode) with the board marking. The board also indicates the banded end with a square solder pad.
 
 Solder the diodes into place and snip off excess wire lengths.
+
+*photo*
 
 <h3>*Step 3: Resistors</h3>
 
@@ -94,13 +102,7 @@ Solder only one lead of each electrolytic. Then check that the capacitor is flus
 
 The two 8-pin DIPs (dual inline package) are soldered directly to the board. It is recommended to avoid using a socket so that vibration does not make them work loose over time. The notch on the chip must be aligned with the semicircle printed on the PCB.
 
-<h3>Step 7: U5 GPS Breakout Board</h3>
-
-Put an 8-pin header into your solderless breadboard. Take another 8-pin header and remove all pins except one at each end; put this in your breadboard at a spot where the pins line up with holes on the GPS board. Solder the headers onto the GPS board. Remove it from the breadboard.
-
-Do not solder a coin battery holder onto the back of the GPS. The GPS board must be tight against the PCB after it's installed on the PCB; a battery here would make it too tall. We have designed the PCB with a separate coin battery holder. 
-
-<h3>Step 8: U2 Feather M4 Express</h3>
+<h3>Step 7: U2 Feather M4 Express</h3>
 
 Test the Feather before using it. By testing first, we ensure it's usable before permanently installing it. To test it, plug a standard micro-USB cable into the Feather's onboard connector; the lights should show activity. If this is a new Feather, it comes with a factory program that flashes its red LED once per second in a sort of simple "hello world" program.
 
@@ -108,19 +110,25 @@ Take the two header pin strips and break them off to exactly match the Feather's
 
 Insert the Feather board into the PCB and solder all the pins.
 
-<h3>Step 9: U5 Ultimate GPS</h3>
+<h3>Step 8: U5 Ultimate GPS</h3>
 
-Temporarily insert a 9-pin header strip into a solderless breadboard to hold them in correct alignment. Break off two single pins from a header strip and insert into the breadboard, aligning them with the two mounting holes on the opposite side of the GPS board. Lower the GPS onto the pins and solder them.
+Temporarily put an 8-pin header into your solderless breadboard. 
+
+Break off two single pins from a header strip and insert into the breadboard, aligning them with the two mounting holes on the opposite side of the GPS board. Put them in your breadboard at a spot where the pins line up with holes on the GPS board. Solder the headers onto the GPS board. Remove it from the breadboard.
+
+Do not solder a coin battery holder onto the back of the GPS. The GPS board must be low and close to the Griduino's PCB after it's installed; a battery here would make it too tall. We designed the PCB with a separate coin battery holder which runs the realtime clock when the device is turned off. 
+
+Lower the GPS onto the pins and solder them.
 
 Remove the GPS from the breadboard and insert onto Griduino's PCB. Solder the assembly into place.
 
-<h3>Step 10: BT1 Battery Holder</h3>
+<h3>Step 9: BT1 Battery Holder</h3>
 
 Solder the battery holder onto the PCB. This is a surface-mount device so use a small clamp or clothespin or tape to temporarily hold it in place while soldering.
 
 Don't insert a battery just yet. Do this at the end to avoid any chance of shorts during construction.
 
-<h3>Step 11: U7 Display ILI9341</h3>
+<h3>Step 10: U7 Display ILI9341</h3>
 
 First, solder jumpers IM1/IM2/IM3 on the back of the board. All you have to do is melt a fat solder bridge across each "jumper". The traces are close together to make this easier. This enables the SPI interface. Do not solder jumper IM0.
 
@@ -132,11 +140,11 @@ Put the prepared display, including the two 20-pin sockets, onto the PCB. It wil
 
 When finished, gently unplug the display from its sockets for safekeeping while working on other parts. Insert the display again later when everything else is completed.
 
-<h3>Step 12: Connectors</h3>
+<h3>Step 11: Connectors</h3>
 
 Lastly, install and solder the power connector, speaker jack and 4-pin terminal strip into place. Most of these connectors extend slightly beyond the edge of the PCB, so we install them lastly to avoid interfering with your bench vise hardware. Use 
 
-<h3>Step 13: Plastic Case</h3>
+<h3>Step 12: Plastic Case</h3>
 
 *Bottom Half:* Screw the PCB onto the bottom half of the case. Use a craft detail knife to notch out a square hole for each of the three connectors (speaker, power, micro USB connector). The exact size will depend on your particular cable that you intend to use.
 
@@ -146,7 +154,7 @@ Lastly, install and solder the power connector, speaker jack and 4-pin terminal 
 * Polycase cover – carefully cut an opening to fit the display. You'll have to come up with your own cutting template.
 * 3D printed cover – The author has designed a top cover to fit the Polycase bottom half. The 3d design files are available upon request so you can print your own.
 
-<h3>Step 14: Speaker</h3>
+<h3>Step 13: Speaker</h3>
 
 You can connect a small 8-ohm or 4-ohm speaker to the stereo plugin jack or to the screw terminal strip.
 
@@ -162,9 +170,11 @@ Note that increased audio volume is available when powering the Griduino from a 
 
 Snap a coin cell battery (3-volt CR1220 lithium) into the battery holder.
 
+Plug in the display board.
+
 You should now have a completed Griduino GPS kit. Congratulations! 
 
-Before you connect it to power, make a detailed visual inspection of it under a magnifier. Pay close attention to any solder bridges that may have formed between adjacent pads. Remove any surplus solder or solder bridges with desoldering braid. 
+Before you connect power, make a detailed visual inspection under a magnifier and good light. Pay close attention to any solder bridges that may have formed between adjacent pads. Remove any surplus solder or solder bridges with desoldering braid. 
 
 A visual check **very important** because any short circuits or solder bridges can damage the power supply, the battery, or the Feather M4. **If that happens it is your responsibility as the builder of the board.** It is better to have to rework or desolder something than to damage it. 
 
@@ -220,6 +230,8 @@ After loading and running the Griduino program, touch the top half of the screen
 Touch the bottom half of the screen to adjust brightness levels.
 
 Griduino has non-volatile storage to save your breadcrumb trail (driving track) from one day to the next. 
+
+For a demonstration, bring up the **Settings** view. Change the Route to **Simulator** and return to the main grid view. It follows a pre-programmed route to show the breadcrumb trail and what happens at grid crossings. A few different routes can be changed at compile-time. The most interesting canned route will drive in a big ellipse near the edges of one grid square. 
 
 When you cross a grid line, the new grid is announced with CW on the speaker.
 
