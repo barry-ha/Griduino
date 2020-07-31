@@ -2,7 +2,7 @@
 
 <h2>1. Introduction</h2>
 
-Thank you for purchasing a Griduino GPS navigation kit. Once assembled, this kit is a useful driver's aid dedicated to show your location in the Maidenhead grid square system, your altitude, the exact time in GMT, barometric pressure and more.
+Thank you for purchasing a Griduino GPS navigation kit. Once assembled, this kit is a useful driver's aid dedicated to show your location in the Maidenhead grid square system, your altitude, the exact time in GMT, barometric pressure and more. Further, this can be a useful platform for programming your own features.
 
 ![](hardware/img/overview-img6804.jpg)
 
@@ -27,10 +27,10 @@ These assembly instructions apply to Revision 4 of the printed circuit board.
 * **Hobbyist bench vise.** You'll need a way to hold the PCB at a convenient height and angle for soldering parts. A small adjustable bench vise, such as a <a href="https://www.panavise.com/">Panavise Model 366</a>, will make your task easier. Use a holder wide enough to grip the Griduino PCB of 4-1/2" width.<br/>
  ![](hardware/img/panavise-366.png)
  
-* **Craft knife.** The plastic case will need small cutouts for power and speaker wires to reach the connectors. A very careful application of a sharp small knife can trim out the holes you need. A craft detail knife such as Fiskars 165110-1002 offers improved safety and precision.<br/>
+* **Craft knife.** The plastic case will need small cutouts for power and speaker wires to reach the connectors. A very careful application of a sharp small knife can trim out the holes you need. A craft detail knife such as Fiskars 165110-1002 has better safety and precision than Exacto knives.<br/>
 ![](hardware/img/craft-knife-fiskars-165110.jpg)
 
-* **Blue painters tape.** While soldering things upside down, an easy-to-remove tape can temporarily hold parts onto the PCB. When you do this, solder only one pin, double-check the parts are still tight on the PCB. If not, reheat the one pin and press on the part to re-seat it tightly. Then solder the remaining leads.
+* **Blue painters tape.** While soldering things upside down, an easy-to-remove tape can temporarily hold parts onto the PCB. When you do this, solder only one pin, then double-check the parts are still tight on the PCB. If not, reheat the one pin and press on the part to re-seat it. Then solder the remaining leads.
 
 * **Tiny flat head screwdriver.** If you use the 4-terminal strip after assembly (optional), it needs an unusually narrow-bladed screwdriver to reach the recessed screw heads.
 
@@ -40,7 +40,9 @@ These assembly instructions apply to Revision 4 of the printed circuit board.
  
 <h2>3. Identifying the Components</h2>
 
-Some of Griduino's hardware, such as the connectors and PCB, should be easy to identify.
+Some of Griduino's hardware, such as the connectors and PCB, should be easy to identify. Every connector has a different footprint and will only fit one way.
+
+![](hardware/img/connectors-img7056.jpg)
 
 There are two 8-pin DIPs (dual inline pin) chips. Inspect the silkscreen label to identify which is which. Then look closely for a notch at one end -- this helps locate Pin 1. The notch must be oriented the same direction as the semicircle on the PCB.
 
@@ -48,7 +50,7 @@ There are two 8-pin DIPs (dual inline pin) chips. Inspect the silkscreen label t
 
 Small 1N4001 diodes are marked with a band on one end for polarity; the band must be oriented the same direction as the band on the PCB. 
 
-![](hardware/img/diodes-img7040.jpg)
+![](hardware/img/diodes-img7057.jpg)
 
 The larger zener diode is a TVS protection diode (transient voltage suppressor) for clamping voltage spikes from exceeding +25 or -25 volts. It is bidirectional and not polarized and can be installed in either orientation.
 
@@ -72,17 +74,17 @@ Solder one pin to the board. Remove your clamp. Solder the remaining pins.
 
 <h3>Step 2: Diodes</h3>
 
-Insert the three small 1N4001 diodes, D1 - D3, being careful of polarity; match the banded end (cathode) with the board marking. The board also indicates the banded end with a square solder pad.
+Insert the three small 1N4001 diodes, D1 - D3, being careful of polarity; match the banded end (cathode) with the board marking. The board also indicates the banded end with a square solder pad. It is good practice to bend its wires in such a way that its marking "4001" is on top and readable.
 
-Solder the diodes into place and snip off excess wire lengths.
+Solder the three diodes into place and snip off excess wire lengths.
 
-*photo*
+![](hardware/img/diodes-img7040.jpg)
 
 <h3>*Step 3: Resistors</h3>
 
-Measure the resistance of each resistor with your ohmmeter before installation. These items are very small and it's hard to read the color coded bands.
+This kit uses five resistors, each of a different value. Measure the resistance of each item with your ohmmeter before installation. These resistors are very small and it's easy to mistake the color coded bands.
 
-Insert resistor R1 - R5 onto the PCB. Orient the color code bands in the same direction; this makes them easier to read.
+Insert resistor R1 - R5 onto the PCB. It is good practice to orient the color code bands in the same direction; this makes them easier to read.
 
 Solder the five resistors and snip off excess wire lengths. 
 
@@ -94,13 +96,13 @@ Solder the four small ceramic capacitors onto the PCB and snip off excess wire l
 
 <h3>Step 5: Electrolytic Capacitors</h3>
 
-Five electrolytic 47 uF capacitors - careful of polarity. The PCB is designed so they are all oriented and installed in the same direction. Don't substitute taller capacitors - although they're electrically equivalent, they won't fit under the display board above them.
+This kit uses five identical 47 uF electrolytic capacitors. Be careful of polarity; incorrect installation will probably cause them to burst and leak. The PCB is designed so they are all installed in the same orientation. Don't substitute taller capacitors - although they would be electrically equivalent, they won't fit under the display board above them.
 
 Solder only one lead of each electrolytic. Then check that the capacitor is flush with the board. If not, reheat the wire while pushing it down. Then solder the other lead. Snip off excess wire.
 
 <h3>Step 6: U1 and U4, 8-pin DIPS</h3>
 
-The two 8-pin DIPs (dual inline package) are soldered directly to the board. It is recommended to avoid using a socket so that vibration does not make them work loose over time. The notch on the chip must be aligned with the semicircle printed on the PCB.
+The two 8-pin DIPs (dual inline package) are soldered directly to the board. It is recommended to avoid using a socket so that vibration does not cause them work loose over time. The notch on the chip must be aligned with the matching semicircle printed on the PCB.
 
 <h3>Step 7: U2 Feather M4 Express</h3>
 
@@ -231,7 +233,7 @@ Touch the bottom half of the screen to adjust brightness levels.
 
 Griduino has non-volatile storage to save your breadcrumb trail (driving track) from one day to the next. 
 
-For a demonstration, bring up the **Settings** view. Change the Route to **Simulator** and return to the main grid view. It follows a pre-programmed route to show the breadcrumb trail and what happens at grid crossings. A few different routes can be changed at compile-time. The most interesting canned route will drive in a big ellipse near the edges of one grid square. 
+For a demonstration, bring up the **Settings** view. Change the Route to **Simulator** and return to the main grid view. It follows a pre-programmed route to show the breadcrumb trail and what happens at grid crossings. There are a few different routes available, which can be selected at compile-time. The most interesting canned route will drive in a big ellipse near the edges of one grid square. 
 
 When you cross a grid line, the new grid is announced with CW on the speaker.
 
