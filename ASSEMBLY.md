@@ -14,10 +14,11 @@ These assembly instructions apply to Revision 4 of the printed circuit board.
 
 <h3>You must have:</h3>
 
-* **A soldering iron.** A standard fine tipped iron suitable for use with conventional 0.1” pitch through-hole components.  It is recommended that you use a temperature controlled iron at a suitable temperature for your solder, if you have one.
+* **Printed BOM and schematic diagram.** The component values are found on the bill of materials and the schematic. For example, to learn that R1 is a 22-ohm 2-watt resistor, you must find it in the BOM or schematic. These assembly instructions generally *don't* include part values in an attempt, possibly futile, to avoid multiple documents getting out of sync. The schematic is your ultimate golden master reference for all Griduino design. This is an open-source project and the latest documents are available on https://github.com/barry-ha/Griduino.
+* **Fine-tipped soldering iron.** A standard fine-tipped iron suitable for use with conventional 0.1” pitch through-hole components.  It is recommended that you use a temperature controlled iron at a suitable temperature for your solder, if you have one. It is assumed that you will already have the necessary skills to solder this kit. If however you are not comfortable with through-hole electronic soldering, there are plenty of soldering tutorials available online.
 * **Decent quality solder, with a flux core.**  Any decent quality, thin, flux cored solder designed for electronic use should be suitable for assembling this kit. Solder size 0.50 mm is ideal. Do not use solder intended for plumbing.
 * **Needle nose pliers.** The component's leads must be bent with small pliers for a good fit into holes. Small pliers are also good for picking up the smallest parts from a tray.
-* **Side cutters.** Once you have soldered the discrete components to the board, you will need to clip off the protruding wires. It is assumed that you will already have the necessary skills to solder this kit. If however you are not comfortable with through-hole electronic soldering, there are plenty of soldering tutorials available online.
+* **Side cutters.** After you solder discrete components to the board, you will need to clip off the protruding wires. Wear eye protection and aim the bits away from you in a safe direction. 
 * **Philips-head screwdriver.** There are four small screws to attach the PCB into the case.
 * **Solderless breadboard.** To solder header pins onto small board assemblies, temporarily using a solderless breadboard will hold pins in correct alignment.<br/>
 ![](hardware/img/solderless-breadboard-img4024.jpg)
@@ -44,7 +45,7 @@ Some of Griduino's hardware, such as the connectors and PCB, should be easy to i
 
 ![](hardware/img/connectors-img7056.jpg)
 
-There are two 8-pin DIPs (dual inline pin) chips. Inspect the silkscreen label to identify which is which. Then look closely for a notch at one end -- this helps locate Pin 1. The notch must be oriented the same direction as the semicircle on the PCB.
+There are two 8-pin DIPs (dual inline package) chips. Inspect the silkscreen label to identify which is which. Then look closely for a notch at one end -- this helps locate Pin 1. The notch must be oriented the same direction as the semicircle on the PCB.
 
 ![](hardware/img/dip-chips-img7038.jpg)
 
@@ -52,7 +53,7 @@ Small 1N4001 diodes are marked with a band on one end for polarity; the band mus
 
 ![](hardware/img/diodes-img7057.jpg)
 
-The larger zener diode is a TVS protection diode (transient voltage suppressor) for clamping voltage spikes from exceeding +25 or -25 volts. It is bidirectional and not polarized and can be installed in either orientation.
+The larger zener diode is a TVS protection diode (transient voltage suppressor) for clamping voltage spikes from exceeding +25 or -25 volts. It is bidirectional (not polarized) and can be installed in either orientation.
 
 ![](hardware/img/diode-tvs-img7051.jpg)
 
@@ -82,15 +83,19 @@ Solder the three diodes into place and snip off excess wire lengths.
 
 <h3>*Step 3: Resistors</h3>
 
-This kit uses five resistors, each of a different value. Measure the resistance of each item with your ohmmeter before installation. These resistors are very small and it's easy to mistake the color coded bands.
+This kit uses five resistors, R1 - R5, each of a different value. Refer to the schematic or bill-of-materials for the values.
+
+Measure the resistance of each item with your ohmmeter before installation. These resistors are very small and it's easy to mistake the color coded bands.
 
 Insert resistor R1 - R5 onto the PCB. It is good practice to orient the color code bands in the same direction; this makes them easier to read.
 
-Solder the five resistors and snip off excess wire lengths. 
+Solder the five resistors and snip off excess wire lengths.
+
+![](hardware/img/resistors-img7059.jpg)
 
 <h3>Step 4: Small 0.1 uF Capacitors</h3>
 
-The four tiny 0.1 uF capacitors are all the same, but they're tiny so don't drop them. They are not polarized; however, it is good practice to orient their labels all in the same direction to make it easier to read their legends.
+The four tiny 0.1 uF ceramic capacitors are all the same, but they're tiny so don't drop them. They are not polarized; however, it is good practice to orient their labels all in the same direction to make it easier to read their legends.
 
 Solder the four small ceramic capacitors onto the PCB and snip off excess wire length.
 
