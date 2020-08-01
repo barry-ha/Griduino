@@ -96,7 +96,9 @@ Solder the four small ceramic capacitors onto the PCB and snip off excess wire l
 
 <h3>Step 5: Electrolytic Capacitors</h3>
 
-This kit uses five identical 47 uF electrolytic capacitors. Be careful of polarity; incorrect installation will probably cause them to burst and leak. The PCB is designed so they are all installed in the same orientation. Don't substitute taller capacitors - although they would be electrically equivalent, they won't fit under the display board above them.
+This kit uses five identical 47 uF electrolytic capacitors. Be careful of polarity; incorrect installation can cause them to burst and leak acid. The PCB is designed so they are all installed in the same orientation. 
+
+Don't substitute taller capacitors - although they would be electrically equivalent, they won't fit under the display board above them.
 
 Solder only one lead of each electrolytic. Then check that the capacitor is flush with the board. If not, reheat the wire while pushing it down. Then solder the other lead. Snip off excess wire.
 
@@ -124,13 +126,16 @@ Lower the GPS onto the pins and solder them.
 
 Remove the GPS from the breadboard and insert onto Griduino's PCB. Solder the assembly into place.
 
-<h3>Step 9: BT1 Battery Holder</h3>
+<h3>Step 9: Barometric Pressure Sensor</h3>
+(Coming soon.)
+
+<h3>Step 10: BT1 Battery Holder</h3>
 
 Solder the battery holder onto the PCB. This is a surface-mount device so use a small clamp or clothespin or tape to temporarily hold it in place while soldering.
 
 Don't insert a battery just yet. Do this at the end to avoid any chance of shorts during construction.
 
-<h3>Step 10: U7 Display ILI9341</h3>
+<h3>Step 11: U7 Display ILI9341</h3>
 
 First, solder jumpers IM1/IM2/IM3 on the back of the board. All you have to do is melt a fat solder bridge across each "jumper". The traces are close together to make this easier. This enables the SPI interface. Do not solder jumper IM0.
 
@@ -142,19 +147,23 @@ Put the prepared display, including the two 20-pin sockets, onto the PCB. It wil
 
 When finished, gently unplug the display from its sockets for safekeeping while working on other parts. Insert the display again later when everything else is completed.
 
-<h3>Step 11: Connectors</h3>
+<h3>Step 12: Connectors</h3>
 
 Lastly, install and solder the power connector, speaker jack and 4-pin terminal strip into place. Most of these connectors extend slightly beyond the edge of the PCB, so we install them lastly to avoid interfering with your bench vise hardware. Use 
 
-<h3>Step 12: Plastic Case</h3>
+<h3>Step 13: Plastic Case</h3>
 
-*Bottom Half:* Screw the PCB onto the bottom half of the case. Use a craft detail knife to notch out a square hole for each of the three connectors (speaker, power, micro USB connector). The exact size will depend on your particular cable that you intend to use.
+The Griduino kit comes with a plastic enclosure from <a href="https://www.polycase.com/">Polycase</a> in their QS Series that exactly matches the PCB mounting holes. Other enclosures could probably be used. If you choose something else, be sure to avoid metallic cases since they would block the microwave GPS signal.
+
+*Bottom Half:* Screw the PCB onto the bottom half of the case. Use a craft detail knife to notch out a square hole for each of the three connectors (speaker, power, USB connector). The exact size depends on your particular cable that you choose to use.  For sake of sizing the hole, find a USB cable that has the largest connector available. 
 
 *Top Half:* There are at least three choices for the top cover.
 
 * No cover – this is how I use my Griduino.
-* Polycase cover – carefully cut an opening to fit the display. You'll have to come up with your own cutting template.
-* 3D printed cover – The author has designed a top cover to fit the Polycase bottom half. The 3d design files are available upon request so you can print your own.
+* Polycase cover – carefully cut an opening to fit the display. You'll have to come up with your own cutting template. This is so difficult to do accurately and neatly that it is not recommended.
+* 3D printed cover – The author designed a top cover to fit the Polycase bottom half. The 3d design files are available upon request so you can print and decorate your own.
+
+![](hardware/img/hersheys-griduino-img56B29.jpg)
 
 <h3>Step 13: Speaker</h3>
 
@@ -202,7 +211,7 @@ Find the PROGRAMMING.md file for complete programming instructions.
 
 The Griduino hardware platform offers a great deal of capability with a bright colorful display, powerful cpu, GPS receiver, barometric sensor, and a digital audio channel. We hope you invent fun and useful new things for it to do.
 
-You may find the "examples" folder useful. It contains a variety of smaller programs that were used to develop certain concepts and check out features. 
+You may find the "examples" folder useful. It contains a variety of smaller programs that were used to develop certain concepts and check out features. For example, the barograph display can be a handy desktop application, showing the last 48 hours of barometric pressure and 1-hour and 3-hour trends.
 
 <h2>8. Using the Griduino GPS</h2>
 
