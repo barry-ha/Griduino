@@ -2,7 +2,7 @@
 
 <h2>1. Introduction</h2>
 
-Thank you for purchasing a Griduino GPS navigation kit. Once assembled, this kit is a useful driver's aid dedicated to show your location in the Maidenhead grid square system, your altitude, the exact time in GMT, barometric pressure and more. Further, this can be a useful platform for programming your own features.
+Thank you for purchasing a Griduino GPS navigation kit. Once assembled, this kit is a useful driver's aid dedicated to show your location in the Maidenhead grid square system, your altitude, the exact time in GMT, barometric pressure and more. Further, the hardware is a highly capable platform for programming your own features.
 
 ![](hardware/img/overview-img6804.jpg)
 
@@ -11,6 +11,8 @@ These assembly instructions apply to Revision 4 of the printed circuit board.
 ![](hardware/img/pcb-rev-4-img7034.jpg)
 
 <h2>2. You Will Need</h2>
+
+This kit is almost entirely "through hole" construction. Two components, the battery holder and voltage regulator, are large surface-mount parts.
 
 <h3>You must have:</h3>
 
@@ -31,11 +33,12 @@ These assembly instructions apply to Revision 4 of the printed circuit board.
 * **Craft knife.** The plastic case will need small cutouts for power and speaker wires to reach the connectors. A very careful application of a sharp small knife can trim out the holes you need. A craft detail knife such as Fiskars 165110-1002 has better safety and precision than Exacto knives.<br/>
 ![](hardware/img/craft-knife-fiskars-165110.jpg)
 
-* **Blue painters tape.** While soldering things upside down, an easy-to-remove tape can temporarily hold parts onto the PCB. When you do this, solder only one pin, then double-check the parts are still tight on the PCB. If not, reheat the one pin and press on the part to re-seat it. Then solder the remaining leads.
+* **Blue painters tape.** While soldering things upside down, an easy-to-remove tape can temporarily hold parts onto the PCB. When you do this, solder only one pin, then double-check the parts are still tight on the PCB. If not, reheat the one pin and press on the part to re-seat it. Then solder the remaining leads.<br/>
+![](hardware/img/painters-tape-img3026.jpg)
 
 * **Tiny flat head screwdriver.** If you use the 4-terminal strip after assembly (optional), it needs an unusually narrow-bladed screwdriver to reach the recessed screw heads.
 
-* **Ohmmeter.** Use an ohmmeter or VOM (volt-ohm-milliameter) to measure resistors before installation to help guarantee you pick the right one for the right place.
+* **Ohmmeter.** Use an ohmmeter or VOM (volt-ohm-milliameter) to measure resistors before installation to help ensure you have the right one in the right place.
 
 * **Scosche Magnetic Mount** You'll want a way to mount this in your vehicle within easy view of the driver. The Griduino case can most likely be adapted to almost any popular cellphone mounting system. A particularly convenient and interchangeable system is the **Scosche Magic Mount** product line. It has a magnetic base mounted to the dashboard, and a ferrous plate stuck on the back of a Griduino or cellphone. https://www.scosche.com/
  
@@ -91,13 +94,15 @@ Insert resistor R1 - R5 onto the PCB. It is good practice to orient the color co
 
 Solder the five resistors and snip off excess wire lengths.
 
-![](hardware/img/resistors-img7059.jpg)
+![](hardware/img/resistors-img7061.jpg)
 
 <h3>Step 4: Small 0.1 uF Capacitors</h3>
 
 The four tiny 0.1 uF ceramic capacitors are all the same, but they're tiny so don't drop them. They are not polarized; however, it is good practice to orient their labels all in the same direction to make it easier to read their legends.
 
 Solder the four small ceramic capacitors onto the PCB and snip off excess wire length.
+
+![](hardware/img/2020-08-01 ceramics-img7062.jpg)
 
 <h3>Step 5: Electrolytic Capacitors</h3>
 
@@ -106,6 +111,8 @@ This kit uses five identical 47 uF electrolytic capacitors. Be careful of polari
 Don't substitute taller capacitors - although they would be electrically equivalent, they won't fit under the display board above them.
 
 Solder only one lead of each electrolytic. Then check that the capacitor is flush with the board. If not, reheat the wire while pushing it down. Then solder the other lead. Snip off excess wire.
+
+![](hardware/img/electrolytics-img7063.jpg)
 
 <h3>Step 6: U1 and U4, 8-pin DIPS</h3>
 
@@ -152,11 +159,15 @@ Put the prepared display, including the two 20-pin sockets, onto the PCB. It wil
 
 When finished, gently unplug the display from its sockets for safekeeping while working on other parts. Insert the display again later when everything else is completed.
 
-<h3>Step 12: Connectors</h3>
+<h3>Step 12: Test Points</h3>
+
+(Coming soon)
+
+<h3>Step 13: Connectors</h3>
 
 Lastly, install and solder the power connector, speaker jack and 4-pin terminal strip into place. Most of these connectors extend slightly beyond the edge of the PCB, so we install them lastly to avoid interfering with your bench vise hardware. Use 
 
-<h3>Step 13: Plastic Case</h3>
+<h3>Step 14: Plastic Case</h3>
 
 The Griduino kit comes with a plastic enclosure from <a href="https://www.polycase.com/">Polycase</a> in their QS Series that exactly matches the PCB mounting holes. Other enclosures could probably be used. If you choose something else, be sure to avoid metallic cases since they would block the microwave GPS signal.
 
@@ -170,7 +181,7 @@ The Griduino kit comes with a plastic enclosure from <a href="https://www.polyca
 
 ![](hardware/img/hersheys-griduino-img56B29.jpg)
 
-<h3>Step 13: Speaker</h3>
+<h3>Step 15: Speaker</h3>
 
 You can connect a small 8-ohm or 4-ohm speaker to the stereo plugin jack or to the screw terminal strip.
 
