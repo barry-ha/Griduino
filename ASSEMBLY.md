@@ -102,7 +102,7 @@ The four tiny 0.1 uF ceramic capacitors are all the same, but they're tiny so do
 
 Solder the four small ceramic capacitors onto the PCB and snip off excess wire length.
 
-![](hardware/img/2020-08-01 ceramics-img7062.jpg)
+![](hardware/img/ceramics-img7062.jpg)
 
 <h3>Step 5: Electrolytic Capacitors</h3>
 
