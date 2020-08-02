@@ -102,6 +102,9 @@ Solder the five resistors and snip off excess wire lengths.
 
 
 
+
+
+
 <h3>Step 4: Small 0.1 uF Capacitors</h3>
 
 The four tiny 0.1 uF ceramic capacitors are all the same, but they're tiny so don't drop them. They are not polarized; however, it is good practice to orient their labels all in the same direction to make it easier to read their legends.
@@ -134,11 +137,11 @@ Insert U1 Digital Potentiometer DS1804 and U4 Audio Amplifier LM386 into the PCB
 
 <h3>Step 7: U2 Feather M4 Express</h3>
 
-Test the Feather before using it. By testing first, we ensure it's usable before permanently installing it. To test it, plug a standard micro-USB cable into the Feather's onboard connector; the lights should show activity. If this is a new Feather, it comes with a factory program that flashes its NeoPixel LED bright green once per second as a simple "hello world" program.
+Test the Feather before using it. By testing first, we ensure it's usable before permanently installing it. To test it, plug a standard micro-USB cable into the Feather's onboard connector; the lights should show activity. If this is a new Feather, it comes with a factory program that shines the NeoPixel LED bright green every two seconds as a simple "hello world" program.
 
 ![](hardware/img/feather-test-img7081.jpg)
 
-The Feather comes with two 16-pin header strips loose in the package. Take one strip and break off 4 pins so it exactly matches the Feather's pinout: one 12-pin strip, and one 16-pin strip. Temporarily put the strips into a solderless breadboard to hold them in precise alignment. The long end of the pins go down into the breadboard; the short end goes into the Feather's PCB. Solder the Feather board to both header pin strips.
+The Feather comes with two 16-pin header strips loose in the package. Take one strip and break off 4 pins so it exactly matches the Feather's pinout: one 12-pin strip, and one 16-pin strip. Temporarily put the strips into a solderless breadboard to hold them in precise alignment. The long end of the pins go down into the breadboard; the short end goes into the Feather's PCB. (Actually the long pins can go up *or* down, it doesn't matter. We like them down for a more tidy appearance from the top.) Solder the Feather board to both header pin strips.
 
 ![](hardware/img/feather-headers-img7072.jpg)
 
@@ -152,7 +155,7 @@ Insert the Feather board into the PCB. Make sure the pins are completely inserte
 
 ![](hardware/img/feather-wrong-img7074.jpg)
 
-<h3 style="color:green">Right:</h3>
+<h3 style="color:green">Correct:</h3>
 
 ![](hardware/img/feather-correct-img7075.jpg)
 
@@ -160,15 +163,20 @@ Solder the pins to the Griduino board. You don't need to clip off the long ends;
 
 <h3>Step 8: U5 Ultimate GPS</h3>
 
-Temporarily put an 8-pin header into your solderless breadboard. 
+The "Ultimate GPS" package shipped from Adafruit comes with a header strip and a battery holder.
 
-Break off two single pins from a header strip and insert into the breadboard, aligning them with the two mounting holes on the opposite side of the GPS board. Put them in your breadboard at a spot where the pins line up with holes on the GPS board. Solder the headers onto the GPS board. Remove it from the breadboard.
+* Count the pins on the supplied header strip. The GPS requires a 9-pin header and sometimes Adafruit may ship an 8-pin header. Add an extra pin from some extra strip, such as the one leftover from the Feather.
+* Do not solder a battery holder onto the back of the GPS. It won't hurt anything to have this holder, but it will go unused. Its slot will be unreachable after all the parts are installed. Instead, the Griduino board is designed with a separate coin battery holder, BT1, to replace this one on the back of the Ultimate GPS board.
 
-Do not solder a coin battery holder onto the back of the GPS. The GPS board must be low and close to the Griduino's PCB after it's installed; a battery here would make it too tall. We designed the PCB with a separate coin battery holder which runs the realtime clock when the device is turned off. 
+Insert a 9-pin header pin strip onto the Griduino PCB. Break off two single pins from a leftover strip and insert them into the other two corners. Do not solder them yet.
 
-Lower the GPS onto the pins and solder them.
+![](hardware/img/gps-pins-img7089.jpg)
 
-Remove the GPS from the breadboard and insert onto Griduino's PCB. Solder the assembly into place.
+Lower the GPS onto the pins and solder the top pins. The two single pins in the corners only provide physical support and have no other functional purpose.
+
+Tape the GPS assembly in place, if needed. Turn the board over and solder one pin. Check the GPS assembly is still tight to the board. If not, reheat the pin while pushing it down. Solder the remaining pins.
+
+![](hardware/img/gps-soldered-img7092.jpg)
 
 <h3>Step 9: Barometric Pressure Sensor</h3>
 (Coming soon.)
