@@ -64,6 +64,10 @@ Electrolytic capacitors are marked with an arrow or "-" to indicate the negative
 
 ![](hardware/img/electrolytics-img7041.jpg)
 
+Header pins can join a small PCB onto the main board. They are designed to let you break off the number you need. Use needle nose pliers to hold steady the pins you'll keep and use your fingers to snap off the rest.
+
+![](hardware/img/header-pins-img7080.jpg)
+
 <h2>4. Construction Step-By-Step</h2>
 
 You should now be ready to build your Griduino. Here is a step-by-step progression through the assembly process in a recommended order. This order is not compulsory, however it has been chosen to ensure that smaller components are fitted before larger components that may make them difficult to reach for soldering. It is **strongly recommended** that you only unpack one component at a time: that which you are currently installing.
@@ -96,6 +100,8 @@ Solder the five resistors and snip off excess wire lengths.
 
 ![](hardware/img/resistors-img7061.jpg)
 
+
+
 <h3>Step 4: Small 0.1 uF Capacitors</h3>
 
 The four tiny 0.1 uF ceramic capacitors are all the same, but they're tiny so don't drop them. They are not polarized; however, it is good practice to orient their labels all in the same direction to make it easier to read their legends.
@@ -106,7 +112,7 @@ Solder the four small ceramic capacitors onto the PCB and snip off excess wire l
 
 <h3>Step 5: Electrolytic Capacitors</h3>
 
-This kit uses five identical 47 uF electrolytic capacitors. Be careful of polarity; incorrect installation can cause them to burst and leak acid. The PCB is designed so they are all installed in the same orientation. 
+This kit has five identical 47 uF electrolytic capacitors. Be careful of polarity; incorrect installation can cause them to burst and leak acid. The PCB is designed so they are all installed in the same orientation. 
 
 Don't substitute taller capacitors - although they would be electrically equivalent, they won't fit under the display board above them.
 
@@ -114,17 +120,43 @@ Solder only one lead of each electrolytic. Then check that the capacitor is flus
 
 ![](hardware/img/electrolytics-img7063.jpg)
 
-<h3>Step 6: U1 and U4, 8-pin DIPS</h3>
+<h3>Step 6: U1 Volume DS1804 and U4 Audio LM386, 8-pin DIPS</h3>
 
-The two 8-pin DIPs (dual inline package) are soldered directly to the board. It is recommended to avoid using a socket so that vibration does not cause them work loose over time. The notch on the chip must be aligned with the matching semicircle printed on the PCB.
+The two 8-pin DIPs (dual inline package) are soldered directly to the board. It is recommended to *not* use a socket so that vibration does not cause them work loose over time. The notch on the chip must be aligned with the matching semicircle printed on the PCB.
+
+Note: pins on the DIP are slightly wider than the PCB hole spacing. They are designed this way for pick-and-place machines that squeeze DIPS during assembly. You may find it helpful to manually compress the pins together ever so slightly before inserting into the board. Be gentle; if you press too hard the chip flips over and inserts its pins into your thumb.
+
+![](hardware/img/compress-pins-img7069.jpg)
+
+Insert U1 Digital Potentiometer DS1804 and U4 Audio Amplifier LM386 into the PCB. Make sure each chip's notch is oriented to match the board's silkscreen. You may want to tack-solder a single pin from the top to hold the chip in place, before turning over the board to solder all the pins from the bottom.
+
+![](hardware/img/u4-u1-notch-img7070.jpg)
 
 <h3>Step 7: U2 Feather M4 Express</h3>
 
-Test the Feather before using it. By testing first, we ensure it's usable before permanently installing it. To test it, plug a standard micro-USB cable into the Feather's onboard connector; the lights should show activity. If this is a new Feather, it comes with a factory program that flashes its red LED once per second in a sort of simple "hello world" program.
+Test the Feather before using it. By testing first, we ensure it's usable before permanently installing it. To test it, plug a standard micro-USB cable into the Feather's onboard connector; the lights should show activity. If this is a new Feather, it comes with a factory program that flashes its NeoPixel LED bright green once per second as a simple "hello world" program.
 
-Take the two header pin strips and break them off to exactly match the Feather's pinout: one 12-pin strip, and one 16-pin strip. Temporarily put the strips into a solderless breadboard to hold them in precise alignment. Solder the Feather board to both header pin strips.
+![](hardware/img/feather-test-img7081.jpg)
 
-Insert the Feather board into the PCB and solder all the pins.
+The Feather comes with two 16-pin header strips loose in the package. Take one strip and break off 4 pins so it exactly matches the Feather's pinout: one 12-pin strip, and one 16-pin strip. Temporarily put the strips into a solderless breadboard to hold them in precise alignment. The long end of the pins go down into the breadboard; the short end goes into the Feather's PCB. Solder the Feather board to both header pin strips.
+
+![](hardware/img/feather-headers-img7072.jpg)
+
+To remove the Feather from the breadboard, carefully work it upward gently from both ends. It can be helpful to pry it gently with a small screwdriver from underneath.
+
+![](hardware/img/feather-removal-img7073.jpg)
+
+Insert the Feather board into the PCB. Make sure the pins are completely inserted and the Feather is held off the PCB by only the small black part of the header strip. 
+
+<h3 style="color:darkred">Wrong:</h3>
+
+![](hardware/img/feather-wrong-img7074.jpg)
+
+<h3 style="color:green">Right:</h3>
+
+![](hardware/img/feather-correct-img7075.jpg)
+
+Solder the pins to the Griduino board. You don't need to clip off the long ends; there is ample room inside the case.
 
 <h3>Step 8: U5 Ultimate GPS</h3>
 
@@ -143,7 +175,7 @@ Remove the GPS from the breadboard and insert onto Griduino's PCB. Solder the as
 
 <h3>Step 10: BT1 Battery Holder</h3>
 
-Solder the battery holder onto the PCB. This is a surface-mount device so use a small clamp or clothespin or tape to temporarily hold it in place while soldering.
+Solder the battery holder onto the PCB. This is a surface-mount device so use a small clamp or clothespin (remember those?) or tape to temporarily hold it in place while soldering.
 
 Don't insert a battery just yet. Do this at the end to avoid any chance of shorts during construction.
 
@@ -213,11 +245,12 @@ Connect a micro-USB cable to the Feather M4 Express connector. If this is a fact
 
 * Backlight turns on for the display
 * Yellow LED flashes rapidly
-* Red LED flashes once per second
+* NeoPixel LED flashes green once per second
 * No text or graphics is shown on the display
 * No audio is produced by the speaker
 
 <h2>7. Programming the Griduino GPS</h2>
+
 
 To load the Griduino programming onto your device, please refer to the open-source project on GitHub:
 
