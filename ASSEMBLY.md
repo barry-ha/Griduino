@@ -103,8 +103,6 @@ Solder the five resistors and snip off excess wire lengths.
 
 
 
-
-
 <h3>Step 4: Small 0.1 uF Capacitors</h3>
 
 The four tiny 0.1 uF ceramic capacitors are all the same, but they're tiny so don't drop them. They are not polarized; however, it is good practice to orient their labels all in the same direction to make it easier to read their legends.
@@ -145,7 +143,7 @@ The Feather comes with two 16-pin header strips loose in the package. Take one s
 
 ![](hardware/img/feather-headers-img7072.jpg)
 
-To remove the Feather from the breadboard, carefully work it upward gently from both ends. It can be helpful to pry it gently with a small screwdriver from underneath.
+To remove the Feather from the breadboard, carefully work it upward gently from both ends. It can be helpful to lever it *gently* upwards with a small screwdriver from underneath.
 
 ![](hardware/img/feather-removal-img7073.jpg)
 
@@ -168,7 +166,7 @@ The "Ultimate GPS" package shipped from Adafruit comes with a header strip and a
 * Count the pins on the supplied header strip. The GPS requires a 9-pin header and sometimes Adafruit may ship an 8-pin header. Add an extra pin from some extra strip, such as the one leftover from the Feather.
 * Do not solder a battery holder onto the back of the GPS. It won't hurt anything to have this holder, but it will go unused. Its slot will be unreachable after all the parts are installed. Instead, the Griduino board is designed with a separate coin battery holder, BT1, to replace this one on the back of the Ultimate GPS board.
 
-Insert a 9-pin header pin strip onto the Griduino PCB. Break off two single pins from a leftover strip and insert them into the other two corners. Do not solder them yet.
+Insert a 9-pin header pin strip onto the Griduino PCB. Break off two single pins from a leftover strip and insert them into the other two corners. Do not solder them yet. Also shown below are the two battery holders and which one goes on the board in the next step.
 
 ![](hardware/img/gps-pins-img7089.jpg)
 
@@ -178,14 +176,27 @@ Tape the GPS assembly in place, if needed. Turn the board over and solder one pi
 
 ![](hardware/img/gps-soldered-img7092.jpg)
 
-<h3>Step 9: Barometric Pressure Sensor</h3>
-(Coming soon.)
+<h3>Step 9: BT1 Battery Holder</h3>
 
-<h3>Step 10: BT1 Battery Holder</h3>
+Solder the battery holder onto the PCB. This is a surface-mount device; note that is has a small plastic detent to precisely align it in place. You might still need a small clamp or clothespin (remember those?) or tape to temporarily hold it in place while soldering. 
 
-Solder the battery holder onto the PCB. This is a surface-mount device so use a small clamp or clothespin (remember those?) or tape to temporarily hold it in place while soldering.
+![](hardware/img/battery-holder-img7096.jpg)
 
-Don't insert a battery just yet. Do this at the end to avoid any chance of shorts during construction.
+**Do not** insert a battery yet. Put the battery aside until the end to avoid any chance of shorts during construction.
+
+<h3>Step 10: Barometric Pressure Sensor</h3>
+
+The barometric sensor comes with a matching 8-pin header strip. Insert this header strip into the main board, long pins first and short pins extending upward. (Okay, it doesn't really matter but we think this looks better.)
+
+Break off two single pins from a leftover strip and insert them into the other two corners. Do not solder them yet.
+
+![](hardware/img/pressure-img7098.jpg)
+
+Lower the barometric sensor mini-board onto the pins and solder the top pins. The two single pins in the corners are for physical support and have no other functional purpose.
+
+If needed, clamp or tape the pressure sensor in place, and turn over the assembly and solder one pin on the end of the strip. Check the assembly is still tight to the board. If not, reheat the pin while pushing the assembly tight to the board. Solder the remaining bottom pins, and solder any remaining top pins.
+
+![](hardware/img/pressure-img7100.jpg)
 
 <h3>Step 11: U7 Display ILI9341</h3>
 
