@@ -88,7 +88,7 @@ Solder the three diodes into place and snip off excess wire lengths.
 
 ![](hardware/img/diodes-img7040.jpg)
 
-<h3>*Step 3: Resistors</h3>
+<h3>Step 3: Resistors</h3>
 
 This kit uses five resistors, R1 - R5, each of a different value. Refer to the schematic or bill-of-materials for the values.
 
@@ -99,9 +99,6 @@ Insert resistor R1 - R5 onto the PCB. It is good practice to orient the color co
 Solder the five resistors and snip off excess wire lengths.
 
 ![](hardware/img/resistors-img7061.jpg)
-
-
-
 
 <h3>Step 4: Small 0.1 uF Capacitors</h3>
 
@@ -188,48 +185,66 @@ Solder the battery holder onto the PCB. This is a surface-mount device; note tha
 
 The barometric sensor comes with a matching 8-pin header strip. Insert this header strip into the main board, long pins first and short pins extending upward. (Okay, it doesn't really matter but we think this looks better.)
 
-Break off two single pins from a leftover strip and insert them into the other two corners. Do not solder them yet.
+Break off two single pins from a leftover strip and insert them into the other two corners. The two single pins in the corners are for physical support and have no other functional purpose. Do not solder them yet.
 
 ![](hardware/img/pressure-img7098.jpg)
 
-Lower the barometric sensor mini-board onto the pins and solder the top pins. The two single pins in the corners are for physical support and have no other functional purpose.
+Lower the barometric sensor mini-board onto the pins and solder the top pins. 
 
-If needed, clamp or tape the pressure sensor in place, and turn over the assembly and solder one pin on the end of the strip. Check the assembly is still tight to the board. If not, reheat the pin while pushing the assembly tight to the board. Solder the remaining bottom pins, and solder any remaining top pins.
+If needed, clamp or tape the pressure sensor in place, and turn over the assembly and solder one pin on the end of the strip on the bottom of the board. 
+
+Check the assembly is still tight to the board. If not, reheat the pin while pushing the assembly tight to the board. Solder the remaining bottom pins, and solder any remaining top pins.
 
 ![](hardware/img/pressure-img7100.jpg)
 
 <h3>Step 11: U7 Display ILI9341</h3>
 
-First, solder jumpers IM1/IM2/IM3 on the back of the board. All you have to do is melt a fat solder bridge across each "jumper". The traces are close together to make this easier. This enables the SPI interface. Do not solder jumper IM0.
+First, solder jumpers IM1/IM2/IM3 on the back of the board. Melt a solder bridge across each "jumper". The traces are close together to make this easier. This enables the SPI interface. Do not solder jumper IM0.
 
-Next, insert one 20-pin header into a solderless breadboard; this will be the functional interface to the display board. Break off two 2-pin headers and insert them in the breadboard aligned with the outer holes on the opposite side of the display; this will be to physically support the display. Solder the display board onto the pins.
+![](hardware/img/display-jumpers-img7102.jpg)
 
-Place a 20-pin socket onto the pins on both ends of the display. The display board will hold the sockets in correct alignment for the next step.
+Note the orientation of the 3.2" TFT display board is important. The side with **pins CD and CCS must go nearest to the GPS**; this is the SPI interface side that Griduino will use. The other side with pins D0-D7 is the parallel port which Griduino does *not* use.  
 
-Put the prepared display, including the two 20-pin sockets, onto the PCB. It will be spanning all the parts underneath. Turn the assembly upside down and rest the display on a soft non-scratch surface with the pins to be soldered facing up. Solder the sockets on to the board. 
+Assemble the display parts on the main board, which will hold everything in correct alignment before soldering:
 
-When finished, gently unplug the display from its sockets for safekeeping while working on other parts. Insert the display again later when everything else is completed.
+1. Start with Griduino main board
+2. Insert two 20-pin sockets
+3. Insert one 20-pin header in the socket nearest GPS
+4. Break off two 1-pin headers and insert them in the socket aligned with the outer holes on the opposite side of the display; these will physically support the display.<br/>![](hardware/img/display-pins-img7103.jpg)
+4. Lower the display board onto the pins, spanning all the parts underneath. 
+5. Check pin alignment and orientation of the display.<br/>![](hardware/img/display-pins-img7106.jpg)
+
+From the top, solder the header pins on the display board.
+
+Turn it over, holding everything together, resting the display on a soft surface. Solder the socket pins on the bottom of the main board.
+
+Turn it rightside up and gently unplug the display from the sockets for safekeeping while working on other parts. Later, when everything else is completed, the display will be inserted again.
 
 <h3>Step 12: Test Points</h3>
 
-(Coming soon)
+Griduino has 7 optional test points. Three of them are together to offer ground points, and the other four are in the audio chain to help you check levels and linearity.
+
+The test points are sized to wedge into their holes, holding them in place while upside down and being soldered.
+
+![](hardware/img/test-points-img7107.jpg)
 
 <h3>Step 13: Connectors</h3>
 
-Lastly, install and solder the power connector, speaker jack and 4-pin terminal strip into place. Most of these connectors extend slightly beyond the edge of the PCB, so we install them lastly to avoid interfering with your bench vise hardware. Use 
+Lastly, insert and solder the power connector, speaker jack and 4-pin terminal strip into place. Most of these connectors extend slightly beyond the edge of the PCB, so they are installed after everything else to avoid interfering with the bench vise hardware.
+
+
 
 <h3>Step 14: Plastic Case</h3>
 
-The Griduino kit comes with a plastic enclosure from <a href="https://www.polycase.com/">Polycase</a> in their QS Series that exactly matches the PCB mounting holes. Other enclosures could probably be used. If you choose something else, be sure to avoid metallic cases since they would block the microwave GPS signal.
+The Griduino kit comes with a plastic enclosure from <a href="https://www.polycase.com/">Polycase</a> in their QS Series that exactly matches the PCB mounting holes. Other enclosures could probably be used. If you choose something else, avoid metallic cases since they would block the microwave GPS signal.
 
 *Bottom Half:* Screw the PCB onto the bottom half of the case. Use a craft detail knife to notch out a square hole for each of the three connectors (speaker, power, USB connector). The exact size depends on your particular cable that you choose to use.  For sake of sizing the hole, find a USB cable that has the largest connector available. 
 
 *Top Half:* There are at least three choices for the top cover.
 
 * No cover – this is how I use my Griduino.
-* Polycase cover – carefully cut an opening to fit the display. You'll have to come up with your own cutting template. This is so difficult to do accurately and neatly that it is not recommended.
-* 3D printed cover – The author designed a top cover to fit the Polycase bottom half. The 3d design files are available upon request so you can print and decorate your own.
-
+* Polycase cover – carefully cut an opening to fit the display. You'll have to come up with your own cutting template. It's not recommended to cut an opening because it's difficult to do accurately and neatly.
+* 3D printed cover – The author designed a top cover to fit the Polycase bottom half. The STL design file is available upon request so you can print and decorate your own.<br/>
 ![](hardware/img/hersheys-griduino-img56B29.jpg)
 
 <h3>Step 15: Speaker</h3>
