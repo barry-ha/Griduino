@@ -203,7 +203,10 @@ First, solder jumpers IM1/IM2/IM3 on the back of the board. Melt a solder bridge
 
 ![](hardware/img/display-jumpers-img7102.jpg)
 
-Note the orientation of the 3.2" TFT display board is important. The side with **pins CD and CCS must go nearest to the GPS**; this is the SPI interface side that Griduino will use. The other side with pins D0-D7 is the parallel port which Griduino does *not* use.  
+Note the orientation of the 3.2" TFT display board is important:
+
+* The two **GND pins** must go nearest to the USB connector. 
+* The corner with **CD and CCS pins must go nearest to the GPS**; this is the SPI interface that Griduino uses. The other side with pins D0-D7 is the parallel port which is unused.
 
 Assemble the display parts on the main board, which will hold everything in correct alignment before soldering:
 
@@ -222,7 +225,7 @@ Turn it rightside up and gently unplug the display from the sockets for safekeep
 
 <h3>Step 12: Test Points</h3>
 
-Griduino has 7 optional test points. Three of them are together to offer ground points, and the other four are in the audio chain to help you check levels and linearity.
+Griduino has 6 optional test points. Three of them are together to offer grounding points, and the other three are in the audio chain to help check sound levels and linearity. See the schematic for details. Test points are intended for software developers and are not used during assembly.
 
 The test points are sized to wedge into their holes, holding them in place while upside down and being soldered.
 
