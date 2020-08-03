@@ -215,27 +215,27 @@ Assemble the display parts on the main board, which will hold everything in corr
 3. Insert one 20-pin header in the socket nearest GPS
 4. Break off two 1-pin headers and insert them in the socket aligned with the outer holes on the opposite side of the display; these will physically support the display.<br/>![](hardware/img/display-pins-img7103.jpg)
 4. Lower the display board onto the pins, spanning all the parts underneath. 
-5. Check pin alignment and orientation of the display.<br/>![](hardware/img/display-pins-img7106.jpg)
+5. Check pin alignment and orientation of the display. The two GND pins go along the USB connector side.<br/>![](hardware/img/display-pins-img7106.jpg)
 
 From the top, solder the header pins on the display board.
 
-Turn it over, holding everything together, resting the display on a soft surface. Solder the socket pins on the bottom of the main board.
+Turn it over, holding the display assembly together, and rest the display on a soft surface. Solder the socket pins on the bottom of the main board.
 
-Turn it rightside up and gently unplug the display from the sockets for safekeeping while working on other parts. Later, when everything else is completed, the display will be inserted again.
+Turn it right side up and gently unplug the display from the sockets for safekeeping while working on other parts. Later, when everything else is completed, the display will be inserted again.
 
 <h3>Step 12: Test Points</h3>
 
-Griduino has 6 optional test points. Three of them are together to offer grounding points, and the other three are in the audio chain to help check sound levels and linearity. See the schematic for details. Test points are intended for software developers and are not used during assembly.
+Griduino has 6 optional test points. Three grounding points are together near the voltage regulator and the other three are in the audio chain for checking sound levels and linearity. See the schematic for details. Test points are intended for software developers and are not used during assembly.
 
-The test points are sized to wedge into their holes, holding them in place while upside down and being soldered.
+The test points are sized to wedge into their holes up to their shoulders, holding them in place while you turn the board upside down and solder them.
 
 ![](hardware/img/test-points-img7107.jpg)
 
 <h3>Step 13: Connectors</h3>
 
-Lastly, insert and solder the power connector, speaker jack and 4-pin terminal strip into place. Most of these connectors extend slightly beyond the edge of the PCB, so they are installed after everything else to avoid interfering with the bench vise hardware.
+Lastly, insert and solder the power connector, speaker jack and 4-pin terminal strip into place. Be sure to orient the terminal strip so its openings face outwards. Most of these connectors extend slightly beyond the edge of the PCB, so they are installed after everything else to avoid interfering with the bench vise hardware.
 
-
+![](hardware/img/connectors-img7108.jpg)
 
 <h3>Step 14: Plastic Case</h3>
 
@@ -270,9 +270,9 @@ Plug in the display board.
 
 You should now have a completed Griduino GPS kit. Congratulations! 
 
-Before you connect power, make a detailed visual inspection under a magnifier and good light. Pay close attention to any solder bridges that may have formed between adjacent pads. Remove any surplus solder or solder bridges with desoldering braid. 
+Before you connect power, make a detailed visual inspection under a magnifier and good light. Look for *un*soldered pads and fix them. Look for possible solder bridges that may have formed between adjacent pads. Remove any surplus solder or solder bridges with desoldering braid. 
 
-A visual check **very important** because any short circuits or solder bridges can damage the power supply, the battery, or the Feather M4. **If that happens it is your responsibility as the builder of the board.** It is better to have to rework or desolder something than to damage it. 
+A visual check is **very important** because short circuits or solder bridges can damage the power supply, the battery, the TFT display or the Feather M4. **If that happens it is your responsibility as the builder of the board.** It is better to have to rework or desolder something than to damage it. 
 
 Visually check that the display is correctly plugged in to its two sockets. Look for isolated pins at each end that are not engaged in the socket. If it is accidentally mis-aligned onto the wrong pins, the power supply circuit is likely to be damaged. (Don't ask us how we know.)
 
