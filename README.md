@@ -45,31 +45,53 @@ On power-up, Griduino shows credits (a splash screen) and plays Morse code calls
 
 Then it shows a Help screen to explain the touch-sensitive areas.
 Touch Screen: There is a pressure-sensitive layer on top of the glass. We chose comically large touch regions so an operator can hit a target without looking.
+
 - Top half:	Advance from one data screen to the next
 - Bottom half:	Change brightness
 
 Data Screens: Griduino v0.10 will display these screens.
-1. Credits and version screen
-1. Help screen
-1. Map distances screen
-1. Status screen
-1. GMT clock screen
-1. Volume control screen
+
+1. Power-up animation (one time only)<br/>
+![](hardware/img/view-anim-img7044.jpg)
+
+2. Credits screen (one time only)<br/>
+![](hardware/img/view-credits-img7045.jpg)
+
+3. Help screen (one time only)<br/>
+![](hardware/img/view-help-img7111.jpg)
+
+4. Grid location view<br/>
+![](hardware/img/view-grid-img7046.jpg)
+
+5. Grid details view<br/>
+![](hardware/img/view-detail-img7047.jpg)
+
+6. GMT clock view<br/>
+![](hardware/img/view-gmt-img7048.jpg)
+
+7. Audio volume control<br/>
+![](hardware/img/view-volume-img7049.jpg)
+
+8. Settings<br/>
+![](hardware/img/view-settings-img7050.jpg)
+
 
 ## Programming
 Griduino project hardware and software is open source and available on Github: [github.com/barry-ha/](https://github.com/barry-ha/)
 
-Griduino will have its own website at www.Griduino.com. (Not written yet, as of June 2020.)
+Griduino will have its own website at www.Griduino.com. (Not written yet, as of August 2020.)
 
 ## Arduino IDE Version
-As of 4-16-2020, the build workbench is: **Arduino IDE v1.8.13**
+As of 8-5-2020, the build workbench is: **Arduino IDE v1.8.13**
 
 Boards Manager: Install the latest version of these boards:
+
 - Arduino AVR Boards by Arduino: v1.8.3
 - Arduino SAMD Boards (32-bits ARM Cortex-M0+): v1.8.6
 - Adafruit SAMD Boards: v1.5.11
 
 Library Manager: Install the latest version of these libraries:
+
 - AudioZero v1.1.1
 - Bridge v1.7.0
 - GSM v1.0.6
@@ -81,11 +103,15 @@ Library Manager: Install the latest version of these libraries:
 - Adafruit GPS Library 1.5.0
 - Adafruit ILI9341 1.5.5
 - Adafruit ImageReader Library 2.3.5
-- Adafruit NeoPixel 1.4.0
+- Adafruit NeoPixel 1.5.0
 - Adafruit SPIFlash 3.1.6
 - Adafruit TouchScreen 1.1.0
 - elapsedMillis by Paul Stoffregen 1.0.6
 - SdFat – Adafruit Fork by Bill Greiman 1.2.3
+
+This component is outside of  Arduino's Library Manager, so follow this link to GitHub and install the latest version:
+
+- https://github.com/tom-dudman/DS1804 - library for DS1804 Digital Potentiometer
 
 # Parts List
 Griduino's main building blocks are:

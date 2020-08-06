@@ -122,7 +122,7 @@ Solder only one lead of each electrolytic. Then check that the capacitor is flus
 
 <h3>Step 6: U1 Volume DS1804 and U4 Audio LM386, 8-pin DIPS</h3>
 
-The two 8-pin DIPs (dual inline package) are soldered directly to the board. It is recommended to *not* use a socket so that vibration does not cause them work loose over time. The notch on the chip must be aligned with the matching semicircle printed on the PCB.
+The two 8-pin DIPs (dual inline package) are soldered directly to the board. It is recommended to *not* use a socket so that vibration cannot cause them work loose over time. The notch on the chip must be aligned with the matching semicircle printed on the PCB.
 
 Note: pins on the DIP are slightly wider than the PCB hole spacing. They are designed this way for pick-and-place machines that squeeze DIPS during assembly. You may find it helpful to manually compress the pins together ever so slightly before inserting into the board. Be gentle; if you press too hard the chip flips over and inserts its pins into your thumb.
 
@@ -306,25 +306,28 @@ You may find the "examples" folder useful. It contains a variety of smaller prog
 After loading and running the Griduino program, touch the top half of the screen to advance from one view to the next:
 
 1. Power-up animation (one time only)<br/>
-![](hardware/img/view-1-anim-img7044.jpg)
+![](hardware/img/view-anim-img7044.jpg)
 
 2. Credits screen (one time only)<br/>
-![](hardware/img/view-2-credits-img7045.jpg)
+![](hardware/img/view-credits-img7045.jpg)
 
-3. Grid location view<br/>
-![](hardware/img/view-3-grid-img7046.jpg)
+3. Help screen (one time only)<br/>
+![](hardware/img/view-help-img7111.jpg)
 
-4. Grid details view<br/>
-![](hardware/img/view-4-detail-img7047.jpg)
+4. Grid location view<br/>
+![](hardware/img/view-grid-img7046.jpg)
 
-5. GMT clock view<br/>
-![](hardware/img/view-5-gmt-img7048.jpg)
+5. Grid details view<br/>
+![](hardware/img/view-detail-img7047.jpg)
 
-6. Audio volume control<br/>
-![](hardware/img/view-6-volume-img7049.jpg)
+6. GMT clock view<br/>
+![](hardware/img/view-gmt-img7048.jpg)
 
-7. Settings<br/>
-![](hardware/img/view-7-settings-img7050.jpg)
+7. Audio volume control<br/>
+![](hardware/img/view-volume-img7049.jpg)
+
+8. Settings<br/>
+![](hardware/img/view-settings-img7050.jpg)
 
 Touch the bottom half of the screen to adjust brightness levels.
 
