@@ -21,12 +21,12 @@ GPS display for vehicle dashboard showing position in the Maidenhead Locator Sys
 | ON Semi     | 1N4001G         | 1N4001GOS-ND         | D1, D2, D3         |    3   |  0.21 |   0.63 | Gen Purpose Diode 50V 1A |
 | Vishay      | 1.5KE18CA       | 1.5KE18CA-E3/51GI-ND | D4                 |    1   |  1.21 |   1.21 | Zener Diode 25.2v Clamp |
 | Adafruit    | 4445            | 3351-ND              | LS1                |    1   |  3.95 |   3.95 | Speaker, 3W 4ohm |
-| Yageo       | FKN2WSJT-73-22R | 22AUCT-ND            | R1                 |    1   |  0.10 |   0.10 | RES 22-ohm 2W 5% axial |
-| Yageo       | CFR-25JB-52-82K | 82KQBK-ND            | R2                 |    1   |  0.34 |   0.34 | RES 82K 1/4W 5% axial |
-| Yageo       | CFR-25JB-52-10K | CFR-25JB-52-10K      | R3                 |    1   |  0.10 |   0.20 | RES 10K 1/4W 1% axial |
+| Yageo       | FKN2WSJT-73-22R | 22AUCT-ND            | R1                 |    1   |  0.34 |   0.34 | RES 22-ohm 2W 5% axial |
+| Yageo       | CFR-25JB-52-82K | 82KQBK-ND            | R2                 |    1   |  0.10 |   0.10 | RES 82K 1/4W 5% axial |
+| Yageo       | CFR-25JB-52-10K | CFR-25JB-52-10K      | R3                 |    1   |  0.10 |   0.10 | RES 10K 1/4W 1% axial |
 | Yageo       | MFR-25FBF52-10R | 10.0XBK-ND           | R4                 |    1   |  0.10 |   0.10 | RES 10-ohm 1/4W 1% axial |
-| Stackpole   | CF14JT100R      | CF14JT100RCT-ND      | R5                 |    1   |  0.10 |   0.20 | RES 100-ohm 1/4W 5% axial |
-|             |                 |                      | **total**          | **16** |       | **8.96** |     |
+| Stackpole   | CF14JT100R      | CF14JT100RCT-ND      | R5                 |    1   |  0.10 |   0.10 | RES 100-ohm 1/4W 5% axial |
+|             |                 |                      | **total**          | **16** |       | **8.76** |     |
 
 ## Hardware
 | Mfr         | Mfr Part No     | Digi-Key Part No | Reference     |  Qty  | USD$  | Ext$   | Description  |
