@@ -39,7 +39,7 @@ GPS display for vehicle dashboard showing position in the Maidenhead Locator Sys
 | CUI Devices | SJ1-3545N       | CP1-3545N-ND     | J3 jack       |   1   |  1.31 |   1.31 | Connector 3.5mm Audio Stereo Jack |
 | CUI Devices | MP3-3501        | MP3-3501         | J3 plug       |   1   |  1.22 |   1.22 | Connector 3.5mm Audio Mono Plug |
 | Sullins     | PPTC201LFBN-RC  | S7018-ND         |               |   2   |  1.23 |   2.46 | Connector 20-pos 0.1 Tin (LCD)  |
-| Keystone    | 4952            | 36-4952-ND       | TP1-3, TP_GND |   4   |  0.21 |   0.84 | PC Test Point Loop |
+| Keystone    | 4952            | 36-4952-ND       | TP1-3, TP_GND |   6   |  0.21 |   0.84 | PC Test Point Loop |
 | JLC PCB     |                 |                  | PCB           |   1   |  5.00 |   5.00 | Printed Circuit Board |
 | Polycase    | QS-50MBT        | n/a              |               |   1   |  4.98 |   4.98 | Plastic Case, 4.5 x 3.5 x 1.25 |
 |             |                 |                  | **total**     |       |       | **21.29** |     |
