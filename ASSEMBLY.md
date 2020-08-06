@@ -12,7 +12,7 @@ These assembly instructions apply to Revision 4 of the printed circuit board.
 
 <h2>2. You Will Need</h2>
 
-This kit is almost entirely "through hole" construction. Two components, the battery holder and voltage regulator, are large surface-mount parts.
+This kit is almost entirely "through hole" construction. Only two components, the battery holder and voltage regulator, are large surface-mount parts.
 
 <h3>You must have:</h3>
 
@@ -56,7 +56,7 @@ Small 1N4001 diodes are marked with a band on one end for polarity; the band mus
 
 ![](hardware/img/diodes-img7057.jpg)
 
-The larger zener diode is a TVS protection diode (transient voltage suppressor) for clamping voltage spikes from exceeding +25 or -25 volts. It is bidirectional (not polarized) and can be installed in either orientation.
+The larger zener diode, D4, is a TVS protection diode (transient voltage suppressor) for clamping voltage spikes from exceeding +25 or -25 volts. It is bidirectional (not polarized) and can be installed in either orientation.
 
 ![](hardware/img/diode-tvs-img7051.jpg)
 
@@ -74,7 +74,7 @@ You should now be ready to build your Griduino. Here is a step-by-step progressi
 
 <h3>Step 1: U3 Voltage Regulator</h3>
 
-Start with the small 3-terminal voltage regulator. This is surface-mounted and not a "through hole" component so use a clothespin or surgical clamp or paper clip to hold it in place while soldering. 
+Start with the small 3-terminal voltage regulator. This is surface-mounted and not a "through hole" component so use a clothespin or surgical clamp or paper clip or anything but your finger to hold it in place while soldering. 
 
 Solder one pin to the board. Remove your clamp. Solder the remaining pins. 
 
@@ -87,6 +87,8 @@ Insert the three small 1N4001 diodes, D1 - D3, being careful of polarity; match 
 Solder the three diodes into place and snip off excess wire lengths.
 
 ![](hardware/img/diodes-img7040.jpg)
+
+Insert the larger TVS diode, D4, and solder into place. Although the board marking shows its location with a banded end, this diode is bidirectional and can go either way.
 
 <h3>Step 3: Resistors</h3>
 
