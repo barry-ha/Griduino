@@ -27,7 +27,7 @@ You'll need to figure out your COM port for this step. Here's how:<br/>
 On Windows, run the **Device Manager** and expand the section for **Ports**. One of the items listed under Ports represents the Griduino device. It is possible for the port assignment to change from day to day, so be prepared to return to the Device Manager as needed.<br/>
 In the Arduino IDE menu bar, go to **Tools > Port** and select the COM port that was given by the Device Manager. If there was more than one port listed, try them one by one.
 
-1. **Select Board**<br/>
+1. **Install Board Support**<br/>
 In this step, we will install support files needed by Arduino IDE to talk to the Feather M4. Here's how:<br/>
 In the Arduino IDE menu bar, go to **Tools > Board > Boards Manager**. It will display a long list of hardware. Install the latest version of:
 <ul>
@@ -35,20 +35,43 @@ In the Arduino IDE menu bar, go to **Tools > Board > Boards Manager**. It will d
 <li>Arduino SAMD Boards (32-bits ARM Cortex-M0+): v1.8.6</li>
 </ul>
 
+1. **Select Board**<br/>
+On the Arduino IDE menu bar, select **Tools > Board > Arduino SAMD (32-bits ARM Cortex-M0+ and Cortex-M4) > Adafruit Feather M4 Express**<br/>
+If the option is not available, please review previous step "Install Board Support".
+
 1. **Download Griduino Binary**
 You'll need a copy of the latest pre-compiled Griduino binary file. Here's how:<br/>
-
+Visit the GitHub repository at https://github.com/barry-ha/Griduino. Find and click on **Griduino.ino.feather_m4.bin**. This will open a new web page for the binary file alone. Find and click on the **Download** link. Save this file in a place where you can easily find it for the next step.<br/>
+![](hardware/img/download-binary-img1127.jpg)
 
 1. **Install Griduino Binary on Feather M4 Express**
+Now that the Arduino IDE is ready, and we have the binary file, here's how to download it to the Feather M4.<br/>
+<ul>
+<li>Check that the Griduino hardware is still plugged in via USB to your computer.</li>
+<li>Run Arduino IDE</li>
+<li>On the menu bar, use **Tools > something (help!)**
+</ul>
 
-<h2>3. How to Setup the Arduino Workbench for Griduino</h2>
+How to install without the IDE: https://forum.arduino.cc/index.php?topic=417659.0<br/>
+
+How to install with AVRDude: https://arduino.stackexchange.com/questions/20978/is-there-a-way-to-upload-precompiled-code-to-an-arduino<br/>
+
+More and sample cmd: https://forum.arduino.cc/index.php?topic=292979.0 such as "avrdude -c stk500v1 -P [com port] -p atmega328p -U flash:w:[Filename.hex]:i"<br/>
+
+My command line is:<br/>
+C:\Users\barry\Documents\ArduinoData\packages\arduino\tools\bossac\1.8.0-48-gb176eee/bossac -i -d --port=COM12 -U -i --offset=0x4000 -w -v C:\Users\barry\AppData\Local\Temp\arduino _ build _ 72645/Griduino.ino.bin -R
+
+
+<h2>3. How to Setup the Arduino IDE for Griduino</h2>
+If you want to compile Griduino source code or work with its example files (and we hope you do) then here's everything you need to setup the workbench.
+
 (Coming soon)
 
-<h2>4. How to Create a Pre-Compiled Program</h2>
+<h2>4. How to Create a Binary File for Distribution</h2>
 
 It may be useful to know how to create a binary image of a compiled program for Arduino processors in general. If you ever want to distribute an Arduino program, it is easier for people to install a binary image than to compile the source code themselves. 
 
-This description also applies to how we create the Griduino program for general distribution.
+This section also applies to how we create the Griduino program for general distribution.
 
 1. **Launch Arduino IDE**<br/>
 Run the Arduino workbench on your computer.
