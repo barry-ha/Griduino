@@ -1,5 +1,5 @@
 # Griduino
-GPS display for vehicle dashboard showing position in the Maidenhead Locator System with distance to nearby grids. This is ideal for ham radio rovers.
+<img src="img/griduino-logo-120.png" align="right" alt="Griduino logo" title="Griduino logo"/>GPS display for vehicle dashboard showing position in the Maidenhead Locator System with distance to nearby grids. This is ideal for ham radio rovers.
 
 # Introduction
 Ham radio deals with invisible things.
