@@ -7,6 +7,7 @@
 # because fu*kn github marks ALL files by default
 # and github jeniuses don't wanna give us the option
 # https://github.com/desktop/desktop/issues/1788
+*.bin 
 *.psd 
 *.xlsx
 docs_mfr/
