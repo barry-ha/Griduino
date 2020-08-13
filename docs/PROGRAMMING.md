@@ -10,14 +10,14 @@ Griduino is open-source: https://github.com/barry-ha/Griduino
 
 When complete, you'll have a useful driver's aid dedicated to show your location in the Maidenhead grid square system, your altitude, the exact time in GMT, barometric pressure and more.
 
-![](hardware/img/overview-img6804.jpg)
+![](../hardware/img/overview-img6804.jpg)
 
 <h2>2. How to Install the Griduino Program</h2>
 Follow these steps to obtain the Griduino binary file and update the hardware.
 
 1. **Download Griduino Binary**<br/>
    - Visit https://github.com/barry-ha/Griduino
-   - Click on **downloads/griduino_v018.uf2**. This will open a new web page for the binary file alone.
+   - Click on **downloads/griduino_v018.uf2** or later version. This will open a new web page for the binary UF2 file.
    - Click on the **Download** link. Save this file where you can easily find it for the next step.
 
 1. **Plug in Griduino**<br/>
@@ -53,9 +53,10 @@ Open the main source code file.
 It will compile; wait for this to finish.
 
 1. **Sketch > Show Sketch Folder**<br/>
-You will find a binary file in the sketch folder with **.bin** extension,  e.g. “Griduino.ino.feather_m4.bin”. This is the compiled file but it cannot be directly distributed or installed onto an Arduino board.
+You will find a binary file in the sketch folder with **.bin** extension,  e.g. “Griduino.ino.feather_m4.bin”. This is the compiled binary file but it cannot be directly distributed or installed onto an Arduino board.
 
-1. **Convert Compiled Binary to UF2**<br/>Run the python converter: 
+1. **Convert Compiled Binary to UF2**<br/>
+Run the Python conversion script (author https://github.com/microsoft/uf2): 
    - Open command line window
    - Change directory to the .bin file, e.g.:<br/>**cd C:\Users\barry\Documents\Arduino\Griduino**
    - Run the Python converter script, e.g.:<br/>**py uf2conv.py -c -b 0x4000 -o griduino.uf2 Griduino.ino.feather_m4.bin**
