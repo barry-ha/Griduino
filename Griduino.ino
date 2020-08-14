@@ -405,8 +405,9 @@ void mapTouchToScreen(TSPoint touch, Point* screen) {
 
 void drawAllIcons() {
   // draw gear (settings) and arrow (next screen)
-  tft.drawBitmap( 5, 5, iconGear20, 20, 20, ILI9341_CYAN);   // real icon, upper left
-  tft.drawBitmap( 300, 5, iconRightArrow18, 14, 18, ILI9341_CYAN);  // real icon, upper right
+  //             ul x,y                     w,h   color
+  tft.drawBitmap(   5,5, iconGear20,       20,20, cTEXTFAINT);  // "settings" upper left
+  tft.drawBitmap( 300,5, iconRightArrow18, 14,18, cTEXTFAINT);  // "next screen" upper right
 }
 
 // ========== font management helpers ==========================

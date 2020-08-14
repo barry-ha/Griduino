@@ -1,4 +1,5 @@
-/* File: view_stat_screen.cpp
+/*
+   File: view_stat_screen.cpp
 
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
@@ -31,29 +32,30 @@ extern Model* model;                // "model" portion of model-view-controller
 
 void setFontSize(int font);         // Griduino.ino
 int getOffsetToCenterText(String text); // Griduino.ino
+void drawAllIcons();                // draw gear (settings) and arrow (next screen) // Griduino.ino
 
 // ============== constants ====================================
 // vertical placement of text rows
-const int yRow1 = 28;
+const int yRow1 = 24;
 const int yRow2 = yRow1 + 32;
 const int yRow3 = yRow2 + 44;
 const int yRow4 = yRow3 + 44;
 const int yRow5 = yRow4 + 32;
 const int yRow6 = yRow5 + 40;
-const int yRow7 = yRow6 + 20;
+const int yRow7 = yRow6 + 24;
 
 // color scheme: see constants.h
 
-const int labelX = 8;       // indent labels, slight margin to left edge of screen
-const int valueX = 124;     // indent values
+const int labelX = 114;     // right-align labels, near their values
+const int valueX = 140;     // left-align values
 
 // ----- static screen text
 const int numLabels = 4;
 TextField txtLabels[numLabels] = {
-  TextField("GMT:",        labelX, yRow1, cLABEL),
-  TextField("Grid:",       labelX, yRow3, cLABEL),
-  TextField("Altitude:",   labelX, yRow4, cLABEL),
-  TextField("Satellites:", labelX, yRow5, cLABEL),
+  TextField("GMT:",        labelX, yRow1, cLABEL, ALIGNRIGHT),
+  TextField("Grid:",       labelX, yRow3, cLABEL, ALIGNRIGHT),
+  TextField("Altitude:",   labelX, yRow4, cLABEL, ALIGNRIGHT),
+  TextField("Satellites:", labelX, yRow5, cLABEL, ALIGNRIGHT),
 };
 
 // ----- dynamic screen text
@@ -127,6 +129,8 @@ void startStatScreen() {
   #ifdef SHOW_SCREEN_BORDER
     tft.drawRect(0, 0, gScreenWidth, gScreenHeight, ILI9341_BLUE);  // debug: border around screen
   #endif
+
+  drawAllIcons();                   // draw gear (settings) and arrow (next screen)
 
   // ----- labels
   for (int ii=0; ii<numLabels; ii++) {

@@ -36,6 +36,7 @@ void fSetSimulated();               // Griduino.ino
 int fGetDataSource();               // Griduino.ino
 void setFontSize(int font);         // Griduino.ino
 int getOffsetToCenterTextOnButton(String text, int leftEdge, int width ); // Griduino.ino
+void drawAllIcons();                // draw gear (settings) and arrow (next screen) // Griduino.ino
 
 // ========== forward reference ================================
 void fClear();
@@ -56,14 +57,14 @@ enum txtSettings {
   COMPILED,
 };
 TextField txtSettings[] = {
-  //        text                        x,y      color
-  TextField("Settings",              col1, 20, cHIGHLIGHT, ALIGNCENTER),// [SETTINGS]
-  TextField("Breadcrumb trail",      col1, 50, cVALUE),    // [TRAIL]
-  TextField(   "%d crumbs",          col1, 70, cLABEL),    // [TRAILCOUNT]
-  TextField("Route",                 col1,120, cVALUE),    // [GPSTYPE]
-  //TextField("All settings",          col1,200, cVALUE),    // [GPSTYPE]
-  TextField(PROGRAM_VERSION ",  " PROGRAM_COMPILED, 
-                                     col1,234, cLABEL),    // [COMPILED]
+  //        text                   x,y   color
+  TextField("Settings",        col1, 20, cHIGHLIGHT, ALIGNCENTER),// [SETTINGS]
+  TextField("Breadcrumb trail",col1, 50, cVALUE),                 // [TRAIL]
+  TextField(   "%d crumbs",    col1, 70, cLABEL),                 // [TRAILCOUNT]
+  TextField("Route",           col1,120, cVALUE),                 // [GPSTYPE]
+  //TextField("All settings",  col1,200, cVALUE),                 // [GPSTYPE]
+  TextField(PROGRAM_VERSION ", " PROGRAM_COMPILED, 
+                               col1,234, cLABEL, ALIGNCENTER),    // [COMPILED]
 };
 const int numSettingsFields = sizeof(txtSettings)/sizeof(txtSettings[0]);
 
@@ -140,6 +141,8 @@ void startSettingsScreen() {
   #ifdef SHOW_SCREEN_BORDER
     tft.drawRect(0, 0, gScreenWidth, gScreenHeight, ILI9341_BLUE);  // debug: border around screen
   #endif
+
+  drawAllIcons();                   // draw gear (settings) and arrow (next screen)
 
   // ----- draw text fields
   for (int ii=0; ii<numSettingsFields; ii++) {

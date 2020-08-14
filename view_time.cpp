@@ -51,6 +51,7 @@ extern void getDate(char* result, int maxlen);  // model.cpp
 
 void setFontSize(int font);         // Griduino.ino
 int getOffsetToCenterTextOnButton(String text, int leftEdge, int width ); // Griduino.ino
+void drawAllIcons();                // draw gear (settings) and arrow (next screen) // Griduino.ino
 
 // ========== forward reference ================================
 void timePlus();
@@ -79,7 +80,7 @@ float getTemperature() {
 // ========== load/save config setting =========================
 
 // ========== main clock view helpers ==========================
-// these are names for the array indexes, must be named in same order as below
+// these are names for the array indexes, must be named in same order as array below
 enum txtIndex {
   TITLE=0, 
   HOURS, COLON1, MINUTES, COLON2, SECONDS,
@@ -87,18 +88,18 @@ enum txtIndex {
 };
 
 TextField txtClock[] = {
-  // text             x,y    color             index
-  {"Griduino GMT",   -1, 14, cTEXTCOLOR},  // [TITLE]     program title, centered
-  {"hh",             12, 90, cVALUE},      // [HOURS]     giant clock hours
-  {":",              94, 90, cVALUE},      // [COLON1]    :
-  {"mm",            120, 90, cVALUE},      // [MINUTES]   giant clock minutes
-  {":",             206, 90, cVALUE},      // [COLON2]    :
-  {"ss",            230, 90, cVALUE},      // [SECONDS]   giant clock seconds
-  {"MMM dd, yyyy",   94,130, cVALUE},      // [GMTDATE]   GMT date
-  {"12.3 F",        132,164, cVALUE},      // [DEGREES]   Temperature
-  {"hh:mm:ss",      118,226, cTEXTCOLOR},  // [LOCALTIME] Local time
-  {"-7h",             8,226, cTEXTFAINT},  // [TIMEZONE]  addHours time zone
-  {"6#",            308,226, cTEXTFAINT, ALIGNRIGHT},  // [NUMSATS]   numSats
+  // text            x,y    color             index
+  {"Griduino GMT",  -1, 10, cTEXTCOLOR, ALIGNCENTER}, // [TITLE] program title, centered
+  {"hh",            12, 90, cVALUE},                  // [HOURS]     giant clock hours
+  {":",             94, 90, cVALUE},                  // [COLON1]    :
+  {"mm",           120, 90, cVALUE},                  // [MINUTES]   giant clock minutes
+  {":",            206, 90, cVALUE},                  // [COLON2]    :
+  {"ss",           230, 90, cVALUE},                  // [SECONDS]   giant clock seconds
+  {"MMM dd, yyyy",  94,130, cVALUE},                  // [GMTDATE]   GMT date
+  {"12.3 F",       132,164, cVALUE},                  // [DEGREES]   Temperature
+  {"hh:mm:ss",     118,226, cTEXTCOLOR},              // [LOCALTIME] Local time
+  {"-7h",            8,226, cTEXTFAINT},              // [TIMEZONE]  addHours time zone
+  {"6#",           308,226, cTEXTFAINT, ALIGNRIGHT},  // [NUMSATS]   numSats
 };
 const int numClockFields = sizeof(txtClock)/sizeof(TextField);
 
@@ -227,6 +228,8 @@ void startTimeScreen() {
     tft.drawRect(0, 0, gScreenWidth, gScreenHeight, ILI9341_BLUE);  // debug: border around screen
   #endif
 
+  drawAllIcons();                   // draw gear (settings) and arrow (next screen)
+
   // ----- draw page title
   setFontSize(eFONTSYSTEM);
   txtClock[TITLE].print();
@@ -237,7 +240,7 @@ void startTimeScreen() {
     txtClock[ii].print();
   }
 
-  // ----- draw regular text fields
+  // ----- draw text fields
   setFontSize(eFONTSMALLEST);
   for (int ii=GMTDATE; ii<numClockFields; ii++) {
     txtClock[ii].print();
