@@ -194,13 +194,13 @@ void drawNeighborDistances() {
 
   // N-S: find nearest integer grid lines
   float fNorth = calcDistanceLat(model->gLatitude, ceil(model->gLatitude));
-  if (fNorth < 10.0) {
+  if (fNorth < 2.0) {
     txtGrid[N_DISTANCE].print( fNorth, 2 );
   } else {
     txtGrid[N_DISTANCE].print( fNorth, 1 );
   }
   float fSouth = calcDistanceLat(model->gLatitude, floor(model->gLatitude));
-  if (fSouth < 10.0) {
+  if (fSouth < 2.0) {
     txtGrid[S_DISTANCE].print( fSouth, 2 );
   } else {
     txtGrid[S_DISTANCE].print( fSouth, 1 );
@@ -211,12 +211,12 @@ void drawNeighborDistances() {
   int westLine = ::nextGridLineWest(model->gLongitude);
   float fEast = calcDistanceLong(model->gLatitude, model->gLongitude, eastLine);
   float fWest = calcDistanceLong(model->gLatitude, model->gLongitude, westLine);
-  if (fEast < 10.0) {
+  if (fEast < 2.0) {
     txtGrid[E_DISTANCE].print( fEast, 2 );
   } else {
     txtGrid[E_DISTANCE].print( fEast, 1 );
   }
-  if (fWest < 10.0) {
+  if (fWest < 2.0) {
     txtGrid[W_DISTANCE].print( fWest, 2 );
   } else {
     txtGrid[W_DISTANCE].print( fWest, 1 );
