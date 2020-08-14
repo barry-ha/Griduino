@@ -39,7 +39,7 @@ Follow these steps to obtain the Griduino binary file and update the hardware.
 
 <h2>3. How to Create a Binary File for Distribution</h2>
 
-It may be useful to know how to create a binary image of a compiled program for Arduino processors in general. If you ever want to distribute an Arduino program, it is much easier for your users to install your binary image than to compile the source code themselves. 
+It may be useful to know how to create a binary image of a compiled program for Arduino processors in general. If you ever want to distribute an Arduino program, it is easier for your users to install your binary image than to compile the source code themselves.
 
 This section also applies to how we prepared the Griduino software for general distribution.
 
@@ -68,7 +68,7 @@ If you want to compile Griduino source code or work with its example files (and 
 
 1. **Download and Run Arduino IDE**<br/>
 The Arduino IDE (integrated development environment) is the main workbench for writing, compiling and testing Arduino programs. Visit www.arduino.cc and find the **Software Downloads** section. Scroll down to the **Download the Arduino IDE** section. Find and **run the installer** for your operating system. For Windows, it is normal for it to open the Microsoft Store and download over 200 MB. Follow the prompts to install the software. **Launch the Arduino IDE**.<br/>
-As of 8-7-2020, the latest workbench version is Arduino IDE v1.8.13
+As of 8-14-2020, the latest workbench version is Arduino IDE v1.8.13
 
 1. **Select Port**<br/>
 You'll need to figure out your COM port for this step. Here's how:<br/>
@@ -87,7 +87,29 @@ In the Arduino IDE menu bar, go to **Tools > Board > Boards Manager**. It will d
 On the Arduino IDE menu bar, select **Tools > Board > Arduino SAMD (32-bits ARM Cortex-M0+ and Cortex-M4) > Adafruit Feather M4 Express**<br/>
 If the option is not available, please review previous step "Install Board Support".
 
-1. **Install Libraries**</br>(Coming soon)
+1. **Install Libraries**</br>
+In the Arduino IDE menu bar, go to **Tools > Manage Libraries**. Install the latest version (and their dependencies) of these libraries:
+   - AudioZero v1.1.1
+   - Bridge v1.7.0
+   - GSM v1.0.6
+   - LiquidCrystal v1.0.7
+   - SD v1.2.4
+   - TFT v1.0.6
+   - Adafruit BMP3XX Library v1.0.0
+   - Adafruit GFX Library v1.8.3
+   - Adafruit GPS Library 1.5.0
+   - Adafruit ILI9341 1.5.5
+   - Adafruit ImageReader Library 2.3.5
+   - Adafruit NeoPixel 1.5.0
+   - Adafruit SPIFlash 3.1.6
+   - Adafruit TouchScreen 1.1.0
+   - elapsedMillis by Paul Stoffregen 1.0.6
+   - SdFat – Adafruit Fork by Bill Greiman 1.2.3
+
+This volume control component is outside of Arduino's Library Manager, so follow this link to GitHub and install the latest version:
+
+   - https://github.com/tom-dudman/DS1804 - library for DS1804 Digital Potentiometer
+
 
 <h2>5. Disclaimer</h2>
 
@@ -95,4 +117,4 @@ The information provided is for general education and entertainment. We hope you
 
 **Do not adjust Griduino while driving**. Keep your full attention on the road and the traffic around you. We can not be held responsible for any property or medical damages caused by these projects. You are advised to check your local laws and consult professionals for any project involving electricity, construction or assembly. You are advised to drive in a safe and legal manner, consistent with all local laws, safety rules and good common sense.
 
-You must accept that you and you alone are responsible for your safety and safety of others in any endeavor in which you engage. 
+You must accept that you and you alone are responsible for your safety and safety of others in any endeavor in which you engage.

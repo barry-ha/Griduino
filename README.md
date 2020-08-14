@@ -79,39 +79,9 @@ Data Screens: Griduino v0.10 will display these screens.
 ## Programming
 Griduino project hardware and software is open source and available on Github: [github.com/barry-ha/](https://github.com/barry-ha/)
 
+To work with Griduino's source code, see the ![Programming](docs/PROGRAMMING.md) document.
+
 Griduino will have its own website at www.Griduino.com. (Not written yet, as of August 2020.)
-
-## Arduino IDE Version
-As of 8-5-2020, the build workbench is: **Arduino IDE v1.8.13**
-
-Boards Manager: Install the latest version of these boards:
-
-- Arduino AVR Boards by Arduino: v1.8.3
-- Arduino SAMD Boards (32-bits ARM Cortex-M0+): v1.8.6
-- Adafruit SAMD Boards: v1.5.11
-
-Library Manager: Install the latest version of these libraries:
-
-- AudioZero v1.1.1
-- Bridge v1.7.0
-- GSM v1.0.6
-- LiquidCrystal v1.0.7
-- SD v1.2.4
-- TFT v1.0.6
-- Adafruit BMP3XX Library v1.0.0
-- Adafruit GFX Library v1.8.3
-- Adafruit GPS Library 1.5.0
-- Adafruit ILI9341 1.5.5
-- Adafruit ImageReader Library 2.3.5
-- Adafruit NeoPixel 1.5.0
-- Adafruit SPIFlash 3.1.6
-- Adafruit TouchScreen 1.1.0
-- elapsedMillis by Paul Stoffregen 1.0.6
-- SdFat – Adafruit Fork by Bill Greiman 1.2.3
-
-This component is outside of  Arduino's Library Manager, so follow this link to GitHub and install the latest version:
-
-- https://github.com/tom-dudman/DS1804 - library for DS1804 Digital Potentiometer
 
 # Parts List
 Griduino's main building blocks are:
@@ -127,4 +97,4 @@ The information provided is for general education and entertainment. We hope you
 
 **Do not adjust Griduino while driving**. Keep your full attention on the road and the traffic around you. We can not be held responsible for any property or medical damages caused by these projects. You are advised to check your local laws and consult professionals for any project involving electricity, construction or assembly. You are advised to drive in a safe and legal manner, consistent with all local laws, safety rules and good common sense.
 
-You must accept that you and you alone are responsible for your safety and safety of others in any endeavor in which you engage. 
+You must accept that you and you alone are responsible for your safety and safety of others in any endeavor in which you engage.
