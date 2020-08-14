@@ -26,7 +26,7 @@
 // ========== extern ===========================================
 extern Adafruit_ILI9341 tft;        // Griduino.ino
 
-void setFontSize(int font);            // Griduino.ino
+void setFontSize(int font);         // Griduino.ino
 
 // ============== constants ====================================
 
@@ -55,6 +55,11 @@ void startSplashScreen() {
   TextField::setTextDirty( txtSplash, numSplashFields );  // make sure all fields get re-printed on screen change
 
   setFontSize(24);
+
+  #ifdef SHOW_SCREEN_BORDER
+    tft.drawRect(0, 0, gScreenWidth, gScreenHeight, ILI9341_BLUE);  // debug: border around screen
+  #endif
+
   txtSplash[0].print();        // large program title
 
   setFontSize(12);

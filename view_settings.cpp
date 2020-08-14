@@ -137,7 +137,11 @@ void startSettingsScreen() {
   TextField::setTextDirty( txtSettings, numSettingsFields );  // make sure all fields get re-printed on screen change
   setFontSize(eFONTSMALLEST);
 
-  // ----- draw regular text fields
+  #ifdef SHOW_SCREEN_BORDER
+    tft.drawRect(0, 0, gScreenWidth, gScreenHeight, ILI9341_BLUE);  // debug: border around screen
+  #endif
+
+  // ----- draw text fields
   for (int ii=0; ii<numSettingsFields; ii++) {
       txtSettings[ii].print();
   }
@@ -188,8 +192,10 @@ bool onTouchSettings(Point touch) {
         handled = true;             // hit!
         item.function();            // do the thing
 
-        //const int radius = 3;     // debug: show where touched
-        //tft.fillCircle(touch.x, touch.y, radius, cWARN);  // debug - show dot
+        #ifdef SHOW_TOUCH_TARGETS
+          const int radius = 3;     // debug: show where touched
+          tft.fillCircle(touch.x, touch.y, radius, cWARN);  // debug - show dot
+        #endif
      }
   }
   return handled;                   // true=handled, false=controller uses default action

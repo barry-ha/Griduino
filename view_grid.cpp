@@ -31,12 +31,13 @@
 
 // ========== extern ===========================================
 extern Adafruit_ILI9341 tft;        // Griduino.ino
-extern Model* model;                 // "model" portion of model-view-controller
+extern Model* model;                // "model" portion of model-view-controller
 
-void setFontSize(int font);            // Griduino.ino
+void setFontSize(int font);         // Griduino.ino
 float nextGridLineEast(float longitudeDegrees);       // Griduino.ino
 float nextGridLineWest(float longitudeDegrees);       // Griduino.ino
 void floatToCharArray(char* result, int maxlen, double fValue, int decimalPlaces);  // Griduino.ino
+void drawAllIcons();                // draw gear (settings) and arrow (next screen) // Griduino.ino
 
 // ============== constants ====================================
 const int gMarginX = 70;            // define space for grid outline on screen
@@ -424,7 +425,10 @@ void startGridScreen() {
 
   setFontSize(12);
   drawGridOutline();                // box outline around grid
-  //tft.drawRect(0, 0, gScreenWidth, gScreenHeight, ILI9341_BLUE);  // debug: border around screen
+  drawAllIcons();                   // draw gear (settings) and arrow (next screen)
+  #ifdef SHOW_SCREEN_BORDER
+    tft.drawRect(0, 0, gScreenWidth, gScreenHeight, ILI9341_BLUE);  // debug: border around screen
+  #endif
 
   updateGridScreen();               // fill in values immediately, don't wait for the main loop to eventually get around to it
 }

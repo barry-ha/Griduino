@@ -34,10 +34,10 @@
 
 // ========== extern ===========================================
 extern Adafruit_ILI9341 tft;        // Griduino.ino
-extern DACMorseSender dacMorse;   // morse code (so we can send audio samples)
-extern DS1804 volume;             // digital potentiometer
+extern DACMorseSender dacMorse;     // morse code (so we can send audio samples)
+extern DS1804 volume;               // digital potentiometer
 
-void setFontSize(int font);            // Griduino.ino
+void setFontSize(int font);         // Griduino.ino
 
 // ========== forward reference ================================
 void updateVolumeScreen();
@@ -156,6 +156,10 @@ void startVolumeScreen() {
   TextField::setTextDirty( txtVolume, numVolFields );     // make sure all fields get re-printed on screen change
   setFontSize(12);
 
+  #ifdef SHOW_SCREEN_BORDER
+    tft.drawRect(0, 0, gScreenWidth, gScreenHeight, ILI9341_BLUE);  // debug: border around screen
+  #endif
+
   // ----- draw text fields
   for (int ii=1; ii<numVolFields; ii++) {       // start at [1], since [0] is a different font size
     txtVolume[ii].print();
@@ -197,9 +201,10 @@ bool onTouchVolume(Point touch) {
         handled = true;             // hit!
         item.function();            // do the thing
 
-        //tft.setCursor(touch.x, touch.y);  // debug: show where hit
-        //setFontSize(12);
-        //tft.print("x");
+        #ifdef SHOW_TOUCH_TARGETS
+          const int radius = 3;     // debug: show where touched
+          tft.fillCircle(touch.x, touch.y, radius, cWARN);  // debug - show dot
+        #endif
      }
   }
   return handled;                   // true=handled, false=controller uses default action

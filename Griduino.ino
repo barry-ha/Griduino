@@ -16,6 +16,7 @@
   2020-06-03  v0.16 add GMT Clock view
   2020-06-23  v0.17 add Settings control panel, and clear breadcrumb trail
   2020-07-06  v0.18 runtime selection of GPS receiver vs simulated trail
+  2020-08-14  v0.20 add icons for gear, arrow
 
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
@@ -77,6 +78,7 @@
 #include "constants.h"              // Griduino constants and colors
 #include "DS1804.h"                 // DS1804 digital potentiometer library
 #include "save_restore.h"           // save/restore configuration data to SDRAM
+#include "icons.h"                  // bitmaps for icons
 
 // ---------- Hardware Wiring ----------
 /*                                Arduino       Adafruit
@@ -399,6 +401,12 @@ void mapTouchToScreen(TSPoint touch, Point* screen) {
     screen->y = tft.height() - screen->y;
   }
   return;
+}
+
+void drawAllIcons() {
+  // draw gear (settings) and arrow (next screen)
+  tft.drawBitmap( 5, 5, iconGear20, 20, 20, ILI9341_CYAN);   // real icon, upper left
+  tft.drawBitmap( 300, 5, iconRightArrow18, 14, 18, ILI9341_CYAN);  // real icon, upper right
 }
 
 // ========== font management helpers ==========================

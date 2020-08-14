@@ -45,7 +45,7 @@
 
 // ========== extern ===========================================
 extern Adafruit_ILI9341 tft;        // Griduino.ino
-extern Model* model;                 // "model" portion of model-view-controller
+extern Model* model;                // "model" portion of model-view-controller
 extern Adafruit_BMP3XX baro;        // Griduino.ino
 extern void getDate(char* result, int maxlen);  // model.cpp
 
@@ -222,6 +222,10 @@ void startTimeScreen() {
   tft.fillScreen(cBACKGROUND);      // clear screen
   txtClock[0].setBackground(cBACKGROUND);               // set background for all TextFields in this view
   TextField::setTextDirty( txtClock, numClockFields );  // make sure all fields get re-printed on screen change
+
+  #ifdef SHOW_SCREEN_BORDER
+    tft.drawRect(0, 0, gScreenWidth, gScreenHeight, ILI9341_BLUE);  // debug: border around screen
+  #endif
 
   // ----- draw page title
   setFontSize(eFONTSYSTEM);

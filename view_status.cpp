@@ -27,9 +27,9 @@
 // ========== extern ===========================================
 extern Adafruit_ILI9341 tft;        // Griduino.ino
 extern int gTextSize;               // no such function as "tft.getTextSize()" so remember it on our own
-extern Model* model;                 // "model" portion of model-view-controller
+extern Model* model;                // "model" portion of model-view-controller
 
-void setFontSize(int font);            // Griduino.ino
+void setFontSize(int font);         // Griduino.ino
 int getOffsetToCenterText(String text); // Griduino.ino
 
 // ============== constants ====================================
@@ -123,6 +123,10 @@ void startStatScreen() {
   TextField::setTextDirty( txtLabels, numLabels );
   TextField::setTextDirty( txtValues, numText );             // make sure all fields get re-printed on screen change
   setFontSize(12);
+
+  #ifdef SHOW_SCREEN_BORDER
+    tft.drawRect(0, 0, gScreenWidth, gScreenHeight, ILI9341_BLUE);  // debug: border around screen
+  #endif
 
   // ----- labels
   for (int ii=0; ii<numLabels; ii++) {
