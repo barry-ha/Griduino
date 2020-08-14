@@ -661,6 +661,18 @@ int fGetDataSource() {
 //      This is MVC (model-view-controller) design pattern
 //
 //==============================================================
+// alias names for the views - must be in same order as array below
+enum {
+  GRID_VIEW = 0,
+  STATUS_VIEW,
+  TIME_VIEW,
+  VOLUME_VIEW,
+  SETTING_VIEW,
+  SPLASH_VIEW,
+  HELP_VIEW,
+  GOTO_SETTINGS,          // command the state machine to show control panel
+  GOTO_NEXT_VIEW,         // command the state machine to show next screen
+};
 // first entry is the opening view
 void (*gaUpdateView[])() = {
     // array of pointers to functions that take no arguments and return void
@@ -690,10 +702,31 @@ bool (*gaOnTouch[])(Point touch) = {
     onTouchSplash,
     onTouchHelp,
 };
-void selectNewView() {
+void selectNewView(int cmd) {
+  // this is a state machine to select next view, given current view and type of command
+  int nextView = GRID_VIEW;   // default
+  if (cmd == GOTO_NEXT_VIEW) {
+    // operator requested the next normal user view
+    switch (gViewIndex) {
+      case GRID_VIEW:   nextView = STATUS_VIEW; break;
+      case STATUS_VIEW: nextView = TIME_VIEW; break;
+      case TIME_VIEW:   nextView = GRID_VIEW; break;
+      // none of above: we must be showing some settings view, so go to the first normal user view
+      default:          nextView = GRID_VIEW; break;
+    }
+  } else {
+    // operator requested the next settings view
+    switch (gViewIndex) {
+      case VOLUME_VIEW:  nextView = SETTING_VIEW; break;
+      case SETTING_VIEW: nextView = VOLUME_VIEW; break;
+      // none of above: we must be showing some normal user view, so go to the first settings view
+      default:           nextView = VOLUME_VIEW; break;
+    }
+  }
   Serial.print("selectNewView() from "); Serial.print(gViewIndex);
-  gViewIndex = (gViewIndex + 1) % gNumViews;
-  Serial.print(" to "); Serial.println(gViewIndex);
+  Serial.print(" to "); Serial.println(nextView);
+
+  gViewIndex = nextView;
 
   // Every view has an initial setup to prepare its layout
   // After initial setup the view can assume it "owns" the screen
@@ -931,9 +964,13 @@ void loop() {
     if (!touchHandled) {
       // not handled by one of the views, so run our default action
       if (touch.y < gScreenHeight / 2) {
-        selectNewView();                // change view
+        if (touch.x < gScreenWidth / 3) {
+          selectNewView(GOTO_SETTINGS);   // advance to next settings view
+        } else {
+          selectNewView(GOTO_NEXT_VIEW);  // advance to next normal user view
+        }
       } else {
-        adjustBrightness();             // change brightness
+        adjustBrightness();               // change brightness
       }
     }
   }
