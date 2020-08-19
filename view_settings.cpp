@@ -11,13 +11,14 @@
             +-----------------------------------+
             | Settings                          |
             |                                   |
-            | Breadcrumb trail          [Clear] |
-            |     320 / 400 places              |
-            | GPS                 [x Receiver ] |
-            |                     [  Simulated] |
+            | Breadcrumb trail    [ Clear ]     |
+            | 123 of 6000                       |
             |                                   |
-            | Version 0.17                      |
-            |     Compiled Jun 23 2020  20:59   |
+            | Route         (o)[ GPS Receiver ] |
+            |                  [  Simulator   ] |
+            |                                   |
+            | Version 0.21                      |
+            |     Compiled Aug 18 2020  19:32   |
             +-----------------------------------+
 */
 
@@ -45,11 +46,18 @@ void fSimulated();
 void fFactoryReset();
 
 // ============== constants ====================================
+// vertical placement of text rows
+const int yRow1 = 70;             // "Breadcrumb trail", "Clear"
+const int yRow2 = yRow1 + 20;     // "%d of %d"
+const int yRow3 = yRow2 + 50;     // "Route", "GPS Receiver"
+const int yRow4 = yRow3 + 38;     // "Simulator"
+const int yRow9 = 234;            // text: "v0.21, Aug 18 2020 12:34:56"
 
 // color scheme: see constants.h
-#define col1 10                     // left-adjusted column of text
-#define xButton 160                 // indented column of buttons
+#define col1 10                   // left-adjusted column of text
+#define xButton 160               // indented column of buttons
 
+// ========== globals ==========================================
 enum txtSettings {
   SETTINGS=0, 
   TRAIL,   TRAILCOUNT,
@@ -57,14 +65,14 @@ enum txtSettings {
   COMPILED,
 };
 TextField txtSettings[] = {
-  //        text                   x,y   color
-  TextField("Settings",        col1, 20, cHIGHLIGHT, ALIGNCENTER),// [SETTINGS]
-  TextField("Breadcrumb trail",col1, 50, cVALUE),                 // [TRAIL]
-  TextField(   "%d crumbs",    col1, 70, cLABEL),                 // [TRAILCOUNT]
-  TextField("Route",           col1,120, cVALUE),                 // [GPSTYPE]
-  //TextField("All settings",  col1,200, cVALUE),                 // [GPSTYPE]
+  //        text                  x, y     color
+  TextField("Settings 2",      col1, 20,   cHIGHLIGHT, ALIGNCENTER),// [SETTINGS]
+  TextField("Breadcrumb trail",col1,yRow1, cVALUE),                 // [TRAIL]
+  TextField(   "%d crumbs",    col1,yRow2, cLABEL),                 // [TRAILCOUNT]
+  TextField("Route",           col1,yRow3, cVALUE),                 // [GPSTYPE]
+  //TextField("All settings",  col1,200,   cVALUE),                 // [GPSTYPE]
   TextField(PROGRAM_VERSION ", " PROGRAM_COMPILED, 
-                               col1,234, cLABEL, ALIGNCENTER),    // [COMPILED]
+                               col1,yRow9, cLABEL, ALIGNCENTER),    // [COMPILED]
 };
 const int numSettingsFields = sizeof(txtSettings)/sizeof(txtSettings[0]);
 
@@ -75,12 +83,12 @@ enum buttonID {
   eFACTORYRESET,
 };
 TimeButton settingsButtons[] = {
-  // label             origin     size      touch-target     
-  // text                x,y       w,h      x,y      w,h  radius  color   function
-  {"Clear",        xButton, 30,  130,30, {140, 20, 180,50},  4,  cVALUE,  fClear    },   // [eCLEAR] Clear track history
-  {"GPS Receiver", xButton,100,  130,30, {138, 84, 180,46},  4,  cVALUE,  fReceiver },   // [eRECEIVER] Satellite receiver
-  {"Simulator",    xButton,130,  130,30, {140,130, 180,47},  4,  cVALUE,  fSimulated},   // [eSIMULATOR] Simulated track
-  //{"Factory Reset",xButton,180,  130,30, {138,174, 180,50},  4,  cVALUE,  fFactoryReset},// [eFACTORYRESET] Factory Reset
+  // label             origin         size      touch-target     
+  // text                x,y           w,h      x,y      w,h  radius  color   function
+  {"Clear",        xButton,yRow1-20, 130,30, {140, 20, 180,50},  4,  cVALUE,  fClear    },   // [eCLEAR] Clear track history
+  {"GPS Receiver", xButton,yRow3-20, 130,30, {138, 84, 180,46},  4,  cVALUE,  fReceiver },   // [eRECEIVER] Satellite receiver
+  {"Simulator",    xButton,yRow4-20, 130,30, {140,130, 180,47},  4,  cVALUE,  fSimulated},   // [eSIMULATOR] Simulated track
+  //{"Factory Reset",xButton,180, 130,30, {138,174, 180,50},  4,  cVALUE,  fFactoryReset},// [eFACTORYRESET] Factory Reset
 };
 const int nSettingsButtons = sizeof(settingsButtons)/sizeof(settingsButtons[0]);
 

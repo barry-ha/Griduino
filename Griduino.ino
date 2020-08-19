@@ -17,6 +17,7 @@
   2020-06-23  v0.17 add Settings control panel, and clear breadcrumb trail
   2020-07-06  v0.18 runtime selection of GPS receiver vs simulated trail
   2020-08-14  v0.20 add icons for gear, arrow
+  2020-08-16  v0.21 rewrite audio volume screen with new layout
 
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
@@ -239,6 +240,14 @@ void startVolumeScreen();
 bool onTouchVolume(Point touch);
 int loadConfigVolume();
 void saveConfigVolume();
+
+/* 2020-08-18 removed until I want to re-write the volume control ...
+void updateVolume2Screen();             // view_volume2.cpp
+void startVolume2Screen();
+bool onTouchVolume2(Point touch);
+//int loadConfigVolume();
+//void saveConfigVolume();
+*/
 
 void updateSplashScreen();              // view_splash.cpp
 void startSplashScreen();
@@ -653,6 +662,7 @@ int fGetDataSource() {
 //#include "view_status.cpp"
 //#include "view_time.cpp"
 //#include "view_volume.cpp"
+//#include "view_volume2.cpp"
 //#include "view_settings.cpp"
 
 //==============================================================
@@ -667,6 +677,7 @@ enum {
   STATUS_VIEW,
   TIME_VIEW,
   VOLUME_VIEW,
+  //VOLUME2_VIEW,
   SETTING_VIEW,
   SPLASH_VIEW,
   HELP_VIEW,
@@ -680,6 +691,7 @@ void (*gaUpdateView[])() = {
     updateStatusScreen,
     updateTimeScreen,
     updateVolumeScreen,
+    //updateVolume2Screen,
     updateSettingsScreen,
     updateSplashScreen,
     updateHelpScreen,
@@ -689,6 +701,7 @@ void (*gaStartView[])() = {
     startStatScreen,
     startTimeScreen,
     startVolumeScreen,
+    //startVolume2Screen,
     startSettingsScreen,
     startSplashScreen,
     startHelpScreen,
@@ -698,6 +711,7 @@ bool (*gaOnTouch[])(Point touch) = {
     onTouchStatus,
     onTouchTime,
     onTouchVolume,
+    //onTouchVolume2,
     onTouchSettings,
     onTouchSplash,
     onTouchHelp,
@@ -718,6 +732,7 @@ void selectNewView(int cmd) {
     // operator requested the next settings view
     switch (gViewIndex) {
       case VOLUME_VIEW:  nextView = SETTING_VIEW; break;
+      //se VOLUME2_VIEW:  nextView = SETTING_VIEW; break;
       case SETTING_VIEW: nextView = VOLUME_VIEW; break;
       // none of above: we must be showing some normal user view, so go to the first settings view
       default:           nextView = VOLUME_VIEW; break;

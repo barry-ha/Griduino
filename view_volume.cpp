@@ -38,6 +38,7 @@ extern DACMorseSender dacMorse;     // morse code (so we can send audio samples)
 extern DS1804 volume;               // digital potentiometer
 
 void setFontSize(int font);         // Griduino.ino
+int getOffsetToCenterTextOnButton(String text, int leftEdge, int width ); // Griduino.ino
 void drawAllIcons();                // draw gear (settings) and arrow (next screen) // Griduino.ino
 
 // ========== forward reference ================================
@@ -50,31 +51,38 @@ void saveConfigVolume();
 
 // ============== constants ====================================
 // vertical placement of text rows
-const int yRow1 = 32;             // label: "Audio Volume"
+const int yRow1 = 50;             // label: "Audio Volume"
 const int yRow2 = yRow1 + 30;     // text:  "of 10"
 
 // color scheme: see constants.h
+#define col1 10                   // left-adjusted column of text
 
 // ========== globals ==========================================
 int gVolIndex = 5;          // init to middle value
 int gPrevVolIndex = -1;     // remembers previous volume setting to avoid erase/write the same value
-
-const int numVolFields = 3;
-TextField txtVolume[numVolFields] = {
-  //        text             x,y      color  
-  TextField("0",            82,yRow2, cVALUE, ALIGNRIGHT),  // giant audio volume display
-  TextField("Audio Volume", 98,yRow1, cLABEL),              // normal size text labels
-  TextField("of 10",        98,yRow2, cLABEL),
+enum txtSettings {
+  SETTINGS=0, 
+  BIGVOLUME,
+  LINE1,
+  LINE2
 };
+TextField txtVolume[] = {
+  //        text                  x, y   color
+  TextField("Settings 1",      col1, 20, cHIGHLIGHT, ALIGNCENTER),// [SETTINGS]
+  TextField("0",               82,yRow2, cVALUE, ALIGNRIGHT),     // [BIGVOLUME] giant audio volume display
+  TextField("Audio Volume",    98,yRow1, cLABEL),                 // [LINE1] normal size text labels
+  TextField("of 10",           98,yRow2, cLABEL),                 // [LINE2]
+};
+const int numVolFields = sizeof(txtVolume)/sizeof(txtVolume[0]);
 
 const int nVolButtons = 3;
 const int margin = 10;      // slight margin between button border and edge of screen
 const int radius = 10;      // rounded corners
 Button volButtons[nVolButtons] = {
   // text     x,y        w,h        r      color
-  {"",       38, 76,   136,72,  radius, cBUTTONLABEL, volUp  }, // Up
-  {"",       38,156,   136,72,  radius, cBUTTONLABEL, volDown}, // Down
-  {"Mute",  208,116,    90,68,  radius, cBUTTONLABEL, volMute}, // Mute
+  {"",       38, 92,   136,64,  radius, cBUTTONLABEL, volUp  }, // Up
+  {"",       38,166,   136,64,  radius, cBUTTONLABEL, volDown}, // Down
+  {"Mute",  208,120,    90,62,  radius, cBUTTONLABEL, volMute}, // Mute
 };
 int volLevel[11] = {
   // Digital potentiometer settings, about 2 dB steps = ratio 1.585
@@ -147,15 +155,14 @@ void updateVolumeScreen() {
   // called on every pass through main()
 
   // ----- volume
-  setFontSize(24);
-  txtVolume[0].print(gVolIndex);
+  setFontSize(eFONTBIG);
+  txtVolume[BIGVOLUME].print(gVolIndex);
 }
 void startVolumeScreen() {
   // called once each time this view becomes active
   tft.fillScreen(cBACKGROUND);      // clear screen
-  txtVolume[0].setBackground(cBACKGROUND);                // set background for all TextFields in this view
+  txtVolume[BIGVOLUME].setBackground(cBACKGROUND);        // set background for all TextFields in this view
   TextField::setTextDirty( txtVolume, numVolFields );     // make sure all fields get re-printed on screen change
-  setFontSize(12);
 
   #ifdef SHOW_SCREEN_BORDER
     tft.drawRect(0, 0, gScreenWidth, gScreenHeight, ILI9341_BLUE);  // debug: border around screen
@@ -164,7 +171,13 @@ void startVolumeScreen() {
   drawAllIcons();                   // draw gear (settings) and arrow (next screen)
 
   // ----- draw text fields
-  for (int ii=1; ii<numVolFields; ii++) {       // start at [1], since [0] is a different font size
+  setFontSize(eFONTSMALLEST);      // [0] is screen title
+  txtVolume[0].print();
+
+  // txtVolume[1] is giant audio number, is drawn later
+
+  setFontSize(eFONTSMALL);
+  for (int ii=2; ii<numVolFields; ii++) {   // start at [2], since [0] and [1] are different fonts
     txtVolume[ii].print();
   }
 
@@ -193,6 +206,9 @@ void startVolumeScreen() {
 
   gPrevVolIndex = -1;
   updateVolumeScreen();             // fill in values immediately, don't wait for loop() to eventually get around to it
+
+  // debug: show centerline on display
+  //tft.drawLine(tft.width()/2,0, tft.width()/2,tft.height(), cWARN); // debug
 }
 bool onTouchVolume(Point touch) {
   Serial.println("->->-> Touched volume screen.");
