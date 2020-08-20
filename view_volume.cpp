@@ -80,25 +80,26 @@ const int nVolButtons = 3;
 const int margin = 10;      // slight margin between button border and edge of screen
 const int radius = 10;      // rounded corners
 Button volButtons[nVolButtons] = {
-  // text     x,y        w,h        r      color
+  // text     x,y        w,h      r      color        function
   {"",       38, 92,   136,64,  radius, cBUTTONLABEL, volumeUp  }, // Up
   {"",       38,166,   136,64,  radius, cBUTTONLABEL, volumeDown}, // Down
   {"Mute",  208,120,    90,62,  radius, cBUTTONLABEL, volumeMute}, // Mute
 };
-int volLevel[11] = {
+const int volLevel[11] = {
   // Digital potentiometer settings, about 2 dB steps = ratio 1.585
-  /* 0 */ 0,    // mute, lowest allowed wiper position
-  /* 1 */ 1,    // lowest possible position with non-zero output
-  /* 2 */ 2,    // next lowest poss
-  /* 3 */ 4,    //  2.000 * 1.585 =  4.755
-  /* 4 */ 7,    //  4.755 * 1.585 =  7.513
-  /* 5 */ 12,   //  7.513 * 1.585 = 11.908
-  /* 6 */ 19,   // 11.908 * 1.585 = 18.874
-  /* 7 */ 29,   // 18.874 * 1.585 = 29.916
-  /* 8 */ 47,   // 29.916 * 1.585 = 47.417
-  /* 9 */ 75,   // 47.417 * 1.585 = 75.155
-  /*10 */ 99,   // max allowed wiper position
+  0,    // [0] mute, lowest allowed wiper position
+  1,    // [1] lowest possible position with non-zero output
+  2,    // [2] next lowest poss
+  4,    // [3]  2.000 * 1.585 =  4.755
+  7,    // [4]  4.755 * 1.585 =  7.513
+  12,   // [5]  7.513 * 1.585 = 11.908
+  19,   // [6] 11.908 * 1.585 = 18.874
+  29,   // [7] 18.874 * 1.585 = 29.916
+  47,   // [8] 29.916 * 1.585 = 47.417
+  75,   // [9] 47.417 * 1.585 = 75.155
+  99,   // [10] max allowed wiper position
 };
+const int numLevels = sizeof(volLevel)/sizeof(volLevel[0]);
 
 // ========== helpers ==========================================
 void setVolume(int volIndex) {

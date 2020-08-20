@@ -17,7 +17,7 @@
   2020-06-23  v0.17 add Settings control panel, and clear breadcrumb trail
   2020-07-06  v0.18 runtime selection of GPS receiver vs simulated trail
   2020-08-14  v0.20 add icons for gear, arrow
-  2020-08-16  v0.21 rewrite audio volume screen with new layout
+  2020-08-20  v0.21 fix audio volume set-save-restore bug
 
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
@@ -197,7 +197,7 @@ Adafruit_BMP3XX baro(BMP_CS); // hardware SPI
 Adafruit_GPS GPS(&Serial1);
 
 // ------------ Audio output
-#define DAC_PIN      DAC0     // onboard DAC0 == A0
+#define DAC_PIN      DAC0     // onboard DAC0 == pin A0
 #define PIN_SPEAKER  DAC0     // uses DAC
 
 // Adafruit Feather M4 Express pin definitions
@@ -205,8 +205,8 @@ Adafruit_GPS GPS(&Serial1);
 #define PIN_VINC      6       // volume increment
 #define PIN_VUD      A2       // volume up/down
 
-// ctor         DS1804( ChipSel pin,Incr pin,  U/D pin,  maxResistance (K) )
-DS1804 volume = DS1804( PIN_VCS,    PIN_VINC,  PIN_VUD,  DS1804_TEN );
+// ctor         DS1804( ChipSel pin, Incr pin,  U/D pin,  maxResistance (K) )
+DS1804 volume = DS1804( PIN_VCS,     PIN_VINC,  PIN_VUD,  DS1804_TEN );
 int gWiper = 15;              // initial digital potentiometer wiper position, 0..99
 int gFrequency = 1100;        // initial Morse code sidetone pitch
 int gWordsPerMinute = 18;     // initial Morse code sending speed
@@ -245,8 +245,8 @@ void saveConfigVolume();
 void updateVolume2Screen();             // view_volume2.cpp
 void startVolume2Screen();
 bool onTouchVolume2(Point touch);
-//int loadConfigVolume();
-//void saveConfigVolume();
+//int loadConfigVolume2();
+//void saveConfigVolume2();
 */
 
 void updateSplashScreen();              // view_splash.cpp
@@ -840,6 +840,9 @@ void setup() {
                                       // expected reply: $PGTOP,11,...
 
   // ----- init digital potentiometer
+  volume.unlock();                    // unlock digipot (in case someone else, like an example pgm, has locked it)
+  volume.setToZero();                 // set digipot hardware to match its ctor (wiper=0) because the chip cannot be read
+                                      // and all "setWiper" commands are really incr/decr pulses. This gets it sync.
   volume.setWiperPosition( gWiper );  // set default volume in digital pot
 
   if (loadConfigVolume()) {           // view_volume.cpp
