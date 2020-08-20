@@ -39,7 +39,7 @@
 #define PROGRAM_LINE2   "John KM7O"
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
 
-#define SCREEN_ROTATION 1   // 1=landscape, 3=landscape 180-degrees
+#define SCREEN_ROTATION 1           // 1=landscape, 3=landscape 180-degrees
 
 // ---------- Hardware Wiring ----------
 /* Same as Griduino platform
@@ -99,18 +99,6 @@ struct Point {
 
 // ------------ definitions
 #define gScreenWidth 320      // pixels wide, landscape orientation
-
-// ----- screen layout
-// When using default system fonts, screen pixel coordinates will identify top left of character cell
-
-// splash screen layout
-const int xLabel = 8;             // indent labels, slight margin on left edge of screen
-#define yRow1   0                 // title: "Touchscreen Demo"
-#define yRow2   yRow1 + 40        // program version
-#define yRow3   yRow2 + 20        // compiled date
-#define yRow4   yRow3 + 20        // author line 1
-#define yRow5   yRow4 + 20        // author line 2
-#define yRow6   yRow5 + 40        // "Pressure threshhold = "
 
 // ----- color scheme
 // RGB 565 color code: http://www.barth-dev.de/online/rgb565-color-picker/
@@ -234,6 +222,17 @@ void mapTouchToScreen(TSPoint touch, Point* screen) {
 }
 
 // ========== splash screen helpers ============================
+// splash screen layout
+// When using default system fonts, screen pixel coordinates will identify top left of character cell
+
+const int xLabel = 8;             // indent labels, slight margin on left edge of screen
+#define yRow1   0                 // title: "Touchscreen Demo"
+#define yRow2   yRow1 + 40        // program version
+#define yRow3   yRow2 + 20        // compiled date
+#define yRow4   yRow3 + 20        // author line 1
+#define yRow5   yRow4 + 20        // author line 2
+#define yRow6   yRow5 + 40        // "Pressure threshhold = "
+
 void startSplashScreen() {
   tft.setTextSize(2);
 
