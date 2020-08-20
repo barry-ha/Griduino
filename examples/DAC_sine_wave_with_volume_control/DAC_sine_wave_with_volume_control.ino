@@ -2,8 +2,9 @@
   Audio sine wave using onboard DAC (mono)
 
   Date:     2019-12-28 created
+            2020-08-19 use the display to show what's happening
 
-  Software: Barry Hansen, barry@k7bwh.com, Seattle, WA
+  Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
 
   Purpose:  Simple Waveform generator with Adafruit Feather M4 Express
@@ -18,16 +19,22 @@
             * Writing 0 will set the DAC to minimum (0.0 v) output.
             * Writing 4096 sets the DAC to maximum (3.3 v) output.
 
-            This example program will change volume every 3 seconds.
+            This example program will step through increasing volume over time.
             It has no user interface controls or inputs.
 */
 
-#include "DS1804.h"               // DS1804 digital potentiometer library
-#include "elapsedMillis.h"        // short-interval timing functions
+#include "Adafruit_ILI9341.h"       // TFT color display library
+#include "DS1804.h"                 // DS1804 digital potentiometer library
+#include "elapsedMillis.h"          // short-interval timing functions
 
-// ------- Identity for console
+// ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE   "DAC Sine Wave with DS1804 Volume Control"
 #define PROGRAM_VERSION "v1.0"
+#define PROGRAM_LINE1   "Barry K7BWH"
+#define PROGRAM_LINE2   "John KM7O"
+#define PROGRAM_COMPILED __DATE__ " " __TIME__
+
+#define SCREEN_ROTATION 1           // 1=landscape, 3=landscape 180-degrees
 
 // ---------- Hardware Wiring ----------
 /*                                Arduino       Adafruit
@@ -35,10 +42,34 @@
 Audio Out:
    DAC0 - audio signal            - n/a         - A0  (J2 Pin 12) - uses onboard digital-analog converter
 Digital potentiometer:
-   PIN_VINC - volume increment    - n/a         - D6
-   PIN_VUD  - volume up/down      - n/a         - A2
-   PIN_VCS  - volume chip select  - n/a         - A1
+   VINC - volume increment        - n/a         - D6
+   VUD  - volume up/down          - n/a         - A2
+   CS   - volume chip select      - n/a         - A1
 */
+
+// TFT display and SD card share the hardware SPI interface, and have
+// separate 'select' pins to identify the active device on the bus.
+#if defined(SAMD_SERIES)
+  // Adafruit Feather M4 Express pin definitions
+  // To compile for Feather M0/M4, install "additional boards manager"
+  // https://learn.adafruit.com/adafruit-feather-m4-express-atsamd51/setup
+  
+  #define TFT_BL   4    // TFT backlight
+  #define TFT_CS   5    // TFT chip select pin
+  #define TFT_DC  12    // TFT display/command pin
+
+#elif defined(ARDUINO_AVR_MEGA2560)
+  #define TFT_BL   6    // TFT backlight
+  #define TFT_DC   9    // TFT display/command pin
+  #define TFT_CS  10    // TFT chip select pin
+
+#else
+  #warning You need to define pins for your hardware
+
+#endif
+
+// create an instance of the TFT Display
+Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 
 // ------------ Audio output
 #define DAC_PIN      DAC0     // onboard DAC0 == pin A0
@@ -49,19 +80,21 @@ Digital potentiometer:
 #define PIN_VINC      6       // volume increment
 #define PIN_VUD      A2       // volume up/down
 
+// ============== constants ====================================
 const float twopi = PI * 2;
 //const int gDacVolume = 2040;// = maximum allowed multiplier, slightly less than half of 2^12 prevents overflow from rounding errors
 const int gDacVolume = 1200;  // = limit DAC output to a value empirically determined, so the audio amp doesn't clip/distort
                               // note: 4-ohm speaker is too much load for the LM386 amplifier
 const int gDacOffset = 2048;  // = exactly half of 2^12
                               // Requirement is: gDacOffset +/- gDacVolume = voltage range of DAC
-const int maxVolume = 99;     // maximum allowed wiper position on digital potentiometer
+//nst int maxVolume = 99;     // maximum allowed wiper position on digital potentiometer is 0..99
+const int maxVolume = 50;     // but the speaker sounds distorted around 26 so we stop at about 30
 
 // ctor         DS1804( ChipSel pin, Incr pin,  U/D pin,  maxResistance (K) )
 DS1804 volume = DS1804( PIN_VCS,     PIN_VINC,  PIN_VUD,  DS1804_TEN );
 int gVolume = 0;              // initial digital potentiometer wiper position, 0..99
 
-// ------------ global scope
+// ------------ definitions
 float gPhase = 0.0;           // phase angle, 0..2pi
 const int howLongToWait = 10; // max number of seconds before using Serial port to console
 elapsedMicros usec = 0;       // 
@@ -72,29 +105,81 @@ const float gFrequency = 1500.0;          // desired output frequency, Hz
 const float gSamplesPerWaveform = 25.0;   // desired steps in each cycle
 //=======================================================================
 
+// ----- color scheme
+// RGB 565 color code: http://www.barth-dev.de/online/rgb565-color-picker/
+#define cBACKGROUND     0x00A             // 0,   0,  10 = darker than ILI9341_NAVY, but not black
+#define cTEXTCOLOR      ILI9341_CYAN      // 0, 255, 255
+#define cLABEL          ILI9341_GREEN
+
+// screen layout
+const int xLabel = 10;            // indent labels, slight margin on left edge of screen
+const int yRow1 = 10;             // title: "DAC Sine Wave"
+const int yRow2 = yRow1 + 40;     // program version
+const int yRow3 = yRow2 + 20;     // compiled date
+const int yRow4 = yRow3 + 20;     // author line 1
+const int yRow5 = yRow4 + 20;     // author line 2
+const int yRow6 = yRow5 + 60;     // "Wiper position NN of 99"
+
 float gfDuration = 1E6 / gFrequency / gSamplesPerWaveform;  // microseconds to hold each output sample
 float gStep = twopi / gSamplesPerWaveform;  // radians to advance around unit circle at each step
 
 // ----- Do The Thing
+void setVolume(int wiperPosition) {
+  // set digital potentiometer
+  // @param wiperPosition = 0..99
+  volume.setWiperPosition( wiperPosition );
+  Serial.print("Set wiper position "); Serial.println(wiperPosition);
+
+  tft.setCursor(xLabel, yRow6);
+  tft.print("Wiper position ");
+  tft.print(wiperPosition);
+  tft.print(" of 0-99  ");
+}
 void increaseVolume() {
   // send new volume command to DS1804 digital potentiometer
   if (gVolume >= maxVolume) {
     gVolume = 0;
     Serial.println("----- Start over");
   } else {
-      // digital pot has linear steps, so to increase by about 3 dB we double the setting
-    gVolume = constrain(gVolume*2+1, 0, maxVolume);
+    // digital pot has linear steps, so to increase by about 3 dB we double the setting
+    gVolume = constrain(gVolume+1, 0, maxVolume);
   }
+  setVolume(gVolume);
+}
 
-  volume.setWiperPosition(gVolume);
-  Serial.print("Set wiper position = "); Serial.println(gVolume);
+// ========== splash screen helpers ============================
+void startSplashScreen() {
+  tft.setTextSize(2);
+
+  tft.setCursor(xLabel, yRow1);
+  tft.setTextColor(cTEXTCOLOR, cBACKGROUND);
+  tft.print(PROGRAM_TITLE);
+
+  tft.setCursor(xLabel, yRow2);
+  tft.setTextColor(cLABEL, cBACKGROUND);
+  tft.print(PROGRAM_VERSION);
+
+  tft.setCursor(xLabel, yRow3);
+  tft.print(__DATE__ " " __TIME__);  // Report our compiled date
+
+  tft.setCursor(xLabel, yRow4);
+  tft.println(PROGRAM_LINE1);
+
+  tft.setCursor(xLabel, yRow5);
+  tft.println(PROGRAM_LINE2);
+
+  tft.setCursor(xLabel, yRow6);
+  tft.setTextColor(cTEXTCOLOR, cBACKGROUND);
+}
+void clearScreen() {
+  tft.fillScreen(cBACKGROUND);
 }
 
 // ----- console Serial port helper
 void waitForSerial(int howLong) {
   // Adafruit Feather M4 Express takes awhile to restore its USB connx to the PC
   // and the operator takes awhile to restart the console (Tools > Serial Monitor)
-  // so give them a few seconds for all this to settle before sending messages to IDE
+  // so give them a few seconds for this to settle before sending messages to IDE
   unsigned long targetTime = millis() + howLong*1000;
   while (millis() < targetTime) {
     if (Serial) break;
@@ -105,23 +190,32 @@ void waitForSerial(int howLong) {
 void setup() {
 
   // ----- init serial monitor
-  Serial.begin(115200);           // init for debuggging in the Arduino IDE
+  Serial.begin(115200);                               // init for debuggging in the Arduino IDE
   waitForSerial(howLongToWait);   // wait for developer to connect debugging console
 
   // now that Serial is ready and connected (or we gave up)...
   Serial.println(PROGRAM_TITLE " " PROGRAM_VERSION);  // Report our program name to console
-  Serial.println("Compiled " __DATE__ " " __TIME__);  // Report our compiled date
+  Serial.println("Compiled " PROGRAM_COMPILED);       // Report our compiled date
   Serial.println(__FILE__);                           // Report our source code file name
+
+  // ----- init TFT backlight
+  pinMode(TFT_BL, OUTPUT);
+  analogWrite(TFT_BL, 255);           // start at full brightness
+
+  // ----- init TFT display
+  tft.begin();                        // initialize TFT display
+  tft.setRotation(SCREEN_ROTATION);   // landscape (default is portrait)
+  clearScreen();
+
+  // ----- init digital potentiometer
+  volume.setToZero();
+  Serial.println(" 0. Set wiper position = 0");
 
   #if defined(SAMD_SERIES)
     Serial.println("Compiled for Adafruit Feather M4 Express (or equivalent)");
   #else
     Serial.println("Sorry, your hardware platform is not recognized.");
   #endif
-
-  // ----- init digital potentiometer
-  volume.setToZero();
-  Serial.println(" 0. Set wiper position = 0");
 
   // ----- init onboard DAC
   #if defined(SAMD_SERIES)
@@ -147,13 +241,17 @@ void setup() {
 
   byte wiperPos = volume.getWiperPosition();
   sprintf(msg, "Initial wiper position(%d)", wiperPos);                   Serial.println(msg);
+
+  // ----- announce ourselves
+  startSplashScreen();
+
 }
 
 //=========== main work loop ===================================
 // "millis()" is number of milliseconds since the Arduino began running the current program.
 // This number will overflow after about 50 days.
 uint32_t prevTime = millis();
-const int VOLUME_CHANGE_INTERVAL = 3000;    // msec between changing volume setting
+const int VOLUME_CHANGE_INTERVAL = 600;    // msec between changing volume setting
 
 void loop() {
 
@@ -167,6 +265,7 @@ void loop() {
     prevTime = millis();     // restart another interval
 
     increaseVolume();        // update digital potentiometer
+
   }
 
   // ----- generate sine wave
