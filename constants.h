@@ -8,16 +8,16 @@
 #define PROGRAM_LINE2   "John KM7O"
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
 
-#define SCREEN_ROTATION 1   // 1=landscape, 3=landscape 180-degrees
-#define gScreenWidth 320    // screen pixels wide
-#define gScreenHeight 240   // screen pixels high
-                            // we use #define here instead of reading it from "tft.width()" because this
-                            // screen layout is specifically designed for landscape orientation on 3.2" ILI9341
+#define SCREEN_ROTATION 1           // 1=landscape, 3=landscape 180-degrees
+#define gScreenWidth 320            // screen pixels wide
+#define gScreenHeight 240           // screen pixels high
+                                    // we use #define here instead of reading it from "tft.width()" because this
+                                    // screen layout is specifically designed for landscape orientation on 3.2" ILI9341
 
-#define gBoxWidth 180       // grid square width as shown on display, pixels
-#define gBoxHeight 160      // grid square height as shown on display, pixels
+#define gBoxWidth 180               // grid square width as shown on display, pixels
+#define gBoxHeight 160              // grid square height as shown on display, pixels
 
-const float gridWidthDegrees = 2.0;   // size of one grid square, degrees
+const float gridWidthDegrees = 2.0; // size of one grid square, degrees
 const float gridHeightDegrees = 1.0;
 
 #define feetPerMeters 3.28084
@@ -64,7 +64,7 @@ enum {
 #define cBUTTONFILL     ILI9341_NAVY
 #define cBUTTONOUTLINE  ILI9341_CYAN
 #define cBREADCRUMB     ILI9341_CYAN
-#define cTEXTCOLOR      ILI9341_CYAN
+#define cTEXTCOLOR      ILI9341_CYAN      // 0, 255, 255
 #define cTEXTFAINT      0x0514            // 0, 160, 160 = blue, between CYAN and DARKCYAN
 //define cBOXDEGREES    0x0514            // 0, 160, 160 = blue, between CYAN and DARKCYAN
 #define cBOXDEGREES     0x0410            // 0, 128, 128 = blue, between CYAN and DARKCYAN
