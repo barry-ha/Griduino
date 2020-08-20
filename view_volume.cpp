@@ -1,5 +1,5 @@
 /*
-  File: view_volume.cpp
+  File:     view_volume.cpp
 
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
@@ -43,9 +43,9 @@ void drawAllIcons();                // draw gear (settings) and arrow (next scre
 
 // ========== forward reference ================================
 void updateVolumeScreen();
-void volUp();
-void volDown();
-void volMute();
+void volumeUp();
+void volumeDown();
+void volumeMute();
 int loadConfigVolume();
 void saveConfigVolume();
 
@@ -75,14 +75,15 @@ TextField txtVolume[] = {
 };
 const int numVolFields = sizeof(txtVolume)/sizeof(txtVolume[0]);
 
+// ============== constants ====================================
 const int nVolButtons = 3;
 const int margin = 10;      // slight margin between button border and edge of screen
 const int radius = 10;      // rounded corners
 Button volButtons[nVolButtons] = {
   // text     x,y        w,h        r      color
-  {"",       38, 92,   136,64,  radius, cBUTTONLABEL, volUp  }, // Up
-  {"",       38,166,   136,64,  radius, cBUTTONLABEL, volDown}, // Down
-  {"Mute",  208,120,    90,62,  radius, cBUTTONLABEL, volMute}, // Mute
+  {"",       38, 92,   136,64,  radius, cBUTTONLABEL, volumeUp  }, // Up
+  {"",       38,166,   136,64,  radius, cBUTTONLABEL, volumeDown}, // Down
+  {"Mute",  208,120,    90,62,  radius, cBUTTONLABEL, volumeMute}, // Mute
 };
 int volLevel[11] = {
   // Digital potentiometer settings, about 2 dB steps = ratio 1.585
@@ -102,10 +103,14 @@ int volLevel[11] = {
 // ========== helpers ==========================================
 void setVolume(int volIndex) {
   // set digital potentiometer
-  // @param wiperPosition = 0..10
+  // @param volIndex = 0..10
   int wiperPosition = volLevel[ volIndex ];
   volume.setWiperPosition( wiperPosition );
-  Serial.print("Set wiper position "); Serial.println(wiperPosition);
+
+  char msg[256];
+  snprintf(msg, 256, "Set volume index %d, wiper position %d", volIndex, wiperPosition);  // debug
+  Serial.println(msg);
+
   saveConfigVolume();     // non-volatile storage
 }
 void changeVolume(int diff) {
@@ -116,13 +121,13 @@ void changeVolume(int diff) {
   dacMorse.setMessage("hi");
   dacMorse.sendBlocking();
 }
-void volUp() {
+void volumeUp() {
   changeVolume( +1 );
 }
-void volDown() {
+void volumeDown() {
   changeVolume( -1 );
 }
-void volMute() {
+void volumeMute() {
   gVolIndex = 0;
   setVolume(gVolIndex);
   updateVolumeScreen();
