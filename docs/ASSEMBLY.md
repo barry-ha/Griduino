@@ -21,8 +21,8 @@ This kit is almost entirely "through hole" construction. Only two components, th
 * **Decent quality solder, with a flux core.**  Any decent quality, thin, flux cored solder designed for electronic use should be suitable for assembling this kit. Solder size 0.50 mm is ideal. Do not use solder intended for plumbing.
 * **Needle nose pliers.** The component's leads must be bent with small pliers for a good fit into holes. Small pliers are also good for picking up the smallest parts from a tray.
 * **Side cutters.** After you solder discrete components to the board, you will need to clip off the protruding wires. Wear eye protection and aim the bits away from you in a safe direction. 
-* **Philips-head screwdriver.** There are four small screws to attach the PCB into the case.
-* **Solderless breadboard.** To solder header pins onto small board assemblies, temporarily using a solderless breadboard will hold pins in correct alignment.<br/>
+* **Philips-head screwdriver.** Four small screws attach the PCB into the case. Four more screws attach the top cover to the bottom case.
+* **Solderless breadboard.** A solderless breadboard will hold pins in exact alignment while soldering header pins onto small board assemblies.<br/>
 ![](img/solderless-breadboard-img4024.jpg)
 
 <h3>It will be nice to have:</h3>
@@ -36,7 +36,7 @@ This kit is almost entirely "through hole" construction. Only two components, th
 * **Blue painters tape.** While soldering things upside down, an easy-to-remove tape can temporarily hold parts onto the PCB. When you do this, solder only one pin, then double-check the parts are still tight on the PCB. If not, reheat the one pin and press on the part to re-seat it. Then solder the remaining leads.<br/>
 ![](img/painters-tape-img3026.jpg)
 
-* **Tiny flat head screwdriver.** If you use the 4-terminal strip after assembly (optional), it needs an unusually narrow-bladed screwdriver to reach the recessed screw heads.
+* **Tiny flat head screwdriver.** If you use the 4-terminal strip after assembly (optional), it needs an unusually narrow-bladed screwdriver to reach the recessed screw heads. A "jeweler's screwdriver" will work well here.
 
 * **Ohmmeter.** Use an ohmmeter or VOM (volt-ohm-milliameter) to measure resistors before installation to help ensure you have the right one in the right place.
 
@@ -83,6 +83,8 @@ Solder one pin to the board. Remove your clamp. Solder the remaining pins.
 <h3>Step 2: Diodes</h3>
 
 Insert the three small 1N4001 diodes, D1 - D3, being careful of polarity; match the banded end (cathode) with the board marking. The board also indicates the banded end with a square solder pad. It is good practice to bend its wires in such a way that its marking "4001" is on top and readable.
+
+Attention: Diode D1 on the PCB is turned in the opposite direction of D2 and D3.
 
 Solder the three diodes into place and snip off excess wire lengths.
 
@@ -304,6 +306,7 @@ You may find the "examples" folder useful. It contains a variety of smaller prog
 <h2>8. Using the Griduino GPS</h2>
 
 After loading and running the Griduino program, touch the top half of the screen to advance from one view to the next:
+
 
 1. Power-up animation (one time only)<br/>
 ![](img/view-anim-img7044.jpg)
