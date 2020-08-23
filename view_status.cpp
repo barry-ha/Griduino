@@ -33,6 +33,7 @@ extern Model* model;                // "model" portion of model-view-controller
 void setFontSize(int font);         // Griduino.ino
 int getOffsetToCenterText(String text); // Griduino.ino
 void drawAllIcons();                // draw gear (settings) and arrow (next screen) // Griduino.ino
+void showScreenBorder();            // optionally outline visible area
 
 // ============== constants ====================================
 // vertical placement of text rows
@@ -126,11 +127,8 @@ void startStatScreen() {
   TextField::setTextDirty( txtValues, numText );             // make sure all fields get re-printed on screen change
   setFontSize(12);
 
-  #ifdef SHOW_SCREEN_BORDER
-    tft.drawRect(0, 0, gScreenWidth, gScreenHeight, ILI9341_BLUE);  // debug: border around screen
-  #endif
-
   drawAllIcons();                   // draw gear (settings) and arrow (next screen)
+  showScreenBorder();               // optionally outline visible area
 
   // ----- labels
   for (int ii=0; ii<numLabels; ii++) {

@@ -16,8 +16,6 @@
 float nextGridLineEast(float longitudeDegrees);       // Griduino.ino
 float nextGridLineWest(float longitudeDegrees);       // Griduino.ino
 void calcLocator(char* result, double lat, double lon, int precision); // Griduino.ino
-double calcDistanceLat(double fromLat, double toLat); // Griduino.ino
-double calcDistanceLong(double lat, double fromLong, double toLong);  // Griduino.ino
 void setFontSize(int font);                    // Griduino.ino
 void clearScreen();                         // Griduino.ino
 
@@ -77,13 +75,13 @@ void testCalcLocator(const char* sExpected, double lat, double lon) {
 // Testing "distance helper" routines in Griduino.cpp
 void testDistanceLat(double expected, double fromLat, double toLat) {
   // unit test helper function to calculate N-S distances
-  double distance = calcDistanceLat(fromLat, toLat);
+  double distance = model->calcDistanceLat(fromLat, toLat);
   Serial.print("N-S Distance Test: expected = "); Serial.print(expected,2);
   Serial.print(", result = "); Serial.println(distance, 4);
 }
 void testDistanceLong(double expected, double lat, double fromLong, double toLong) {
   // unit test helper function to calculate E-W distances
-  double result = calcDistanceLong(lat, fromLong, toLong);
+  double result = model->calcDistanceLong(lat, fromLong, toLong);
   Serial.print("E-W Distance Test: expected = "); Serial.print(expected,2);
   Serial.print(", result = "); Serial.print(result,2);
   if ((expected/1.01)<=result && result <= (expected*1.01)) {
@@ -318,10 +316,10 @@ void verifyBreadCrumbTrail2() {
   txtTest.print();
 
   model->clearHistory();
-  generateSineWave(&model);        // fill GPS model with known test data
+  generateSineWave(model);        // fill GPS model with known test data
 
   Serial.println(". History as known by verifyBreadCrumbTrail2()...");
-  model->dumpHistory();            // did it remember? (go review serial console)
+  model->dumpHistory();           // did it remember? (go review serial console)
   updateGridScreen();             // does it look like a sine wave? (go look at TFT display)
 }
 // =============================================================

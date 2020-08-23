@@ -9,22 +9,20 @@
 */
 
 #include <Arduino.h>
-#include <Adafruit_GPS.h>         // Ultimate GPS library
+#include <Adafruit_GPS.h>           // Ultimate GPS library
 #include "constants.h"              // Griduino constants and colors
 #include "save_restore.h"           // Configuration data in nonvolatile RAM
 
-// ========== extern ==================================
+// ========== extern ===========================================
 extern Adafruit_GPS GPS;
 void calcLocator(char* result, double lat, double lon, int precision); // Griduino.ino
-double calcDistanceLat(double fromLat, double toLat);   // Griduino.ino
-double calcDistanceLong(double lat, double fromLong, double toLong);  // Griduino.ino
 float nextGridLineEast(float longitudeDegrees);
 float nextGridLineWest(float longitudeDegrees);
 float nextGridLineSouth(float latitudeDegrees);
 void floatToCharArray(char* result, int maxlen, double fValue, int decimalPlaces);  // Griduino.ino
 bool isVisibleDistance(const PointGPS from, const PointGPS to); // view_grid.cpp
 
-// ========== constants =======================
+// ========== constants ========================================
 // These initial values are displayed until GPS gets comes up with better info.
 
 #define INIT_GRID6 "CN77tt";   // initialize to a nearby grid for demo but not
@@ -41,6 +39,7 @@ class Model {
     uint8_t gSatellites = 0;          // number of satellites in use
     float  gSpeed = 0.0;              // current speed over ground in MPH
     float  gAngle = 0.0;              // direction of travel, degrees from true north
+    bool   gMetric = false;           // distance reported in miles(false), kilometers(true)
 
     Location history[600];            // remember a list of GPS coordinates
     int nextHistoryItem = 0;          // index of next item to write
@@ -57,13 +56,21 @@ class Model {
     // Constructor - create and initialize member variables
     Model() { }
 
+    // Setters
+    void setMiles() {
+      gMetric = false;
+    }
+    void setKilometers() {
+      gMetric = true;
+    }
+
     // save current GPS state to non-volatile memory
     const char MODEL_FILE[25] = "/Griduino/gpsmodel.cfg";  // CONFIG_FOLDER
-    const char MODEL_VERS[15] = "GPS Model v02";
+    const char MODEL_VERS[15] = "GPS Model v03";
     int save() {
       SaveRestore sdram(MODEL_FILE, MODEL_VERS);
       if (sdram.writeConfig( (byte*) this, sizeof(Model))) {
-        Serial.println("Success, GPS Model stored to SDRAM");
+        //Serial.println("Success, GPS Model stored to SDRAM");
       } else {
         Serial.println("ERROR! Failed to save GPS Model object to SDRAM");
         return 0;     // return failure
@@ -100,6 +107,7 @@ class Model {
       gSatellites = 0;                // assume no satellites yet
       gSpeed = 0.0;                   // assume speed unknown
       gAngle = 0.0;                   // assume direction of travel unknown
+      gMetric = from.gMetric;         // distance report in miles/kilometers
 
       for (int ii=0; ii<numHistory; ii++) {
         history[ii] = from.history[ii];
@@ -237,6 +245,7 @@ class Model {
       //strncpy(gsLongitude, sizeof(gsLongitude), INIT_LONG);
     }
 
+    //=========== time helpers =================================
     // Did the GPS report a valid date?
     bool isDateValid(int yy, int mm, int dd) {
       if (yy < 19) {
@@ -302,6 +311,35 @@ class Model {
       int ss = GPS.seconds;
       snprintf(result, 25, "%04d-%02d-%02d  %02d:%02d:%02d",
                             yy,  mo,  dd,  hh,  mm,  ss);
+    }
+
+    //=========== distance helpers =============================
+    double calcDistanceLat(double fromLat, double toLat) {
+      // calculate distance in N-S direction (miles)
+      // returns 4-character String
+
+      double R = 3958.8;                  // average Earth radius (kilometers)
+      if (gMetric) {
+        R = 6371.0;                       // average Earth radius (miles)
+      }
+      double angleDegrees = fabs(fromLat - toLat);
+      double angleRadians = angleDegrees / degreesPerRadian;
+      double distance = angleRadians * R;
+      return distance;
+    }
+    double calcDistanceLong(double lat, double fromLong, double toLong) {
+      // calculate distance in E-W direction (degrees)
+      // returns 4-character String (miles)
+
+      double R = 3958.8;                  // average Earth radius (miles)
+      if (gMetric) {
+        R = 6371.0;                       // average Earth radius (kilometers)
+      }
+      double scaleFactor = fabs(cos(lat / degreesPerRadian)); // grids are narrower as you move from equator to north/south pole
+      double angleDegrees = fabs(fromLong - toLong);
+      double angleRadians = angleDegrees / degreesPerRadian * scaleFactor;
+      double distance = angleRadians * R;
+      return distance;
     }
 
   private:

@@ -52,6 +52,7 @@ extern void getDate(char* result, int maxlen);  // model.cpp
 void setFontSize(int font);         // Griduino.ino
 int getOffsetToCenterTextOnButton(String text, int leftEdge, int width ); // Griduino.ino
 void drawAllIcons();                // draw gear (settings) and arrow (next screen) // Griduino.ino
+void showScreenBorder();            // optionally outline visible area
 
 // ========== forward reference ================================
 void timePlus();
@@ -224,11 +225,8 @@ void startTimeScreen() {
   txtClock[0].setBackground(cBACKGROUND);               // set background for all TextFields in this view
   TextField::setTextDirty( txtClock, numClockFields );  // make sure all fields get re-printed on screen change
 
-  #ifdef SHOW_SCREEN_BORDER
-    tft.drawRect(0, 0, gScreenWidth, gScreenHeight, ILI9341_BLUE);  // debug: border around screen
-  #endif
-
   drawAllIcons();                   // draw gear (settings) and arrow (next screen)
+  showScreenBorder();               // optionally outline visible area
 
   // ----- draw page title
   setFontSize(eFONTSYSTEM);

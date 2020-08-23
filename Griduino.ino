@@ -18,6 +18,7 @@
   2020-07-06  v0.18 runtime selection of GPS receiver vs simulated trail
   2020-08-14  v0.20 add icons for gear, arrow
   2020-08-20  v0.21 fix audio volume set-save-restore bug
+  2020-08-23  v0.22 add setting to show distance in miles/kilometers
 
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
@@ -213,7 +214,6 @@ int gWordsPerMinute = 18;     // initial Morse code sending speed
 
 // ------------ definitions
 const int howLongToWait = 6;  // max number of seconds at startup waiting for Serial port to console
-const int gNumViews = 5;      // total number of different views (screens) we've implemented
 int gViewIndex = 0;           // selects which view to show first
                               // init to a safe value, override in setup()
                               // todo: save/restore the selected screen for power loss
@@ -261,9 +261,13 @@ void updateHelpScreen();                // view_help.cpp
 void startHelpScreen();
 bool onTouchHelp(Point touch);
 
-void updateSettingsScreen();            // view_settings.cpp
-void startSettingsScreen();
-bool onTouchSettings(Point touch);
+void updateSettings2Screen();            // view_settings2.cpp
+void startSettings2Screen();
+bool onTouchSettings2(Point touch);
+
+void updateSettings3Screen();            // view_settings2.cpp
+void startSettings3Screen();
+bool onTouchSettings3(Point touch);
 
 // 2. Helper Functions
 // ============== touchscreen helpers ==========================
@@ -417,6 +421,13 @@ void drawAllIcons() {
   //             ul x,y                     w,h   color
   tft.drawBitmap(   5,5, iconGear20,       20,20, cTEXTFAINT);  // "settings" upper left
   tft.drawBitmap( 300,5, iconRightArrow18, 14,18, cTEXTFAINT);  // "next screen" upper right
+}
+
+void showScreenBorder() {
+  // optionally outline the display hardware visible border
+  #ifdef SHOW_SCREEN_BORDER
+    tft.drawRect(0, 0, gScreenWidth, gScreenHeight, ILI9341_BLUE);  // debug: border around screen
+  #endif
 }
 
 // ========== font management helpers ==========================
@@ -578,31 +589,6 @@ void waitForSerial(int howLong) {
   }
 }
 
-//=========== distance helpers =================================
-
-double calcDistanceLat(double fromLat, double toLat) {
-  // calculate distance in N-S direction (miles)
-  // returns 4-character String
-
-  const double R = 3958.8;            // average Earth radius (miles)
-  double angleDegrees = fabs(fromLat - toLat);
-  double angleRadians = angleDegrees / degreesPerRadian;
-  double distance = angleRadians * R;
-  return distance;
-}
-double calcDistanceLong(double lat, double fromLong, double toLong) {
-  // calculate distance in E-W direction (degrees)
-  // returns 4-character String (miles)
-
-  const double R = 3958.8;             // average Earth radius (miles)
-  const double degreesPerRadian = 57.2957795; // conversion factor
-  double scaleFactor = fabs(cos(lat / degreesPerRadian)); // grids are narrower as you move from equator to north/south pole
-  double angleDegrees = fabs(fromLong - toLong);
-  double angleRadians = angleDegrees / degreesPerRadian * scaleFactor;
-  double distance = angleRadians * R;
-  return distance;
-}
-
 //==============================================================
 //
 //      Model
@@ -678,7 +664,8 @@ enum {
   TIME_VIEW,
   VOLUME_VIEW,
   //VOLUME2_VIEW,
-  SETTING_VIEW,
+  SETTING2_VIEW,
+  SETTING3_VIEW,
   SPLASH_VIEW,
   HELP_VIEW,
   GOTO_SETTINGS,          // command the state machine to show control panel
@@ -692,7 +679,8 @@ void (*gaUpdateView[])() = {
     updateTimeScreen,
     updateVolumeScreen,
     //updateVolume2Screen,
-    updateSettingsScreen,
+    updateSettings2Screen,
+    updateSettings3Screen,
     updateSplashScreen,
     updateHelpScreen,
 };
@@ -702,7 +690,8 @@ void (*gaStartView[])() = {
     startTimeScreen,
     startVolumeScreen,
     //startVolume2Screen,
-    startSettingsScreen,
+    startSettings2Screen,
+    startSettings3Screen,
     startSplashScreen,
     startHelpScreen,
 };
@@ -712,7 +701,8 @@ bool (*gaOnTouch[])(Point touch) = {
     onTouchTime,
     onTouchVolume,
     //onTouchVolume2,
-    onTouchSettings,
+    onTouchSettings2,
+    onTouchSettings3,
     onTouchSplash,
     onTouchHelp,
 };
@@ -731,9 +721,10 @@ void selectNewView(int cmd) {
   } else {
     // operator requested the next settings view
     switch (gViewIndex) {
-      case VOLUME_VIEW:  nextView = SETTING_VIEW; break;
-      //se VOLUME2_VIEW:  nextView = SETTING_VIEW; break;
-      case SETTING_VIEW: nextView = VOLUME_VIEW; break;
+      case VOLUME_VIEW:  nextView = SETTING2_VIEW; break;
+      //se VOLUME2_VIEW:  nextView = SETTING2_VIEW; break;
+      case SETTING2_VIEW: nextView = SETTING3_VIEW; break;
+      case SETTING3_VIEW: nextView = VOLUME_VIEW; break;
       // none of above: we must be showing some normal user view, so go to the first settings view
       default:           nextView = VOLUME_VIEW; break;
     }
@@ -981,13 +972,13 @@ void loop() {
 
     if (!touchHandled) {
       // not handled by one of the views, so run our default action
-      if (touch.y < gScreenHeight / 2) {
+      if (touch.y < gScreenHeight * 1 / 4) {
         if (touch.x < gScreenWidth / 3) {
           selectNewView(GOTO_SETTINGS);   // advance to next settings view
         } else {
           selectNewView(GOTO_NEXT_VIEW);  // advance to next normal user view
         }
-      } else {
+      } else if (touch.y > gScreenHeight *3 / 4) {
         adjustBrightness();               // change brightness
       }
     }

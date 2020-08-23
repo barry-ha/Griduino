@@ -3,7 +3,7 @@
 
 // ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE   "Griduino"
-#define PROGRAM_VERSION "v0.21"
+#define PROGRAM_VERSION "v0.22"
 #define PROGRAM_LINE1   "Barry K7BWH"
 #define PROGRAM_LINE2   "John KM7O"
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
@@ -20,9 +20,9 @@
 const float gridWidthDegrees = 2.0; // size of one grid square, degrees
 const float gridHeightDegrees = 1.0;
 
-#define feetPerMeters 3.28084
+#define feetPerMeters 3.28084       // altitude conversion
 #define mphPerKnots   1.15078
-const double degreesPerRadian = 57.2957795;
+const double degreesPerRadian = 57.2957795; // conversion factor = (360 degrees)/(2 pi radians)
 
 // ------- Select testing features ---------
 //#define RUN_UNIT_TESTS            // comment out to save boot-up time

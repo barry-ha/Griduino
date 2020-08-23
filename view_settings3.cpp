@@ -1,24 +1,24 @@
 /*
-  File: view_settings.cpp
+  File: view_settings3.cpp
 
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
 
   Purpose:  This is the 'control panel' for one-time Griduino setup.
-            Since it's NOT intended for a driver in motion, we use a
-            much smaller font and cram more stuff onto the screen.
+            Since it's NOT intended for a driver in motion, we can use
+            a smaller font and put a little more stuff onto the screen.
 
             +-----------------------------------+
-            | Settings                          |
+            |              Settings 3           |
             |                                   |
-            | Breadcrumb trail    [ Clear ]     |
-            | 123 of 6000                       |
+            | Distance      (o)[ Miles        ] |
+            |               ( )[ Kilometers   ] |
             |                                   |
-            | Route         (o)[ GPS Receiver ] |
-            |                  [  Simulator   ] |
             |                                   |
-            | Version 0.21                      |
-            |     Compiled Aug 18 2020  19:32   |
+            |                                   |
+            |                                   |
+            | Version 0.22                      |
+            |     Compiled Aug 21 2020  08:58   |
             +-----------------------------------+
 */
 
@@ -32,135 +32,99 @@
 extern Adafruit_ILI9341 tft;        // Griduino.ino
 extern Model* model;                // "model" portion of model-view-controller
 
-void fSetReceiver();                // Griduino.ino
-void fSetSimulated();               // Griduino.ino
-int fGetDataSource();               // Griduino.ino
 void setFontSize(int font);         // Griduino.ino
 int getOffsetToCenterTextOnButton(String text, int leftEdge, int width ); // Griduino.ino
 void drawAllIcons();                // draw gear (settings) and arrow (next screen) // Griduino.ino
+void showScreenBorder();            // optionally outline visible area
 
 // ========== forward reference ================================
-void fClear();
-void fReceiver();
-void fSimulated();
-void fFactoryReset();
 
 // ============== constants ====================================
-// vertical placement of text rows
-const int yRow1 = 70;             // "Breadcrumb trail", "Clear"
-const int yRow2 = yRow1 + 20;     // "%d of %d"
-const int yRow3 = yRow2 + 50;     // "Route", "GPS Receiver"
-const int yRow4 = yRow3 + 38;     // "Simulator"
-const int yRow9 = 234;            // text: "v0.21, Aug 18 2020 12:34:56"
+// vertical placement of text rows   ---label---         ---button---
+const int yRow1 = 70;             // "Distance",         "Miles"
+const int yRow2 = yRow1 + 50;     //                     "Kilometers"
+const int yRow9 = 234;            // "v0.22, Aug 21 2020 45:67:89"
 
 // color scheme: see constants.h
 #define col1 10                   // left-adjusted column of text
 #define xButton 160               // indented column of buttons
 
 // ========== globals ==========================================
-enum txtSettings {
+enum txtSettings3 {
   SETTINGS=0, 
-  TRAIL,   TRAILCOUNT,
-  GPSTYPE, /*RECEIVER, SIMULATED,*/
   COMPILED,
 };
-TextField txtSettings[] = {
+TextField txtSettings3[] = {
   //        text                  x, y     color
-  TextField("Settings 2",      col1, 20,   cHIGHLIGHT, ALIGNCENTER),// [SETTINGS]
-  TextField("Breadcrumb trail",col1,yRow1, cVALUE),                 // [TRAIL]
-  TextField(   "%d crumbs",    col1,yRow2, cLABEL),                 // [TRAILCOUNT]
-  TextField("Route",           col1,yRow3, cVALUE),                 // [GPSTYPE]
-  //TextField("All settings",  col1,200,   cVALUE),                 // [GPSTYPE]
+  TextField("Settings 3",      col1, 20,   cHIGHLIGHT, ALIGNCENTER),// [SETTINGS]
+  TextField("Distance",        col1,yRow1, cVALUE),                 // 
   TextField(PROGRAM_VERSION ", " PROGRAM_COMPILED, 
                                col1,yRow9, cLABEL, ALIGNCENTER),    // [COMPILED]
 };
-const int numSettingsFields = sizeof(txtSettings)/sizeof(txtSettings[0]);
-
-enum buttonID {
-  eCLEAR,
-  eRECEIVER,
-  eSIMULATOR,
-  eFACTORYRESET,
-};
-TimeButton settingsButtons[] = {
-  // label             origin         size      touch-target     
-  // text                x,y           w,h      x,y      w,h  radius  color   function
-  {"Clear",        xButton,yRow1-20, 130,30, {140, 20, 180,50},  4,  cVALUE,  fClear    },   // [eCLEAR] Clear track history
-  {"GPS Receiver", xButton,yRow3-20, 130,30, {138, 84, 180,46},  4,  cVALUE,  fReceiver },   // [eRECEIVER] Satellite receiver
-  {"Simulator",    xButton,yRow4-20, 130,30, {140,130, 180,47},  4,  cVALUE,  fSimulated},   // [eSIMULATOR] Simulated track
-  //{"Factory Reset",xButton,180, 130,30, {138,174, 180,50},  4,  cVALUE,  fFactoryReset},// [eFACTORYRESET] Factory Reset
-};
-const int nSettingsButtons = sizeof(settingsButtons)/sizeof(settingsButtons[0]);
+const int numSettingsFields = sizeof(txtSettings3)/sizeof(txtSettings3[0]);
 
 // ========== settings helpers =================================
-void fClear() {
-  Serial.println("->->-> Clicked CLEAR button.");
-  model->clearHistory();
-  model->save();
+void fMiles() {
+  Serial.println("->->-> Clicked DISTANCE MILES button.");
+  model->setMiles();
 }
-void fReceiver() {
-  // todo: select GPS receiver data
-  Serial.println("->->-> Clicked GPS RECEIVER button.");
-  fSetReceiver();       // use "class Model" for GPS receiver hardware
+void fKilometers() {
+  Serial.println("->->-> Clicked DISTANCE KILOMETERS button.");
+  model->setKilometers();
 }
-void fSimulated() {
-  // todo: simulate satellite track
-  Serial.println("->->-> Clicked GPS SIMULATOR button.");
-  fSetSimulated();      // use "class MockModel" for simulated track
-}
-void fFactoryReset() {
-  // todo: simulate satellite track
-  Serial.println("->->-> Clicked FACTORY RESET button.");
-}
+
+enum buttonID {
+  eMILES = 0,
+  eKILOMETERS,
+};
+TimeButton settings3Buttons[] = {
+  // label             origin         size      touch-target     
+  // text                x,y           w,h      x,y      w,h  radius  color   function
+  {"Miles",        xButton,yRow1-26, 130,40, {130, 30, 180,60},  4,  cVALUE,  fMiles      },   // [eMILES] set units English
+  {"Kilometers",   xButton,yRow2-26, 130,40, {130, 90, 180,60},  4,  cVALUE,  fKilometers },   // [eKILOMETERS] set units Metric
+};
+const int nSettingsButtons = sizeof(settings3Buttons)/sizeof(settings3Buttons[0]);
 
 // ========== settings screen view =============================
-void updateSettingsScreen() {
+void updateSettings3Screen() {
   // called on every pass through main()
 
-  // ----- fill in replacment string text
-  char temp[100];
-  snprintf(temp, sizeof(temp), "%d of %d", model->getHistoryCount(), model->numHistory );
-  txtSettings[TRAILCOUNT].print(temp);
-
   // ----- show selected radio buttons by filling in the circle
-  for (int ii=eRECEIVER; ii<=eSIMULATOR; ii++) {
-    TimeButton item = settingsButtons[ii];
+  for (int ii=eMILES; ii<=eKILOMETERS; ii++) {
+    TimeButton item = settings3Buttons[ii];
     int xCenter = item.x - 16;
     int yCenter = item.y + (item.h/2);
     int buttonFillColor = cBACKGROUND;
 
-    if (ii==eRECEIVER && fGetDataSource()==eGPSRECEIVER) {
+    if (ii==eMILES && !model->gMetric) {
       buttonFillColor = cLABEL;
     } 
-    if (ii==eSIMULATOR && fGetDataSource()==eGPSSIMULATOR) {
+    if (ii==eKILOMETERS && model->gMetric) {
       buttonFillColor = cLABEL;
     }
     tft.fillCircle(xCenter, yCenter, 4, buttonFillColor);
   }
 
 }
-void startSettingsScreen() {
+void startSettings3Screen() {
   // called once each time this view becomes active
   tft.fillScreen(cBACKGROUND);      // clear screen
-  txtSettings[0].setBackground(cBACKGROUND);                  // set background for all TextFields in this view
-  TextField::setTextDirty( txtSettings, numSettingsFields );  // make sure all fields get re-printed on screen change
+  txtSettings3[0].setBackground(cBACKGROUND);                  // set background for all TextFields in this view
+  TextField::setTextDirty( txtSettings3, numSettingsFields );  // make sure all fields get re-printed on screen change
   setFontSize(eFONTSMALLEST);
 
-  #ifdef SHOW_SCREEN_BORDER
-    tft.drawRect(0, 0, gScreenWidth, gScreenHeight, ILI9341_BLUE);  // debug: border around screen
-  #endif
-
   drawAllIcons();                   // draw gear (settings) and arrow (next screen)
+  showScreenBorder();               // optionally outline visible area
 
   // ----- draw text fields
   for (int ii=0; ii<numSettingsFields; ii++) {
-      txtSettings[ii].print();
+      txtSettings3[ii].print();
   }
 
   // ----- draw buttons
   setFontSize(eFONTSMALLEST);
   for (int ii=0; ii<nSettingsButtons; ii++) {
-    TimeButton item = settingsButtons[ii];
+    TimeButton item = settings3Buttons[ii];
     tft.fillRoundRect(item.x, item.y, item.w, item.h, item.radius, cBUTTONFILL);
     tft.drawRoundRect(item.x, item.y, item.w, item.h, item.radius, cBUTTONOUTLINE);
 
@@ -178,30 +142,33 @@ void startSettingsScreen() {
   }
 
   // ----- show outlines of radio buttons
-  for (int ii=eRECEIVER; ii<=eSIMULATOR; ii++) {
-    TimeButton item = settingsButtons[ii];
+  for (int ii=eMILES; ii<=eKILOMETERS; ii++) {
+    TimeButton item = settings3Buttons[ii];
     int xCenter = item.x - 16;
     int yCenter = item.y + (item.h/2);
 
     // outline the radio button
-    // the active button will be indicated in updateSettingsScreen()
+    // the active button will be indicated in updateSettings3Screen()
     tft.drawCircle(xCenter, yCenter, 7, cVALUE);
   }
 
-  updateSettingsScreen();             // fill in values immediately, don't wait for the main loop to eventually get around to it
+  updateSettings3Screen();             // fill in values immediately, don't wait for the main loop to eventually get around to it
 
   // debug: show centerline on display
+  //                        x1,y1            x2,y2            color
   //tft.drawLine(tft.width()/2,0, tft.width()/2,tft.height(), cWARN); // debug
 }
-bool onTouchSettings(Point touch) {
+bool onTouchSettings3(Point touch) {
   Serial.println("->->-> Touched settings screen.");
   bool handled = false;             // assume a touch target was not hit
   for (int ii=0; ii<nSettingsButtons; ii++) {
-    TimeButton item = settingsButtons[ii];
+    TimeButton item = settings3Buttons[ii];
     if (touch.x >= item.x && touch.x <= item.x+item.w
      && touch.y >= item.y && touch.y <= item.y+item.h) {
         handled = true;             // hit!
         item.function();            // do the thing
+        updateSettings3Screen();    // update UI immediately, don't wait for laggy mainline loop
+        model->save();              // after UI is refreshed, run this slow "save to nvr" operation
 
         #ifdef SHOW_TOUCH_TARGETS
           const int radius = 3;     // debug: show where touched

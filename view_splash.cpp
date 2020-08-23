@@ -27,6 +27,7 @@
 extern Adafruit_ILI9341 tft;        // Griduino.ino
 
 void setFontSize(int font);         // Griduino.ino
+void showScreenBorder();            // optionally outline visible area
 
 // ============== constants ====================================
 
@@ -56,9 +57,7 @@ void startSplashScreen() {
 
   setFontSize(24);
 
-  #ifdef SHOW_SCREEN_BORDER
-    tft.drawRect(0, 0, gScreenWidth, gScreenHeight, ILI9341_BLUE);  // debug: border around screen
-  #endif
+  showScreenBorder();               // optionally outline visible area
 
   txtSplash[0].print();        // large program title
 

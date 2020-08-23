@@ -16,7 +16,7 @@
   | 61.2 |          us                 | 37.1 |
   |      |                             |      |
   |   47 +-----------------------------+      |
-  |      :         CN86  39.0 mi       : 123' |...gBottomGridY
+  | 123' :         CN86  39.0 mi       :      |...gBottomGridY
   | 47.5644, -122.0378                 :   5# |...gMessageRowY
   +------:---------:-------------------:------+
          :         :                   :
@@ -38,6 +38,7 @@ float nextGridLineEast(float longitudeDegrees);       // Griduino.ino
 float nextGridLineWest(float longitudeDegrees);       // Griduino.ino
 void floatToCharArray(char* result, int maxlen, double fValue, int decimalPlaces);  // Griduino.ino
 void drawAllIcons();                // draw gear (settings) and arrow (next screen) // Griduino.ino
+void showScreenBorder();            // optionally outline visible area
 
 // ============== constants ====================================
 const int gMarginX = 70;            // define space for grid outline on screen
@@ -46,8 +47,8 @@ const int gMarginY = 26;            // and position text relative to this outlin
 // ========== globals ==========================================
 
 // ========== helpers ==========================================
-const double minLong = gridWidthDegrees / gBoxWidth;
-const double minLat = gridHeightDegrees / gBoxHeight;
+const double minLong = gridWidthDegrees / gBoxWidth;  // longitude degrees from one pixel to the next (minimum visible movement)
+const double minLat = gridHeightDegrees / gBoxHeight; // latitude degrees from one pixel to the next
 
 bool isVisibleDistance(const PointGPS from, const PointGPS to) {
   // has the location moved some minimum amount, enough to be visible?
@@ -79,8 +80,8 @@ TextField txtGrid[] = {
   TextField("CN77",  101,101,  cGRIDNAME),      // GRID4: center of screen
   TextField("tt",    138,141,  cGRIDNAME),      // GRID6: center of screen
   TextField("47.1234,-123.4567", 4,223, cWARN), // LATLONG: left-adj on bottom row
-  TextField("123'",  313,196,  cWARN, ALIGNRIGHT),  // ALTITUDE: just above bottom row
-  TextField("99#",   311,221,  cWARN, ALIGNRIGHT),  // NUMSAT: lower right corner
+  TextField("123'",   62,196,  cWARN, ALIGNRIGHT),  // ALTITUDE: just above bottom row
+  TextField("99#",   313,221,  cWARN, ALIGNRIGHT),  // NUMSAT: lower right corner
   TextField( "N",    156, 47,  cCOMPASS ),      // N_COMPASS: centered left-right
   TextField( "S",    156,181,  cCOMPASS ),      // S_COMPASS
   TextField( "E",    232,114,  cCOMPASS ),      // E_COMPASS: centered top-bottom
@@ -147,8 +148,13 @@ void drawAltitude() {
   setFontSize(0);
 
   char sTemp[8];      // strlen("12345'") = 6
-  int altFeet = model->gAltitude * feetPerMeters;
-  snprintf(sTemp, sizeof(sTemp), "%d'", altFeet);
+  if (model->gMetric) {
+    int altMeters = model->gAltitude;
+    snprintf(sTemp, sizeof(sTemp), "%dm", altMeters);
+  } else {
+    int altFeet = model->gAltitude * feetPerMeters;
+    snprintf(sTemp, sizeof(sTemp), "%d'", altFeet);
+  }
   txtGrid[ALTITUDE].print(sTemp);         // altitude
 }
 
@@ -192,25 +198,25 @@ void drawNeighborGridNames() {
 void drawNeighborDistances() {
   setFontSize(12);
 
-  // N-S: find nearest integer grid lines
-  float fNorth = calcDistanceLat(model->gLatitude, ceil(model->gLatitude));
+  // N-S: grid lines occur on nearest INTEGER degree
+  float fNorth = model->calcDistanceLat(model->gLatitude, ceil(model->gLatitude));
   if (fNorth < 2.0) {
     txtGrid[N_DISTANCE].print( fNorth, 2 );
   } else {
     txtGrid[N_DISTANCE].print( fNorth, 1 );
   }
-  float fSouth = calcDistanceLat(model->gLatitude, floor(model->gLatitude));
+  float fSouth = model->calcDistanceLat(model->gLatitude, floor(model->gLatitude));
   if (fSouth < 2.0) {
     txtGrid[S_DISTANCE].print( fSouth, 2 );
   } else {
     txtGrid[S_DISTANCE].print( fSouth, 1 );
   }
   
-  // E-W: find nearest EVEN numbered grid lines
+  // E-W: grid lines occur on nearest EVEN degrees
   int eastLine = ::nextGridLineEast(model->gLongitude);
   int westLine = ::nextGridLineWest(model->gLongitude);
-  float fEast = calcDistanceLong(model->gLatitude, model->gLongitude, eastLine);
-  float fWest = calcDistanceLong(model->gLatitude, model->gLongitude, westLine);
+  float fEast = model->calcDistanceLong(model->gLatitude, model->gLongitude, eastLine);
+  float fWest = model->calcDistanceLong(model->gLatitude, model->gLongitude, westLine);
   if (fEast < 2.0) {
     txtGrid[E_DISTANCE].print( fEast, 2 );
   } else {
@@ -412,13 +418,13 @@ void startGridScreen() {
   txtGrid[0].setBackground(ILI9341_BLACK);          // set background for all TextFields in this view
   TextField::setTextDirty( txtGrid, numTextGrid );
 
-  double lngMiles = calcDistanceLong(model->gLatitude, 0.0, minLong);
+  double lngMiles = model->calcDistanceLong(model->gLatitude, 0.0, minLong);
   Serial.print("Minimum visible E-W movement x=long="); 
   Serial.print(minLong,6); Serial.print(" degrees = "); 
   Serial.print(lngMiles,2); Serial.println(" miles");
 
   //Serial.print("@fencepost: view_grid.cpp line "); Serial.println(__LINE__);  // debug
-  double latMiles = calcDistanceLat(0.0, minLat);
+  double latMiles = model->calcDistanceLat(0.0, minLat);
   Serial.print("Minimum visible N-S movement y=lat="); 
   Serial.print(minLat,6); Serial.print(" degrees = "); 
   Serial.print(latMiles,2); Serial.println(" miles");
@@ -426,9 +432,7 @@ void startGridScreen() {
   setFontSize(12);
   drawGridOutline();                // box outline around grid
   drawAllIcons();                   // draw gear (settings) and arrow (next screen)
-  #ifdef SHOW_SCREEN_BORDER
-    tft.drawRect(0, 0, gScreenWidth, gScreenHeight, ILI9341_BLUE);  // debug: border around screen
-  #endif
+  showScreenBorder();               // optionally outline visible area
 
   updateGridScreen();               // fill in values immediately, don't wait for the main loop to eventually get around to it
 }

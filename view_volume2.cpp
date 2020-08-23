@@ -44,6 +44,7 @@ extern DS1804 volume;               // digital potentiometer
 void setFontSize(int font);         // Griduino.ino
 int getOffsetToCenterTextOnButton(String text, int leftEdge, int width ); // Griduino.ino
 void drawAllIcons();                // draw gear (settings) and arrow (next screen) // Griduino.ino
+void showScreenBorder();            // optionally outline visible area
 
 // ========== forward reference ================================
 void updateVolume2Screen();
@@ -164,11 +165,8 @@ void startVolume2Screen() {
   TextField::setTextDirty( txtVolume2, numVolFields );     // make sure all fields get re-printed on screen change
   setFontSize(eFONTSMALL);
 
-  #ifdef SHOW_SCREEN_BORDER
-    tft.drawRect(0, 0, gScreenWidth, gScreenHeight, ILI9341_BLUE);  // debug: border around screen
-  #endif
-
   drawAllIcons();                   // draw gear (settings) and arrow (next screen)
+  showScreenBorder();               // optionally outline visible area
 
   // ----- draw text fields
   for (int ii=1; ii<numVolFields; ii++) {       // start at [1], since [0] is a different font size
