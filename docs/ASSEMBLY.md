@@ -40,7 +40,7 @@ This kit is almost entirely "through hole" construction. Only two components, th
 
 * **Ohmmeter.** Use an ohmmeter or VOM (volt-ohm-milliameter) to measure resistors before installation to help ensure you have the right one in the right place.
 
-* **Scosche Magnetic Mount** You'll want a way to mount this in your vehicle within easy view of the driver. The Griduino case can most likely be adapted to almost any popular cellphone mounting system. A particularly convenient and interchangeable system is the **Scosche Magic Mount** product line. It has a magnetic base mounted to the dashboard, and a ferrous plate stuck on the back of a Griduino or cellphone. https://www.scosche.com/
+* **Scosche Magnetic Mount.** You'll want a way to mount this in your vehicle within easy view. The Griduino case can most likely be adapted to almost any popular cellphone mounting system. A particularly convenient and interchangeable system is the **Scosche Magic Mount** product line. It has a magnetic base mounted to the dashboard, and a ferrous plate stuck on the back of a Griduino or cellphone. https://www.scosche.com/
  
 <h2>3. Identifying the Components</h2>
 
@@ -237,15 +237,19 @@ The test points are sized to wedge into their holes up to their shoulders, holdi
 
 <h3>Step 13: Connectors</h3>
 
-Lastly, insert and solder the power connector, speaker jack and 4-pin terminal strip into place. Be sure to orient the terminal strip so its openings face outwards. Most of these connectors extend slightly beyond the edge of the PCB, so they are installed after everything else to avoid interfering with the bench vise hardware.
+Lastly, insert and solder the power connector, speaker jack and 4-pin terminal strip into place. Be sure to orient the terminal strip so its **openings go toward the edge**. Most of these connectors extend slightly beyond the edge of the PCB, so they are installed after everything else to avoid interfering with the bench vise hardware.
 
 ![](img/connectors-img7108.jpg)
 
 <h3>Step 14: Plastic Case</h3>
 
-The Griduino kit comes with a plastic enclosure from <a href="https://www.polycase.com/">Polycase</a> in their QS Series that exactly matches the PCB mounting holes. Other enclosures could probably be used. If you choose something else, avoid metallic cases since they would block the microwave GPS signal.
+The Griduino kit comes with a plastic enclosure from <a href="https://www.polycase.com/">Polycase</a> in their QS-50 Series that exactly matches the PCB mounting holes. Other enclosures could probably be used. If you choose something else, avoid metallic cases since they would block the microwave GPS signal and would need an external antenna.
 
-*Bottom Half:* Screw the PCB onto the bottom half of the case. Use a craft detail knife to notch out a square hole for each of the three connectors (speaker, power, USB connector). The exact size depends on your particular cable that you choose to use.  For sake of sizing the hole, find a USB cable that has the largest connector available. 
+You can buy an active external antenna for this GPS from other vendors. The GPS has a "uFL" connector so be aware that you may need an [SMA to uFL RF Adapter Cable]([https://www.adafruit.com/product/851), depending on your choice of antenna.
+
+*Bottom Half:* Temporarily position the PCB in the Polycase cover. Check for interference and use a craft detail knife to notch out holes for each of the three connectors (speaker, power, USB connector). The exact size depends on your particular cable that you choose to use.  For sake of sizing the USB hole, find a USB cable that has the largest connector available. 
+
+Screw the PCB onto the case's mounting posts, being careful to *not* overtighten the screws. These are small screws and can be easily stripped.
 
 *Top Half:* There are at least three choices for the top cover.
 
@@ -258,11 +262,11 @@ The Griduino kit comes with a plastic enclosure from <a href="https://www.polyca
 
 You can connect a small 8-ohm or 4-ohm speaker to the stereo plugin jack or to the screw terminal strip.
 
-Note that both the speaker jack and speaker plug must be standard stereo connectors. (Do not use a mono plug: it will result in muted or very low volume.) However, this kit can only generate a single audio channel and it is connected to both sides of the stereo jack.
+Note the speaker *plug* must be a standard stereo connector. The correct plug is included in the kit. Do not use a mono plug: it will result in muted or very low volume. However, this kit only generates a single audio channel which is connected to both sides of the stereo jack.
 
-If you have a speaker wired to the 4-screw terminal strip, it will automatically be disconnected when you plug something in to the audio speaker jack.
+If you insert a speaker plug into the jack, it will automatically disconnect the hardwired speaker. It can be handy to jam in a plug to quickly silence an internal speaker during testing.
 
-For a good audio quality speaker and sufficient volume to fill a car and overcome road noise, Adafruit part number 3351 is recommended. This small speaker can be glued to the back of Griduino case. 
+If you're looking for a good audio quality speaker with sufficient volume to fill a car and overcome road noise, Adafruit [part number 3351](https://www.adafruit.com/product/3351) is recommended. This small speaker can be glued to the back of the Griduino case, although it's relatively large so you might try alternatives. 
 
 Note that increased audio volume is available when powering the Griduino from a car’s electrical system with 10-15 vdc, compared to powering it from the 5v USB connector.
 
@@ -292,8 +296,7 @@ Connect a micro-USB cable to the Feather M4 Express connector. If this is a fact
 
 <h2>7. Programming the Griduino GPS</h2>
 
-
-To load the Griduino programming onto your device, please refer to latest documentation on GitHub: 
+To load the Griduino programming onto your device, please see the latest documentation on GitHub: 
 
 https://github.com/barry-ha/Griduino
 
@@ -301,7 +304,7 @@ The [docs/PROGRAMMING.md](https://github.com/barry-ha/Griduino/blob/master/docs/
 
 The Griduino hardware platform offers a great deal of capability with a bright colorful display, powerful cpu, GPS receiver, barometric sensor, and a digital audio channel. We hope you invent fun and useful new things for it to do.
 
-You may find the "examples" folder useful. It contains a variety of smaller programs that were used to develop certain concepts and check out features. For example, the barograph display can be a handy desktop application, showing the last 48 hours of barometric pressure and 1-hour and 3-hour trends.
+You may find the "examples" folder useful. It contains a variety of smaller programs that were used to develop certain concepts and check out features. For example, the barograph display can be a handy desktop application, showing a few days of barometric pressure history.
 
 <h2>8. Using the Griduino GPS</h2>
 

@@ -52,28 +52,28 @@ Touch Screen: There is a pressure-sensitive layer on top of the glass. We chose 
 Data Screens: Griduino v0.10 will display these screens.
 
 1. Power-up animation (one time only)<br/>
-![](hardware/img/view-anim-img7044.jpg)
+![](docs/img/view-anim-img7044.jpg)
 
 2. Credits screen (one time only)<br/>
-![](hardware/img/view-credits-img7045.jpg)
+![](docs/img/view-credits-img7045.jpg)
 
 3. Help screen (one time only)<br/>
-![](hardware/img/view-help-img7111.jpg)
+![](docs/img/view-help-img7111.jpg)
 
 4. Grid location view<br/>
-![](hardware/img/view-grid-img7046.jpg)
+![](docs/img/view-grid-img7046.jpg)
 
 5. Grid details view<br/>
-![](hardware/img/view-detail-img7047.jpg)
+![](docs/img/view-detail-img7047.jpg)
 
 6. GMT clock view<br/>
-![](hardware/img/view-gmt-img7048.jpg)
+![](docs/img/view-gmt-img7048.jpg)
 
 7. Audio volume control<br/>
-![](hardware/img/view-volume-img7049.jpg)
+![](docs/img/view-volume-img7049.jpg)
 
 8. Settings<br/>
-![](hardware/img/view-settings-img7050.jpg)
+![](docs/img/view-settings-img7050.jpg)
 
 
 ## Programming
