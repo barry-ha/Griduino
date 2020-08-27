@@ -39,7 +39,8 @@ class TextField {
   // Example Usage:
   //      Declare     TextField txtItem("Hello", 64,64, ILI9341_GREEN);
   //      Set bkg     txtItem.setBackground(ILI9341_BLACK);
-  //      Force       txtItem.setDirty();
+  //      Force one   txtItem.setDirty();
+  //      Force all   TextField::setDirty(txtItem, count);
   //      Print       txtItem.print();
   //
   // Note about proportional fonts:

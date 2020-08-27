@@ -773,17 +773,17 @@ void sendMorseGrid4(String gridName) {
 }
 
 void showActivityBar(int row, uint16_t foreground, uint16_t background) {
-  static int addDotX = 10;                   // current screen column, 0..319 pixels
+  static int addDotX = 10;                    // current screen column, 0..319 pixels
   static int rmvDotX = 0;
   static int count = 0;
-  const int SCALEF = 32;                     // how much to slow it down so it becomes visible
+  const int SCALEF = 32;                      // how much to slow it down so it becomes visible
 
   count = (count + 1) % SCALEF;
   if (count == 0) {
     addDotX = (addDotX + 1) % gScreenWidth;   // advance
     rmvDotX = (rmvDotX + 1) % gScreenWidth;   // advance
-    tft.drawPixel(addDotX, row, foreground);   // write new
-    tft.drawPixel(rmvDotX, row, background);   // erase old
+    tft.drawPixel(addDotX, row, foreground);  // write new
+    tft.drawPixel(rmvDotX, row, background);  // erase old
   }
 }
 
@@ -791,17 +791,24 @@ void showActivityBar(int row, uint16_t foreground, uint16_t background) {
 void setup() {
 
   // ----- init TFT display
-  tft.begin();                        // initialize TFT display
-  tft.setRotation(SCREEN_ROTATION);   // landscape (default is portrait)
+  tft.begin();                                  // initialize TFT display
+  tft.setRotation(SCREEN_ROTATION);             // 1=landscape (default is 0=portrait)
   clearScreen();
 
+  // ----- init TFT backlight
+  pinMode(TFT_BL, OUTPUT);
+  analogWrite(TFT_BL, 255);           // start at full brightness
+
+  // ----- init touch screen
+  ts.pressureThreshhold = 200;
+
   // ----- init serial monitor
-  Serial.begin(115200);           // init for debuggging in the Arduino IDE
-  waitForSerial(howLongToWait);   // wait for developer to connect debugging console
+  Serial.begin(115200);                               // init for debuggging in the Arduino IDE
+  waitForSerial(howLongToWait);                       // wait for developer to connect debugging console
 
   // now that Serial is ready and connected (or we gave up)...
   Serial.println(PROGRAM_TITLE " " PROGRAM_VERSION);  // Report our program name to console
-  Serial.println("Compiled " __DATE__ " " __TIME__);  // Report our compiled date
+  Serial.println("Compiled " PROGRAM_COMPILED);       // Report our compiled date
   Serial.println(__FILE__);                           // Report our source code file name
 
   #if defined(SAMD_SERIES)
@@ -855,13 +862,6 @@ void setup() {
   // ----- init onboard LED
   pinMode(RED_LED, OUTPUT);           // diagnostics RED LED
   
-  // ----- init TFT backlight
-  pinMode(TFT_BL, OUTPUT);
-  analogWrite(TFT_BL, 255);           // start at full brightness
-
-  // ----- init touch screen
-  ts.pressureThreshhold = 200;
-
   // ----- report on our memory hog
   char temp[200];
   Serial.println("Large resources:");
