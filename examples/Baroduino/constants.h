@@ -52,7 +52,7 @@ enum {
   eFONTSYSTEM   = 0
 };
 
-// ----- color scheme -----
+// ----- color scheme
 // RGB 565 color code: http://www.barth-dev.de/online/rgb565-color-picker/
 #define BACKGROUND      0x00A             // a little darker than ILI9341_NAVY
 #define cBACKGROUND     0x00A             // 0,   0,  10 = darker than ILI9341_NAVY, but not black

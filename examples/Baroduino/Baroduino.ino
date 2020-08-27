@@ -1,16 +1,17 @@
 /*
-  Barograph -- demonstrate BMP388 barometric sensor
+  Baroduino -- demonstrate BMP388 barometric sensor
 
   Date:     2019-20-18 created from example by John KM7O
             2020-03-05 replaced physical button design with touchscreen
             2020-05-12 updated TouchScreen code
             2020-05-18 added NeoPixel control to illustrate technique
-            2020-08-24 completely rewrite user interface
+            2020-08-24 start rewriting user interface
+            2020-08-27 save units (english/metric) in nonvolatile RAM
 
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
 
-  Purpose:  What can you do with a graphing barometer that knows what time it is?
+  Purpose:  What can you do with a graphing barometer that knows the exact time of day?
             This program timestamps each reading and stores it for later.
             It graphs the most recent 3 days. 
             (Todo) It saves the readings in non-volatile memory and re-displays them on power-up.
@@ -22,7 +23,7 @@
             |      |        |        |        | |
             |      |        |        |        | |
             |      |        |        |        | |
-            | 30.0 + - - - - - - - - - - - - -| | <- yMid
+            | 30.0 + - - - - - - - - - - - - -+ | <- yMid
             |      |        |        |        | |
             |      |        |        |        | |
             |      |        |        |        | |
@@ -46,6 +47,7 @@
 #include "constants.h"              // Griduino constants, colors and typedefs
 #include "TouchScreen.h"            // Touchscreen built in to 3.2" Adafruit TFT display
 #include "Adafruit_BMP3XX.h"        // Precision barometric and temperature sensor
+#include "save_restore.h"           // save/restore configuration data to SDRAM
 #include "TextField.h"              // Optimize TFT display text for proportional fonts
 #include "Adafruit_NeoPixel.h"
 
@@ -61,7 +63,11 @@ float maxP = 104000;          // in Pa
 float minP = 98000;           // in Pa
 
 enum units { eMetric, eEnglish };
-int units = eMetric;         // units on startup: 0=english=inches mercury, 1=metric=millibars
+int gUnits = eEnglish;         // units on startup: 0=english=inches mercury, 1=metric=millibars
+
+// ========== forward reference ================================
+int loadConfigUnits();
+void saveConfigUnits();
 
 // ---------- Hardware Wiring ----------
 /* Same as Griduino platform
@@ -133,7 +139,7 @@ class Reading {
 };
 
 // ------------ definitions
-const int howLongToWait = 3;  // max number of seconds at startup waiting for Serial port to console
+const int howLongToWait = 8;  // max number of seconds at startup waiting for Serial port to console
 
 #define FEET_PER_METER 3.28084
 #define SEA_LEVEL_PRESSURE_HPA (1013.25)
@@ -299,6 +305,7 @@ TextField txtReading[] = {
 const int numReadings = sizeof(txtReading) / sizeof(txtReading[0]);
 
 void showReadings(int units) {
+  // todo: is argument 'units' unused? if so, eliminate
   clearScreen();
   txtSplash[0].setBackground(cBACKGROUND);          // set background for all TextFields
   TextField::setTextDirty( txtReading, numReadings ); // make sure all fields are updated
@@ -318,7 +325,7 @@ void printPressure() {
   char* sUnits;
   char inHg[] = "inHg";
   char hPa[] = "hPa";
-  switch (units) {
+  switch (gUnits) {
     case eEnglish:
       fPressure = gPressure / 3386.4;
       sUnits = inHg;
@@ -411,7 +418,7 @@ void drawScale() {
   // write limits of pressure scale in consistent units
   setFontSize(9);
   tft.setTextColor(ILI9341_CYAN);
-  if (units == eEnglish) {
+  if (gUnits == eEnglish) {
     // english: inches mercury (inHg)
     superimposeLabel( MARGIN, yBot - TEXTHEIGHT/3,                 (minP/3386.4), 1);
     superimposeLabel( MARGIN, yBot - graphHeight + TEXTHEIGHT/3,   (maxP/3386.4), 1);
@@ -449,21 +456,22 @@ void drawGraph() {
 }
 
 void adjustUnits() {
-  if (units == eMetric) {
-    units = eEnglish;
+  if (gUnits == eMetric) {
+    gUnits = eEnglish;
   } else {
-    units = eMetric;
+    gUnits = eMetric;
   }
+  saveConfigUnits();     // non-volatile storage
 
   char sInchesHg[] = "inHg";
   char sHectoPa[] = "hPa";
-  switch (units) {
+  switch (gUnits) {
     case eEnglish:
-      Serial.print("Units changed to English: "); Serial.println(units);
+      Serial.print("Units changed to English: "); Serial.println(gUnits);
       txtReading[unitPressure].print( sInchesHg );
       break;
     case eMetric:
-      Serial.print("Units changed to Metric: "); Serial.println(units);
+      Serial.print("Units changed to Metric: "); Serial.println(gUnits);
       txtReading[unitPressure].print( sHectoPa );
       break;
     default:
@@ -473,7 +481,28 @@ void adjustUnits() {
 
   Serial.print(". unitPressure = "); Serial.println( txtReading[unitPressure].text );
   getBaroData();
-  showReadings(units);
+  showReadings(gUnits);
+}
+
+// ========== load/save config setting =========================
+#define UNITS_CONFIG_FILE    CONFIG_FOLDER "/barogrph.cfg"
+#define UNITS_CONFIG_VERSION "Barograph v01"
+
+// ----- load from SDRAM -----
+int loadConfigUnits() {
+  SaveRestore config(UNITS_CONFIG_FILE, UNITS_CONFIG_VERSION);
+  int tempUnitSetting;
+  int result = config.readConfig( (byte*) &tempUnitSetting, sizeof(tempUnitSetting) );
+  if (result) {
+    gUnits = tempUnitSetting;                // set english/metric units
+    Serial.print(". Loaded units setting: "); Serial.println(tempUnitSetting);
+  }
+  return result;
+}
+// ----- save to SDRAM -----
+void saveConfigUnits() {
+  SaveRestore config(UNITS_CONFIG_FILE, UNITS_CONFIG_VERSION);
+  config.writeConfig( (byte*) &gUnits, sizeof(gUnits) );
 }
 
 // ----- console Serial port helper
@@ -491,7 +520,7 @@ void showActivityBar(int row, uint16_t foreground, uint16_t background) {
   static int addDotX = 10;                    // current screen column, 0..319 pixels
   static int rmvDotX = 0;
   static int count = 0;
-  const int SCALEF = 2048;                    // how much to slow it down so it becomes visible
+  const int SCALEF = 64;                      // how much to slow it down so it becomes visible
 
   count = (count + 1) % SCALEF;
   if (count == 0) {
@@ -504,6 +533,21 @@ void showActivityBar(int row, uint16_t foreground, uint16_t background) {
 
 //=========== setup ============================================
 void setup() {
+
+  // ----- init TFT display
+  tft.begin();                                  // initialize TFT display
+  tft.setRotation(SCREEN_ROTATION);             // 1=landscape (default is 0=portrait)
+  clearScreen();
+
+  // ----- init TFT backlight
+  pinMode(TFT_BL, OUTPUT);
+  analogWrite(TFT_BL, 255);           // start at full brightness
+
+  // ----- init Feather M4 onboard lights
+  pixel.begin();
+  pixel.clear();                      // turn off NeoPixel
+  digitalWrite(PIN_LED, LOW);         // turn off little red LED
+  //Serial.println("NeoPixel initialized and turned off");
 
   // ----- init serial monitor
   Serial.begin(115200);                               // init for debuggging in the Arduino IDE
@@ -526,21 +570,13 @@ void setup() {
   GPS.sendCommand(PMTK_SET_NMEA_UPDATE_200_MILLIHERTZ); // Once every 5 seconds update
 
   Serial.print("Last element index = "); Serial.println(lastIndex);
+  if (loadConfigUnits()) {
+    Serial.println("Successfully loaded settings from non-volatile RAM");
+  } else {
+    Serial.println("Failed to load settings, re-initializing config file");
+    saveConfigUnits();
+  }
 
-  // ----- init TFT backlight
-  pinMode(TFT_BL, OUTPUT);
-  analogWrite(TFT_BL, 255);           // start at full brightness
-
-  // ----- init TFT display
-  tft.begin();                        // initialize TFT display
-  tft.setRotation(SCREEN_ROTATION);   // 1=landscape (default is 0=portrait)
-  clearScreen();
-
-  // ----- init Feather M4 onboard lights
-  pixel.begin();
-  pixel.clear();                      // turn off NeoPixel
-  digitalWrite(PIN_LED, LOW);         // turn off little red LED
-  Serial.println("NeoPixel initialized and turned off");
 
   // ----- announce ourselves
   startSplashScreen();
@@ -567,11 +603,11 @@ void setup() {
   // Get first data point (done twice because first reading is always bad)
   getBaroData();
   pressureStack[lastIndex].pressure = gPressure + elevCorr;
-  showReadings(units);
+  showReadings(gUnits);
 
   getBaroData();
   pressureStack[lastIndex].pressure = gPressure + elevCorr;
-  showReadings(units);
+  showReadings(gUnits);
 }
 
 //=========== main work loop ===================================
@@ -592,7 +628,7 @@ void loop() {
   // every 5 minutes acquire/print temp and pressure
   if (millis() - prevTimer1 > READ_BAROMETER_INTERVAL) {
     getBaroData();
-    showReadings(units);
+    showReadings(gUnits);
 
     // every 20 minutes log, display, and graph pressure/delta pressure
     if (millis() - prevTimer2 > LOG_PRESSURE_INTERVAL) {  // 1200000 for 20 minutes
@@ -608,7 +644,7 @@ void loop() {
       //pressureStack[lastIndex].ss = GPS.seconds;  // todo
       
       //calculate pressure change and reprint all to screen
-      showReadings(units);
+      showReadings(gUnits);
       prevTimer2 = millis();
     }
     prevTimer1 = millis();
@@ -628,5 +664,5 @@ void loop() {
 
   // make a small progress bar crawl along bottom edge
   // this gives a sense of how frequently the main loop is executing
-  //showActivityBar(yBot, ILI9341_RED, ILI9341_BLACK);
+  showActivityBar(tft.height()-1, ILI9341_RED, ILI9341_BLACK);
 }
