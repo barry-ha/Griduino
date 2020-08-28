@@ -70,32 +70,19 @@ int loadConfigUnits();
 void saveConfigUnits();
 
 // ---------- Hardware Wiring ----------
-/* Same as Griduino platform
+/* Same as Griduino platform - see constants.h
 */
-
-#if defined(SAMD_SERIES)
-  // Adafruit Feather M4 Express pin definitions
-  // To compile for Feather M0/M4, install "additional boards manager"
-  // https://learn.adafruit.com/adafruit-feather-m4-express-atsamd51/setup
-  
-  #define TFT_BL   4    // TFT backlight
-  #define TFT_CS   5    // TFT chip select pin
-  #define TFT_DC  12    // TFT display/command pin
-  #define BMP_CS  13    // BMP388 sensor, chip select
-
-#elif defined(ARDUINO_AVR_MEGA2560)
-  #define TFT_BL   6    // TFT backlight
-  #define TFT_DC   9    // TFT display/command pin
-  #define TFT_CS  10    // TFT chip select pin
-  #define BMP_CS  13    // BMP388 sensor, chip select
-
-#else
-  #warning You need to define pins for your hardware
-
-#endif
 
 // create an instance of the TFT Display
 Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
+
+// ---------- neopixel
+Adafruit_NeoPixel pixel = Adafruit_NeoPixel(NUMPIXELS, PIN_NEOPIXEL, NEO_GRB + NEO_KHZ800);
+
+const uint32_t colorRed    = pixel.Color(HALFBR, OFF,    OFF);
+const uint32_t colorGreen  = pixel.Color(OFF,    HALFBR, OFF);
+const uint32_t colorBlue   = pixel.Color(OFF,    OFF,    BRIGHT);
+const uint32_t colorPurple = pixel.Color(HALFBR, OFF,    HALFBR);
 
 // ---------- extern
 bool newScreenTap(Point* pPoint, int orientation);  // Touch.cpp
@@ -105,23 +92,6 @@ void mapTouchToScreen(TSPoint touch, Point* screen, int orientation);
 
 // ---------- Barometric and Temperature Sensor
 Adafruit_BMP3XX baro(BMP_CS); // hardware SPI
-
-// ---------- Feather's onboard lights
-//efine PIN_NEOPIXEL 8      // already defined in Feather's board variant.h
-//efine PIN_LED 13          // already defined in Feather's board variant.h
-
-#define NUMPIXELS 1         // Feather M4 has one NeoPixel on board
-Adafruit_NeoPixel pixel = Adafruit_NeoPixel(NUMPIXELS, PIN_NEOPIXEL, NEO_GRB + NEO_KHZ800);
-
-const int MAXBRIGHT = 255;    // = 100% brightness = maximum allowed on individual LED
-const int BRIGHT = 32;        // = tolerably bright indoors
-const int HALFBR = 20;        // = half of tolerably bright
-const int OFF = 0;            // = turned off
-
-const uint32_t colorRed    = pixel.Color(HALFBR, OFF,    OFF);
-const uint32_t colorGreen  = pixel.Color(OFF,    HALFBR, OFF);
-const uint32_t colorBlue   = pixel.Color(OFF,    OFF,    BRIGHT);
-const uint32_t colorPurple = pixel.Color(HALFBR, OFF,    HALFBR);
 
 // ---------- GPS ----------
 /* "Ultimate GPS" pin wiring is connected to a dedicated hardware serial port
@@ -150,7 +120,7 @@ const int howLongToWait = 8;  // max number of seconds at startup waiting for Se
 
 // ----- color scheme -----
 // RGB 565 color code: http://www.barth-dev.de/online/rgb565-color-picker/
-#define cSCALECOLOR     ILI9341_YELLOW
+#define cSCALECOLOR     ILI9341_DARKGREEN // tried ILI9341_YELLOW but it's too bright
 #define cGRAPHCOLOR     ILI9341_WHITE     // graphed line of baro pressure
 #define cICON           ILI9341_CYAN
 #define cTITLE          ILI9341_GREEN     
@@ -488,7 +458,6 @@ void adjustUnits() {
 #define UNITS_CONFIG_FILE    CONFIG_FOLDER "/barogrph.cfg"
 #define UNITS_CONFIG_VERSION "Barograph v01"
 
-// ----- load from SDRAM -----
 int loadConfigUnits() {
   SaveRestore config(UNITS_CONFIG_FILE, UNITS_CONFIG_VERSION);
   int tempUnitSetting;
@@ -499,10 +468,39 @@ int loadConfigUnits() {
   }
   return result;
 }
-// ----- save to SDRAM -----
+
 void saveConfigUnits() {
   SaveRestore config(UNITS_CONFIG_FILE, UNITS_CONFIG_VERSION);
   config.writeConfig( (byte*) &gUnits, sizeof(gUnits) );
+}
+
+// ========== load/save barometer pressure readings ============
+#define PRESSURE_HISTORY_FILE     CONFIG_FOLDER "/barometr.dat"
+#define PRESSURE_HISTORY_VERSION  "Pressure v01"
+
+int loadPressureHistory() {
+  SaveRestore history(PRESSURE_HISTORY_FILE, PRESSURE_HISTORY_VERSION);
+  Reading tempStack[maxReadings] = {};      // array to hold pressure data, fill with zeros
+  int result = history.readConfig( (byte*) &tempStack, sizeof(tempStack) );
+  if (result) {
+    int numNonZero = 0;
+    for (int ii=0; ii<maxReadings; ii++) {
+      pressureStack[ii] = tempStack[ii];
+      if (pressureStack[ii].pressure > 0) {
+        numNonZero++;
+      }
+    }
+    
+    Serial.print(". Loaded barometric pressure history file, ");
+    Serial.print(numNonZero);
+    Serial.println(" readings found");
+  }
+  return result;
+}
+
+void savePressureHistory() {
+  SaveRestore history(PRESSURE_HISTORY_FILE, PRESSURE_HISTORY_VERSION);
+  history.writeConfig( (byte*) &pressureStack, sizeof(pressureStack) );
 }
 
 // ----- console Serial port helper
@@ -570,6 +568,8 @@ void setup() {
   GPS.sendCommand(PMTK_SET_NMEA_UPDATE_200_MILLIHERTZ); // Once every 5 seconds update
 
   Serial.print("Last element index = "); Serial.println(lastIndex);
+
+  // ----- restore settings
   if (loadConfigUnits()) {
     Serial.println("Successfully loaded settings from non-volatile RAM");
   } else {
@@ -577,6 +577,13 @@ void setup() {
     saveConfigUnits();
   }
 
+  // ----- restore pressure history
+  if (loadPressureHistory()) {
+    Serial.println("Successfully restored barometric pressure history");
+  } else {
+    Serial.println("Failed to load barometric pressure history, re-initializing config file");
+    savePressureHistory();
+  }
 
   // ----- announce ourselves
   startSplashScreen();
@@ -616,8 +623,8 @@ void setup() {
 uint32_t prevTimer1 = millis();    // timer for value update (5 min)
 uint32_t prevTimer2 = millis();    // timer for graph/array update (20 min)
 
-const int READ_BAROMETER_INTERVAL = 5*60*1000;  // Timer 1
-const int LOG_PRESSURE_INTERVAL = 20*60*1000;   // Timer 2
+const int READ_BAROMETER_INTERVAL = 5*60*1000;  // Timer 1 =  5 minutes
+const int LOG_PRESSURE_INTERVAL = 20*60*1000;   // Timer 2 = 20 minutes
 
 void loop() {
 
@@ -632,6 +639,8 @@ void loop() {
 
     // every 20 minutes log, display, and graph pressure/delta pressure
     if (millis() - prevTimer2 > LOG_PRESSURE_INTERVAL) {  // 1200000 for 20 minutes
+      prevTimer2 = millis();
+
       //shift array left
       int i = 0;
       for (i = 0; i < lastIndex; i++) {
@@ -643,9 +652,12 @@ void loop() {
       //pressureStack[lastIndex].mm = GPS.minute;   // todo
       //pressureStack[lastIndex].ss = GPS.seconds;  // todo
       
-      //calculate pressure change and reprint all to screen
+      // calculate pressure change and reprint all to screen
       showReadings(gUnits);
-      prevTimer2 = millis();
+
+      // finally save the entire stack in non-volatile RAM
+      // which is done after updating display because this can take a visible half-second
+      savePressureHistory();
     }
     prevTimer1 = millis();
   }
