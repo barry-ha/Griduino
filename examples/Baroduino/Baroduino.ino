@@ -70,8 +70,7 @@ int loadConfigUnits();
 void saveConfigUnits();
 
 // ---------- Hardware Wiring ----------
-/* Same as Griduino platform - see constants.h
-*/
+// Same as Griduino platform - see constants.h
 
 // create an instance of the TFT Display
 Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
@@ -157,6 +156,56 @@ void getBaroData() {
   hPa = gPressure / 100;
   inchesHg = 0.0002953 * gPressure;
 }
+
+void rememberPressure( float pressure ) {
+  
+  // shift existing stack to the left
+  for (int ii = 0; ii < lastIndex; ii++) {
+    pressureStack[ii] = pressureStack[ii + 1];
+  }
+  
+  // and put the latest pressure onto the stack
+  pressureStack[lastIndex].pressure = pressure;
+  //pressureStack[lastIndex].hh = GPS.hour;     // todo
+  //pressureStack[lastIndex].mm = GPS.minute;   // todo
+  //pressureStack[lastIndex].ss = GPS.seconds;  // todo
+}
+
+void dumpPressureHistory() {            // debug
+  Serial.print("Pressure history stack, non-zero values [line "); Serial.print(__LINE__); Serial.println("]");
+  for (int ii=0; ii<maxReadings; ii++) {
+    Reading item = pressureStack[ii];
+    if (item.pressure > 0) {
+      Serial.print("Stack[");
+      Serial.print(ii);
+      Serial.print("] = ");
+      Serial.print(pressureStack[ii].pressure);
+      Serial.println();
+    }
+  }
+  return;
+}
+
+#ifdef RUN_UNIT_TESTS
+void initTestPressureHistory() {
+  // add test data:
+  //      sine wave from 990 to 1030 hPa, with period of one day
+  //      y = 1010.0hPa + 20*sin(w)   where 'w' goes from 0..2pi in the desired period
+  int numTestData = lastIndex/5;      // add this many entries of test data
+  float offsetPa = 1010*100;          // readings are saved in Pa (not hPa)
+  float amplitude = 20*100;           // readings are saved in Pa (not hPa)
+  for (int ii=0; ii<numTestData; ii++) {
+    float w = 2.0 * PI * ii / numTestData;
+    float fakePressure = offsetPa + amplitude * sin( w );
+    rememberPressure( fakePressure );
+
+    Serial.print(ii);                 // debug
+    Serial.print(". pressure(");
+    Serial.print(fakePressure,1);
+    Serial.println(")");
+  }
+}
+#endif // RUN_UNIT_TESTS
 
 // ========== font management helpers ==========================
 /* Using fonts: https://learn.adafruit.com/adafruit-gfx-graphics-library/using-fonts
@@ -501,6 +550,7 @@ int loadPressureHistory() {
 void savePressureHistory() {
   SaveRestore history(PRESSURE_HISTORY_FILE, PRESSURE_HISTORY_VERSION);
   history.writeConfig( (byte*) &pressureStack, sizeof(pressureStack) );
+  Serial.println("Saved the pressure history to non-volatile memory [line "); Serial.print(__LINE__); Serial.println("]");
 }
 
 // ----- console Serial port helper
@@ -547,6 +597,9 @@ void setup() {
   digitalWrite(PIN_LED, LOW);         // turn off little red LED
   //Serial.println("NeoPixel initialized and turned off");
 
+  // ----- announce ourselves
+  startSplashScreen();
+
   // ----- init serial monitor
   Serial.begin(115200);                               // init for debuggging in the Arduino IDE
   waitForSerial(howLongToWait);                       // wait for developer to connect debugging console
@@ -580,16 +633,14 @@ void setup() {
   // ----- restore pressure history
   if (loadPressureHistory()) {
     Serial.println("Successfully restored barometric pressure history");
+    dumpPressureHistory();            // debug
   } else {
     Serial.println("Failed to load barometric pressure history, re-initializing config file");
     savePressureHistory();
   }
-
-  // ----- announce ourselves
-  startSplashScreen();
-
-  delay(4000);         // milliseconds
-  clearScreen();
+  #ifdef RUN_UNIT_TESTS
+    initTestPressureHistory();
+  #endif
 
   // ----- init barometer
   if (!baro.begin()) {
@@ -607,6 +658,10 @@ void setup() {
   baro.setIIRFilterCoeff(BMP3_IIR_FILTER_COEFF_127);
   // baro.setOutputDataRate(BMP3_ODR_50_HZ);
 
+  // all done with setup, prepare screen for main program
+  delay(3000);         // milliseconds
+  clearScreen();
+
   // Get first data point (done twice because first reading is always bad)
   getBaroData();
   pressureStack[lastIndex].pressure = gPressure + elevCorr;
@@ -615,13 +670,15 @@ void setup() {
   getBaroData();
   pressureStack[lastIndex].pressure = gPressure + elevCorr;
   showReadings(gUnits);
+
 }
 
 //=========== main work loop ===================================
 // "millis()" is number of milliseconds since the Arduino began running the current program.
 // This number will overflow after about 50 days.
-uint32_t prevTimer1 = millis();    // timer for value update (5 min)
-uint32_t prevTimer2 = millis();    // timer for graph/array update (20 min)
+// Initialized to trigger reading pressure on first pass in mainline
+uint32_t prevTimer1 = UINT32_MIN;   // timer for value update (5 min), 
+uint32_t prevTimer2 = UINT32_MIN;   // timer for graph/array update (20 min)
 
 const int READ_BAROMETER_INTERVAL = 5*60*1000;  // Timer 1 =  5 minutes
 const int LOG_PRESSURE_INTERVAL = 20*60*1000;   // Timer 2 = 20 minutes
@@ -641,19 +698,11 @@ void loop() {
     if (millis() - prevTimer2 > LOG_PRESSURE_INTERVAL) {  // 1200000 for 20 minutes
       prevTimer2 = millis();
 
-      //shift array left
-      int i = 0;
-      for (i = 0; i < lastIndex; i++) {
-        pressureStack[i] = pressureStack[i + 1];
-      }
-      // and put the latest pressure onto the stack
-      pressureStack[lastIndex].pressure = gPressure;
-      //pressureStack[lastIndex].hh = GPS.hour;     // todo
-      //pressureStack[lastIndex].mm = GPS.minute;   // todo
-      //pressureStack[lastIndex].ss = GPS.seconds;  // todo
+      // log this pressure reading
+      rememberPressure( gPressure );
       
       // calculate pressure change and reprint all to screen
-      showReadings(gUnits);
+      //showReadings(gUnits);     // removed - seems redundant with 10 lines above
 
       // finally save the entire stack in non-volatile RAM
       // which is done after updating display because this can take a visible half-second
@@ -666,9 +715,11 @@ void loop() {
   Point touch;
   if (newScreenTap(&touch, SCREEN_ROTATION)) {
 
-    //const int radius = 3;     // debug
-    //tft.fillCircle(touch.x, touch.y, radius, cWARN);  // debug - show dot
-    //touchHandled = true;      // debug - true=stay on same screen
+    #ifdef SHOW_TOUCH_TARGETS
+      const int radius = 3;     // debug
+      tft.fillCircle(touch.x, touch.y, radius, cWARN);  // debug - show dot
+      touchHandled = true;      // debug - true=stay on same screen
+    #endif
 
     adjustUnits();              // change between "inches mercury" and "millibars" units
   }
