@@ -23,7 +23,7 @@
             |      |        |        |        | |
             |      |        |        |        | |
             |      |        |        |        | |
-            | 30.0 + - - - - - - - - - - - - -+ | <- yMid
+            | 30.0 +  -  -  -  -  -  -  -  -  + | <- yMid
             |      |        |        |        | |
             |      |        |        |        | |
             |      |        |        |        | |
@@ -44,12 +44,13 @@
 #include "Adafruit_GFX.h"           // Core graphics display library
 #include "Adafruit_ILI9341.h"       // TFT color display library
 #include "Adafruit_GPS.h"           // Ultimate GPS library
-#include "constants.h"              // Griduino constants, colors and typedefs
 #include "TouchScreen.h"            // Touchscreen built in to 3.2" Adafruit TFT display
 #include "Adafruit_BMP3XX.h"        // Precision barometric and temperature sensor
+#include "constants.h"              // Griduino constants, colors, typedefs
 #include "save_restore.h"           // save/restore configuration data to SDRAM
 #include "TextField.h"              // Optimize TFT display text for proportional fonts
 #include "Adafruit_NeoPixel.h"
+#include "TimeLib.h"                // BorisNeubert / Time (forked from PaulStoffregen / Time)
 
 // ------- Identity for splash screen and console --------
 #define BAROGRAPH_TITLE "Barograph"
@@ -449,16 +450,38 @@ void drawScale() {
     superimposeLabel( MARGIN, yBot - graphHeight/2 + TEXTHEIGHT/3, (minP + (maxP - minP)/2)/100, 0);
   }
 
-  // label vertical lines
+  // labels along horizontal axis
   setFontSize(9);
   //Serial.print("eTODAY x,y = "); Serial.print(txtDate[eTODAY].x); Serial.print(","); Serial.println(txtDate[eTODAY].y);
   //Serial.print("eYESTERDAY x,y = "); Serial.print(txtDate[eYESTERDAY].x); Serial.print(","); Serial.println(txtDate[eYESTERDAY].y);
   //Serial.print("eDAYBEFORE x,y = "); Serial.print(txtDate[eDAYBEFORE].x); Serial.print(","); Serial.println(txtDate[eDAYBEFORE].y);
+
+  // get today's date from the RTC (real time clock)
+  // Note: The real time clock in the Adafruit Ultimate GPS is not directly readable or 
+  //       accessible from the Arduino. It's definitely not writeable. It's only internal to the GPS. 
+  //       Once the battery is installed, and the GPS gets its first data reception from satellites 
+  //       it will set the internal RTC. Then as long as the battery is installed, you can read the 
+  //       time from the GPS as normal. Even without a current "gps fix" the time will be correct.
+  //       The RTC timezone cannot be changed, it is always UTC.
+  int mo = GPS.month;
+  int dd = GPS.day;
+  int hh = GPS.hour;
+  int mm = GPS.minute;
+  int ss = GPS.seconds;
+
+  char msg[128];
+  snprintf(msg, sizeof(msg), "GPS time mo(%d) dd(%d) hh(%d) mm(%d) ss(%d)",
+                                             mo,    dd,    hh,    mm,    ss);
+  Serial.println(msg);      // debug
+
+  char sDateToday[12];      // strlen("12/34") = 5
+  snprintf(sDateToday, sizeof(sDateToday), "%d/%d", mo, dd);
+  
   TextField::setTextDirty(txtDate, numDates);
   txtDate[eTODAY].print();
-  txtDate[eDATETODAY].print("8/25");
-  txtDate[eYESTERDAY].print("8/24");
-  txtDate[eDAYBEFORE].print("8/23");
+  txtDate[eDATETODAY].print(sDateToday);    // "8/25"
+  txtDate[eYESTERDAY].print("8/29");
+  txtDate[eDAYBEFORE].print("8/28");
 }
 
 void drawGraph() {
@@ -620,7 +643,6 @@ void setup() {
   //GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);    // 1 Hz update rate
   GPS.sendCommand(PMTK_SET_NMEA_UPDATE_200_MILLIHERTZ); // Once every 5 seconds update
 
-  Serial.print("Last element index = "); Serial.println(lastIndex);
 
   // ----- restore settings
   if (loadConfigUnits()) {
@@ -670,24 +692,39 @@ void setup() {
   getBaroData();
   pressureStack[lastIndex].pressure = gPressure + elevCorr;
   showReadings(gUnits);
-
 }
 
 //=========== main work loop ===================================
 // "millis()" is number of milliseconds since the Arduino began running the current program.
 // This number will overflow after about 50 days.
-// Initialized to trigger reading pressure on first pass in mainline
-uint32_t prevTimer1 = UINT32_MIN;   // timer for value update (5 min), 
-uint32_t prevTimer2 = UINT32_MIN;   // timer for graph/array update (20 min)
+// Initialized to trigger all processing on first pass in mainline
+uint32_t prevTimeGPS = 0;           // timer to process GPS sentence
+uint32_t prevTimer1 = 0;            // timer to update displayed value (5 min), UINT32_MIN=0
+uint32_t prevTimer2 = 0;            // timer to update displayed graph (20 min)
 
+const int GPS_PROCESS_INTERVAL = 1000;          // Timer GPS = 1 second
 const int READ_BAROMETER_INTERVAL = 5*60*1000;  // Timer 1 =  5 minutes
 const int LOG_PRESSURE_INTERVAL = 20*60*1000;   // Timer 2 = 20 minutes
 
 void loop() {
 
   // if our timer or system millis() wrapped around, reset it
+  if (prevTimeGPS > millis()) { prevTimeGPS = millis(); }
   if (prevTimer1 > millis()) { prevTimer1 = millis(); }
   if (prevTimer2 > millis()) { prevTimer2 = millis(); }
+
+  GPS.read();   // if you can, read the GPS serial port every millisecond in an interrupt
+  if (GPS.newNMEAreceived()) {
+    // sentence received -- verify checksum, parse it
+    // GPS parsing: https://learn.adafruit.com/adafruit-ultimate-gps/parsed-data-output
+    // In the "Baroduino" program, all we need is the RTC date and time, which is sent
+    // from the GPS module to the Arduino as NMEA sentences. 
+    if (!GPS.parse(GPS.lastNMEA())) {
+      // parsing failed -- restart main loop to wait for another sentence
+      // this also sets the newNMEAreceived() flag to false
+      return;
+    }
+  }
 
   // every 5 minutes acquire/print temp and pressure
   if (millis() - prevTimer1 > READ_BAROMETER_INTERVAL) {
@@ -727,5 +764,5 @@ void loop() {
 
   // make a small progress bar crawl along bottom edge
   // this gives a sense of how frequently the main loop is executing
-  showActivityBar(tft.height()-1, ILI9341_RED, ILI9341_BLACK);
+  showActivityBar(tft.height()-1, ILI9341_RED, cBACKGROUND);
 }
