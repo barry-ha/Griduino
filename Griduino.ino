@@ -77,7 +77,7 @@
 #include "Adafruit_GPS.h"           // Ultimate GPS library
 #include "TouchScreen.h"            // Touchscreen built in to 3.2" Adafruit TFT display
 #include "Adafruit_BMP3XX.h"        // Precision barometric and temperature sensor
-#include "constants.h"              // Griduino constants and colors
+#include "constants.h"              // Griduino constants, colors, typedefs
 #include "DS1804.h"                 // DS1804 digital potentiometer library
 #include "save_restore.h"           // save/restore configuration data to SDRAM
 #include "icons.h"                  // bitmaps for icons
@@ -900,7 +900,7 @@ void setup() {
 uint32_t prevTimeGPS = millis();
 //uint32_t prevTimeMorse = millis();
 
-const int GPS_PROCESS_INTERVAL = 1200;  // milliseconds between updating the model's GPS data
+const int GPS_PROCESS_INTERVAL = 1000;  // milliseconds between updating the model's GPS data
 
 void loop() {
 
