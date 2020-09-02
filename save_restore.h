@@ -1,11 +1,12 @@
-#ifndef _GRIDUINO_SAVE_RESTORE_H
-#define _GRIDUINO_SAVE_RESTORE_H
-
 /* File: save_restore.h
+
+  Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
+  Hardware: John Vanderbeck, KM7O, Seattle, WA
 
   This module saves configuration data to/from SDRAM.
   QSPI Flash chip on the Feather M4 breakout board has 2 MB capacity.
 */
+#pragma once
 
 class SaveRestore {
   public:
@@ -13,9 +14,9 @@ class SaveRestore {
     char sVersion[16];        // ID string, detects if settings are actually written
 
   public:
-	/**
-	 * Constructor
-	 */
+    /**
+     * Constructor
+     */
     SaveRestore(const char* vFilename, const char* vVersion) {
       // vFilename MUST follow 8.3 naming conventions
       strcpy(fqFilename, vFilename);
@@ -41,5 +42,3 @@ class SaveRestore {
   protected:
     int openFlash();          // helper
 };
-
-#endif // _GRIDUINO_SAVE_RESTORE_H

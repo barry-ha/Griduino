@@ -42,6 +42,7 @@
 #include "Adafruit_BMP3XX.h"        // Precision barometric and temperature sensor
 #include "save_restore.h"           // Save configuration in non-volatile RAM
 #include "TextField.h"              // Optimize TFT display text for proportional fonts
+#include "view.h"                   // Base class for all views
 
 // ========== extern ===========================================
 extern Adafruit_ILI9341 tft;        // Griduino.ino
@@ -284,3 +285,17 @@ bool onTouchTime(Point touch) {
   }
   return handled;                   // true=handled, false=controller uses default action
 }
+
+// ========== class ViewTime
+void ViewTime::updateScreen() {
+  // called on every pass through main()
+  ::updateTimeScreen();        // delegate to old code     TODO: migrate old code into new class
+}
+void ViewTime::startScreen() {
+  // called once each time this view becomes active
+  ::startTimeScreen();         // delegate to old code     TODO: migrate old code into new class
+}
+bool ViewTime::onTouch(Point touch) {
+  return ::onTouchTime(touch);  // delegate to old code     TODO: migrate old code into new class
+}
+

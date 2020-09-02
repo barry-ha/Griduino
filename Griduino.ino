@@ -78,6 +78,7 @@
 #include "TouchScreen.h"            // Touchscreen built in to 3.2" Adafruit TFT display
 #include "Adafruit_BMP3XX.h"        // Precision barometric and temperature sensor
 #include "constants.h"              // Griduino constants, colors, typedefs
+#include "view.h"                   // Griduino screens
 #include "DS1804.h"                 // DS1804 digital potentiometer library
 #include "save_restore.h"           // save/restore configuration data to SDRAM
 #include "icons.h"                  // bitmaps for icons
@@ -214,9 +215,6 @@ int gWordsPerMinute = 18;     // initial Morse code sending speed
 
 // ------------ definitions
 const int howLongToWait = 6;  // max number of seconds at startup waiting for Serial port to console
-int gViewIndex = 0;           // selects which view to show first
-                              // init to a safe value, override in setup()
-                              // todo: save/restore the selected screen for power loss
 
 // ---------- Morse Code ----------
 #include "morse_dac.h"      // Morse Code using digital-audio converter DAC0
@@ -227,47 +225,8 @@ DACMorseSender dacMorse(DAC_PIN, gFrequency, gWordsPerMinute);
 //                           // https://github.com/markfickett/arduinomorse
 
 // ========== extern ===========================================
-void updateGridScreen();                // view_grid.cpp
-void startGridScreen();
-bool onTouchGrid(Point touch);
-
-void updateStatusScreen();              // view_status.cpp
-void startStatScreen();
-bool onTouchStatus(Point touch);
-
-void updateVolumeScreen();              // view_volume.cpp
-void startVolumeScreen();
-bool onTouchVolume(Point touch);
-int loadConfigVolume();
+int loadConfigVolume();                 // view_volume.cpp
 void saveConfigVolume();
-
-/* 2020-08-18 removed until I want to re-write the volume control ...
-void updateVolume2Screen();             // view_volume2.cpp
-void startVolume2Screen();
-bool onTouchVolume2(Point touch);
-//int loadConfigVolume2();
-//void saveConfigVolume2();
-*/
-
-void updateSplashScreen();              // view_splash.cpp
-void startSplashScreen();
-bool onTouchSplash(Point touch);
-
-void updateTimeScreen();                // view_time.cpp
-void startTimeScreen();
-bool onTouchTime(Point touch);
-
-void updateHelpScreen();                // view_help.cpp
-void startHelpScreen();
-bool onTouchHelp(Point touch);
-
-void updateSettings2Screen();            // view_settings2.cpp
-void startSettings2Screen();
-bool onTouchSettings2(Point touch);
-
-void updateSettings3Screen();            // view_settings2.cpp
-void startSettings3Screen();
-bool onTouchSettings3(Point touch);
 
 // 2. Helper Functions
 // ============== touchscreen helpers ==========================
@@ -642,76 +601,51 @@ int fGetDataSource() {
 //    "updateXxxxScreen" is dynamic and displays things that change over time
 //==============================================================
 
-//#include "view_splash.cpp"
-//#include "view_help.cpp"
-//#include "view_grid.cpp"
-//#include "view_status.cpp"
-//#include "view_time.cpp"
-//#include "view_volume.cpp"
-//#include "view_volume2.cpp"
-//#include "view_settings.cpp"
-
-//==============================================================
-//
-//      Controller
-//      This is MVC (model-view-controller) design pattern
-//
-//==============================================================
-// alias names for the views - must be in same order as array below
+// alias names for the views - must be in same alphabetical order as array below
 enum {
   GRID_VIEW = 0,
+  HELP_VIEW,
+  SETTING2_VIEW,
+  SETTING3_VIEW,
+  SPLASH_VIEW,
   STATUS_VIEW,
   TIME_VIEW,
   VOLUME_VIEW,
   //VOLUME2_VIEW,
-  SETTING2_VIEW,
-  SETTING3_VIEW,
-  SPLASH_VIEW,
-  HELP_VIEW,
   GOTO_SETTINGS,          // command the state machine to show control panel
   GOTO_NEXT_VIEW,         // command the state machine to show next screen
 };
-// first entry is the opening view
-void (*gaUpdateView[])() = {
-    // array of pointers to functions that take no arguments and return void
-    updateGridScreen,     // first entry is the first view displayed after setup()
-    updateStatusScreen,
-    updateTimeScreen,
-    updateVolumeScreen,
-    //updateVolume2Screen,
-    updateSettings2Screen,
-    updateSettings3Screen,
-    updateSplashScreen,
-    updateHelpScreen,
-};
-void (*gaStartView[])() = {
-    startGridScreen,      // first entry is the first view displayed after setup()
-    startStatScreen,
-    startTimeScreen,
-    startVolumeScreen,
-    //startVolume2Screen,
-    startSettings2Screen,
-    startSettings3Screen,
-    startSplashScreen,
-    startHelpScreen,
-};
-bool (*gaOnTouch[])(Point touch) = {
-    onTouchGrid,
-    onTouchStatus,
-    onTouchTime,
-    onTouchVolume,
-    //onTouchVolume2,
-    onTouchSettings2,
-    onTouchSettings3,
-    onTouchSplash,
-    onTouchHelp,
-};
+// list of objects derived from "class View", in alphabetical order:
+//      Grid, Help, Settings2, Settings3, Splash, Status, Time, Volume
+View* pView;                           // pointer to a derived class
+
+ViewGrid   gridView(&tft, GRID_VIEW);             // instantiate derived classes
+ViewHelp   helpView(&tft, HELP_VIEW);
+ViewSettings2 settings2View(&tft, SETTING2_VIEW);
+ViewSettings3 settings3View(&tft, SETTING3_VIEW);
+ViewSplash splashView(&tft, SPLASH_VIEW);
+ViewStatus statusView(&tft, STATUS_VIEW);
+ViewTime   timeView(&tft, TIME_VIEW);
+ViewVolume volumeView(&tft, VOLUME_VIEW);
+
 void selectNewView(int cmd) {
   // this is a state machine to select next view, given current view and type of command
-  int nextView = GRID_VIEW;   // default
+  View* viewTable[] = {
+        &gridView,         // [GRID_VIEW]
+        &helpView,         // [HELP_VIEW]
+        &settings2View,    // [SETTING2_VIEW]
+        &settings3View,    // [SETTING3_VIEW]
+        &splashView,       // [SPLASH_VIEW]
+        &statusView,       // [STATUS_VIEW]
+        &timeView,         // [TIME_VIEW]
+        &volumeView,       // [VOLUME_VIEW]
+  };
+
+  int currentView = pView->screenID;
+  int nextView = GRID_VIEW;       // default
   if (cmd == GOTO_NEXT_VIEW) {
-    // operator requested the next normal user view
-    switch (gViewIndex) {
+    // operator requested the next NORMAL user view
+    switch (currentView) {
       case GRID_VIEW:   nextView = STATUS_VIEW; break;
       case STATUS_VIEW: nextView = TIME_VIEW; break;
       case TIME_VIEW:   nextView = GRID_VIEW; break;
@@ -719,8 +653,8 @@ void selectNewView(int cmd) {
       default:          nextView = GRID_VIEW; break;
     }
   } else {
-    // operator requested the next settings view
-    switch (gViewIndex) {
+    // operator requested the next SETTINGS view
+    switch (currentView) {
       case VOLUME_VIEW:  nextView = SETTING2_VIEW; break;
       //se VOLUME2_VIEW:  nextView = SETTING2_VIEW; break;
       case SETTING2_VIEW: nextView = SETTING3_VIEW; break;
@@ -729,17 +663,24 @@ void selectNewView(int cmd) {
       default:           nextView = VOLUME_VIEW; break;
     }
   }
-  Serial.print("selectNewView() from "); Serial.print(gViewIndex);
+  Serial.print("selectNewView() from "); Serial.print(currentView);
   Serial.print(" to "); Serial.println(nextView);
 
-  gViewIndex = nextView;
+  pView = viewTable[ nextView ];
 
   // Every view has an initial setup to prepare its layout
   // After initial setup the view can assume it "owns" the screen
   // and can safely repaint only the parts that change
-  gaStartView[gViewIndex]();
+  pView->startScreen();
+  pView->updateScreen();
 }
 
+//==============================================================
+//
+//      Controller
+//      This is MVC (model-view-controller) design pattern
+//
+//==============================================================
 // ----- adjust screen brightness
 const int gNumLevels = 3;
 const int gaBrightness[gNumLevels] = { 255, 80, 20 }; // global array of preselected brightness
@@ -882,16 +823,20 @@ void setup() {
   model->gSatellites = 0;
 
   // one-time Splash screen
-  startSplashScreen();
+  pView = &splashView;
+  pView->startScreen();
+  pView->updateScreen();
   delay(2000);
 
   // one-time Help screen
-  startHelpScreen();
+  pView = &helpView;
+  pView->startScreen();
   delay(2000);
 
   // ----- select opening view screen
-  gaStartView[gViewIndex]();          // start current view, eg, startGridScreen()
-  gaUpdateView[gViewIndex]();         // update current view, eg, updateGridScreen()
+  pView = &gridView;
+  pView->startScreen();                 // start current view, eg, startGridScreen()
+  pView->updateScreen();                // update current view, eg, updateGridScreen()
 }
 
 //=========== main work loop ===================================
@@ -939,7 +884,8 @@ void loop() {
     model->processGPS();               // update model
 
     // update View - call the current viewing function
-    gaUpdateView[gViewIndex]();       // update current view, eg, updateGridScreen()
+    pView->updateScreen();             // update current view, eg, updateGridScreen()
+    //gaUpdateView[gViewIndex](); 
   }
 
   //if (!spkrMorse.continueSending()) {
@@ -949,12 +895,12 @@ void loop() {
 
   // if there's an alert, tell the user
   if (model->signalLost()) {
-    model->indicateSignalLost();       // update model
+    model->indicateSignalLost();      // update model
     sendMorseLostSignal();            // announce GPS signal lost by Morse code
   }
 
   if (model->enteredNewGrid()) {
-    gaStartView[gViewIndex]();        // update display
+    pView->updateScreen();            // update display so they can see new grid while listening to audible announcement
     char newGrid4[5];
     calcLocator(newGrid4, model->gLatitude, model->gLongitude, 4);
     sendMorseGrid4( newGrid4 );       // announce new grid by Morse code
@@ -964,11 +910,14 @@ void loop() {
   Point touch;
   if (newScreenTap(&touch)) {
 
-    //const int radius = 3;     // debug
-    //tft.fillCircle(touch.x, touch.y, radius, cWARN);  // debug - show dot
-    //touchHandled = true;      // debug - true=stay on same screen
+    #ifdef SHOW_TOUCH_TARGETS
+      const int radius = 3;     // debug
+      tft.fillCircle(touch.x, touch.y, radius, cWARN);  // debug - show dot
+      touchHandled = true;      // debug - true=stay on same screen
+    #endif
 
-    bool touchHandled = gaOnTouch[gViewIndex](touch);
+    bool touchHandled = pView->onTouch(touch);
+    //bool touchHandled = gaOnTouch[gViewIndex](touch);
 
     if (!touchHandled) {
       // not handled by one of the views, so run our default action
@@ -984,7 +933,7 @@ void loop() {
     }
   }
 
-  // make a small progress bar crawl along bottom edge
-  // this gives a sense of how frequently the main loop is executing
+  // small activity bar crawls along bottom edge to give 
+  // a sense of how frequently the main loop is executing
   showActivityBar(tft.height()-1, ILI9341_RED, cBACKGROUND);
 }

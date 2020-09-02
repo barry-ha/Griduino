@@ -9,7 +9,7 @@
             much smaller font and cram more stuff onto the screen.
 
             +-----------------------------------+
-            | Settings                          |
+            |              Settings 2           |
             |                                   |
             | Breadcrumb trail    [ Clear ]     |
             | 123 of 6000                       |
@@ -17,8 +17,8 @@
             | Route         (o)[ GPS Receiver ] |
             |                  [  Simulator   ] |
             |                                   |
-            | Version 0.21                      |
-            |     Compiled Aug 18 2020  19:32   |
+            | Version 0.22                      |
+            |     Compiled Aug 21 2020  08:58   |
             +-----------------------------------+
 */
 
@@ -27,6 +27,7 @@
 #include "constants.h"              // Griduino constants and colors
 #include "model.cpp"                // "Model" portion of model-view-controller
 #include "TextField.h"              // Optimize TFT display text for proportional fonts
+#include "view.h"                   // Base class for all views
 
 // ========== extern ===========================================
 extern Adafruit_ILI9341 tft;        // Griduino.ino
@@ -208,3 +209,17 @@ bool onTouchSettings2(Point touch) {
   }
   return handled;                   // true=handled, false=controller uses default action
 }
+
+// ========== class ViewSettings2
+void ViewSettings2::updateScreen() {
+  // called on every pass through main()
+  ::updateSettings2Screen();        // delegate to old code     TODO: migrate old code into new class
+}
+void ViewSettings2::startScreen() {
+  // called once each time this view becomes active
+  ::startSettings2Screen();         // delegate to old code     TODO: migrate old code into new class
+}
+bool ViewSettings2::onTouch(Point touch) {
+  return ::onTouchSettings2(touch);  // delegate to old code     TODO: migrate old code into new class
+}
+

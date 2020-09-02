@@ -1,5 +1,5 @@
 /*
-  File: view_help_screen.cpp
+  File: view_help.cpp
 
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
@@ -20,6 +20,7 @@
 #include "Adafruit_ILI9341.h"       // TFT color display library
 #include "constants.h"              // Griduino constants and colors
 #include "TextField.h"              // Optimize TFT display text for proportional fonts
+#include "view.h"                   // Base class for all views
 
 // ========== extern ===========================================
 extern Adafruit_ILI9341 tft;        // Griduino.ino
@@ -91,4 +92,18 @@ void startHelpScreen() {
 bool onTouchHelp(Point touch) {
   Serial.println("->->-> Touched help screen.");
   return false;                     // true=handled, false=controller uses default action
+}
+
+// ========== class ViewHelp
+void ViewHelp::updateScreen() {
+  // called on every pass through main()
+  ::updateHelpScreen();           // delegate to old code     TODO: migrate old code into new class
+}
+void ViewHelp::startScreen() {
+  // called once each time this view becomes active
+  ::startHelpScreen();            // delegate to old code     TODO: migrate old code into new class
+}
+
+bool ViewHelp::onTouch(Point touch) {
+  return ::onTouchHelp(touch);    // delegate to old code     TODO: migrate old code into new class
 }

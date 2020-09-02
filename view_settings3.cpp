@@ -27,6 +27,7 @@
 #include "constants.h"              // Griduino constants and colors
 #include "model.cpp"                // "Model" portion of model-view-controller
 #include "TextField.h"              // Optimize TFT display text for proportional fonts
+#include "view.h"                   // Base class for all views
 
 // ========== extern ===========================================
 extern Adafruit_ILI9341 tft;        // Griduino.ino
@@ -177,4 +178,18 @@ bool onTouchSettings3(Point touch) {
      }
   }
   return handled;                   // true=handled, false=controller uses default action
+}
+
+// ========== class ViewSettings3
+void ViewSettings3::updateScreen() {
+  // called on every pass through main()
+  ::updateSettings3Screen();        // delegate to old code     TODO: migrate old code into new class
+}
+void ViewSettings3::startScreen() {
+  // called once each time this view becomes active
+  ::startSettings3Screen();         // delegate to old code     TODO: migrate old code into new class
+}
+
+bool ViewSettings3::onTouch(Point touch) {
+  return ::onTouchSettings3(touch);  // delegate to old code     TODO: migrate old code into new class
 }

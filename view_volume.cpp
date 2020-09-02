@@ -31,6 +31,7 @@
 #include "DS1804.h"                 // DS1804 digital potentiometer library
 #include "save_restore.h"           // save/restore configuration data to SDRAM
 #include "TextField.h"              // Optimize TFT display text for proportional fonts
+#include "view.h"                   // Base class for all views
 
 // ========== extern ===========================================
 extern Adafruit_ILI9341 tft;        // Griduino.ino
@@ -231,4 +232,17 @@ bool onTouchVolume(Point touch) {
      }
   }
   return handled;                   // true=handled, false=controller uses default action
+}
+
+// ========== class ViewVolume
+void ViewVolume::updateScreen() {
+  // called on every pass through main()
+  ::updateVolumeScreen();        // delegate to old code     TODO: migrate old code into new class
+}
+void ViewVolume::startScreen() {
+  // called once each time this view becomes active
+  ::startVolumeScreen();         // delegate to old code     TODO: migrate old code into new class
+}
+bool ViewVolume::onTouch(Point touch) {
+  return ::onTouchVolume(touch);  // delegate to old code     TODO: migrate old code into new class
 }

@@ -28,6 +28,7 @@
 #include "constants.h"              // Griduino constants and colors
 #include "model.cpp"                // "Model" portion of model-view-controller
 #include "TextField.h"              // Optimize TFT display text for proportional fonts
+#include "view.h"                   // Base class for all views
 
 // ========== extern ===========================================
 extern Adafruit_ILI9341 tft;        // Griduino.ino
@@ -303,7 +304,7 @@ void plotRoute(Location* marker, const int numMarkers, const PointGPS origin) {
           tft.drawPixel(screen.x-1, screen.y, ILI9341_BLACK);
           tft.drawPixel(screen.x+1, screen.y, ILI9341_BLACK);
         } else {
-          // let's try constructing the perdendicular and drawing a 3-pixel long line
+          // let's try constructing the perpendicular and drawing a 3-pixel long line
           // y = mx+b, where m is the slope, b is the y-intercept
           /* 
            * Result: the below is fugly because it uses fine details that are not 
@@ -343,7 +344,7 @@ void plotRoute(Location* marker, const int numMarkers, const PointGPS origin) {
 }
 // =============================================================
 void plotVehicle(const Point car, uint16_t carColor) {
-  // put a symbol on the screen to represent the vechicle
+  // put a symbol on the screen to represent the vehicle
   // choose what shape you like at compile-time
   // if you're an over-achiever, write new code so a triangle indicates direction of travel
   int radius, size, w, h;
@@ -439,4 +440,18 @@ void startGridScreen() {
 bool onTouchGrid(Point touch) {
   Serial.println("->->-> Touched grid detail screen.");
   return false;                     // true=handled, false=controller uses default action
+}
+
+// ========== class ViewGrid
+void ViewGrid::updateScreen() {
+  // called on every pass through main()
+  ::updateGridScreen();           // delegate to old code     TODO: migrate old code into new class
+}
+void ViewGrid::startScreen() {
+  // called once each time this view becomes active
+  ::startGridScreen();            // delegate to old code     TODO: migrate old code into new class
+}
+
+bool ViewGrid::onTouch(Point touch) {
+  return ::onTouchGrid(touch);    // delegate to old code     TODO: migrate old code into new class
 }

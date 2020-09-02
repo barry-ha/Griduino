@@ -1,5 +1,5 @@
 /*
-   File: view_stat_screen.cpp
+   File: view_status.cpp
 
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
@@ -24,6 +24,7 @@
 #include "constants.h"              // Griduino constants and colors
 #include "model.cpp"                // "Model" portion of model-view-controller
 #include "TextField.h"              // Optimize TFT display text for proportional fonts
+#include "view.h"                   // Base class for all views
 
 // ========== extern ===========================================
 extern Adafruit_ILI9341 tft;        // Griduino.ino
@@ -119,7 +120,7 @@ void updateStatusScreen() {
                 model->gLatitude, model->gLongitude);
   txtValues[5].print(sLatLong);
 }
-void startStatScreen() {
+void startStatusScreen() {
   // called once each time this view becomes active
   tft.fillScreen(cBACKGROUND);      // clear screen
   txtValues[0].setBackground(cBACKGROUND);                   // set background for all TextFields in this view
@@ -143,4 +144,17 @@ void startStatScreen() {
 bool onTouchStatus(Point touch) {
   Serial.println("->->-> Touched status screen.");
   return false;                     // true=handled, false=controller uses default action
+}
+
+// ========== class ViewStatus
+void ViewStatus::updateScreen() {
+  // called on every pass through main()
+  ::updateStatusScreen();        // delegate to old code     TODO: migrate old code into new class
+}
+void ViewStatus::startScreen() {
+  // called once each time this view becomes active
+  ::startStatusScreen();         // delegate to old code     TODO: migrate old code into new class
+}
+bool ViewStatus::onTouch(Point touch) {
+  return ::onTouchStatus(touch);  // delegate to old code     TODO: migrate old code into new class
 }

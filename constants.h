@@ -1,5 +1,4 @@
-#ifndef _GRIDUINO_CONSTANTS_H
-#define _GRIDUINO_CONSTANTS_H
+#pragma once
 
 // ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE   "Griduino"
@@ -134,5 +133,3 @@ class Location {
       return (loc.lat==0.0 && loc.lng==0.0);
     }
 };
-
-#endif // _GRIDUINO_CONSTANTS_H
