@@ -1,4 +1,4 @@
-/*
+ /*
   File: view_splash.cpp
 
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
@@ -25,8 +25,8 @@
 #include "view.h"                   // Base class for all views
 
 // ========== extern ===========================================
-void setFontSize(int font);         // Griduino.ino
-void showScreenBorder();            // Griduino.ino
+void setFontSize(int font);             // Griduino.ino
+void showScreenBorder();                // optionally outline visible area
 
 // ============== constants ====================================
 // color scheme: see constants.h
@@ -49,22 +49,21 @@ void ViewSplash::startScreen() {
   };
   const int numSplashFields = sizeof(txtSplash)/sizeof(txtSplash[0]);
 
-  tft->fillScreen(cBACKGROUND);        // clear screen
+  this->clearScreen(cBACKGROUND);        // clear screen
   txtSplash[0].setBackground(cBACKGROUND);                // set background for all TextFields in this view
   TextField::setTextDirty( txtSplash, numSplashFields );  // make sure all fields get re-printed on screen change
 
   setFontSize(24);
-
-  showScreenBorder();          // optionally outline visible area
-
-  txtSplash[0].print();        // large program title
+  txtSplash[0].print();               // large program title
 
   setFontSize(12);
-  txtSplash[1].print();        // program version
-  txtSplash[2].print();        // credits 1
-  txtSplash[3].print();        // credits 2
-  
-  updateScreen();              // fill in values immediately, don't wait for the main loop to eventually get around to it
+  txtSplash[1].print();               // program version
+  txtSplash[2].print();               // credits 1
+  txtSplash[3].print();               // credits 2
+
+  showScreenBorder();                 // optionally outline visible area
+
+  updateScreen();                     // fill in values immediately, don't wait for the main loop to eventually get around to it
 
 #ifdef USE_MORSE_CODE
   // ----- announce in Morse code, so vehicle's driver doesn't have to look at the screen

@@ -37,6 +37,8 @@ void drawAllIcons();                // draw gear (settings) and arrow (next scre
 void showScreenBorder();            // optionally outline visible area
 
 // ============== constants ====================================
+// color scheme: see constants.h
+
 // vertical placement of text rows
 const int yRow1 = 24;
 const int yRow2 = yRow1 + 32;
@@ -45,8 +47,6 @@ const int yRow4 = yRow3 + 44;
 const int yRow5 = yRow4 + 32;
 const int yRow6 = yRow5 + 40;
 const int yRow7 = yRow6 + 24;
-
-// color scheme: see constants.h
 
 const int labelX = 114;     // right-align labels, near their values
 const int valueX = 140;     // left-align values
@@ -123,14 +123,14 @@ void ViewStatus::updateScreen() {
 
 void ViewStatus::startScreen() {
   // called once each time this view becomes active
-  tft->fillScreen(cBACKGROUND);      // clear screen
+  this->clearScreen(cBACKGROUND);     // clear screen
   txtValues[0].setBackground(cBACKGROUND);                   // set background for all TextFields in this view
   TextField::setTextDirty( txtLabels, numLabels );
   TextField::setTextDirty( txtValues, numText );             // make sure all fields get re-printed on screen change
   setFontSize(12);
 
-  drawAllIcons();                   // draw gear (settings) and arrow (next screen)
-  showScreenBorder();               // optionally outline visible area
+  drawAllIcons();                     // draw gear (settings) and arrow (next screen)
+  showScreenBorder();                 // optionally outline visible area
 
   // ----- labels
   for (int ii=0; ii<numLabels; ii++) {

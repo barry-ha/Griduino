@@ -41,12 +41,13 @@ void showScreenBorder();            // optionally outline visible area
 // ========== forward reference ================================
 
 // ============== constants ====================================
+// color scheme: see constants.h
+
 // vertical placement of text rows   ---label---         ---button---
 const int yRow1 = 70;             // "Distance",         "Miles"
 const int yRow2 = yRow1 + 50;     //                     "Kilometers"
 const int yRow9 = 234;            // "v0.22, Aug 21 2020 45:67:89"
 
-// color scheme: see constants.h
 #define col1 10                   // left-adjusted column of text
 #define xButton 160               // indented column of buttons
 
@@ -109,13 +110,13 @@ void ViewSettings3::updateScreen() {
 
 void ViewSettings3::startScreen() {
   // called once each time this view becomes active
-  tft->fillScreen(cBACKGROUND);      // clear screen
+  this->clearScreen(cBACKGROUND);     // clear screen
   txtSettings3[0].setBackground(cBACKGROUND);                  // set background for all TextFields in this view
   TextField::setTextDirty( txtSettings3, numSettingsFields );  // make sure all fields get re-printed on screen change
   setFontSize(eFONTSMALLEST);
 
-  drawAllIcons();                   // draw gear (settings) and arrow (next screen)
-  showScreenBorder();               // optionally outline visible area
+  drawAllIcons();                     // draw gear (settings) and arrow (next screen)
+  showScreenBorder();                 // optionally outline visible area
 
   // ----- draw text fields
   for (int ii=0; ii<numSettingsFields; ii++) {
@@ -171,12 +172,8 @@ bool ViewSettings3::onTouch(Point touch) {
         handled = true;             // hit!
         item.function();            // do the thing
         updateScreen();             // update UI immediately, don't wait for laggy mainline loop
-        model->save();              // after UI is refreshed, run this slow "save to nvr" operation
+        model->save();              // after UI is updated, run this slow "save to nvr" operation
 
-        #ifdef SHOW_TOUCH_TARGETS
-          const int radius = 3;     // debug: show where touched
-          tft->fillCircle(touch.x, touch.y, radius, cWARN);  // debug - show dot
-        #endif
      }
   }
   return handled;                   // true=handled, false=controller uses default action

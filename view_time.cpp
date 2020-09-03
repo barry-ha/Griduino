@@ -60,8 +60,8 @@ void timePlus();
 void timeMinus();
 
 // ============== constants ====================================
-
 // color scheme: see constants.h
+
 // ========== globals ==========================================
 int gTimeZone = -7;                     // default local time Pacific (-7 hours), saved in nonvolatile memory
 //int gSatellites = 0;                    // number of satellites
@@ -221,12 +221,12 @@ void ViewTime::updateScreen() {
 
 void ViewTime::startScreen() {
   // called once each time this view becomes active
-  tft->fillScreen(cBACKGROUND);      // clear screen
+  this->clearScreen(cBACKGROUND);     // clear screen
   txtClock[0].setBackground(cBACKGROUND);               // set background for all TextFields in this view
   TextField::setTextDirty( txtClock, numClockFields );  // make sure all fields get re-printed on screen change
 
-  drawAllIcons();                   // draw gear (settings) and arrow (next screen)
-  showScreenBorder();               // optionally outline visible area
+  drawAllIcons();                     // draw gear (settings) and arrow (next screen)
+  showScreenBorder();                 // optionally outline visible area
 
   // ----- draw page title
   setFontSize(eFONTSYSTEM);
@@ -283,10 +283,6 @@ bool ViewTime::onTouch(Point touch) {
         item.function();            // do the thing
         updateScreen();             // show the result
 
-        #ifdef SHOW_TOUCH_TARGETS
-          const int radius = 3;     // debug: show where touched
-          tft->fillCircle(touch.x, touch.y, radius, cWARN);  // debug - show dot
-        #endif
      }
   }
   return handled;                   // true=handled, false=controller uses default action

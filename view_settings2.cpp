@@ -48,6 +48,8 @@ void fSimulated();
 void fFactoryReset();
 
 // ============== constants ====================================
+// color scheme: see constants.h
+
 // vertical placement of text rows   ---label---         ---button---
 const int yRow1 = 70;             // "Breadcrumb trail", "Clear"
 const int yRow2 = yRow1 + 20;     // "%d of %d"
@@ -55,7 +57,6 @@ const int yRow3 = yRow2 + 56;     // "Route",            "GPS Receiver"
 const int yRow4 = yRow3 + 48;     //                     "Simulator"
 const int yRow9 = 234;            // "v0.22, Aug 21 2020 45:67:89"
 
-// color scheme: see constants.h
 #define col1 10                   // left-adjusted column of text
 #define xButton 160               // indented column of buttons
 
@@ -142,13 +143,13 @@ void ViewSettings2::updateScreen() {
 
 void ViewSettings2::startScreen() {
   // called once each time this view becomes active
-  tft->fillScreen(cBACKGROUND);      // clear screen
+  this->clearScreen(cBACKGROUND);     // clear screen
   txtSettings2[0].setBackground(cBACKGROUND);                  // set background for all TextFields in this view
   TextField::setTextDirty( txtSettings2, numSettingsFields );  // make sure all fields get re-printed on screen change
   setFontSize(eFONTSMALLEST);
 
-  drawAllIcons();                   // draw gear (settings) and arrow (next screen)
-  showScreenBorder();               // optionally outline visible area
+  drawAllIcons();                     // draw gear (settings) and arrow (next screen)
+  showScreenBorder();                 // optionally outline visible area
 
   // ----- draw text fields
   for (int ii=0; ii<numSettingsFields; ii++) {

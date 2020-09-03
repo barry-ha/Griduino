@@ -51,11 +51,12 @@ int loadConfigVolume();
 void saveConfigVolume();
 
 // ============== constants ====================================
+// color scheme: see constants.h
+
 // vertical placement of text rows
 const int yRow1 = 50;             // label: "Audio Volume"
 const int yRow2 = yRow1 + 30;     // text:  "of 10"
 
-// color scheme: see constants.h
 #define col1 10                   // left-adjusted column of text
 #define xButton 160               // indented column of buttons
 
@@ -167,15 +168,15 @@ void ViewVolume::updateScreen() {
 
 void ViewVolume::startScreen() {
   // called once each time this view becomes active
-  tft->fillScreen(cBACKGROUND);      // clear screen
+  this->clearScreen(cBACKGROUND);     // clear screen
   txtVolume[BIGVOLUME].setBackground(cBACKGROUND);        // set background for all TextFields in this view
   TextField::setTextDirty( txtVolume, numVolFields );     // make sure all fields get re-printed on screen change
 
-  drawAllIcons();                   // draw gear (settings) and arrow (next screen)
-  showScreenBorder();               // optionally outline visible area
+  drawAllIcons();                     // draw gear (settings) and arrow (next screen)
+  showScreenBorder();                 // optionally outline visible area
 
   // ----- draw text fields
-  setFontSize(eFONTSMALLEST);      // [0] is screen title
+  setFontSize(eFONTSMALLEST);         // [0] is screen title
   txtVolume[0].print();
 
   // txtVolume[1] is giant audio number, is drawn later
@@ -215,7 +216,7 @@ void ViewVolume::startScreen() {
   tft->fillTriangle(xx-ww,yy-nn,  xx+ww,yy-nn,  xx,yy+ht-nn, cVALUE);  // arrow DOWN
 
   gPrevVolIndex = -1;
-  updateScreen();                   // fill in values immediately, don't wait for loop() to eventually get around to it
+  updateScreen();                     // fill in values immediately, don't wait for the main loop to eventually get around to it
 
   // debug: show centerline on display
   //                        x1,y1            x2,y2            color
@@ -233,10 +234,6 @@ bool ViewVolume::onTouch(Point touch) {
         item.function();            // do the thing
         updateScreen();             // show the result
 
-        #ifdef SHOW_TOUCH_TARGETS
-          const int radius = 3;     // debug: show where touched
-          tft->fillCircle(touch.x, touch.y, radius, cWARN);  // debug - show dot
-        #endif
      }
   }
   return handled;                   // true=handled, false=controller uses default action

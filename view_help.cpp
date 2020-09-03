@@ -56,7 +56,7 @@ void ViewHelp::startScreen() {
   };
   const int nHelpButtons = sizeof(helpButtons)/sizeof(helpButtons[0]);
 
-  tft->fillScreen(cBACKGROUND);        // clear screen
+  this->clearScreen(cBACKGROUND);        // clear screen
 
   // ----- draw buttons
   setFontSize(12);
