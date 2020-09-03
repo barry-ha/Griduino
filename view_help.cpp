@@ -77,7 +77,6 @@ void ViewHelp::startScreen() {
                  item.w+4, item.h+4, 
                  cWARN);
     #endif
-
   }
 
   updateScreen();                     // fill in values immediately, don't wait for the main loop to eventually get around to it

@@ -189,9 +189,6 @@ void ViewSettings2::startScreen() {
 
   updateScreen();                     // fill in values immediately, don't wait for the main loop to eventually get around to it
 
-  // ----- label this view in upper left corner
-  showNameOfView("Settings 2", cWARN, cBACKGROUND);
-
   // debug: show centerline on display
   //                        x1,y1            x2,y2            color
   //tft->drawLine(tft->width()/2,0, tft->width()/2,tft->height(), cWARN); // debug
@@ -206,11 +203,6 @@ bool ViewSettings2::onTouch(Point touch) {
      && touch.y >= item.y && touch.y <= item.y+item.h) {
         handled = true;             // hit!
         item.function();            // do the thing
-
-        #ifdef SHOW_TOUCH_TARGETS
-          const int radius = 3;     // debug: show where touched
-          tft->fillCircle(touch.x, touch.y, radius, cWARN);  // debug - show dot
-        #endif
      }
   }
   return handled;                   // true=handled, false=controller uses default action

@@ -196,8 +196,8 @@ void ViewVolume::startScreen() {
     tft->print(item.text);
 
     #ifdef SHOW_TOUCH_TARGETS
-    tft->drawRect(item.hitTarget.ul.x, item.hitTarget.ul.y,  // debug: draw outline around hit target
-                 item.hitTarget.size.x, item.hitTarget.size.y, 
+    tft->drawRect(item.x, item.y,  // debug: draw outline around hit target
+                 item.w, item.h, 
                  cWARN);
     #endif
   }
@@ -216,9 +216,6 @@ void ViewVolume::startScreen() {
 
   gPrevVolIndex = -1;
   updateScreen();                   // fill in values immediately, don't wait for loop() to eventually get around to it
-
-  // ----- label this view in upper left corner
-  showNameOfView("Volume", cWARN, cBACKGROUND);
 
   // debug: show centerline on display
   //                        x1,y1            x2,y2            color

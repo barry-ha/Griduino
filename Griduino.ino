@@ -266,6 +266,12 @@ bool newScreenTap(Point* pPoint) {
   return result;
 }
 
+void showWhereTouched(Point touch) {
+  #ifdef SHOW_TOUCH_TARGETS
+    const int radius = 3;     // debug
+    tft.fillCircle(touch.x, touch.y, radius, cWARN);  // debug - show dot
+  #endif
+}
 // WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
 // 2020-05-12 barry@k7bwh.com
 // We need to replace TouchScreen::pressure() and implement TouchScreen::isTouching()
@@ -836,8 +842,8 @@ void setup() {
 
   // ----- select opening view screen
   pView = &gridView;
-  pView->startScreen();                 // start current view, eg, startGridScreen()
-  pView->updateScreen();                // update current view, eg, updateGridScreen()
+  pView->startScreen();                 // start current view
+  pView->updateScreen();                // update current view
 }
 
 //=========== main work loop ===================================
@@ -912,13 +918,10 @@ void loop() {
   if (newScreenTap(&touch)) {
 
     #ifdef SHOW_TOUCH_TARGETS
-      const int radius = 3;     // debug
-      tft.fillCircle(touch.x, touch.y, radius, cWARN);  // debug - show dot
-      touchHandled = true;      // debug - true=stay on same screen
+      showWhereTouched(touch);        // debug: show where touched
     #endif
 
     bool touchHandled = pView->onTouch(touch);
-    //bool touchHandled = gaOnTouch[gViewIndex](touch);
 
     if (!touchHandled) {
       // not handled by one of the views, so run our default action

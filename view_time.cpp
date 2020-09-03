@@ -267,9 +267,6 @@ void ViewTime::startScreen() {
 
   updateScreen();                     // fill in values immediately, don't wait for the main loop to eventually get around to it
 
-  // ----- label this view in upper left corner
-  showNameOfView("GMT Time", cWARN, cBACKGROUND);
-
   // debug: show centerline on display
   //                        x1,y1            x2,y2            color
   //tft->drawLine(tft->width()/2,0, tft->width()/2,tft->height(), cWARN); // debug
@@ -284,7 +281,7 @@ bool ViewTime::onTouch(Point touch) {
      && touch.y >= item.y && touch.y <= item.y+item.h) {
         handled = true;             // hit!
         item.function();            // do the thing
-        updateScreen();
+        updateScreen();             // show the result
 
         #ifdef SHOW_TOUCH_TARGETS
           const int radius = 3;     // debug: show where touched

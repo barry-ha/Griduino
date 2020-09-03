@@ -11,21 +11,20 @@
 #include "save_restore.h"           // Configuration data in nonvolatile RAM
 #include "model.cpp"                // Class Model (for model-view-controller)
 #include "TextField.h"              // Optimize TFT display text for proportional fonts
+#include "view.h"                   // Base class for all views
 
 // ========== extern ==================================
 float nextGridLineEast(float longitudeDegrees);       // Griduino.ino
 float nextGridLineWest(float longitudeDegrees);       // Griduino.ino
 void calcLocator(char* result, double lat, double lon, int precision); // Griduino.ino
-void setFontSize(int font);                    // Griduino.ino
-void clearScreen();                         // Griduino.ino
-
-void updateGridScreen();                    // view_grid.cpp
-void startGridScreen();                     // view_grid.cpp
+void setFontSize(int font);             // Griduino.ino
+void clearScreen();                     // Griduino.ino
 
 // ----- globals
 extern Adafruit_ILI9341 tft;
-extern DACMorseSender dacMorse;             // Morse code
+extern DACMorseSender dacMorse;         // Morse code
 extern Model* model;
+extern ViewGrid gridView;               // Griduino.ino
 
 TextField txtTest("test", 1,21, ILI9341_WHITE);
 
@@ -227,7 +226,7 @@ void verifyBreadCrumbs() {
   model->gLongitude = -122.274711; // CN87
 
   // initialize the canvas that we will draw upon
-  startGridScreen();              // clear and draw normal screen
+  gridView.startScreen();               // clear and draw normal screen
   txtTest.print();
   txtTest.dirty = true;
   txtTest.print();
@@ -240,22 +239,22 @@ void verifyBreadCrumbs() {
   // ----- plot each corner, starting upper left, moving clockwise
   model->gLatitude = 48.0 - 0.1;     // upper left
   model->gLongitude = -124.0 + 0.1;
-  updateGridScreen();
+  gridView.updateScreen();
   delay(500);
 
   model->gLatitude = 48.0 - 0.1;     // upper right
   model->gLongitude = -122.0 - 0.1;
-  updateGridScreen();
+  gridView.updateScreen();
   delay(500);
 
   model->gLatitude = 47.0 + 0.1;     // lower right
   model->gLongitude = -122.0 - 0.1;
-  updateGridScreen();
+  gridView.updateScreen();
   delay(500);
 
   model->gLatitude = 47.0 + 0.1;     // lower left
   model->gLongitude = -124.0 + 0.1;
-  updateGridScreen();
+  gridView.updateScreen();
   delay(500);
 }
 // =============================================================
@@ -264,7 +263,7 @@ void verifyBreadCrumbTrail1() {
   Serial.print("-------- verifyBreadCrumbTrail1() at line "); Serial.println(__LINE__);
   
   // initialize the canvas to draw on
-  startGridScreen();              // clear and draw normal screen
+  gridView.startScreen();            // clear and draw normal screen
   txtTest.dirty = true;
   txtTest.print();
 
@@ -282,7 +281,7 @@ void verifyBreadCrumbTrail1() {
   }
 
   //dumpHistory();              // did it remember? dump history to monitor
-  updateGridScreen();
+  gridView.updateScreen();
   model->clearHistory();     // clean up so it is not re-displayed by main program
 }
 // =============================================================
@@ -311,16 +310,16 @@ void verifyBreadCrumbTrail2() {
   Serial.print("-------- verifyBreadCrumbTrail2() at line "); Serial.println(__LINE__);
   
   // initialize the canvas to draw on
-  startGridScreen();              // clear and draw normal screen
-  txtTest.dirty = true;           // paint big "Test" in upper left
+  gridView.startScreen();           // clear and draw normal screen
+  txtTest.dirty = true;             // paint big "Test" in upper left
   txtTest.print();
 
   model->clearHistory();
-  generateSineWave(model);        // fill GPS model with known test data
+  generateSineWave(model);          // fill GPS model with known test data
 
   Serial.println(". History as known by verifyBreadCrumbTrail2()...");
-  model->dumpHistory();           // did it remember? (go review serial console)
-  updateGridScreen();             // does it look like a sine wave? (go look at TFT display)
+  model->dumpHistory();             // did it remember? (go review serial console)
+  gridView.updateScreen();          // does it look like a sine wave? (go look at TFT display)
 }
 // =============================================================
 // save GPS route to non-volatile memory
