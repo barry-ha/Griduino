@@ -45,7 +45,7 @@
 #include "view.h"                   // Base class for all views
 
 // ========== extern ===========================================
-extern Adafruit_ILI9341 tft;        // Griduino.ino
+void showNameOfView(String sName, uint16_t fgd, uint16_t bkg);  // Griduino.ino
 extern Model* model;                // "model" portion of model-view-controller
 extern Adafruit_BMP3XX baro;        // Griduino.ino
 extern void getDate(char* result, int maxlen);  // model.cpp
@@ -58,10 +58,10 @@ void showScreenBorder();            // optionally outline visible area
 // ========== forward reference ================================
 void timePlus();
 void timeMinus();
-void updateTimeScreen();
 
 // ============== constants ====================================
 
+// color scheme: see constants.h
 // ========== globals ==========================================
 int gTimeZone = -7;                     // default local time Pacific (-7 hours), saved in nonvolatile memory
 //int gSatellites = 0;                    // number of satellites
@@ -119,7 +119,7 @@ TimeButton timeButtons[] = {
 };
 const int nTimeButtons = sizeof(timeButtons)/sizeof(Button);
 
-//=========== time helpers =====================================
+// ========== helpers ==========================================
 #define TIME_FOLDER  "/GMTclock"     // 8.3 names
 #define TIME_FILE    TIME_FOLDER "/AddHours.cfg"
 #define TIME_VERSION "v01"
@@ -129,7 +129,6 @@ void timePlus() {
   if (gTimeZone > 12) {
     gTimeZone = -11;
   }
-  updateTimeScreen();
   Serial.print("Time zone changed to "); Serial.println(gTimeZone);
   //SaveRestore myconfig = SaveRestore(TIME_FOLDER, TIME_FILE, TIME_VERSION, gTimeZone);  // todo
   //myconfig.writeConfig(); // todo
@@ -139,7 +138,6 @@ void timeMinus() {
   if (gTimeZone < -12) {
     gTimeZone = 11;
   }
-  updateTimeScreen();
   Serial.print("Time zone changed to "); Serial.println(gTimeZone);
   //SaveRestore myconfig = SaveRestore(TIME_FOLDER, TIME_FILE, TIME_VERSION, gTimeZone);  // todo
   //myconfig.writeConfig(); // todo
@@ -157,8 +155,8 @@ void getTimeLocal(char* result, int len) {
                           hh,  mm,  ss);
 }
 
-// ============ time screen view ===============================
-void updateTimeScreen() {
+// ========== class ViewTime ===================================
+void ViewTime::updateScreen() {
   // called on every pass through main()
 
   // GMT Time
@@ -220,9 +218,10 @@ void updateTimeScreen() {
   txtClock[NUMSATS].print(sBirds);
   //txtClock[NUMSATS].dump();   // debug
 }
-void startTimeScreen() {
+
+void ViewTime::startScreen() {
   // called once each time this view becomes active
-  tft.fillScreen(cBACKGROUND);      // clear screen
+  tft->fillScreen(cBACKGROUND);      // clear screen
   txtClock[0].setBackground(cBACKGROUND);               // set background for all TextFields in this view
   TextField::setTextDirty( txtClock, numClockFields );  // make sure all fields get re-printed on screen change
 
@@ -249,26 +248,34 @@ void startTimeScreen() {
   setFontSize(12);
   for (int ii=0; ii<nTimeButtons; ii++) {
     TimeButton item = timeButtons[ii];
-    tft.fillRoundRect(item.x, item.y, item.w, item.h, item.radius, cBUTTONFILL);
-    tft.drawRoundRect(item.x, item.y, item.w, item.h, item.radius, cBUTTONOUTLINE);
+    tft->fillRoundRect(item.x, item.y, item.w, item.h, item.radius, cBUTTONFILL);
+    tft->drawRoundRect(item.x, item.y, item.w, item.h, item.radius, cBUTTONOUTLINE);
 
     // ----- label on top of button
     int xx = getOffsetToCenterTextOnButton(item.text, item.x, item.w);
-    tft.setCursor(xx, item.y+item.h/2+5);
-    tft.setTextColor(item.color);
-    tft.print(item.text);
+
+    tft->setCursor(xx, item.y+item.h/2+5);
+    tft->setTextColor(item.color);
+    tft->print(item.text);
 
     #ifdef SHOW_TOUCH_TARGETS
-    tft.drawRect(item.hitTarget.ul.x, item.hitTarget.ul.y,  // debug: draw outline around hit target
+    tft->drawRect(item.hitTarget.ul.x, item.hitTarget.ul.y,  // debug: draw outline around hit target
                  item.hitTarget.size.x, item.hitTarget.size.y, 
                  cWARN);
     #endif
   }
 
+  updateScreen();                     // fill in values immediately, don't wait for the main loop to eventually get around to it
+
+  // ----- label this view in upper left corner
+  showNameOfView("GMT Time", cWARN, cBACKGROUND);
+
   // debug: show centerline on display
-  //tft.drawLine(tft.width()/2,0, tft.width()/2,tft.height(), cWARN); // debug
+  //                        x1,y1            x2,y2            color
+  //tft->drawLine(tft->width()/2,0, tft->width()/2,tft->height(), cWARN); // debug
 }
-bool onTouchTime(Point touch) {
+
+bool ViewTime::onTouch(Point touch) {
   Serial.println("->->-> Touched status screen.");
   bool handled = false;             // assume a touch target was not hit
   for (int ii=0; ii<nTimeButtons; ii++) {
@@ -277,25 +284,13 @@ bool onTouchTime(Point touch) {
      && touch.y >= item.y && touch.y <= item.y+item.h) {
         handled = true;             // hit!
         item.function();            // do the thing
+        updateScreen();
 
-        //tft.setCursor(touch.x, touch.y);  // debug: show where hit
-        //setFontSize(12);
-        //tft.print("x");
+        #ifdef SHOW_TOUCH_TARGETS
+          const int radius = 3;     // debug: show where touched
+          tft->fillCircle(touch.x, touch.y, radius, cWARN);  // debug - show dot
+        #endif
      }
   }
   return handled;                   // true=handled, false=controller uses default action
 }
-
-// ========== class ViewTime
-void ViewTime::updateScreen() {
-  // called on every pass through main()
-  ::updateTimeScreen();        // delegate to old code     TODO: migrate old code into new class
-}
-void ViewTime::startScreen() {
-  // called once each time this view becomes active
-  ::startTimeScreen();         // delegate to old code     TODO: migrate old code into new class
-}
-bool ViewTime::onTouch(Point touch) {
-  return ::onTouchTime(touch);  // delegate to old code     TODO: migrate old code into new class
-}
-

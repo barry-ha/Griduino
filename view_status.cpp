@@ -27,8 +27,8 @@
 #include "view.h"                   // Base class for all views
 
 // ========== extern ===========================================
-extern Adafruit_ILI9341 tft;        // Griduino.ino
-extern int gTextSize;               // no such function as "tft.getTextSize()" so remember it on our own
+extern int gTextSize;               // no such function as "get text size" so remember size on our own
+void showNameOfView(String sName, uint16_t fgd, uint16_t bkg);  // Griduino.ino
 extern Model* model;                // "model" portion of model-view-controller
 
 void setFontSize(int font);         // Griduino.ino
@@ -73,8 +73,8 @@ TextField txtValues[numText] = {
 
 // ========== helpers ==========================================
 
-// ========== start status screen view =========================
-void updateStatusScreen() {
+// ========== class ViewStatus =================================
+void ViewStatus::updateScreen() {
   // called on every pass through main()
 
   setFontSize(12);
@@ -113,16 +113,17 @@ void updateStatusScreen() {
     txtValues[4].color = cWARN;
     txtValues[4].print("None");
   }
-  
+
   // ----- center lat/long on its own row
   char sLatLong[22];      // strlen("-xxx.xxxx,-yyy.yyyy") = 19
   snprintf(sLatLong, 22, "%.4f, %.4f",
                 model->gLatitude, model->gLongitude);
   txtValues[5].print(sLatLong);
 }
-void startStatusScreen() {
+
+void ViewStatus::startScreen() {
   // called once each time this view becomes active
-  tft.fillScreen(cBACKGROUND);      // clear screen
+  tft->fillScreen(cBACKGROUND);      // clear screen
   txtValues[0].setBackground(cBACKGROUND);                   // set background for all TextFields in this view
   TextField::setTextDirty( txtLabels, numLabels );
   TextField::setTextDirty( txtValues, numText );             // make sure all fields get re-printed on screen change
@@ -136,25 +137,17 @@ void startStatusScreen() {
     txtLabels[ii].print();
   }
 
-  // debug: show centerline on display
-  //tft.drawLine(tft.width()/2,0, tft.width()/2,tft.height(), cWARN); // debug
+  updateScreen();                     // fill in values immediately, don't wait for the main loop to eventually get around to it
 
-  updateStatusScreen();             // fill in values immediately, don't wait for the main loop to eventually get around to it
+  // ----- label this view in upper left corner
+  showNameOfView("Status", cWARN, cBACKGROUND);
+
+  // debug: show centerline on display
+  //                        x1,y1            x2,y2            color
+  //tft->drawLine(tft->width()/2,0, tft->width()/2,tft->height(), cWARN); // debug
 }
-bool onTouchStatus(Point touch) {
+
+bool ViewStatus::onTouch(Point touch) {
   Serial.println("->->-> Touched status screen.");
   return false;                     // true=handled, false=controller uses default action
-}
-
-// ========== class ViewStatus
-void ViewStatus::updateScreen() {
-  // called on every pass through main()
-  ::updateStatusScreen();        // delegate to old code     TODO: migrate old code into new class
-}
-void ViewStatus::startScreen() {
-  // called once each time this view becomes active
-  ::startStatusScreen();         // delegate to old code     TODO: migrate old code into new class
-}
-bool ViewStatus::onTouch(Point touch) {
-  return ::onTouchStatus(touch);  // delegate to old code     TODO: migrate old code into new class
 }

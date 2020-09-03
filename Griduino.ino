@@ -19,6 +19,7 @@
   2020-08-14  v0.20 add icons for gear, arrow
   2020-08-20  v0.21 fix audio volume set-save-restore bug
   2020-08-23  v0.22 add setting to show distance in miles/kilometers
+  2020-09-02  v0.23 refactor views into base class "View" and derived classes
 
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA

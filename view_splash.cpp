@@ -24,12 +24,6 @@
 #include "TextField.h"              // Optimize TFT display text for proportional fonts
 #include "view.h"                   // Base class for all views
 
-///\\\///\\\///\\\///\\\///\\\///\\\///\\\///\\\///\\\///\\\///
-//
-//      migrate all of "view_splash.cpp" into this file
-//
-///\\\///\\\///\\\///\\\///\\\///\\\///\\\///\\\///\\\///\\\///
-
 // ========== extern ===========================================
 void setFontSize(int font);         // Griduino.ino
 void showScreenBorder();            // Griduino.ino
@@ -37,26 +31,25 @@ void showScreenBorder();            // Griduino.ino
 // ============== constants ====================================
 // color scheme: see constants.h
 
-// ========== helpers ==========================================
-
 // ========== splash screen view ===============================
 void ViewSplash::updateScreen() {
   // called on every pass through main()
   // nothing to do in the main loop - this screen has no dynamic items
 }
+
 void ViewSplash::startScreen() {
   // called once each time this view becomes active
 
-  const int numSplashFields = 4;
-  TextField txtSplash[numSplashFields] = {
+  TextField txtSplash[] = {
     //        text               x,y    color  
     TextField(PROGRAM_TITLE,    64, 84, cHIGHLIGHT),  // giant program title, centered
     TextField(PROGRAM_VERSION, 132,110, cVALUE),      // normal size text, centered
     TextField(PROGRAM_LINE1,    89,164, cVALUE),
     TextField(PROGRAM_LINE2,    98,196, cVALUE),
   };
+  const int numSplashFields = sizeof(txtSplash)/sizeof(txtSplash[0]);
 
-  tft->fillScreen(cBACKGROUND);      // clear screen
+  tft->fillScreen(cBACKGROUND);        // clear screen
   txtSplash[0].setBackground(cBACKGROUND);                // set background for all TextFields in this view
   TextField::setTextDirty( txtSplash, numSplashFields );  // make sure all fields get re-printed on screen change
 
@@ -76,12 +69,12 @@ void ViewSplash::startScreen() {
 #ifdef USE_MORSE_CODE
   // ----- announce in Morse code, so vehicle's driver doesn't have to look at the screen
   spkrMorse.setMessage(String(" de k7bwh  ")); // lowercase is required
-  //spkrMorse.startSending();       // non-blocking (TODO: does not send evenly)
-  spkrMorse.sendBlocking();         // blocking
+  //spkrMorse.startSending();         // non-blocking (TODO: does not send evenly)
+  spkrMorse.sendBlocking();           // blocking
 #endif
 }
 
 bool ViewSplash::onTouch(Point touch) {
   Serial.println("->->-> Touched splash screen.");
-  return false;                     // true=handled, false=controller uses default action
+  return false;                       // true=handled, false=controller uses default action
 }

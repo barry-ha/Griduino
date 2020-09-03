@@ -34,7 +34,7 @@
 #include "view.h"                   // Base class for all views
 
 // ========== extern ===========================================
-extern Adafruit_ILI9341 tft;        // Griduino.ino
+void showNameOfView(String sName, uint16_t fgd, uint16_t bkg);  // Griduino.ino
 extern DACMorseSender dacMorse;     // morse code (so we can send audio samples)
 extern DS1804 volume;               // digital potentiometer
 
@@ -44,7 +44,6 @@ void drawAllIcons();                // draw gear (settings) and arrow (next scre
 void showScreenBorder();            // optionally outline visible area
 
 // ========== forward reference ================================
-void updateVolumeScreen();
 void volumeUp();
 void volumeDown();
 void volumeMute();
@@ -58,6 +57,7 @@ const int yRow2 = yRow1 + 30;     // text:  "of 10"
 
 // color scheme: see constants.h
 #define col1 10                   // left-adjusted column of text
+#define xButton 160               // indented column of buttons
 
 // ========== globals ==========================================
 int gVolIndex = 5;          // init to middle value
@@ -120,7 +120,6 @@ void changeVolume(int diff) {
   gVolIndex += diff;
   gVolIndex = constrain(gVolIndex, 0, 10);
   setVolume(gVolIndex);
-  updateVolumeScreen();
   dacMorse.setMessage("hi");
   dacMorse.sendBlocking();
 }
@@ -133,7 +132,6 @@ void volumeDown() {
 void volumeMute() {
   gVolIndex = 0;
   setVolume(gVolIndex);
-  updateVolumeScreen();
 }
 
 // ========== load/save config setting =========================
@@ -158,17 +156,18 @@ void saveConfigVolume() {
   config.writeConfig( (byte*) &gVolIndex, sizeof(gVolIndex) );
 }
 
-// ========== volume screen view ===============================
-void updateVolumeScreen() {
+// ========== class ViewVolume =================================
+void ViewVolume::updateScreen() {
   // called on every pass through main()
 
-  // ----- volume
+  // ----- fill in replacment string text
   setFontSize(eFONTBIG);
   txtVolume[BIGVOLUME].print(gVolIndex);
 }
-void startVolumeScreen() {
+
+void ViewVolume::startScreen() {
   // called once each time this view becomes active
-  tft.fillScreen(cBACKGROUND);      // clear screen
+  tft->fillScreen(cBACKGROUND);      // clear screen
   txtVolume[BIGVOLUME].setBackground(cBACKGROUND);        // set background for all TextFields in this view
   TextField::setTextDirty( txtVolume, numVolFields );     // make sure all fields get re-printed on screen change
 
@@ -189,12 +188,18 @@ void startVolumeScreen() {
   // ----- draw buttons
   for (int ii=0; ii<nVolButtons; ii++) {
     Button item = volButtons[ii];
-    tft.fillRoundRect(item.x, item.y, item.w, item.h, item.radius, cBUTTONFILL);
-    tft.drawRoundRect(item.x, item.y, item.w, item.h, item.radius, cBUTTONOUTLINE);
+    tft->fillRoundRect(item.x, item.y, item.w, item.h, item.radius, cBUTTONFILL);
+    tft->drawRoundRect(item.x, item.y, item.w, item.h, item.radius, cBUTTONOUTLINE);
 
-    tft.setCursor(item.x+20, item.y+32);
-    tft.setTextColor(cVALUE);
-    tft.print(item.text);
+    tft->setCursor(item.x+20, item.y+32);
+    tft->setTextColor(cVALUE);
+    tft->print(item.text);
+
+    #ifdef SHOW_TOUCH_TARGETS
+    tft->drawRect(item.hitTarget.ul.x, item.hitTarget.ul.y,  // debug: draw outline around hit target
+                 item.hitTarget.size.x, item.hitTarget.size.y, 
+                 cWARN);
+    #endif
   }
 
   // ----- icons on buttons
@@ -204,18 +209,23 @@ void startVolumeScreen() {
   int xx = volButtons[0].x + volButtons[0].w/2; // centerline is halfway in the middle
   int yy = volButtons[0].y + volButtons[0].h/2; // baseline is halfway in the middle
   //                  x0,y0,     x1,y1,     x2,y2,   color
-  tft.fillTriangle(xx-ww,yy+nn,  xx+ww,yy+nn,  xx,yy-ht+nn, cVALUE);  // arrow UP
+  tft->fillTriangle(xx-ww,yy+nn,  xx+ww,yy+nn,  xx,yy-ht+nn, cVALUE);  // arrow UP
 
   yy = volButtons[1].y + volButtons[1].h/2;
-  tft.fillTriangle(xx-ww,yy-nn,  xx+ww,yy-nn,  xx,yy+ht-nn, cVALUE);  // arrow DOWN
+  tft->fillTriangle(xx-ww,yy-nn,  xx+ww,yy-nn,  xx,yy+ht-nn, cVALUE);  // arrow DOWN
 
   gPrevVolIndex = -1;
-  updateVolumeScreen();             // fill in values immediately, don't wait for loop() to eventually get around to it
+  updateScreen();                   // fill in values immediately, don't wait for loop() to eventually get around to it
+
+  // ----- label this view in upper left corner
+  showNameOfView("Volume", cWARN, cBACKGROUND);
 
   // debug: show centerline on display
-  //tft.drawLine(tft.width()/2,0, tft.width()/2,tft.height(), cWARN); // debug
+  //                        x1,y1            x2,y2            color
+  //tft->drawLine(tft->width()/2,0, tft->width()/2,tft->height(), cWARN); // debug
 }
-bool onTouchVolume(Point touch) {
+
+bool ViewVolume::onTouch(Point touch) {
   Serial.println("->->-> Touched volume screen.");
   bool handled = false;             // assume a touch target was not hit
   for (int ii=0; ii<nVolButtons; ii++) {
@@ -224,25 +234,13 @@ bool onTouchVolume(Point touch) {
      && touch.y >= item.y && touch.y <= item.y+item.h) {
         handled = true;             // hit!
         item.function();            // do the thing
+        updateScreen();             // show the result
 
         #ifdef SHOW_TOUCH_TARGETS
           const int radius = 3;     // debug: show where touched
-          tft.fillCircle(touch.x, touch.y, radius, cWARN);  // debug - show dot
+          tft->fillCircle(touch.x, touch.y, radius, cWARN);  // debug - show dot
         #endif
      }
   }
   return handled;                   // true=handled, false=controller uses default action
-}
-
-// ========== class ViewVolume
-void ViewVolume::updateScreen() {
-  // called on every pass through main()
-  ::updateVolumeScreen();        // delegate to old code     TODO: migrate old code into new class
-}
-void ViewVolume::startScreen() {
-  // called once each time this view becomes active
-  ::startVolumeScreen();         // delegate to old code     TODO: migrate old code into new class
-}
-bool ViewVolume::onTouch(Point touch) {
-  return ::onTouchVolume(touch);  // delegate to old code     TODO: migrate old code into new class
 }

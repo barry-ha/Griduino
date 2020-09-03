@@ -5,8 +5,8 @@
   Hardware: John Vanderbeck, KM7O, Seattle, WA
 
   Purpose:  This is the 'control panel' for one-time Griduino setup.
-            Since it's NOT intended for a driver in motion, we can use
-            a smaller font and put a little more stuff onto the screen.
+            Since it's NOT intended for a driver in motion, we use a
+            much smaller font and cram more stuff onto the screen.
 
             +-----------------------------------+
             |              Settings 3           |
@@ -17,8 +17,8 @@
             |                                   |
             |                                   |
             |                                   |
-            | Version 0.22                      |
-            |     Compiled Aug 21 2020  08:58   |
+            | Version 0.23                      |
+            |     Compiled Sep 02 2020  09:16   |
             +-----------------------------------+
 */
 
@@ -30,7 +30,7 @@
 #include "view.h"                   // Base class for all views
 
 // ========== extern ===========================================
-extern Adafruit_ILI9341 tft;        // Griduino.ino
+void showNameOfView(String sName, uint16_t fgd, uint16_t bkg);  // Griduino.ino
 extern Model* model;                // "model" portion of model-view-controller
 
 void setFontSize(int font);         // Griduino.ino
@@ -86,8 +86,8 @@ TimeButton settings3Buttons[] = {
 };
 const int nSettingsButtons = sizeof(settings3Buttons)/sizeof(settings3Buttons[0]);
 
-// ========== settings screen view =============================
-void updateSettings3Screen() {
+// ========== class ViewSettings3 ==============================
+void ViewSettings3::updateScreen() {
   // called on every pass through main()
 
   // ----- show selected radio buttons by filling in the circle
@@ -103,13 +103,13 @@ void updateSettings3Screen() {
     if (ii==eKILOMETERS && model->gMetric) {
       buttonFillColor = cLABEL;
     }
-    tft.fillCircle(xCenter, yCenter, 4, buttonFillColor);
+    tft->fillCircle(xCenter, yCenter, 4, buttonFillColor);
   }
-
 }
-void startSettings3Screen() {
+
+void ViewSettings3::startScreen() {
   // called once each time this view becomes active
-  tft.fillScreen(cBACKGROUND);      // clear screen
+  tft->fillScreen(cBACKGROUND);      // clear screen
   txtSettings3[0].setBackground(cBACKGROUND);                  // set background for all TextFields in this view
   TextField::setTextDirty( txtSettings3, numSettingsFields );  // make sure all fields get re-printed on screen change
   setFontSize(eFONTSMALLEST);
@@ -126,17 +126,18 @@ void startSettings3Screen() {
   setFontSize(eFONTSMALLEST);
   for (int ii=0; ii<nSettingsButtons; ii++) {
     TimeButton item = settings3Buttons[ii];
-    tft.fillRoundRect(item.x, item.y, item.w, item.h, item.radius, cBUTTONFILL);
-    tft.drawRoundRect(item.x, item.y, item.w, item.h, item.radius, cBUTTONOUTLINE);
+    tft->fillRoundRect(item.x, item.y, item.w, item.h, item.radius, cBUTTONFILL);
+    tft->drawRoundRect(item.x, item.y, item.w, item.h, item.radius, cBUTTONOUTLINE);
 
     // ----- label on top of button
     int xx = getOffsetToCenterTextOnButton(item.text, item.x, item.w);
-    tft.setCursor(xx, item.y+item.h/2+5);
-    tft.setTextColor(item.color);
-    tft.print(item.text);
+
+    tft->setCursor(xx, item.y+item.h/2+5);
+    tft->setTextColor(item.color);
+    tft->print(item.text);
 
     #ifdef SHOW_TOUCH_TARGETS
-    tft.drawRect(item.hitTarget.ul.x, item.hitTarget.ul.y,  // debug: draw outline around hit target
+    tft->drawRect(item.hitTarget.ul.x, item.hitTarget.ul.y,  // debug: draw outline around hit target
                  item.hitTarget.size.x, item.hitTarget.size.y, 
                  cWARN);
     #endif
@@ -149,17 +150,21 @@ void startSettings3Screen() {
     int yCenter = item.y + (item.h/2);
 
     // outline the radio button
-    // the active button will be indicated in updateSettings3Screen()
-    tft.drawCircle(xCenter, yCenter, 7, cVALUE);
+    // the active button will be indicated in updateScreen()
+    tft->drawCircle(xCenter, yCenter, 7, cVALUE);
   }
 
-  updateSettings3Screen();             // fill in values immediately, don't wait for the main loop to eventually get around to it
+  updateScreen();                     // fill in values immediately, don't wait for the main loop to eventually get around to it
+
+  // ----- label this view in upper left corner
+  showNameOfView("Hint: ", cWARN, cBACKGROUND);
 
   // debug: show centerline on display
   //                        x1,y1            x2,y2            color
-  //tft.drawLine(tft.width()/2,0, tft.width()/2,tft.height(), cWARN); // debug
+  //tft->drawLine(tft->width()/2,0, tft->width()/2,tft->height(), cWARN); // debug
 }
-bool onTouchSettings3(Point touch) {
+
+bool ViewSettings3::onTouch(Point touch) {
   Serial.println("->->-> Touched settings screen.");
   bool handled = false;             // assume a touch target was not hit
   for (int ii=0; ii<nSettingsButtons; ii++) {
@@ -168,28 +173,14 @@ bool onTouchSettings3(Point touch) {
      && touch.y >= item.y && touch.y <= item.y+item.h) {
         handled = true;             // hit!
         item.function();            // do the thing
-        updateSettings3Screen();    // update UI immediately, don't wait for laggy mainline loop
+        updateScreen();             // update UI immediately, don't wait for laggy mainline loop
         model->save();              // after UI is refreshed, run this slow "save to nvr" operation
 
         #ifdef SHOW_TOUCH_TARGETS
           const int radius = 3;     // debug: show where touched
-          tft.fillCircle(touch.x, touch.y, radius, cWARN);  // debug - show dot
+          tft->fillCircle(touch.x, touch.y, radius, cWARN);  // debug - show dot
         #endif
      }
   }
   return handled;                   // true=handled, false=controller uses default action
-}
-
-// ========== class ViewSettings3
-void ViewSettings3::updateScreen() {
-  // called on every pass through main()
-  ::updateSettings3Screen();        // delegate to old code     TODO: migrate old code into new class
-}
-void ViewSettings3::startScreen() {
-  // called once each time this view becomes active
-  ::startSettings3Screen();         // delegate to old code     TODO: migrate old code into new class
-}
-
-bool ViewSettings3::onTouch(Point touch) {
-  return ::onTouchSettings3(touch);  // delegate to old code     TODO: migrate old code into new class
 }

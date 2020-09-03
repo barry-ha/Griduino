@@ -45,14 +45,12 @@ void showScreenBorder();            // optionally outline visible area
 const int gMarginX = 70;            // define space for grid outline on screen
 const int gMarginY = 26;            // and position text relative to this outline
 
-// ========== globals ==========================================
-
 // ========== helpers ==========================================
 const double minLong = gridWidthDegrees / gBoxWidth;  // longitude degrees from one pixel to the next (minimum visible movement)
 const double minLat = gridHeightDegrees / gBoxHeight; // latitude degrees from one pixel to the next
 
 bool isVisibleDistance(const PointGPS from, const PointGPS to) {
-  // has the location moved some minimum amount, enough to be visible?
+  // has the vehicle moved some minimum amount, enough to be visible?
 
   if (abs(from.lat - to.lat) >= minLat) {
     return true;
@@ -75,7 +73,7 @@ enum txtIndex {
   N_GRIDNAME, S_GRIDNAME, E_GRIDNAME, W_GRIDNAME,
   N_BOX_LAT,  S_BOX_LAT,  E_BOX_LONG, W_BOX_LONG,
 };
-                                            
+
 TextField txtGrid[] = {
   //         text      x,y     color
   TextField("CN77",  101,101,  cGRIDNAME),      // GRID4: center of screen
@@ -391,8 +389,8 @@ void plotCurrentPosition(const PointGPS loc, const PointGPS origin) {
   plotVehicle( result, ILI9341_CYAN );              // plot new vehicle
   prevVehicle = result;
 }
-// ========== grid screen view =================================
-void updateGridScreen() {
+// ========== class ViewGrid
+void ViewGrid::updateScreen() {
   // called on every pass through main()
 
   // coordinates of lower-left corner of currently displayed grid square
@@ -413,9 +411,10 @@ void updateGridScreen() {
   plotCurrentPosition(myLocation, gridOrigin);    // show current pushpin
   plotRoute(model->history, model->numHistory, gridOrigin);   // show route track
 }
-void startGridScreen() {
+
+void ViewGrid::startScreen() {
   // called once each time this view becomes active
-  tft.fillScreen(ILI9341_BLACK);      // clear screen
+  tft->fillScreen(ILI9341_BLACK);      // clear screen
   txtGrid[0].setBackground(ILI9341_BLACK);          // set background for all TextFields in this view
   TextField::setTextDirty( txtGrid, numTextGrid );
 
@@ -435,23 +434,10 @@ void startGridScreen() {
   drawAllIcons();                   // draw gear (settings) and arrow (next screen)
   showScreenBorder();               // optionally outline visible area
 
-  updateGridScreen();               // fill in values immediately, don't wait for the main loop to eventually get around to it
-}
-bool onTouchGrid(Point touch) {
-  Serial.println("->->-> Touched grid detail screen.");
-  return false;                     // true=handled, false=controller uses default action
-}
-
-// ========== class ViewGrid
-void ViewGrid::updateScreen() {
-  // called on every pass through main()
-  ::updateGridScreen();           // delegate to old code     TODO: migrate old code into new class
-}
-void ViewGrid::startScreen() {
-  // called once each time this view becomes active
-  ::startGridScreen();            // delegate to old code     TODO: migrate old code into new class
+  updateScreen();                   // fill in values immediately, don't wait for the main loop to eventually get around to it
 }
 
 bool ViewGrid::onTouch(Point touch) {
-  return ::onTouchGrid(touch);    // delegate to old code     TODO: migrate old code into new class
+  Serial.println("->->-> Touched grid detail screen.");
+  return false;                     // true=handled, false=controller uses default action
 }
