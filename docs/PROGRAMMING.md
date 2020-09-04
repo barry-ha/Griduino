@@ -59,7 +59,7 @@ You will find a binary file in the sketch folder with **.bin** extension,  e.g. 
 Run the Python conversion script (author https://github.com/microsoft/uf2): 
    - Open command line window
    - Change directory to the .bin file, e.g.:<br/>**cd C:\Users\barry\Documents\Arduino\Griduino**
-   - Run the Python converter script, e.g.:<br/>**py uf2conv.py -c -b 0x4000 -o griduino.uf2 Griduino.ino.feather_m4.bin**
+   - Run the Python converter script, e.g.:<br/>**py uf2conv.py -c -b 0x4000 -o downloads/griduino.uf2 Griduino.ino.feather_m4.bin**
    - Where "**-c:**" will pass remaining arguments to python script, "**-b 0x4000**" will set start of program, "**-o file.uf2**" is output file, and "**file.bin**" is input file
 
 <h2>4. How to Setup the Arduino IDE for Griduino</h2>
