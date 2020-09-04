@@ -1,25 +1,8 @@
 /*
   Griduino -- Grid Square Navigator with GPS
 
-  Versions: 
-  2019-12-20  v9.0 generates sound by synthesized sine wave intended for decent fidelity
-                   from a small speaker. The hardware goal is for spoken-word output.
-  2019-12-30  v9.2 adds Morse Code announcements via generated audio waveform on DAC.
-  2020-01-01  v9.3 makes the Morse Code actually work, and replaces view_stat_screen
-  2020-01-02  v9.4 adds a new view for controlling audio volume
-              v9.8 adds saving settings in 2MB RAM
-              v10.0 add altimeter
-              v10.1 add GPS save/restore to visually power up in the same place as previous
-              v0.12 refactors screen writing to class TextField
-              v0.13 begin implementing our own TouchScreen functions
-              v0.15 add simulated GPS track (class MockModel)
-  2020-06-03  v0.16 add GMT Clock view
-  2020-06-23  v0.17 add Settings control panel, and clear breadcrumb trail
-  2020-07-06  v0.18 runtime selection of GPS receiver vs simulated trail
-  2020-08-14  v0.20 add icons for gear, arrow
-  2020-08-20  v0.21 fix audio volume set-save-restore bug
-  2020-08-23  v0.22 add setting to show distance in miles/kilometers
-  2020-09-02  v0.23 refactor views into base class "View" and derived classes
+  Version history: 
+            https://github.com/barry-ha/Griduino/blob/master/downloads/CHANGELOG.md
 
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
