@@ -51,6 +51,16 @@ class View {
       return false;                     // true=handled, false=controller uses default action
     }
 
+    /**
+     * Call to load/save configuration from non-volatile RAM
+     */
+    virtual void loadConfig() {
+      // default: loads nothing
+    }
+    virtual void saveConfig() {
+      // default: saves nothing
+    }
+
   protected:
     void clearScreen(uint16_t color=cBACKGROUND) { // clear the screen
       tft->fillScreen(color);
@@ -144,4 +154,7 @@ class ViewVolume : public View {
     void updateScreen();
     void startScreen();
     bool onTouch(Point touch);
+    void loadConfig();
+    void saveConfig();
+
 };

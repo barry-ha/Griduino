@@ -225,10 +225,6 @@ DACMorseSender dacMorse(DAC_PIN, gFrequency, gWordsPerMinute);
 //#include "morse.h"         // Morse Code Library for Arduino with Non-Blocking Sending
 //                           // https://github.com/markfickett/arduinomorse
 
-// ========== extern ===========================================
-int loadConfigVolume();                 // view_volume.cpp
-void saveConfigVolume();
-
 // 2. Helper Functions
 // ============== touchscreen helpers ==========================
 
@@ -791,12 +787,7 @@ void setup() {
                                       // and all "setWiper" commands are really incr/decr pulses. This gets it sync.
   volume.setWiperPosition( gWiper );  // set default volume in digital pot
 
-  if (loadConfigVolume()) {           // view_volume.cpp
-    //Serial.println("Successfully loaded Volume control settings");
-  } else {
-    Serial.println("Failed to load Volume control settings, re-initializing config file");
-    saveConfigVolume();
-  }
+  volumeView.loadConfig();            // restore volume setting from non-volatile RAM
 
   // ----- init DAC for audio/morse code
   #if defined(SAMD_SERIES)

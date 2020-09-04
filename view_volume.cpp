@@ -47,8 +47,6 @@ void showScreenBorder();            // optionally outline visible area
 void volumeUp();
 void volumeDown();
 void volumeMute();
-int loadConfigVolume();
-void saveConfigVolume();
 
 // ============== constants ====================================
 // color scheme: see constants.h
@@ -114,8 +112,6 @@ void setVolume(int volIndex) {
   char msg[256];
   snprintf(msg, 256, "Set volume index %d, wiper position %d", volIndex, wiperPosition);  // debug
   Serial.println(msg);
-
-  saveConfigVolume();     // non-volatile storage
 }
 void changeVolume(int diff) {
   gVolIndex += diff;
@@ -133,28 +129,6 @@ void volumeDown() {
 void volumeMute() {
   gVolIndex = 0;
   setVolume(gVolIndex);
-}
-
-// ========== load/save config setting =========================
-#define VOLUME_CONFIG_FILE    CONFIG_FOLDER "/volume.cfg"
-#define CONFIG_VOLUME_VERSION "Volume v01"
-
-// ----- load from SDRAM -----
-int loadConfigVolume() {
-  SaveRestore config(VOLUME_CONFIG_FILE, CONFIG_VOLUME_VERSION);
-  int tempVolIndex;
-  int result = config.readConfig( (byte*) &tempVolIndex, sizeof(tempVolIndex) );
-  if (result) {
-    gVolIndex = constrain( tempVolIndex, 0, 10);  // global volume index
-    setVolume( gVolIndex );                       // set the hardware to this volume index
-    Serial.print(". Loaded volume setting: "); Serial.println(gVolIndex);
-  }
-  return result;
-}
-// ----- save to SDRAM -----
-void saveConfigVolume() {
-  SaveRestore config(VOLUME_CONFIG_FILE, CONFIG_VOLUME_VERSION);
-  config.writeConfig( (byte*) &gVolIndex, sizeof(gVolIndex) );
 }
 
 // ========== class ViewVolume =================================
@@ -232,9 +206,34 @@ bool ViewVolume::onTouch(Point touch) {
      && touch.y >= item.y && touch.y <= item.y+item.h) {
         handled = true;             // hit!
         item.function();            // do the thing
+        this->saveConfig();         // save the new volume in non-volatile RAM
         updateScreen();             // show the result
 
      }
   }
   return handled;                   // true=handled, false=controller uses default action
+}
+
+// ========== load/save config setting =========================
+#define VOLUME_CONFIG_FILE    CONFIG_FOLDER "/volume.cfg"
+#define CONFIG_VOLUME_VERSION "Volume v01"
+
+// ----- load from SDRAM -----
+void ViewVolume::loadConfig() {
+  SaveRestore config(VOLUME_CONFIG_FILE, CONFIG_VOLUME_VERSION);
+  int tempVolIndex;
+  int result = config.readConfig( (byte*) &tempVolIndex, sizeof(tempVolIndex) );
+  if (result) {
+    gVolIndex = constrain( tempVolIndex, 0, 10);  // global volume index
+    setVolume( gVolIndex );                       // set the hardware to this volume index
+    Serial.print("Loaded volume setting from NVR: "); Serial.println(gVolIndex);
+  } else {
+    Serial.println("Failed to load Volume control settings, re-initializing config file");
+    saveConfig();
+  }
+}
+// ----- save to SDRAM -----
+void ViewVolume::saveConfig() {
+  SaveRestore config(VOLUME_CONFIG_FILE, CONFIG_VOLUME_VERSION);
+  config.writeConfig( (byte*) &gVolIndex, sizeof(gVolIndex) );
 }
