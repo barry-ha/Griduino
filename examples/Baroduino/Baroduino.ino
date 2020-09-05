@@ -1,12 +1,13 @@
 /*
   Baroduino -- demonstrate BMP388 barometric sensor
 
-  Date:     2019-20-18 created from example by John KM7O
-            2020-03-05 replaced physical button design with touchscreen
-            2020-05-12 updated TouchScreen code
-            2020-05-18 added NeoPixel control to illustrate technique
-            2020-08-24 start rewriting user interface
+  Version history: 
             2020-08-27 save units (english/metric) in nonvolatile RAM
+            2020-08-24 start rewriting user interface
+            2020-05-18 added NeoPixel control to illustrate technique
+            2020-05-12 updated TouchScreen code
+            2020-03-05 replaced physical button design with touchscreen
+            2019-12-18 created from example by John KM7O
 
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
@@ -39,13 +40,14 @@
          4. Adafruit BMP388 Barometric Pressure             https://www.adafruit.com/product/3966
 */
 
-#include <Wire.h>
+//#include <Wire.h>
 #include "SPI.h"                    // Serial Peripheral Interface
 #include "Adafruit_GFX.h"           // Core graphics display library
 #include "Adafruit_ILI9341.h"       // TFT color display library
 #include "Adafruit_GPS.h"           // Ultimate GPS library
 #include "TouchScreen.h"            // Touchscreen built in to 3.2" Adafruit TFT display
 #include "Adafruit_BMP3XX.h"        // Precision barometric and temperature sensor
+#include "hardware.h"               // Griduino pin definitions 
 #include "constants.h"              // Griduino constants, colors, typedefs
 #include "save_restore.h"           // save/restore configuration data to SDRAM
 #include "TextField.h"              // Optimize TFT display text for proportional fonts
