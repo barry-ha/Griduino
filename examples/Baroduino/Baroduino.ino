@@ -13,10 +13,10 @@
   Hardware: John Vanderbeck, KM7O, Seattle, WA
 
   Purpose:  What can you do with a graphing barometer that knows the exact time of day?
-            This program timestamps each reading and stores it for later.
+            This program timestamps each reading and stores a history.
             It graphs the most recent 3 days. 
-            (Todo) It saves the readings in non-volatile memory and re-displays them on power-up.
-            The RTC (realtime clock) is updated from the GPS satellite network.
+            It saves the readings in non-volatile memory and re-displays them on power-up.
+            Its RTC (realtime clock) is updated from the GPS satellite network.
 
             +-----------------------------------+
             |           29.97 inHg              |
@@ -27,9 +27,9 @@
             | 30.0 +  -  -  -  -  -  -  -  -  + | <- yMid
             |      |        |        |        | |
             |      |        |        |        | |
-            |      |        |        |        | |
+            |      |        |        |  Today | |
             | 29.5 +--------------------------+ | <- yBot
-            |         8/22     8/23     Today   |
+            |         9/3      9/4      9/5     |
             +------:--------:--------:--------:-+
                    xDay1    xDay2    xDay3    xRight
 
@@ -40,22 +40,20 @@
          4. Adafruit BMP388 Barometric Pressure             https://www.adafruit.com/product/3966
 */
 
-//#include <Wire.h>
-#include "SPI.h"                    // Serial Peripheral Interface
 #include "Adafruit_GFX.h"           // Core graphics display library
 #include "Adafruit_ILI9341.h"       // TFT color display library
 #include "Adafruit_GPS.h"           // Ultimate GPS library
-#include "TouchScreen.h"            // Touchscreen built in to 3.2" Adafruit TFT display
 #include "Adafruit_BMP3XX.h"        // Precision barometric and temperature sensor
+#include "Adafruit_NeoPixel.h"      // On-board color addressable LED
+#include "TouchScreen.h"            // Touchscreen built in to 3.2" Adafruit TFT display
 #include "hardware.h"               // Griduino pin definitions 
 #include "constants.h"              // Griduino constants, colors, typedefs
 #include "save_restore.h"           // save/restore configuration data to SDRAM
 #include "TextField.h"              // Optimize TFT display text for proportional fonts
-#include "Adafruit_NeoPixel.h"
-#include "TimeLib.h"                // BorisNeubert / Time (forked from PaulStoffregen / Time)
+#include "TimeLib.h"                // BorisNeubert / Time (who forked it from PaulStoffregen / Time)
 
 // ------- Identity for splash screen and console --------
-#define BAROGRAPH_TITLE "Barograph"
+#define BAROGRAPH_TITLE "Baroduino"
 
 //--------------CONFIG--------------
 //float elevCorr = 4241;  // elevation correction in Pa, 
@@ -73,7 +71,7 @@ int loadConfigUnits();
 void saveConfigUnits();
 
 // ---------- Hardware Wiring ----------
-// Same as Griduino platform - see constants.h
+// Same as Griduino platform - see hardware.h
 
 // create an instance of the TFT Display
 Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
@@ -96,18 +94,15 @@ void mapTouchToScreen(TSPoint touch, Point* screen, int orientation);
 Adafruit_BMP3XX baro(BMP_CS); // hardware SPI
 
 // ---------- GPS ----------
-/* "Ultimate GPS" pin wiring is connected to a dedicated hardware serial port
-    available on an Arduino Mega, Arduino Feather and others.
-*/
-
 // Hardware serial port for GPS
 Adafruit_GPS GPS(&Serial1);
 
 // ------------ typedef's
 class Reading {
   public:
-    float pressure;           // in millibars, from BMP388 sensor
-    int hh, mm, ss;           // in GMT, from realtime clock
+    float pressure;            // in millibars, from BMP388 sensor
+    byte yy, mo, dd;           // in GMT, from realtime clock 
+    byte hh, mm, ss;           // in GMT, from realtime clock
 };
 
 // ------------ definitions
@@ -122,7 +117,7 @@ const int howLongToWait = 8;  // max number of seconds at startup waiting for Se
 
 // ----- color scheme -----
 // RGB 565 color code: http://www.barth-dev.de/online/rgb565-color-picker/
-#define cSCALECOLOR     ILI9341_DARKGREEN // tried ILI9341_YELLOW but it's too bright
+#define cSCALECOLOR     ILI9341_DARKGREEN // tried yellow but it's too bright
 #define cGRAPHCOLOR     ILI9341_WHITE     // graphed line of baro pressure
 #define cICON           ILI9341_CYAN
 #define cTITLE          ILI9341_GREEN     
@@ -140,7 +135,7 @@ float tempF;
 //    144 steps at 20 minute refresh time is a 2880 minute (48 hr) graph with 20 minute resolution.
 //    with 2px per step, we get 10 minutes/px, and 288px per 48 hrs, leaving some space for graph labels
 // New:
-//    288px wide graph ==> 96 px/day ==> 4px/hour
+//    288px wide graph ==> allows 96 px/day ==> 4px/hour
 //    
 const int maxReadings = 144;
 Reading pressureStack[maxReadings] = {};    // array to hold pressure data, fill with zeros
@@ -160,18 +155,21 @@ void getBaroData() {
   inchesHg = 0.0002953 * gPressure;
 }
 
-void rememberPressure( float pressure ) {
+void rememberPressure( float pressure, byte yy, byte mo, byte dd, byte hh, byte mm, byte ss ) {
   
   // shift existing stack to the left
   for (int ii = 0; ii < lastIndex; ii++) {
     pressureStack[ii] = pressureStack[ii + 1];
   }
   
-  // and put the latest pressure onto the stack
+  // put the latest pressure onto the stack
   pressureStack[lastIndex].pressure = pressure;
-  //pressureStack[lastIndex].hh = GPS.hour;     // todo
-  //pressureStack[lastIndex].mm = GPS.minute;   // todo
-  //pressureStack[lastIndex].ss = GPS.seconds;  // todo
+  pressureStack[lastIndex].yy = yy;
+  pressureStack[lastIndex].mo = mo;
+  pressureStack[lastIndex].dd = dd;
+  pressureStack[lastIndex].hh = hh;
+  pressureStack[lastIndex].mm = mm;
+  pressureStack[lastIndex].ss = ss;
 }
 
 void dumpPressureHistory() {            // debug
@@ -179,10 +177,15 @@ void dumpPressureHistory() {            // debug
   for (int ii=0; ii<maxReadings; ii++) {
     Reading item = pressureStack[ii];
     if (item.pressure > 0) {
-      Serial.print("Stack[");
-      Serial.print(ii);
-      Serial.print("] = ");
-      Serial.print(pressureStack[ii].pressure);
+      Serial.print("Stack["); Serial.print(ii); Serial.print("] = ");
+      Serial.print(item.pressure);
+      Serial.print("  ");
+      Serial.print(item.yy); Serial.print("-");
+      Serial.print(item.mo); Serial.print("-");
+      Serial.print(item.dd); Serial.print("  ");
+      Serial.print(item.hh); Serial.print("h ");
+      Serial.print(item.mm); Serial.print("m ");
+      Serial.print(item.ss); Serial.print("s ");
       Serial.println();
     }
   }
@@ -192,20 +195,35 @@ void dumpPressureHistory() {            // debug
 #ifdef RUN_UNIT_TESTS
 void initTestPressureHistory() {
   // add test data:
-  //      sine wave from 990 to 1030 hPa, with period of one day
+  //      sine wave from 990 to 1030 hPa, with period of 12 hours
   //      y = 1010.0hPa + 20*sin(w)   where 'w' goes from 0..2pi in the desired period
+  //      timestamps start today at midnight, every 15 minutes
   int numTestData = lastIndex/5;      // add this many entries of test data
   float offsetPa = 1010*100;          // readings are saved in Pa (not hPa)
   float amplitude = 20*100;           // readings are saved in Pa (not hPa)
   for (int ii=0; ii<numTestData; ii++) {
     float w = 2.0 * PI * ii / numTestData;
     float fakePressure = offsetPa + amplitude * sin( w );
-    rememberPressure( fakePressure );
+    byte yy = 20;                     // 2020
+    byte mo = 9;                      // Sep
+    byte dd = 5;                      // today
+    byte hh = 0 + ii/4;               // every 15 minutes
+    byte mm = 0 + (ii*15)%60;         // every 15 minutes
+    byte ss = ii%60;                  // random
+    //Reading sample = { fakePressure, yy, mo, dd, hh, mm, ss };
+    rememberPressure( fakePressure, yy, mo, dd, hh, mm, ss );
 
     Serial.print(ii);                 // debug
     Serial.print(". pressure(");
     Serial.print(fakePressure,1);
-    Serial.println(")");
+    Serial.print(") at ");
+    Serial.print(yy); Serial.print("-");
+    Serial.print(mo); Serial.print("-");
+    Serial.print(dd); Serial.print("  ");
+    Serial.print(hh); Serial.print(":");
+    Serial.print(mm); Serial.print(":");
+    Serial.print(ss); Serial.print(" ");
+    Serial.println("");
   }
 }
 #endif // RUN_UNIT_TESTS
@@ -465,6 +483,7 @@ void drawScale() {
   //       it will set the internal RTC. Then as long as the battery is installed, you can read the 
   //       time from the GPS as normal. Even without a current "gps fix" the time will be correct.
   //       The RTC timezone cannot be changed, it is always UTC.
+  int yy = GPS.year;
   int mo = GPS.month;
   int dd = GPS.day;
   int hh = GPS.hour;
@@ -472,8 +491,8 @@ void drawScale() {
   int ss = GPS.seconds;
 
   char msg[128];
-  snprintf(msg, sizeof(msg), "GPS time mo(%d) dd(%d) hh(%d) mm(%d) ss(%d)",
-                                             mo,    dd,    hh,    mm,    ss);
+  snprintf(msg, sizeof(msg), "GPS time %d-%d-%d, %d:%d%d",
+                                            yy,mo,dd, hh,mm,ss);
   Serial.println(msg);      // debug
 
   char sDateToday[12];      // strlen("12/34") = 5
@@ -482,8 +501,8 @@ void drawScale() {
   TextField::setTextDirty(txtDate, numDates);
   txtDate[eTODAY].print();
   txtDate[eDATETODAY].print(sDateToday);    // "8/25"
-  txtDate[eYESTERDAY].print("8/29");
-  txtDate[eDAYBEFORE].print("8/28");
+  txtDate[eYESTERDAY].print("8/29");    // todo
+  txtDate[eDAYBEFORE].print("8/28");    // todo
 }
 
 void drawGraph() {
@@ -550,7 +569,7 @@ void saveConfigUnits() {
 
 // ========== load/save barometer pressure readings ============
 #define PRESSURE_HISTORY_FILE     CONFIG_FOLDER "/barometr.dat"
-#define PRESSURE_HISTORY_VERSION  "Pressure v01"
+#define PRESSURE_HISTORY_VERSION  "Pressure v02"
 
 int loadPressureHistory() {
   SaveRestore history(PRESSURE_HISTORY_FILE, PRESSURE_HISTORY_VERSION);
@@ -575,7 +594,7 @@ int loadPressureHistory() {
 void savePressureHistory() {
   SaveRestore history(PRESSURE_HISTORY_FILE, PRESSURE_HISTORY_VERSION);
   history.writeConfig( (byte*) &pressureStack, sizeof(pressureStack) );
-  Serial.println("Saved the pressure history to non-volatile memory [line "); Serial.print(__LINE__); Serial.println("]");
+  Serial.print("Saved the pressure history to non-volatile memory [line "); Serial.print(__LINE__); Serial.println("]");
 }
 
 // ----- console Serial port helper
@@ -645,7 +664,6 @@ void setup() {
   //GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);    // 1 Hz update rate
   GPS.sendCommand(PMTK_SET_NMEA_UPDATE_200_MILLIHERTZ); // Once every 5 seconds update
 
-
   // ----- restore settings
   if (loadConfigUnits()) {
     Serial.println("Successfully loaded settings from non-volatile RAM");
@@ -706,7 +724,7 @@ uint32_t prevTimer2 = 0;            // timer to update displayed graph (20 min)
 
 const int GPS_PROCESS_INTERVAL = 1000;          // Timer GPS = 1 second
 const int READ_BAROMETER_INTERVAL = 5*60*1000;  // Timer 1 =  5 minutes
-const int LOG_PRESSURE_INTERVAL = 20*60*1000;   // Timer 2 = 20 minutes
+const int LOG_PRESSURE_INTERVAL = 15*60*1000;   // Timer 2 = 15 minutes
 
 void loop() {
 
@@ -733,12 +751,12 @@ void loop() {
     getBaroData();
     showReadings(gUnits);
 
-    // every 20 minutes log, display, and graph pressure/delta pressure
-    if (millis() - prevTimer2 > LOG_PRESSURE_INTERVAL) {  // 1200000 for 20 minutes
+    // every 15 minutes log, display, and graph pressure/delta pressure
+    if (millis() - prevTimer2 > LOG_PRESSURE_INTERVAL) {
       prevTimer2 = millis();
 
       // log this pressure reading
-      rememberPressure( gPressure );
+      rememberPressure( gPressure, GPS.year, GPS.month, GPS.day, GPS.hour, GPS.minute, GPS.seconds );
       
       // calculate pressure change and reprint all to screen
       //showReadings(gUnits);     // removed - seems redundant with 10 lines above

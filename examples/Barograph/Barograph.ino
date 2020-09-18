@@ -30,15 +30,15 @@
 
 */
 
-#include <Wire.h>
-#include "SPI.h"                    // Serial Peripheral Interface
+//#include <Wire.h>
+//#include "SPI.h"                    // Serial Peripheral Interface
 #include "Adafruit_GFX.h"           // Core graphics display library
 #include "Adafruit_ILI9341.h"       // TFT color display library
 #include "Adafruit_GPS.h"           // Ultimate GPS library
-#include "TouchScreen.h"            // Touchscreen built in to 3.2" Adafruit TFT display
 #include "Adafruit_BMP3XX.h"        // Precision barometric and temperature sensor
+#include "Adafruit_NeoPixel.h"      // On-board color addressable LED
+#include "TouchScreen.h"            // Touchscreen built in to 3.2" Adafruit TFT display
 #include "TextField.h"              // Optimize TFT display text for proportional fonts
-#include "Adafruit_NeoPixel.h"
 #include "bitmaps.h"                // our definition of graphics displayed
 
 // ------- Identity for splash screen and console --------

@@ -42,6 +42,10 @@ On-board lights:
    NP   - NeoPixel                - n/a         - D8              - reserved for onboard NeoPixel
 */
 
+/* "Ultimate GPS" pin wiring is connected to a dedicated hardware serial port
+    available on an Arduino Mega, Arduino Feather and others.
+*/
+
 // TFT display and SD card share the hardware SPI interface, and have
 // separate 'select' pins to identify the active device on the bus.
 #if defined(SAMD_SERIES)
