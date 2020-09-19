@@ -2,7 +2,8 @@
   Baroduino -- demonstrate BMP388 barometric sensor
 
   Version history: 
-            2020-08-27 save units (english/metric) in nonvolatile RAM
+            2020-09-18 this is really two independent functions: 1.data logging, 2. visualization
+            2020-08-27 save unit setting (english/metric) in nonvolatile RAM
             2020-08-24 start rewriting user interface
             2020-05-18 added NeoPixel control to illustrate technique
             2020-05-12 updated TouchScreen code
@@ -200,7 +201,7 @@ void initTestPressureHistory() {
   //      timestamps start today at midnight, every 15 minutes
   int numTestData = lastIndex/5;      // add this many entries of test data
   float offsetPa = 1010*100;          // readings are saved in Pa (not hPa)
-  float amplitude = 20*100;           // readings are saved in Pa (not hPa)
+  float amplitude = 15*100;           // readings are saved in Pa (not hPa)
   for (int ii=0; ii<numTestData; ii++) {
     float w = 2.0 * PI * ii / numTestData;
     float fakePressure = offsetPa + amplitude * sin( w );
@@ -333,14 +334,17 @@ void clearScreen() {
   tft.fillScreen(cBACKGROUND);
 }
 
-enum { eTitle, valPressure, unitPressure };
+enum { eTitle, eDate, eTimeHHMM, eTimeSS, valPressure, unitPressure };
 const int xIndent = 12;         // in pixels, text on main screen
 const int yText1 = MARGIN+12;   // in pixels, top row, main screen
 const int yText2 = yText1 + 28;
 TextField txtReading[] = {
-  TextField{ BAROGRAPH_TITLE, xIndent,yText1, cTITLE, ALIGNCENTER }, // [eTitle]
-  TextField{ "30.00",  xIndent+150,yText2,  ILI9341_WHITE, ALIGNRIGHT },  // [valPressure]
-  TextField{ "inHg",   xIndent+168,yText2,  ILI9341_WHITE, ALIGNLEFT  },  // [unitPressure]
+  TextField{ BAROGRAPH_TITLE, xIndent,yText1,  cTITLE,      ALIGNCENTER},  // [eTitle]
+  TextField{ "09-22",     xIndent+2,yText1,    cWARN,       ALIGNLEFT  },  // [eDate]
+  TextField{ "12:34",     gScreenWidth-20,yText1, cWARN,    ALIGNRIGHT },  // [eTimeHHMM]
+  TextField{ "56",        gScreenWidth-20,yText2-10, cWARN, ALIGNRIGHT },  // [eTimeSS]
+  TextField{ "30.00",     xIndent+150,yText2,  ILI9341_WHITE, ALIGNRIGHT },  // [valPressure]
+  TextField{ "inHg",      xIndent+168,yText2,  ILI9341_WHITE, ALIGNLEFT  },  // [unitPressure]
 };
 const int numReadings = sizeof(txtReading) / sizeof(txtReading[0]);
 
@@ -357,6 +361,25 @@ void showReadings(int units) {
   scaleMarks(1000, 10);
   drawScale();
   drawGraph();
+}
+
+void showTimeOfDay() {
+  // fetch RTC and display it on screen
+  char msg[12];               // strlen("12:34:56") = 8
+  int mo = GPS.month;
+  int dd = GPS.day;
+  int hh = GPS.hour;
+  int mm = GPS.minute;
+  int ss = GPS.seconds;
+
+  snprintf(msg, sizeof(msg), "%d-%02d", mo, dd);
+  txtReading[eDate].print(msg);
+
+  snprintf(msg, sizeof(msg), "%02d:%02d", hh,mm);
+  txtReading[eTimeHHMM].print(msg);
+
+  snprintf(msg, sizeof(msg), "%02d", hh,mm);
+  txtReading[eTimeSS].print(msg);
 }
 
 // ----- print current value of pressure reading
@@ -381,6 +404,9 @@ void printPressure() {
 
   setFontSize(9);
   txtReading[eTitle].print();
+  //txtReading[eDate].print();
+  //txtReading[eTimeHHMM].print();
+  //txtReading[eTimeSS].print();
 
   setFontSize(12);
   txtReading[valPressure].print( fPressure, 2 );
@@ -492,7 +518,7 @@ void drawScale() {
 
   char msg[128];
   snprintf(msg, sizeof(msg), "GPS time %d-%d-%d, %d:%d%d",
-                                            yy,mo,dd, hh,mm,ss);
+                                       yy,mo,dd, hh,mm,ss);
   Serial.println(msg);      // debug
 
   char sDateToday[12];      // strlen("12/34") = 5
@@ -500,9 +526,9 @@ void drawScale() {
   
   TextField::setTextDirty(txtDate, numDates);
   txtDate[eTODAY].print();
-  txtDate[eDATETODAY].print(sDateToday);    // "8/25"
-  txtDate[eYESTERDAY].print("8/29");    // todo
-  txtDate[eDAYBEFORE].print("8/28");    // todo
+  txtDate[eDATETODAY].print(sDateToday);  // "8/25"
+  txtDate[eYESTERDAY].print("8/29");      // todo
+  txtDate[eDAYBEFORE].print("8/28");      // todo
 }
 
 void drawGraph() {
@@ -661,8 +687,8 @@ void setup() {
   GPS.begin(57600);
   GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA); // turn on RMC (recommended minimum) and GGA (fix data) including altitude
 
-  //GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);    // 1 Hz update rate
-  GPS.sendCommand(PMTK_SET_NMEA_UPDATE_200_MILLIHERTZ); // Once every 5 seconds update
+  GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);    // 1 Hz update rate
+  //GPS.sendCommand(PMTK_SET_NMEA_UPDATE_200_MILLIHERTZ); // Once every 5 seconds update
 
   // ----- restore settings
   if (loadConfigUnits()) {
@@ -719,10 +745,11 @@ void setup() {
 // This number will overflow after about 50 days.
 // Initialized to trigger all processing on first pass in mainline
 uint32_t prevTimeGPS = 0;           // timer to process GPS sentence
-uint32_t prevTimer1 = 0;            // timer to update displayed value (5 min), UINT32_MIN=0
-uint32_t prevTimer2 = 0;            // timer to update displayed graph (20 min)
+uint32_t prevShowTime = 0;          // timer to update displayed time-of-day (1 second)
+uint32_t prevShowPressure = 0;      // timer to update displayed value (5 min), UINT32_MIN=0
+uint32_t prevShowGraph = 0;         // timer to update displayed graph (20 min)
 
-const int GPS_PROCESS_INTERVAL = 1000;          // Timer GPS = 1 second
+const int RTC_PROCESS_INTERVAL = 1000;          // Timer RTC = 1 second
 const int READ_BAROMETER_INTERVAL = 5*60*1000;  // Timer 1 =  5 minutes
 const int LOG_PRESSURE_INTERVAL = 15*60*1000;   // Timer 2 = 15 minutes
 
@@ -730,8 +757,13 @@ void loop() {
 
   // if our timer or system millis() wrapped around, reset it
   if (prevTimeGPS > millis()) { prevTimeGPS = millis(); }
-  if (prevTimer1 > millis()) { prevTimer1 = millis(); }
-  if (prevTimer2 > millis()) { prevTimer2 = millis(); }
+  if (prevShowPressure > millis()) { prevShowPressure = millis(); }
+  if (prevShowGraph > millis()) { prevShowGraph = millis(); }
+
+  // every 1 second update the clock display
+  if (millis() - prevShowTime > RTC_PROCESS_INTERVAL) {
+    showTimeOfDay();
+  }
 
   GPS.read();   // if you can, read the GPS serial port every millisecond in an interrupt
   if (GPS.newNMEAreceived()) {
@@ -747,13 +779,13 @@ void loop() {
   }
 
   // every 5 minutes acquire/print temp and pressure
-  if (millis() - prevTimer1 > READ_BAROMETER_INTERVAL) {
+  if (millis() - prevShowPressure > READ_BAROMETER_INTERVAL) {
     getBaroData();
     showReadings(gUnits);
 
     // every 15 minutes log, display, and graph pressure/delta pressure
-    if (millis() - prevTimer2 > LOG_PRESSURE_INTERVAL) {
-      prevTimer2 = millis();
+    if (millis() - prevShowGraph > LOG_PRESSURE_INTERVAL) {
+      prevShowGraph = millis();
 
       // log this pressure reading
       rememberPressure( gPressure, GPS.year, GPS.month, GPS.day, GPS.hour, GPS.minute, GPS.seconds );
@@ -765,7 +797,7 @@ void loop() {
       // which is done after updating display because this can take a visible half-second
       savePressureHistory();
     }
-    prevTimer1 = millis();
+    prevShowPressure = millis();
   }
 
   // if there's touchscreen input, handle it
