@@ -38,6 +38,7 @@
          This relies on "TimeLib.h" which uses "time_t" to represent time.
          The basic unit of time (time_t) is the number of seconds since Jan 1, 1970, 
          a compact 4-byte integer.
+         https://github.com/PaulStoffregen/Time
          
   Real Time Clock:
          The real time clock in the Adafruit Ultimate GPS is not directly readable or 
@@ -390,7 +391,7 @@ void showTimeOfDay() {
   snprintf(msg, sizeof(msg), "%02d:%02d", hh,mm);
   txtReading[eTimeHHMM].print(msg);
 
-  snprintf(msg, sizeof(msg), "%02d", hh,mm);
+  snprintf(msg, sizeof(msg), "%02d", ss);
   txtReading[eTimeSS].print(msg);
 }
 
@@ -769,8 +770,9 @@ const int LOG_PRESSURE_INTERVAL = 15*60*1000;   // Timer 2 = 15 minutes
 
 void loop() {
 
-  // if our timer or system millis() wrapped around, reset it
+  // if a timer or system millis() wrapped around, reset it
   if (prevTimeGPS > millis()) { prevTimeGPS = millis(); }
+  if (prevShowTime > millis()) { prevShowTime = millis(); }
   if (prevShowPressure > millis()) { prevShowPressure = millis(); }
   if (prevShowGraph > millis()) { prevShowGraph = millis(); }
 
@@ -783,13 +785,13 @@ void loop() {
     if (!GPS.parse(GPS.lastNMEA())) {
       // parsing failed -- restart main loop to wait for another sentence
       // this also sets the newNMEAreceived() flag to false
-      return;
+      //return;
     }
   }
 
   // every 1 second update the clock display
   if (millis() - prevShowTime > RTC_PROCESS_INTERVAL) {
-    prevShowTime = now();
+    prevShowTime = millis();
 
     // update RTC from GPS
     setTime(GPS.hour, GPS.minute, GPS.seconds, GPS.day, GPS.month, GPS.year);
@@ -813,7 +815,7 @@ void loop() {
       rememberPressure( gPressure, rightnow );
       
       // calculate pressure change and reprint all to screen
-      //showReadings(gUnits);     // removed - seems redundant with 10 lines above
+      //showReadings(gUnits);     // removed to avoid double-blink, is redundant with 10 lines above
 
       // finally save the entire stack in non-volatile RAM
       // which is done after updating display because this can take a visible half-second
