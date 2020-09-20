@@ -34,6 +34,11 @@
             +------:--------:--------:--------:-+
                    xDay1    xDay2    xDay3    xRight
 
+  Time notes:
+         This relies on "TimeLib.h" which uses "time_t" to represent time.
+         The basic unit of time (time_t) is the number of seconds since Jan 1, 1970, 
+         a compact 4-byte integer.
+         
   Tested with:
          1. Arduino Feather M4 Express (120 MHz SAMD51)     https://www.adafruit.com/product/3857
          2. Adafruit 3.2" TFT color LCD display ILI-9341    https://www.adafruit.com/product/1743
@@ -334,17 +339,18 @@ void clearScreen() {
   tft.fillScreen(cBACKGROUND);
 }
 
-enum { eTitle, eDate, eTimeHHMM, eTimeSS, valPressure, unitPressure };
+enum { eTitle, eDate, eNumSat, eTimeHHMM, eTimeSS, valPressure, unitPressure };
 const int xIndent = 12;         // in pixels, text on main screen
 const int yText1 = MARGIN+12;   // in pixels, top row, main screen
 const int yText2 = yText1 + 28;
 TextField txtReading[] = {
-  TextField{ BAROGRAPH_TITLE, xIndent,yText1,  cTITLE,      ALIGNCENTER},  // [eTitle]
-  TextField{ "09-22",     xIndent+2,yText1,    cWARN,       ALIGNLEFT  },  // [eDate]
-  TextField{ "12:34",     gScreenWidth-20,yText1, cWARN,    ALIGNRIGHT },  // [eTimeHHMM]
-  TextField{ "56",        gScreenWidth-20,yText2-10, cWARN, ALIGNRIGHT },  // [eTimeSS]
-  TextField{ "30.00",     xIndent+150,yText2,  ILI9341_WHITE, ALIGNRIGHT },  // [valPressure]
-  TextField{ "inHg",      xIndent+168,yText2,  ILI9341_WHITE, ALIGNLEFT  },  // [unitPressure]
+  TextField{ BAROGRAPH_TITLE, xIndent,yText1, cTITLE,      ALIGNCENTER},    // [eTitle]
+  TextField{ "09-22",    xIndent+2,yText1,    cWARN,       ALIGNLEFT  },    // [eDate]
+  TextField{ "0#",       xIndent+2,yText2-10, cWARN,       ALIGNLEFT  },    // [eNumSat]
+  TextField{ "12:34",    gScreenWidth-20,yText1, cWARN,    ALIGNRIGHT },    // [eTimeHHMM]
+  TextField{ "56",       gScreenWidth-20,yText2-10, cWARN, ALIGNRIGHT },    // [eTimeSS]
+  TextField{ "30.00",    xIndent+150,yText2,  ILI9341_WHITE, ALIGNRIGHT },  // [valPressure]
+  TextField{ "inHg",     xIndent+168,yText2,  ILI9341_WHITE, ALIGNLEFT  },  // [unitPressure]
 };
 const int numReadings = sizeof(txtReading) / sizeof(txtReading[0]);
 
@@ -366,14 +372,22 @@ void showReadings(int units) {
 void showTimeOfDay() {
   // fetch RTC and display it on screen
   char msg[12];               // strlen("12:34:56") = 8
-  int mo = GPS.month;
-  int dd = GPS.day;
-  int hh = GPS.hour;
-  int mm = GPS.minute;
-  int ss = GPS.seconds;
+  int mo, dd, hh, mm, ss;
+  if (timeStatus() == timeNotSet) {
+    mo = dd = hh = mm = ss = 0;
+  } else {
+    mo = GPS.month;
+    dd = GPS.day;
+    hh = GPS.hour;
+    mm = GPS.minute;
+    ss = GPS.seconds;
+  }
 
   snprintf(msg, sizeof(msg), "%d-%02d", mo, dd);
   txtReading[eDate].print(msg);
+
+  snprintf(msg, sizeof(msg), "%d#", GPS.satellites);
+  txtReading[eNumSat].print(msg);
 
   snprintf(msg, sizeof(msg), "%02d:%02d", hh,mm);
   txtReading[eTimeHHMM].print(msg);
