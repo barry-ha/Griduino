@@ -34,11 +34,19 @@
             +------:--------:--------:--------:-+
                    xDay1    xDay2    xDay3    xRight
 
-  Time notes:
+  Units of Time:
          This relies on "TimeLib.h" which uses "time_t" to represent time.
          The basic unit of time (time_t) is the number of seconds since Jan 1, 1970, 
          a compact 4-byte integer.
          
+  Real Time Clock:
+         The real time clock in the Adafruit Ultimate GPS is not directly readable or 
+         accessible from the Arduino. It's definitely not writeable. It's only internal to the GPS. 
+         Once the battery is installed, and the GPS gets its first data reception from satellites 
+         it will set the internal RTC. Then as long as the battery is installed, you can read the 
+         time from the GPS as normal. Even without a current "gps fix" the time will be correct.
+         The RTC timezone cannot be changed, it is always UTC.
+
   Tested with:
          1. Arduino Feather M4 Express (120 MHz SAMD51)     https://www.adafruit.com/product/3857
          2. Adafruit 3.2" TFT color LCD display ILI-9341    https://www.adafruit.com/product/1743
@@ -106,13 +114,12 @@ Adafruit_GPS GPS(&Serial1);
 // ------------ typedef's
 class Reading {
   public:
-    float pressure;            // in millibars, from BMP388 sensor
-    byte yy, mo, dd;           // in GMT, from realtime clock 
-    byte hh, mm, ss;           // in GMT, from realtime clock
+    float pressure;             // in millibars, from BMP388 sensor
+    time_t time;                // in GMT, from realtime clock 
 };
 
 // ------------ definitions
-const int howLongToWait = 8;  // max number of seconds at startup waiting for Serial port to console
+const int howLongToWait = 8;    // max number of seconds at startup waiting for Serial port to console
 
 #define FEET_PER_METER 3.28084
 #define SEA_LEVEL_PRESSURE_HPA (1013.25)
@@ -161,7 +168,7 @@ void getBaroData() {
   inchesHg = 0.0002953 * gPressure;
 }
 
-void rememberPressure( float pressure, byte yy, byte mo, byte dd, byte hh, byte mm, byte ss ) {
+void rememberPressure( float pressure, time_t time ) {
   
   // shift existing stack to the left
   for (int ii = 0; ii < lastIndex; ii++) {
@@ -170,12 +177,7 @@ void rememberPressure( float pressure, byte yy, byte mo, byte dd, byte hh, byte 
   
   // put the latest pressure onto the stack
   pressureStack[lastIndex].pressure = pressure;
-  pressureStack[lastIndex].yy = yy;
-  pressureStack[lastIndex].mo = mo;
-  pressureStack[lastIndex].dd = dd;
-  pressureStack[lastIndex].hh = hh;
-  pressureStack[lastIndex].mm = mm;
-  pressureStack[lastIndex].ss = ss;
+  pressureStack[lastIndex].time = time;
 }
 
 void dumpPressureHistory() {            // debug
@@ -186,12 +188,12 @@ void dumpPressureHistory() {            // debug
       Serial.print("Stack["); Serial.print(ii); Serial.print("] = ");
       Serial.print(item.pressure);
       Serial.print("  ");
-      Serial.print(item.yy); Serial.print("-");
-      Serial.print(item.mo); Serial.print("-");
-      Serial.print(item.dd); Serial.print("  ");
-      Serial.print(item.hh); Serial.print("h ");
-      Serial.print(item.mm); Serial.print("m ");
-      Serial.print(item.ss); Serial.print("s ");
+      Serial.print( year(item.time)  ); Serial.print("-");
+      Serial.print( month(item.time) ); Serial.print("-");
+      Serial.print( day(item.time)   ); Serial.print("  ");
+      Serial.print( hour(item.time)  ); Serial.print("h ");
+      Serial.print( minute(item.time)); Serial.print("m ");
+      Serial.print( second(item.time)); Serial.print("s ");
       Serial.println();
     }
   }
@@ -206,29 +208,24 @@ void initTestPressureHistory() {
   //      timestamps start today at midnight, every 15 minutes
   int numTestData = lastIndex/5;      // add this many entries of test data
   float offsetPa = 1010*100;          // readings are saved in Pa (not hPa)
-  float amplitude = 15*100;           // readings are saved in Pa (not hPa)
+  float amplitude = 10*100;           // readings are saved in Pa (not hPa)
+  time_t todayMidnight = setTime(0,0,0, 19,9,2020); // Sept 19th
   for (int ii=0; ii<numTestData; ii++) {
     float w = 2.0 * PI * ii / numTestData;
     float fakePressure = offsetPa + amplitude * sin( w );
-    byte yy = 20;                     // 2020
-    byte mo = 9;                      // Sep
-    byte dd = 5;                      // today
-    byte hh = 0 + ii/4;               // every 15 minutes
-    byte mm = 0 + (ii*15)%60;         // every 15 minutes
-    byte ss = ii%60;                  // random
-    //Reading sample = { fakePressure, yy, mo, dd, hh, mm, ss };
-    rememberPressure( fakePressure, yy, mo, dd, hh, mm, ss );
+    time_t fakeTime = todayMidnight + ii*15*SEC_PER_MINUTE;
+    rememberPressure( fakePressure, fakeTime );
 
     Serial.print(ii);                 // debug
     Serial.print(". pressure(");
     Serial.print(fakePressure,1);
     Serial.print(") at ");
-    Serial.print(yy); Serial.print("-");
-    Serial.print(mo); Serial.print("-");
-    Serial.print(dd); Serial.print("  ");
-    Serial.print(hh); Serial.print(":");
-    Serial.print(mm); Serial.print(":");
-    Serial.print(ss); Serial.print(" ");
+    Serial.print( year(fakeTime) ); Serial.print("-");
+    Serial.print( month(fakeTime) ); Serial.print("-");
+    Serial.print( day(fakeTime) ); Serial.print("  ");
+    Serial.print( hour(fakeTime) ); Serial.print(":");
+    Serial.print( minute(fakeTime) ); Serial.print(":");
+    Serial.print( second(fakeTime) ); Serial.print(" ");
     Serial.println("");
   }
 }
@@ -376,11 +373,12 @@ void showTimeOfDay() {
   if (timeStatus() == timeNotSet) {
     mo = dd = hh = mm = ss = 0;
   } else {
-    mo = GPS.month;
-    dd = GPS.day;
-    hh = GPS.hour;
-    mm = GPS.minute;
-    ss = GPS.seconds;
+    time_t tt = now();
+    mo = month(tt);
+    dd = day(tt);
+    hh = hour(tt);
+    mm = minute(tt);
+    ss = second(tt);
   }
 
   snprintf(msg, sizeof(msg), "%d-%02d", mo, dd);
@@ -523,26 +521,28 @@ void drawScale() {
   //       it will set the internal RTC. Then as long as the battery is installed, you can read the 
   //       time from the GPS as normal. Even without a current "gps fix" the time will be correct.
   //       The RTC timezone cannot be changed, it is always UTC.
-  int yy = GPS.year;
-  int mo = GPS.month;
-  int dd = GPS.day;
-  int hh = GPS.hour;
-  int mm = GPS.minute;
-  int ss = GPS.seconds;
+  time_t today = now();
+  time_t yesterday = today - SECS_PER_DAY;
+  time_t dayBefore = yesterday - SECS_PER_DAY;
 
   char msg[128];
-  snprintf(msg, sizeof(msg), "GPS time %d-%d-%d, %d:%d%d",
-                                       yy,mo,dd, hh,mm,ss);
+  snprintf(msg, sizeof(msg), "RTC time %d-%d-%d, %d:%d%d",
+                                       year(today),month(today),day(today), 
+                                       hour(today),minute(today),second(today));
   Serial.println(msg);      // debug
 
-  char sDateToday[12];      // strlen("12/34") = 5
-  snprintf(sDateToday, sizeof(sDateToday), "%d/%d", mo, dd);
-  
   TextField::setTextDirty(txtDate, numDates);
   txtDate[eTODAY].print();
-  txtDate[eDATETODAY].print(sDateToday);  // "8/25"
-  txtDate[eYESTERDAY].print("8/29");      // todo
-  txtDate[eDAYBEFORE].print("8/28");      // todo
+
+  char sDate[12];      // strlen("12/34") = 5
+  snprintf(sDate, sizeof(sDate), "%d/%d", month(today), day(today));
+  txtDate[eDATETODAY].print(sDate);  // "8/25"
+
+  snprintf(sDate, sizeof(sDate), "%d/%d", month(yesterday), day(yesterday));
+  txtDate[eYESTERDAY].print(sDate);
+
+  snprintf(sDate, sizeof(sDate), "%d/%d", month(dayBefore), day(dayBefore));
+  txtDate[eDAYBEFORE].print(sDate);
 }
 
 void drawGraph() {
@@ -609,7 +609,7 @@ void saveConfigUnits() {
 
 // ========== load/save barometer pressure readings ============
 #define PRESSURE_HISTORY_FILE     CONFIG_FOLDER "/barometr.dat"
-#define PRESSURE_HISTORY_VERSION  "Pressure v02"
+#define PRESSURE_HISTORY_VERSION  "Pressure v03"
 
 int loadPressureHistory() {
   SaveRestore history(PRESSURE_HISTORY_FILE, PRESSURE_HISTORY_VERSION);
@@ -774,11 +774,6 @@ void loop() {
   if (prevShowPressure > millis()) { prevShowPressure = millis(); }
   if (prevShowGraph > millis()) { prevShowGraph = millis(); }
 
-  // every 1 second update the clock display
-  if (millis() - prevShowTime > RTC_PROCESS_INTERVAL) {
-    showTimeOfDay();
-  }
-
   GPS.read();   // if you can, read the GPS serial port every millisecond in an interrupt
   if (GPS.newNMEAreceived()) {
     // sentence received -- verify checksum, parse it
@@ -792,6 +787,18 @@ void loop() {
     }
   }
 
+  // every 1 second update the clock display
+  if (millis() - prevShowTime > RTC_PROCESS_INTERVAL) {
+    prevShowTime = now();
+
+    // update RTC from GPS
+    setTime(GPS.hour, GPS.minute, GPS.seconds, GPS.day, GPS.month, GPS.year);
+    //adjustTime(offset * SECS_PER_HOUR);   // todo - adjust to local time zone. for now, we only show GMT
+
+    // update display
+    showTimeOfDay();
+  }
+
   // every 5 minutes acquire/print temp and pressure
   if (millis() - prevShowPressure > READ_BAROMETER_INTERVAL) {
     getBaroData();
@@ -802,7 +809,8 @@ void loop() {
       prevShowGraph = millis();
 
       // log this pressure reading
-      rememberPressure( gPressure, GPS.year, GPS.month, GPS.day, GPS.hour, GPS.minute, GPS.seconds );
+      time_t rightnow = now();
+      rememberPressure( gPressure, rightnow );
       
       // calculate pressure change and reprint all to screen
       //showReadings(gUnits);     // removed - seems redundant with 10 lines above
@@ -826,7 +834,6 @@ void loop() {
 
     adjustUnits();              // change between "inches mercury" and "millibars" units
   }
-
 
   // make a small progress bar crawl along bottom edge
   // this gives a sense of how frequently the main loop is executing
