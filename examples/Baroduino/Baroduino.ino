@@ -20,7 +20,8 @@
             Its RTC (realtime clock) is updated from the GPS satellite network.
 
             +-----------------------------------+
-            |           29.97 inHg              |
+            | date       Baroduino        hh:mm |
+            | #sat       29.97 inHg          ss |
             | 30.5 +--------------------------+ | <- yTop
             |      |        |        |        | |
             |      |        |        |        | |
@@ -30,7 +31,7 @@
             |      |        |        |        | |
             |      |        |        |  Today | |
             | 29.5 +--------------------------+ | <- yBot
-            |         9/3      9/4      9/5     |
+            |         9/18     9/19     9/20    |
             +------:--------:--------:--------:-+
                    xDay1    xDay2    xDay3    xRight
 
@@ -136,14 +137,13 @@ const int howLongToWait = 8;    // max number of seconds at startup waiting for 
 #define cICON           ILI9341_CYAN
 #define cTITLE          ILI9341_GREEN     
 #define cWARN           0xF844            // brighter than ILI9341_RED but not pink
-#define cSINKING        0xF882            // highlight rapidly sinking barometric pressure
+//efine cSINKING        0xF882            // highlight rapidly sinking barometric pressure
 
 // ------------ global barometric data
 float inchesHg;
 float gPressure;
 float hPa;
 float feet;
-float tempF;
 
 // Old:
 //    144 steps at 20 minute refresh time is a 2880 minute (48 hr) graph with 20 minute resolution.
@@ -210,11 +210,16 @@ void initTestPressureHistory() {
   int numTestData = lastIndex/5;      // add this many entries of test data
   float offsetPa = 1010*100;          // readings are saved in Pa (not hPa)
   float amplitude = 10*100;           // readings are saved in Pa (not hPa)
-  time_t todayMidnight = setTime(0,0,0, 19,9,2020); // Sept 19th
+
+  //                              ss,mm,hh, dow, dd,mm,yy
+  //meElements tm = TimeElements{  1, 2, 3,  4,   5, 6, 7 };   // 1977-06-05 on Wed at 03:02:01
+  TimeElements tm = TimeElements{  0, 0, 0,  1,  20, 9,20 };   // 20 Sept 2020 on Sun at 12:00:00 am
+  time_t todayMidnight = makeTime(tm);
+
   for (int ii=0; ii<numTestData; ii++) {
     float w = 2.0 * PI * ii / numTestData;
     float fakePressure = offsetPa + amplitude * sin( w );
-    time_t fakeTime = todayMidnight + ii*15*SEC_PER_MINUTE;
+    time_t fakeTime = todayMidnight + ii*15*SECS_PER_MIN;
     rememberPressure( fakePressure, fakeTime );
 
     Serial.print(ii);                 // debug
@@ -527,7 +532,7 @@ void drawScale() {
   time_t dayBefore = yesterday - SECS_PER_DAY;
 
   char msg[128];
-  snprintf(msg, sizeof(msg), "RTC time %d-%d-%d, %d:%d%d",
+  snprintf(msg, sizeof(msg), "RTC time %d-%d-%d, %02d:%02d:%02d",
                                        year(today),month(today),day(today), 
                                        hour(today),minute(today),second(today));
   Serial.println(msg);      // debug
