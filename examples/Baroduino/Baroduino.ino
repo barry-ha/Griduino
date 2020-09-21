@@ -40,6 +40,27 @@
          The basic unit of time (time_t) is the number of seconds since Jan 1, 1970, 
          a compact 4-byte integer.
          https://github.com/PaulStoffregen/Time
+
+  Units of Pressure:
+         hPa is the abbreviated name for hectopascal (100 x 1 pascal) pressure 
+         units which are exactly equal to millibar pressure unit (mb or mbar):
+
+         100 Pascals = 1 hPa = 1 millibar. 
+         
+         The hectopascal or millibar is the preferred unit for reporting barometric 
+         or atmospheric pressure in European and many other countries.
+         The Adafruit BMP388 Precision Barometric Pressure sensor reports pressure 
+         in 'float' values of Pascals.
+
+         In the USA and other backward countries that failed to adopt SI units, 
+         barometric pressure is reported as inches-mercury (inHg). 
+         
+         1 pascal = 0.000295333727 inches of mercury, or 
+         1 inch Hg = 3386.39 Pascal
+         So if you take the Pascal value of say 100734 and divide by 3386.39 you'll get 29.72 inHg.
+         
+         The BMP388 sensor has a relative accuracy of 8 Pascals, which translates to 
+         about ± 0.5 meter of altitude. 
          
   Real Time Clock:
          The real time clock in the Adafruit Ultimate GPS is not directly readable or 
@@ -76,8 +97,12 @@
 // use difference between altimeter setting and station pressure: https://www.weather.gov/epz/wxcalc_altimetersetting
 
 float elevCorr = 0;
-float maxP = 104000;          // in Pa
-float minP = 98000;           // in Pa
+
+float fMaxPa = 102000;        // upper bound of graph, Pa
+float fMinPa = 98000;         // lower bound of graph, Pa
+
+float fMaxHg = 30.6;          // upper gound of graph, inHg
+float fMinHg = 29.4;          // lower bound of graph, inHg
 
 enum units { eMetric, eEnglish };
 int gUnits = eEnglish;         // units on startup: 0=english=inches mercury, 1=metric=millibars
@@ -107,7 +132,7 @@ uint16_t myPressure(void);                          // Touch.cpp
 void mapTouchToScreen(TSPoint touch, Point* screen, int orientation);
 
 // ---------- Barometric and Temperature Sensor
-Adafruit_BMP3XX baro(BMP_CS); // hardware SPI
+Adafruit_BMP3XX baro(BMP_CS);   // hardware SPI
 
 // ---------- GPS ----------
 // Hardware serial port for GPS
@@ -127,8 +152,8 @@ const int howLongToWait = 8;    // max number of seconds at startup waiting for 
 #define SEA_LEVEL_PRESSURE_HPA (1013.25)
 
 #define MILLIBARS_PER_INCHES_MERCURY (0.02953)
-#define BARS_PER_INCHES_MERCURY      (0.033864)
-#define PASCALS_PER_INCHES_MERCURY   (3386.4)
+#define BARS_PER_INCHES_MERCURY      (0.0338639)
+#define PASCALS_PER_INCHES_MERCURY   (3386.39)
 
 // ----- color scheme -----
 // RGB 565 color code: http://www.barth-dev.de/online/rgb565-color-picker/
@@ -208,8 +233,8 @@ void initTestPressureHistory() {
   //      y = 1010.0hPa + 20*sin(w)   where 'w' goes from 0..2pi in the desired period
   //      timestamps start today at midnight, every 15 minutes
   int numTestData = lastIndex/5;      // add this many entries of test data
-  float offsetPa = 1010*100;          // readings are saved in Pa (not hPa)
-  float amplitude = 10*100;           // readings are saved in Pa (not hPa)
+  float offsetPa = 1039.0*100;          // readings are saved in Pa (not hPa)
+  float amplitude = 10.1*100;           // readings are saved in Pa (not hPa)
 
   //                              ss,mm,hh, dow, dd,mm,yy
   //meElements tm = TimeElements{  1, 2, 3,  4,   5, 6, 7 };   // 1977-06-05 on Wed at 03:02:01
@@ -366,7 +391,8 @@ void showReadings(int units) {
   printPressure();
   tickMarks(3, 5);      // draw 8 short ticks every day (24hr/8ticks = 3-hour intervals, 5 px high)
   tickMarks(12, 10);    // draw 2 long ticks every day (24hr/2ticks = 12-hour intervals, 10 px high)
-  scaleMarks(500, 5);   // args: (Pa, length)
+  autoScaleGraph();     // update fMinPa/fMaxPa limits on vertical scale
+  scaleMarks(500, 5);   // args: (pressure in Pa, length in pixels)
   scaleMarks(1000, 10);
   drawScale();
   drawGraph();
@@ -408,7 +434,7 @@ void printPressure() {
   char hPa[] = "hPa";
   switch (gUnits) {
     case eEnglish:
-      fPressure = gPressure / 3386.4;
+      fPressure = gPressure / PASCALS_PER_INCHES_MERCURY;
       sUnits = inHg;
       break;
     case eMetric:
@@ -436,10 +462,58 @@ void tickMarks(int t, int h) {
   // draw tick marks for the horizontal axis
   // input: t = hours
   //        h = height of tick mark, pixels
-  int deltax = t * pixelsPerHour;
-  for (int x=xRight; x>xDay1; x = x - deltax) {
+  int deltaX = t * pixelsPerHour;
+  for (int x=xRight; x>xDay1; x = x - deltaX) {
     tft.drawLine(x,yBot,  x,yBot - h, cSCALECOLOR);
   }
+}
+
+void printTwoFloats(float one, float two) {
+  Serial.print("(");
+  Serial.print(one, 2);
+  Serial.print(",");
+  Serial.print(two, 2);
+  Serial.print(")");
+}
+
+void autoScaleGraph() {
+  // find min/max limits of vertical scale on graph
+  // * find lowest and highest values of pressure stored in array
+  // * Metric display:
+  //   - set 'fMinPa' to lowest pressure rounded DOWN to nearest multiple of 2000 Pa
+  //   - set 'fMaxPa' to highest pressure rounded UP to nearest multiple of 2000 Pa
+  // * English display:
+  //   - set 'fMinHg' to lowest pressure rounded DOWN to nearest multiple of 0.2 inHg
+  //   - set 'fMaxHg' to highest pressure rounded UP to nearest multiple of 0.2 inHg
+
+  float lowestPa = 999999.9;
+  float highestPa = 0.0;
+  for (int ii = 0; ii <= lastIndex ; ii++) {
+    // if element has zero pressure, then it is empty
+    if (pressureStack[ii].pressure > 0) {
+      lowestPa = min(pressureStack[ii].pressure, lowestPa);
+      highestPa = max(pressureStack[ii].pressure, highestPa);
+    }
+  }
+ 
+  const float PA_RES = 2000.0;      // metric y-axis resolution
+  const float HG_RES = 0.2;         // english y-axis resolution
+
+  // metric: calculate graph limits in Pa
+  fMinPa = (int)(lowestPa/PA_RES) * PA_RES;
+  fMaxPa = (int)((highestPa/PA_RES) + 1) * PA_RES;
+
+  // english: calculate graph limits in inHg
+  float lowestHg = lowestPa / 3386.39;
+  float highestHg = highestPa / 3386.39;
+  
+  fMinHg = (int)(lowestHg/HG_RES) * HG_RES;
+  fMaxHg = (int)((highestHg/HG_RES) + 1) * HG_RES;
+
+  Serial.print("Minimum and maximum reported pressure = "); printTwoFloats(lowestPa, highestPa); Serial.println(" Pa"); // debug
+  Serial.print("Minimum and maximum vertical scale = "); printTwoFloats(fMinPa, fMaxPa); Serial.println(" Pa"); // debug
+  Serial.print("Minimum and maximum reported pressure = "); printTwoFloats(lowestHg, highestHg); Serial.println(" inHg"); // debug
+  Serial.print("Minimum and maximum vertical scale = "); printTwoFloats(fMinHg, fMaxHg); Serial.println(" inHg"); // debug
 }
 
 void scaleMarks(int p, int len) {
@@ -447,7 +521,7 @@ void scaleMarks(int p, int len) {
   // input: p = pascal intervals
   //        len = length of mark, pixels
   int y = yBot;
-  int deltay = map(p, 0, maxP - minP, 0, graphHeight);
+  int deltay = map(p, 0, fMaxPa - fMinPa, 0, graphHeight);
   for (y = yBot; y > yBot - graphHeight + 5; y = y - deltay) {
     tft.drawLine(xDay1, y,  xDay1 + len,  y, cSCALECOLOR);  // mark left edge
     tft.drawLine(xRight,y,  xRight - len, y, cSCALECOLOR);  // mark right edge
@@ -504,29 +578,20 @@ void drawScale() {
   tft.setTextColor(ILI9341_CYAN);
   if (gUnits == eEnglish) {
     // english: inches mercury (inHg)
-    superimposeLabel( MARGIN, yBot - TEXTHEIGHT/3,                 (minP/3386.4), 1);
-    superimposeLabel( MARGIN, yBot - graphHeight + TEXTHEIGHT/3,   (maxP/3386.4), 1);
-    superimposeLabel( MARGIN, yBot - graphHeight/2 + TEXTHEIGHT/3, (minP + (maxP - minP)/2)/3386.4, 1);
+    superimposeLabel( MARGIN, yBot - TEXTHEIGHT/3,                 fMinHg, 1);
+    superimposeLabel( MARGIN, yBot - graphHeight + TEXTHEIGHT/3,   fMaxHg, 1);
+    superimposeLabel( MARGIN, yBot - graphHeight/2 + TEXTHEIGHT/3, (fMinHg + (fMaxHg - fMinHg)/2), 1);
   } else {
     // metric: hecto-Pascal (hPa)
-    superimposeLabel( MARGIN, yBot + TEXTHEIGHT/3,                 (minP/100), 0);
-    superimposeLabel( MARGIN, yBot - graphHeight + TEXTHEIGHT/3,   (maxP/100), 0);
-    superimposeLabel( MARGIN, yBot - graphHeight/2 + TEXTHEIGHT/3, (minP + (maxP - minP)/2)/100, 0);
+    superimposeLabel( MARGIN, yBot + TEXTHEIGHT/3,                 (fMinPa/100), 0);
+    superimposeLabel( MARGIN, yBot - graphHeight + TEXTHEIGHT/3,   (fMaxPa/100), 0);
+    superimposeLabel( MARGIN, yBot - graphHeight/2 + TEXTHEIGHT/3, (fMinPa + (fMaxPa - fMinPa)/2)/100, 0);
   }
 
   // labels along horizontal axis
   setFontSize(9);
-  //Serial.print("eTODAY x,y = "); Serial.print(txtDate[eTODAY].x); Serial.print(","); Serial.println(txtDate[eTODAY].y);
-  //Serial.print("eYESTERDAY x,y = "); Serial.print(txtDate[eYESTERDAY].x); Serial.print(","); Serial.println(txtDate[eYESTERDAY].y);
-  //Serial.print("eDAYBEFORE x,y = "); Serial.print(txtDate[eDAYBEFORE].x); Serial.print(","); Serial.println(txtDate[eDAYBEFORE].y);
 
   // get today's date from the RTC (real time clock)
-  // Note: The real time clock in the Adafruit Ultimate GPS is not directly readable or 
-  //       accessible from the Arduino. It's definitely not writeable. It's only internal to the GPS. 
-  //       Once the battery is installed, and the GPS gets its first data reception from satellites 
-  //       it will set the internal RTC. Then as long as the battery is installed, you can read the 
-  //       time from the GPS as normal. Even without a current "gps fix" the time will be correct.
-  //       The RTC timezone cannot be changed, it is always UTC.
   time_t today = now();
   time_t yesterday = today - SECS_PER_DAY;
   time_t dayBefore = yesterday - SECS_PER_DAY;
@@ -552,15 +617,26 @@ void drawScale() {
 }
 
 void drawGraph() {
-  int deltax = 2;
+  int deltaX = 2;
   int x = xRight;
+
+  float yTopPa = (gUnits == eMetric) ? fMaxPa : (fMaxHg*PASCALS_PER_INCHES_MERCURY);
+  float yBotPa = (gUnits == eMetric) ? fMinPa : (fMinHg*PASCALS_PER_INCHES_MERCURY);
+
   for (int ii = lastIndex; ii > 0 ; ii--) {
-    int p1 =  map(pressureStack[ii-0].pressure, minP, maxP, 0, graphHeight);
-    int p2 =  map(pressureStack[ii-1].pressure, minP, maxP, 0, graphHeight);
+    // Y-axis:
+    //    The data to plot is always 'float Pascals' 
+    //    but the graph's y-axis is either hPa or inHg, each with different even-numbered scale
+    //    so scale the data into the appropriate units on the y-axis
+    int y1 =  map(pressureStack[ii-0].pressure, yBotPa, yTopPa, 0, graphHeight);
+    int y2 =  map(pressureStack[ii-1].pressure, yBotPa, yTopPa, 0, graphHeight);
+
+    // X-axis:
+    //    todo - scale from timestamps onto x-axis
     if (pressureStack[ii - 1].pressure != 0) {
-      tft.drawLine(x, yBot - p1, x - deltax, yBot - p2, cGRAPHCOLOR);
+      tft.drawLine(x, yBot - y1, x - deltaX, yBot - y2, cGRAPHCOLOR);
     }
-    x = x - deltax;
+    x = x - deltaX;
   }
 }
 
@@ -590,7 +666,7 @@ void adjustUnits() {
 
   Serial.print(". unitPressure = "); Serial.println( txtReading[unitPressure].text );
   getBaroData();
-  showReadings(gUnits);
+  showReadings(gUnits);       // draw graph
 }
 
 // ========== load/save config setting =========================
@@ -747,17 +823,17 @@ void setup() {
   // baro.setOutputDataRate(BMP3_ODR_50_HZ);
 
   // all done with setup, prepare screen for main program
-  delay(3000);         // milliseconds
+  delay(3000);              // milliseconds
   clearScreen();
 
   // Get first data point (done twice because first reading is always bad)
   getBaroData();
   pressureStack[lastIndex].pressure = gPressure + elevCorr;
-  showReadings(gUnits);
+  showReadings(gUnits);     // draw graph
 
   getBaroData();
   pressureStack[lastIndex].pressure = gPressure + elevCorr;
-  showReadings(gUnits);
+  showReadings(gUnits);     // draw graph
 }
 
 //=========== main work loop ===================================
@@ -809,7 +885,7 @@ void loop() {
   // every 5 minutes acquire/print temp and pressure
   if (millis() - prevShowPressure > READ_BAROMETER_INTERVAL) {
     getBaroData();
-    showReadings(gUnits);
+    showReadings(gUnits);         // draw graph
 
     // every 15 minutes log, display, and graph pressure/delta pressure
     if (millis() - prevShowGraph > LOG_PRESSURE_INTERVAL) {
