@@ -214,31 +214,79 @@ void dumpPressureHistory() {            // debug
       Serial.print("Stack["); Serial.print(ii); Serial.print("] = ");
       Serial.print(item.pressure);
       Serial.print("  ");
-      Serial.print( year(item.time)  ); Serial.print("-");
-      Serial.print( month(item.time) ); Serial.print("-");
-      Serial.print( day(item.time)   ); Serial.print("  ");
-      Serial.print( hour(item.time)  ); Serial.print("h ");
-      Serial.print( minute(item.time)); Serial.print("m ");
-      Serial.print( second(item.time)); Serial.print("s ");
-      Serial.println();
+      char msg[24];
+      dateToString(msg, sizeof(msg), item.time);    // debug
+      Serial.println(msg);                          // debug
     }
   }
   return;
 }
 
+char* dateToString(char* msg, int len, time_t datetime) {
+  // utility function to format date:  "2020-9-27 at 11:22:33"
+  // Example 1:
+  //      char sDate[24];
+  //      dateToString( sDate, sizeof(sDate), now() );
+  //      Serial.println( sDate );
+  // Example 2:
+  //      char sDate[24];
+  //      Serial.print("The current time is ");
+  //      Serial.println( dateToString(sDate, sizeof(sDate), now()) );
+  snprintf(msg, len, "%d-%d-%d at %02d:%02d:%02d",
+                     year(datetime),month(datetime),day(datetime), 
+                     hour(datetime),minute(datetime),second(datetime));
+  return msg;
+}
+
 #ifdef RUN_UNIT_TESTS
-void initTestPressureHistory() {
+void initTestStepValues() {
+  // inject a straight line constant value and visually verify graph scaling
+  // add test pressure values:
+  //      y = { 1000, 1020, 1040 }
+  int numTestData = 12;                 // add this many entries of test data
+  float fakePressure = 1000.1*100;      // first value
+  //                              ss,mm,hh, dow, dd,mm,yy
+  TimeElements tm = TimeElements{ 0, 0, 0,   1,  26, 9,2020-1970 };   // 27 Sept 2020 on Sun at 12:00:00 am
+  time_t fakeTime = makeTime(tm);
+
+  char sDate[24];                       // strlen("1999-12-31 at 00:11:22") = 22
+  dateToString(sDate, sizeof(sDate), fakeTime);
+  Serial.print("initTestStepValue() starting date: ");    // debug
+  Serial.println(sDate);                                  // debug
+
+  // ---test: 1000 hPa---
+  for (int ii=0; ii<numTestData; ii++) {
+    fakeTime += 15*SECS_PER_MIN;
+    rememberPressure( fakePressure, fakeTime );   // inject several samples of the same value
+  }
+
+  // ---test: 1020 hPa---
+  fakePressure = 1020.0*100;
+  for (int ii=0; ii<numTestData; ii++) {
+    fakeTime += 15*SECS_PER_MIN;
+    rememberPressure( fakePressure, fakeTime );   // inject several samples of the same value
+  }
+
+  // ---test: 1040 hPa---
+  fakePressure = 1039.9*100;
+  for (int ii=0; ii<numTestData; ii++) {
+    fakeTime += 15*SECS_PER_MIN;
+    rememberPressure( fakePressure, fakeTime );   // inject several samples of the same value
+  }
+}
+
+void initTestSineWave() {
   // add test data:
   //      sine wave from 990 to 1030 hPa, with period of 12 hours
   //      y = 1010.0hPa + 20*sin(w)   where 'w' goes from 0..2pi in the desired period
   //      timestamps start today at midnight, every 15 minutes
   int numTestData = lastIndex/5;      // add this many entries of test data
-  float offsetPa = 1039.0*100;          // readings are saved in Pa (not hPa)
+  float offsetPa = 1020.0*100;          // readings are saved in Pa (not hPa)
   float amplitude = 10.1*100;           // readings are saved in Pa (not hPa)
 
   //                              ss,mm,hh, dow, dd,mm,yy
   //meElements tm = TimeElements{  1, 2, 3,  4,   5, 6, 7 };   // 1977-06-05 on Wed at 03:02:01
-  TimeElements tm = TimeElements{  0, 0, 0,  1,  20, 9,20 };   // 20 Sept 2020 on Sun at 12:00:00 am
+  TimeElements tm = TimeElements{  0, 0, 0,  1,  26, 9,20 };   // 20 Sept 2020 on Sun at 12:00:00 am
   time_t todayMidnight = makeTime(tm);
 
   for (int ii=0; ii<numTestData; ii++) {
@@ -361,6 +409,7 @@ const int xRight = xDay3 + pixelsPerDay;
 const int TEXTHEIGHT = 16;      // text line spacing, pixels
 const int DESCENDERS = 6;       // proportional font descenders may go 6 pixels below baseline
 const int yBot = gScreenHeight - MARGIN - DESCENDERS - TEXTHEIGHT;
+const int yTop = yBot - graphHeight;
 
 // ========== screen helpers ===================================
 void clearScreen() {
@@ -597,7 +646,7 @@ void drawScale() {
   time_t dayBefore = yesterday - SECS_PER_DAY;
 
   char msg[128];
-  snprintf(msg, sizeof(msg), "RTC time %d-%d-%d, %02d:%02d:%02d",
+  snprintf(msg, sizeof(msg), "RTC time %d-%d-%d at %02d:%02d:%02d",
                                        year(today),month(today),day(today), 
                                        hour(today),minute(today),second(today));
   Serial.println(msg);      // debug
@@ -617,26 +666,73 @@ void drawScale() {
 }
 
 void drawGraph() {
-  int deltaX = 2;
-  int x = xRight;
+  // check that RTC has been initialized, otherwise we cannot display a sensible graph
+  if (timeStatus() == timeNotSet) {
+    Serial.println("!! No graph, time has not been started.");
+    return;
+  }
+
+  // get today's date from the RTC (real time clock)
+  time_t today = now();
+  time_t maxTime = nextMidnight(today);
+  time_t minTime = maxTime - SECS_PER_DAY*3;
+
+  char msg[100], sDate[24];
+  dateToString(sDate, sizeof(sDate), today);
+
+  snprintf(msg, sizeof(msg), "Right now is %d-%d-%d at %02d:%02d:%02d",
+                                    year(today),month(today),day(today), 
+                                    hour(today),minute(today),second(today));
+  Serial.println(msg);
+  snprintf(msg, sizeof(msg), "Leftmost graph minTime = %d-%02d-%02d at %02d:%02d:%02d (x=%d)",
+                                    year(minTime),month(minTime),day(minTime),
+                                    hour(minTime),minute(minTime),second(minTime),
+                                    xDay1);
+  Serial.println(msg);
+  snprintf(msg, sizeof(msg), "Rightmost graph maxTime = %d-%02d-%02d at %02d:%02d:%02d (x=%d)",
+                                    year(maxTime),month(maxTime),day(maxTime),
+                                    hour(maxTime),minute(maxTime),second(maxTime),
+                                    xRight);
+  Serial.println(msg);
 
   float yTopPa = (gUnits == eMetric) ? fMaxPa : (fMaxHg*PASCALS_PER_INCHES_MERCURY);
   float yBotPa = (gUnits == eMetric) ? fMinPa : (fMinHg*PASCALS_PER_INCHES_MERCURY);
 
-  for (int ii = lastIndex; ii > 0 ; ii--) {
-    // Y-axis:
-    //    The data to plot is always 'float Pascals' 
-    //    but the graph's y-axis is either hPa or inHg, each with different even-numbered scale
-    //    so scale the data into the appropriate units on the y-axis
-    int y1 =  map(pressureStack[ii-0].pressure, yBotPa, yTopPa, 0, graphHeight);
-    int y2 =  map(pressureStack[ii-1].pressure, yBotPa, yTopPa, 0, graphHeight);
+  Serial.print("Top graph pressure = "); Serial.print(yTopPa,1); Serial.println(" Pa");
+  Serial.print("Bottom graph pressure = "); Serial.print(yBotPa,1); Serial.println(" Pa");
 
-    // X-axis:
-    //    todo - scale from timestamps onto x-axis
+  int x = xRight;
+  for (int ii = lastIndex; ii > 0 ; ii--) {
     if (pressureStack[ii - 1].pressure != 0) {
-      tft.drawLine(x, yBot - y1, x - deltaX, yBot - y2, cGRAPHCOLOR);
+      // Y-axis:
+      //    The data to plot is always 'float Pascals' 
+      //    but the graph's y-axis is either Pascals or inches-Hg, each with different scale
+      //    so scale the data into the appropriate units on the y-axis
+      if (gUnits == eMetric) {
+        
+      }
+      int y1 = map(pressureStack[ii-0].pressure,  yBotPa,yTopPa,  yBot,yTop);
+  
+      // X-axis:
+      //    Scale from timestamps onto x-axis
+      int t1 = pressureStack[ii-0].time;
+      //       map(value, fromLow,fromHigh, toLow,toHigh)
+      int x1 = map( t1,   minTime,maxTime,  xDay1,xRight);
+
+      if (x1 < xDay1) {
+        snprintf(msg, sizeof(msg), "%d. Ignored: Date x1 (%d) is off left edge of (%d).", ii, x1, xDay1); Serial.println(msg);
+        continue;
+      }
+      if (x1 > xRight) {
+        snprintf(msg, sizeof(msg), "%d. Ignored: Date x1 (%d) is off right edge of (%d).", ii, x1, xRight); Serial.println(msg);
+        continue;
+      }
+
+      tft.drawPixel(x1,y1, cGRAPHCOLOR);
+      int approxPa = (int)pressureStack[ii-0].pressure;
+      snprintf(msg, sizeof(msg), "%d. Plot %d at pixel (%d,%d)", ii, approxPa, x1,y1);
+      Serial.println(msg);    // debug
     }
-    x = x - deltaX;
   }
 }
 
@@ -690,8 +786,9 @@ void saveConfigUnits() {
 }
 
 // ========== load/save barometer pressure readings ============
+// To erase and rewrite a new data file, change the version string below.
 #define PRESSURE_HISTORY_FILE     CONFIG_FOLDER "/barometr.dat"
-#define PRESSURE_HISTORY_VERSION  "Pressure v03"
+#define PRESSURE_HISTORY_VERSION  "Pressure v04"
 
 int loadPressureHistory() {
   SaveRestore history(PRESSURE_HISTORY_FILE, PRESSURE_HISTORY_VERSION);
@@ -761,7 +858,7 @@ void setup() {
   pixel.begin();
   pixel.clear();                      // turn off NeoPixel
   digitalWrite(PIN_LED, LOW);         // turn off little red LED
-  //Serial.println("NeoPixel initialized and turned off");
+  Serial.println("NeoPixel initialized and turned off");
 
   // ----- announce ourselves
   startSplashScreen();
@@ -786,6 +883,13 @@ void setup() {
   GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);    // 1 Hz update rate
   //GPS.sendCommand(PMTK_SET_NMEA_UPDATE_200_MILLIHERTZ); // Once every 5 seconds update
 
+  // ----- init RTC
+  setTime(GPS.hour, GPS.minute, GPS.seconds, GPS.day, GPS.month, GPS.year);
+
+  char sDate[24];
+  Serial.print("The current time is ");
+  Serial.println( dateToString(sDate, sizeof(sDate), now()) );
+
   // ----- restore settings
   if (loadConfigUnits()) {
     Serial.println("Successfully loaded settings from non-volatile RAM");
@@ -803,7 +907,8 @@ void setup() {
     savePressureHistory();
   }
   #ifdef RUN_UNIT_TESTS
-    initTestPressureHistory();
+    initTestStepValues();
+    //initTestSineWave();
   #endif
 
   // ----- init barometer
