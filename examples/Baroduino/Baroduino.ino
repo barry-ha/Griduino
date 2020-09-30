@@ -155,6 +155,9 @@ const int howLongToWait = 8;    // max number of seconds at startup waiting for 
 #define BARS_PER_INCHES_MERCURY      (0.0338639)
 #define PASCALS_PER_INCHES_MERCURY   (3386.39)
 
+#define SECS_PER_5MIN  ((time_t)(300UL))
+#define SECS_PER_15MIN ((time_t)(900UL))
+
 // ----- color scheme -----
 // RGB 565 color code: http://www.barth-dev.de/online/rgb565-color-picker/
 #define cSCALECOLOR     ILI9341_DARKGREEN // tried yellow but it's too bright
@@ -180,6 +183,7 @@ const int maxReadings = 144;
 Reading pressureStack[maxReadings] = {};    // array to hold pressure data, fill with zeros
 const int lastIndex = maxReadings - 1;      // index to the last element in pressure array
 bool redrawGraph = true;                    // true=request graph be drawn
+bool waitingForRTC = true;                  // true=waiting for GPS hardware to give us the first valid date/time
 
 // ======== barometer and temperature helpers ==================
 void getBaroData() {
@@ -495,6 +499,13 @@ void showTimeOfDay() {
   txtReading[eTimeSS].print(msg);
 }
 
+time_t nextFiveMinuteMark(time_t timestamp) {
+  return ((timestamp+1+SECS_PER_5MIN)/SECS_PER_5MIN)*SECS_PER_5MIN;
+}
+time_t nextFifteenMinuteMark(time_t timestamp) {
+  return ((timestamp+1+SECS_PER_15MIN)/SECS_PER_15MIN)*SECS_PER_15MIN;
+}
+
 // ----- print current value of pressure reading
 void printPressure() {
   float fPressure;
@@ -524,7 +535,7 @@ void printPressure() {
   setFontSize(12);
   txtReading[valPressure].print( fPressure, 2 );
   txtReading[unitPressure].print( sUnits );
-  Serial.print(fPressure, 2); Serial.print(" "); Serial.println(sUnits);
+  Serial.print("Currently "); Serial.print(fPressure, 2); Serial.print(" "); Serial.println(sUnits);
 }
 
 void tickMarks(int t, int h) {
@@ -579,10 +590,12 @@ void autoScaleGraph() {
   fMinHg = (int)(lowestHg/HG_RES) * HG_RES;
   fMaxHg = (int)((highestHg/HG_RES) + 1) * HG_RES;
 
-  Serial.print("Minimum and maximum reported pressure = "); printTwoFloats(lowestPa, highestPa); Serial.println(" Pa"); // debug
-  Serial.print("Minimum and maximum vertical scale = "); printTwoFloats(fMinPa, fMaxPa); Serial.println(" Pa"); // debug
+  /*
+  Serial.print("Minimum and maximum reported pressure = "); printTwoFloats(lowestPa, highestPa); Serial.println(" Pa");   // debug
+  Serial.print("Minimum and maximum vertical scale = "); printTwoFloats(fMinPa, fMaxPa); Serial.println(" Pa");           // debug
   Serial.print("Minimum and maximum reported pressure = "); printTwoFloats(lowestHg, highestHg); Serial.println(" inHg"); // debug
-  Serial.print("Minimum and maximum vertical scale = "); printTwoFloats(fMinHg, fMaxHg); Serial.println(" inHg"); // debug
+  Serial.print("Minimum and maximum vertical scale = "); printTwoFloats(fMinHg, fMaxHg); Serial.println(" inHg");         // debug
+  */
 }
 
 void scaleMarks(int p, int len) {
@@ -750,8 +763,8 @@ void drawGraph() {
 
       tft.drawPixel(x1,y1, cGRAPHCOLOR);
       int approxPa = (int)pressureStack[ii-0].pressure;
-      snprintf(msg, sizeof(msg), "%d. Plot %d at pixel (%d,%d)", ii, approxPa, x1,y1);
-      Serial.println(msg);    // debug
+      //snprintf(msg, sizeof(msg), "%d. Plot %d at pixel (%d,%d)", ii, approxPa, x1,y1);
+      //Serial.println(msg);    // debug
     }
   }
 }
@@ -781,7 +794,7 @@ void adjustUnits() {
   }
 
   Serial.print(". unitPressure = "); Serial.println( txtReading[unitPressure].text );
-  getBaroData();
+  //getBaroData();              // delete? I think this disturbs the scheduled 5-minute readings
   redrawGraph = true;           // draw graph
 }
 
@@ -963,8 +976,9 @@ void setup() {
 // Initialized to trigger all processing on first pass in mainline
 uint32_t prevTimeGPS = 0;             // timer to process GPS sentence
 uint32_t prevShowTime = 0;            // timer to update displayed time-of-day (1 second)
-uint32_t prevShowPressure = millis() + 4000; // timer to update displayed value (5 min), init to take a reading soon after startup
-uint32_t prevShowGraph = prevShowPressure;   // timer to update displayed graph (20 min), init to draw graph soon after startup
+
+time_t nextShowPressure = 0;          // timer to update displayed value (5 min), init to take a reading soon after startup
+time_t nextSavePressure = 0;          // timer to log pressure reading (15 min)
 
 const int RTC_PROCESS_INTERVAL = 1000;          // Timer RTC = 1 second
 const int READ_BAROMETER_INTERVAL = 5*60*1000;  // Timer 1 =  5 minutes
@@ -975,20 +989,33 @@ void loop() {
   // if a timer or system millis() wrapped around, reset it
   if (prevTimeGPS > millis()) { prevTimeGPS = millis(); }
   if (prevShowTime > millis()) { prevShowTime = millis(); }
-  if (prevShowPressure > millis()) { prevShowPressure = millis(); }
-  if (prevShowGraph > millis()) { prevShowGraph = millis(); }
 
   GPS.read();   // if you can, read the GPS serial port every millisecond in an interrupt
   if (GPS.newNMEAreceived()) {
     // sentence received -- verify checksum, parse it
     // GPS parsing: https://learn.adafruit.com/adafruit-ultimate-gps/parsed-data-output
-    // In this program, all we need is the RTC date and time, which is sent
-    // from the GPS module to the Arduino as NMEA sentences. 
+    // In this barometer program, all we need is the RTC date and time, which is
+    // sent from the GPS module to the Arduino as NMEA sentences.
     if (!GPS.parse(GPS.lastNMEA())) {
-      // parsing failed -- restart main loop to wait for another sentence
+      // parsing failed -- wait til the next main loop for another sentence
       // this also sets the newNMEAreceived() flag to false
-      //return;
     }
+  }
+
+  // look for the first "setTime()" and request to display the graph
+  if (waitingForRTC && isDateValid(GPS.year, GPS.month, GPS.day)) {
+    // found a transition from an unknown date -> correct date/time
+    // assuming "class Adafruit_GPS" contains 2000-01-01 00:00 until it receives an update via NMEA sentences
+    // the next step (1 second timer) will actually set the clock
+    redrawGraph = true;
+    waitingForRTC = false;
+
+    char msg[128];            // debug
+    Serial.println("-----> Found first correct date/time value <-----");  // debug
+    snprintf(msg, sizeof(msg), "       GPS time %d-%02d-%02d at %02d:%02d:%02d",
+                                       GPS.year,GPS.month,GPS.day, 
+                                       GPS.hour,GPS.minute,GPS.seconds);
+    Serial.println(msg);      // debug
   }
 
   // every 1 second update the clock display
@@ -997,8 +1024,9 @@ void loop() {
 
     // update RTC from GPS
     if (isDateValid(GPS.year, GPS.month, GPS.day)) {
+      
       setTime(GPS.hour, GPS.minute, GPS.seconds, GPS.day, GPS.month, GPS.year);
-      //adjustTime(offset * SECS_PER_HOUR);   // todo - adjust to local time zone. for now, we only show GMT
+      //adjustTime(offset * SECS_PER_HOUR);   // todo - adjust to local time zone. for now, we only do GMT
     }
 
     // update display
@@ -1006,27 +1034,27 @@ void loop() {
   }
 
   // every 5 minutes acquire/print temp and pressure
-  if (millis() - prevShowPressure > READ_BAROMETER_INTERVAL) {
+  // synchronize showReadings() on exactly the 5-minute marks 
+  // so the user can easily predict when the next update will occur
+  time_t rightnow = now();
+  if ( rightnow >= nextShowPressure) {
+    nextShowPressure = nextFiveMinuteMark(rightnow);
+  
     getBaroData();
     redrawGraph = true;               // draw graph
+  }
 
-    // every 15 minutes log, display, and graph pressure/delta pressure
-    if (millis() - prevShowGraph > LOG_PRESSURE_INTERVAL) {
-      prevShowGraph = millis();
+  // every 15 minutes save pressure in nonvolatile RAM
+  if ( rightnow >= nextSavePressure) {
+    
+    // log this pressure reading ONLY IF the time-of-day is correct and initialized 
+    if (timeStatus() == timeSet) {
 
-      // log this pressure reading
-      // but only if the time-of-day is correct and initialized 
-      if (timeStatus() == timeSet) {
-        time_t rightnow = now();
-        rememberPressure( gPressure, rightnow );
-      }
-      
-      // finally save the entire stack in non-volatile RAM
-      // which is done after updating display because this can take a visible half-second
+      nextSavePressure = nextFifteenMinuteMark(rightnow);
+
+      rememberPressure( gPressure, rightnow );
       savePressureHistory();
     }
-    prevShowPressure = millis();      // todo: synchronize showReadings() on exactly the 5-minute marks 
-                                      // so it becomes predictable to the user when the next update occurs
   }
 
   // if the barometric pressure graph should be refreshed
