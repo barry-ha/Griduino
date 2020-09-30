@@ -246,7 +246,7 @@ class Model {
     }
 
     //=========== time helpers =================================
-    // Did the GPS report a valid date?
+    // Does the GPS real-time clock contain a valid date?
     bool isDateValid(int yy, int mm, int dd) {
       if (yy < 20) {
         return false;

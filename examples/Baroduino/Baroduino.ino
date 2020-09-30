@@ -1,5 +1,5 @@
 /*
-  Baroduino -- demonstrate BMP388 barometric sensor
+  Griduino -- demonstrate BMP388 barometric sensor
 
   Version history: 
             2020-09-18 this is really two independent functions: 1.data logging, 2. visualization
@@ -13,14 +13,14 @@
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
 
-  Purpose:  What can you do with a graphing barometer that knows the exact time of day?
+  Purpose:  What can you do with a barometer that knows the time of day? Graph it!
             This program timestamps each reading and stores a history.
             It graphs the most recent 3 days. 
             It saves the readings in non-volatile memory and re-displays them on power-up.
             Its RTC (realtime clock) is updated from the GPS satellite network.
 
             +-----------------------------------+
-            | date       Baroduino        hh:mm |
+            | date        Griduino        hh:mm |
             | #sat       29.97 inHg          ss |
             | 30.5 +--------------------------+ | <- yTop
             |      |        |        |        | |
@@ -90,7 +90,7 @@
 #include "TimeLib.h"                // BorisNeubert / Time (who forked it from PaulStoffregen / Time)
 
 // ------- Identity for splash screen and console --------
-#define BAROGRAPH_TITLE "Baroduino"
+#define BAROGRAPH_TITLE "Griduino"
 
 //--------------CONFIG--------------
 //float elevCorr = 4241;  // elevation correction in Pa, 
@@ -179,6 +179,7 @@ float feet;
 const int maxReadings = 144;
 Reading pressureStack[maxReadings] = {};    // array to hold pressure data, fill with zeros
 const int lastIndex = maxReadings - 1;      // index to the last element in pressure array
+bool redrawGraph = true;                    // true=request graph be drawn
 
 // ======== barometer and temperature helpers ==================
 void getBaroData() {
@@ -195,7 +196,7 @@ void getBaroData() {
 }
 
 void rememberPressure( float pressure, time_t time ) {
-  
+  // push the barometer reading onto the stack 
   // shift existing stack to the left
   for (int ii = 0; ii < lastIndex; ii++) {
     pressureStack[ii] = pressureStack[ii + 1];
@@ -237,6 +238,20 @@ char* dateToString(char* msg, int len, time_t datetime) {
                      hour(datetime),minute(datetime),second(datetime));
   return msg;
 }
+
+  // Does the GPS real-time clock contain a valid date?
+  bool isDateValid(int yy, int mm, int dd) {
+    if (yy < 20) {
+      return false;
+    }
+    if (mm < 1 || mm > 12) {
+      return false;
+    }
+    if (dd < 1 || dd > 31) {
+      return false;
+    }
+    return true;
+  }
 
 #ifdef RUN_UNIT_TESTS
 void initTestStepValues() {
@@ -431,8 +446,7 @@ TextField txtReading[] = {
 };
 const int numReadings = sizeof(txtReading) / sizeof(txtReading[0]);
 
-void showReadings(int units) {
-  // todo: is argument 'units' unused? if so, eliminate
+void showReadings() {
   clearScreen();
   txtSplash[0].setBackground(cBACKGROUND);          // set background for all TextFields
   TextField::setTextDirty( txtReading, numReadings ); // make sure all fields are updated
@@ -444,7 +458,13 @@ void showReadings(int units) {
   scaleMarks(500, 5);   // args: (pressure in Pa, length in pixels)
   scaleMarks(1000, 10);
   drawScale();
-  drawGraph();
+
+  if (timeStatus() == timeSet) {
+    drawGraph();
+  } else {
+    TextField wait = TextField{ "Waiting for real-time clock", xIndent,100, cTITLE, ALIGNCENTER };
+    wait.print();
+  }
 }
 
 void showTimeOfDay() {
@@ -762,7 +782,7 @@ void adjustUnits() {
 
   Serial.print(". unitPressure = "); Serial.println( txtReading[unitPressure].text );
   getBaroData();
-  showReadings(gUnits);       // draw graph
+  redrawGraph = true;           // draw graph
 }
 
 // ========== load/save config setting =========================
@@ -884,11 +904,8 @@ void setup() {
   //GPS.sendCommand(PMTK_SET_NMEA_UPDATE_200_MILLIHERTZ); // Once every 5 seconds update
 
   // ----- init RTC
-  setTime(GPS.hour, GPS.minute, GPS.seconds, GPS.day, GPS.month, GPS.year);
-
-  char sDate[24];
-  Serial.print("The current time is ");
-  Serial.println( dateToString(sDate, sizeof(sDate), now()) );
+  // Note: See the main() loop. 
+  //       The RTC is not available until after receiving a few NMEA sentences.
 
   // ----- restore settings
   if (loadConfigUnits()) {
@@ -913,7 +930,7 @@ void setup() {
 
   // ----- init barometer
   if (!baro.begin()) {
-    Serial.println("Error, unable to initialize BMP388, check your wiring");
+    Serial.println("Error, unable to initialize BMP388, check the wiring");
     tft.setCursor(0, yText1);
     tft.setTextColor(cWARN);
     setFontSize(12);
@@ -933,22 +950,21 @@ void setup() {
 
   // Get first data point (done twice because first reading is always bad)
   getBaroData();
-  pressureStack[lastIndex].pressure = gPressure + elevCorr;
-  showReadings(gUnits);     // draw graph
+  delay(10);
 
   getBaroData();
   pressureStack[lastIndex].pressure = gPressure + elevCorr;
-  showReadings(gUnits);     // draw graph
+  redrawGraph = true;                 // draw graph
 }
 
 //=========== main work loop ===================================
 // "millis()" is number of milliseconds since the Arduino began running the current program.
 // This number will overflow after about 50 days.
 // Initialized to trigger all processing on first pass in mainline
-uint32_t prevTimeGPS = 0;           // timer to process GPS sentence
-uint32_t prevShowTime = 0;          // timer to update displayed time-of-day (1 second)
-uint32_t prevShowPressure = 0;      // timer to update displayed value (5 min), UINT32_MIN=0
-uint32_t prevShowGraph = 0;         // timer to update displayed graph (20 min)
+uint32_t prevTimeGPS = 0;             // timer to process GPS sentence
+uint32_t prevShowTime = 0;            // timer to update displayed time-of-day (1 second)
+uint32_t prevShowPressure = millis() + 4000; // timer to update displayed value (5 min), init to take a reading soon after startup
+uint32_t prevShowGraph = prevShowPressure;   // timer to update displayed graph (20 min), init to draw graph soon after startup
 
 const int RTC_PROCESS_INTERVAL = 1000;          // Timer RTC = 1 second
 const int READ_BAROMETER_INTERVAL = 5*60*1000;  // Timer 1 =  5 minutes
@@ -966,7 +982,7 @@ void loop() {
   if (GPS.newNMEAreceived()) {
     // sentence received -- verify checksum, parse it
     // GPS parsing: https://learn.adafruit.com/adafruit-ultimate-gps/parsed-data-output
-    // In the "Baroduino" program, all we need is the RTC date and time, which is sent
+    // In this program, all we need is the RTC date and time, which is sent
     // from the GPS module to the Arduino as NMEA sentences. 
     if (!GPS.parse(GPS.lastNMEA())) {
       // parsing failed -- restart main loop to wait for another sentence
@@ -980,8 +996,10 @@ void loop() {
     prevShowTime = millis();
 
     // update RTC from GPS
-    setTime(GPS.hour, GPS.minute, GPS.seconds, GPS.day, GPS.month, GPS.year);
-    //adjustTime(offset * SECS_PER_HOUR);   // todo - adjust to local time zone. for now, we only show GMT
+    if (isDateValid(GPS.year, GPS.month, GPS.day)) {
+      setTime(GPS.hour, GPS.minute, GPS.seconds, GPS.day, GPS.month, GPS.year);
+      //adjustTime(offset * SECS_PER_HOUR);   // todo - adjust to local time zone. for now, we only show GMT
+    }
 
     // update display
     showTimeOfDay();
@@ -990,24 +1008,31 @@ void loop() {
   // every 5 minutes acquire/print temp and pressure
   if (millis() - prevShowPressure > READ_BAROMETER_INTERVAL) {
     getBaroData();
-    showReadings(gUnits);         // draw graph
+    redrawGraph = true;               // draw graph
 
     // every 15 minutes log, display, and graph pressure/delta pressure
     if (millis() - prevShowGraph > LOG_PRESSURE_INTERVAL) {
       prevShowGraph = millis();
 
       // log this pressure reading
-      time_t rightnow = now();
-      rememberPressure( gPressure, rightnow );
+      // but only if the time-of-day is correct and initialized 
+      if (timeStatus() == timeSet) {
+        time_t rightnow = now();
+        rememberPressure( gPressure, rightnow );
+      }
       
-      // calculate pressure change and reprint all to screen
-      //showReadings(gUnits);     // removed to avoid double-blink, is redundant with 10 lines above
-
       // finally save the entire stack in non-volatile RAM
       // which is done after updating display because this can take a visible half-second
       savePressureHistory();
     }
-    prevShowPressure = millis();
+    prevShowPressure = millis();      // todo: synchronize showReadings() on exactly the 5-minute marks 
+                                      // so it becomes predictable to the user when the next update occurs
+  }
+
+  // if the barometric pressure graph should be refreshed
+  if (redrawGraph) {
+    showReadings();
+    redrawGraph = false;
   }
 
   // if there's touchscreen input, handle it
