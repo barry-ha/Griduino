@@ -148,9 +148,6 @@ class Reading {
 // ------------ definitions
 const int howLongToWait = 8;    // max number of seconds at startup waiting for Serial port to console
 
-#define FEET_PER_METER 3.28084
-#define SEA_LEVEL_PRESSURE_HPA (1013.25)
-
 #define MILLIBARS_PER_INCHES_MERCURY (0.02953)
 #define BARS_PER_INCHES_MERCURY      (0.0338639)
 #define PASCALS_PER_INCHES_MERCURY   (3386.39)
@@ -194,9 +191,14 @@ void getBaroData() {
     Serial.println("Error, failed to read barometer");
   }
   // continue anyway, for demo
-  gPressure = baro.pressure + elevCorr;   // Pressure is returned in the SI units of Pascals. 100 Pascals = 1 hPa = 1 millibar
+  gPressure = baro.pressure + elevCorr;   // Pressure is returned in SI units of Pascals. 100 Pascals = 1 hPa = 1 millibar
   hPa = gPressure / 100;
   inchesHg = 0.0002953 * gPressure;
+  Serial.print("Barometer ");
+  Serial.print(gPressure);
+  Serial.print(" Pa [");
+  Serial.print(__LINE__);
+  Serial.println("]");
 }
 
 void rememberPressure( float pressure, time_t time ) {
@@ -220,8 +222,7 @@ void dumpPressureHistory() {            // debug
       Serial.print(item.pressure);
       Serial.print("  ");
       char msg[24];
-      dateToString(msg, sizeof(msg), item.time);    // debug
-      Serial.println(msg);                          // debug
+      Serial.println( dateToString(msg, sizeof(msg), item.time) );                          // debug
     }
   }
   return;
@@ -535,7 +536,8 @@ void printPressure() {
   setFontSize(12);
   txtReading[valPressure].print( fPressure, 2 );
   txtReading[unitPressure].print( sUnits );
-  Serial.print("Currently "); Serial.print(fPressure, 2); Serial.print(" "); Serial.println(sUnits);
+  Serial.print("Currently "); Serial.print(fPressure, 2); Serial.print(" "); Serial.print(sUnits);
+  Serial.print(" ["); Serial.print(__LINE__); Serial.println("]");
 }
 
 void tickMarks(int t, int h) {
@@ -568,12 +570,18 @@ void autoScaleGraph() {
 
   float lowestPa = 999999.9;
   float highestPa = 0.0;
+  bool isEmpty = true;
   for (int ii = 0; ii <= lastIndex ; ii++) {
     // if element has zero pressure, then it is empty
     if (pressureStack[ii].pressure > 0) {
       lowestPa = min(pressureStack[ii].pressure, lowestPa);
       highestPa = max(pressureStack[ii].pressure, highestPa);
     }
+  }
+  if (isEmpty) {
+    // no data in array, set default range so program doesn't divide-by-zero
+    lowestPa  =  95000.0 + 0.1;
+    highestPa = 105000.0 - 0.1;
   }
  
   const float PA_RES = 2000.0;      // metric y-axis resolution
@@ -603,7 +611,8 @@ void scaleMarks(int p, int len) {
   // input: p = pascal intervals
   //        len = length of mark, pixels
   int y = yBot;
-  int deltay = map(p, 0, fMaxPa - fMinPa, 0, graphHeight);
+  //           map(val, fromLow,fromHigh,   toLow,toHigh )
+  int deltay = map(p,   0,fMaxPa - fMinPa,  0,graphHeight);
   for (y = yBot; y > yBot - graphHeight + 5; y = y - deltay) {
     tft.drawLine(xDay1, y,  xDay1 + len,  y, cSCALECOLOR);  // mark left edge
     tft.drawLine(xRight,y,  xRight - len, y, cSCALECOLOR);  // mark right edge
@@ -663,8 +672,7 @@ void drawScale() {
     superimposeLabel( MARGIN, yBot - TEXTHEIGHT/3,                 fMinHg, 1);
     superimposeLabel( MARGIN, yBot - graphHeight + TEXTHEIGHT/3,   fMaxHg, 1);
     superimposeLabel( MARGIN, yBot - graphHeight/2 + TEXTHEIGHT/3, (fMinHg + (fMaxHg - fMinHg)/2), 1);
-  } else {
-    // metric: hecto-Pascal (hPa)
+  } else {    // metric: hecto-Pascal (hPa)
     superimposeLabel( MARGIN, yBot + TEXTHEIGHT/3,                 (fMinPa/100), 0);
     superimposeLabel( MARGIN, yBot - graphHeight + TEXTHEIGHT/3,   (fMaxPa/100), 0);
     superimposeLabel( MARGIN, yBot - graphHeight/2 + TEXTHEIGHT/3, (fMinPa + (fMaxPa - fMinPa)/2)/100, 0);
@@ -731,8 +739,8 @@ void drawGraph() {
   float yTopPa = (gUnits == eMetric) ? fMaxPa : (fMaxHg*PASCALS_PER_INCHES_MERCURY);
   float yBotPa = (gUnits == eMetric) ? fMinPa : (fMinHg*PASCALS_PER_INCHES_MERCURY);
 
-  Serial.print("Top graph pressure = "); Serial.print(yTopPa,1); Serial.println(" Pa");
-  Serial.print("Bottom graph pressure = "); Serial.print(yBotPa,1); Serial.println(" Pa");
+  Serial.print("Top graph pressure = "); Serial.print(yTopPa,1); Serial.println(" Pa");     // debug
+  Serial.print("Bottom graph pressure = "); Serial.print(yBotPa,1); Serial.println(" Pa");  // debug
 
   int x = xRight;
   for (int ii = lastIndex; ii > 0 ; ii--) {
@@ -821,7 +829,7 @@ void saveConfigUnits() {
 // ========== load/save barometer pressure readings ============
 // To erase and rewrite a new data file, change the version string below.
 #define PRESSURE_HISTORY_FILE     CONFIG_FOLDER "/barometr.dat"
-#define PRESSURE_HISTORY_VERSION  "Pressure v04"
+#define PRESSURE_HISTORY_VERSION  "Pressure v01"
 
 int loadPressureHistory() {
   SaveRestore history(PRESSURE_HISTORY_FILE, PRESSURE_HISTORY_VERSION);
@@ -885,12 +893,12 @@ void setup() {
 
   // ----- init TFT backlight
   pinMode(TFT_BL, OUTPUT);
-  analogWrite(TFT_BL, 255);           // start at full brightness
+  analogWrite(TFT_BL, 255);             // start at full brightness
 
   // ----- init Feather M4 onboard lights
   pixel.begin();
-  pixel.clear();                      // turn off NeoPixel
-  digitalWrite(PIN_LED, LOW);         // turn off little red LED
+  pixel.clear();                        // turn off NeoPixel
+  digitalWrite(PIN_LED, LOW);           // turn off little red LED
   Serial.println("NeoPixel initialized and turned off");
 
   // ----- announce ourselves
@@ -961,12 +969,11 @@ void setup() {
   delay(3000);              // milliseconds
   clearScreen();
 
-  // Get first data point (done twice because first reading is always bad)
-  getBaroData();
-  delay(10);
-
-  getBaroData();
-  pressureStack[lastIndex].pressure = gPressure + elevCorr;
+  // Get first data point (repeated because first reading is always bad)
+  for (int ii=0; ii<4; ii++) {
+    getBaroData();
+    delay(100);
+  }
   redrawGraph = true;                 // draw graph
 }
 
