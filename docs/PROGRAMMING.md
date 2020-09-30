@@ -79,8 +79,9 @@ In the Arduino IDE menu bar, go to **Tools > Port** and select the COM port that
 In this step, we will install support files needed by Arduino IDE to talk to the Feather M4. Here's how:<br/>
 In the Arduino IDE menu bar, go to **Tools > Board > Boards Manager**. It will display a long list of hardware. Install the latest version of:
 <ul>
-<li>Arduino AVR Boards by Arduino: v1.8.3</li>
-<li>Arduino SAMD Boards (32-bits ARM Cortex-M0+): v1.8.6</li>
+<li>Arduino AVR Boards, Built-In by Arduino: v1.8.3</li>
+<li>Arduino SAMD Boards (32-bits ARM Cortex-M0+): v1.8.8</li>
+<li>Adafruit SAMD Boards: v1.6.3</li>
 </ul>
 
 1. **Select Board**<br/>
@@ -95,18 +96,19 @@ In the Arduino IDE menu bar, go to **Tools > Manage Libraries**. Install the lat
    - LiquidCrystal v1.0.7
    - SD v1.2.4
    - TFT v1.0.6
-   - Adafruit BMP3XX Library v1.0.0
-   - Adafruit GFX Library v1.8.3
-   - Adafruit GPS Library 1.5.0
-   - Adafruit ILI9341 1.5.5
-   - Adafruit ImageReader Library 2.3.5
-   - Adafruit NeoPixel 1.5.0
-   - Adafruit SPIFlash 3.1.6
-   - Adafruit TouchScreen 1.1.0
-   - elapsedMillis by Paul Stoffregen 1.0.6
-   - SdFat – Adafruit Fork by Bill Greiman 1.2.3
+   - Adafruit BMP3XX Library v1.1.0
+   - Adafruit GFX Library v1.10.1
+   - Adafruit GPS Library v1.5.2
+   - Adafruit ILI9341 v1.5.6
+   - Adafruit ImageReader Library v2.4.0
+   - Adafruit NeoPixel v1.6.0
+   - Adafruit SPIFlash v3.3.0
+   - Adafruit TouchScreen v1.1.0
+   - elapsedMillis by Paul Stoffregen v1.0.6
+   - SdFat – Adafruit Fork by Bill Greiman v1.2.3
+   - Time by Michael Margolis v1.6.0
 
-This volume control component is outside of Arduino's Library Manager, so follow this link to GitHub and install the latest version:
+The volume control component is outside of Arduino's Library Manager, so follow this link to GitHub and install the latest version:
 
    - https://github.com/tom-dudman/DS1804 - library for DS1804 Digital Potentiometer
 
