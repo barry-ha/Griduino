@@ -76,12 +76,12 @@ Data Screens: Griduino v0.10 will display these screens.
 ![](docs/img/view-settings-img7050.jpg)
 
 
-## Programming
+# Programming
 Griduino project hardware and software is open source and available on Github: [github.com/barry-ha/](https://github.com/barry-ha/)
 
-To work with Griduino's source code, see the ![Programming](docs/PROGRAMMING.md) document.
+To work with Griduino's source code, see the [Griduino Programming](./docs/PROGRAMMING.md) document.
 
-Griduino will have its own website at www.Griduino.com. (Not written yet, as of August 2020.)
+Griduino will have its own website at www.Griduino.com. (Not written yet, as of October 2020.)
 
 # Parts List
 Griduino's main building blocks are:
@@ -91,10 +91,12 @@ Griduino's main building blocks are:
 1. Adafruit Barometric Sensor - https://www.adafruit.com/product/3966 
 1. Speaker for voice or CW grid-crossings. The audio chain produces line-level output to a digital potentiometer DS1804 for volume control, and an LM386 audio amplifier to a built-in speaker.
 
+For a detailed list of parts, see the [Bill of Materials](./hardware/bill_of_materials.md).
+
 # Disclaimer
 
 The information provided is for general education and entertainment. We hope you learn from this and enjoy your hobbies in a safe manner with this new GPS information available at a glance. We take no responsibility for your assembly and construction, nor for how you use these devices. 
 
-**Do not adjust Griduino while driving**. Keep your full attention on the road and the traffic around you. We can not be held responsible for any property or medical damages caused by these projects. You are advised to check your local laws and consult professionals for any project involving electricity, construction or assembly. You are advised to drive in a safe and legal manner, consistent with all local laws, safety rules and good common sense.
+**Do not adjust Griduino while driving**. Keep your full attention on the road and the traffic around you. We cannot be held responsible for any property damage or injuries while using by this project. You are advised to check your local laws and consult professionals for any project involving electricity, construction or assembly. You are advised to drive in a safe and legal manner, consistent with all local laws, safety rules and good common sense.
 
 You must accept that you and you alone are responsible for your safety and safety of others in any endeavor in which you engage.
