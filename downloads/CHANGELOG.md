@@ -5,6 +5,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 Version numbers correspond to [Downloads](https://github.com/barry-ha/Griduino/tree/master/downloads) available as pre-compiled binary Griduino programs. To install them, see the [Programming](https://github.com/barry-ha/Griduino/blob/master/docs/PROGRAMMING.md) instructions.
 
+**v0.24** &nbsp; 2020-10-02
+
+Added new view to show a frivolous "Groundhog Day" counter display. We feel like we're stuck in a time loop, just like Bill Murray in his 1993 movie. Now we know how long we've been in the pandemic and self-imposed social distancing.
+
+Also vastly updated the stadalone "Baroduino" example program.
+
 **v0.23** &nbsp; 2020-09-02
 
 Refactored views into base class "View" and derived classes. No visible change to usage and operation.

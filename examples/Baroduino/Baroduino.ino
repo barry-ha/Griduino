@@ -2,6 +2,7 @@
   Griduino -- demonstrate BMP388 barometric sensor
 
   Version history: 
+            2020-10-02 v0.24 published to the GitHub downloads folder
             2020-09-18 this is really two independent functions: 1.data logging, 2. visualization
             2020-08-27 save unit setting (english/metric) in nonvolatile RAM
             2020-08-24 start rewriting user interface

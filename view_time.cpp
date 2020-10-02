@@ -50,10 +50,10 @@ extern Model* model;                // "model" portion of model-view-controller
 extern Adafruit_BMP3XX baro;        // Griduino.ino
 extern void getDate(char* result, int maxlen);  // model.cpp
 
-void setFontSize(int font);         // Griduino.ino
-int getOffsetToCenterTextOnButton(String text, int leftEdge, int width ); // Griduino.ino
-void drawAllIcons();                // draw gear (settings) and arrow (next screen) // Griduino.ino
-void showScreenBorder();            // optionally outline visible area
+extern void setFontSize(int font);         // Griduino.ino
+extern int getOffsetToCenterTextOnButton(String text, int leftEdge, int width ); // Griduino.ino
+extern void drawAllIcons();                // draw gear (settings) and arrow (next screen) // Griduino.ino
+extern void showScreenBorder();            // optionally outline visible area
 
 // ========== forward reference ================================
 void timePlus();
@@ -267,9 +267,10 @@ void ViewTime::startScreen() {
 
   updateScreen();                     // fill in values immediately, don't wait for the main loop to eventually get around to it
 
-  // debug: show centerline on display
-  //                        x1,y1            x2,y2            color
-  //tft->drawLine(tft->width()/2,0, tft->width()/2,tft->height(), cWARN); // debug
+  #ifdef SHOW_SCREEN_CENTERLINE
+    // show centerline at      x1,y1              x2,y2             color
+    tft->drawLine( tft->width()/2,0,  tft->width()/2,tft->height(), cWARN); // debug
+  #endif
 }
 
 bool ViewTime::onTouch(Point touch) {

@@ -2,7 +2,7 @@
 
 // ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE   "Griduino"
-#define PROGRAM_VERSION "v0.23"
+#define PROGRAM_VERSION "v0.24"
 #define PROGRAM_LINE1   "Barry K7BWH"
 #define PROGRAM_LINE2   "John KM7O"
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
@@ -30,6 +30,7 @@ const double degreesPerRadian = 57.2957795; // conversion factor = (360 degrees)
 //#define ECHO_GPS_SENTENCE         // use this to see once-per-second GPS sentences
 //#define SHOW_TOUCH_TARGETS        // use this to outline touchscreen sensitive buttons
 //#define SHOW_SCREEN_BORDER        // use this to outline the screen's displayable area
+//#define SHOW_SCREEN_CENTERLINE    // use this visual aid to help layout the screen
 
 // ----- load/save configuration using SDRAM
 //#define EXTERNAL_FLASH_USE_QSPI   // 2020-02-11 added by BarryH, since it seems to be missing from 

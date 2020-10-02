@@ -146,6 +146,16 @@ class ViewTime : public View {
     bool onTouch(Point touch);
 };
 
+class ViewDate : public View {
+  public:
+    ViewDate(Adafruit_ILI9341* vtft, int vid)  // ctor 
+      : View{ vtft, vid }
+    { }
+    void updateScreen();
+    void startScreen();
+    bool onTouch(Point touch);
+};
+
 class ViewVolume : public View {
   public:
     ViewVolume(Adafruit_ILI9341* vtft, int vid)  // ctor 

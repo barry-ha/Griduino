@@ -596,6 +596,7 @@ enum {
   SPLASH_VIEW,
   STATUS_VIEW,
   TIME_VIEW,
+  DATE_VIEW,              // Groundhog Day 
   VOLUME_VIEW,
   //VOLUME2_VIEW,
   GOTO_SETTINGS,          // command the state machine to show control panel
@@ -612,6 +613,7 @@ ViewSettings3 settings3View(&tft, SETTING3_VIEW);
 ViewSplash splashView(&tft, SPLASH_VIEW);
 ViewStatus statusView(&tft, STATUS_VIEW);
 ViewTime   timeView(&tft, TIME_VIEW);
+ViewDate   dateView(&tft, DATE_VIEW);
 ViewVolume volumeView(&tft, VOLUME_VIEW);
 
 void selectNewView(int cmd) {
@@ -624,6 +626,7 @@ void selectNewView(int cmd) {
         &splashView,       // [SPLASH_VIEW]
         &statusView,       // [STATUS_VIEW]
         &timeView,         // [TIME_VIEW]
+        &dateView,         // [DATE_VIEW]
         &volumeView,       // [VOLUME_VIEW]
   };
 
@@ -634,7 +637,8 @@ void selectNewView(int cmd) {
     switch (currentView) {
       case GRID_VIEW:   nextView = STATUS_VIEW; break;
       case STATUS_VIEW: nextView = TIME_VIEW; break;
-      case TIME_VIEW:   nextView = GRID_VIEW; break;
+      case TIME_VIEW:   nextView = DATE_VIEW; break;
+      case DATE_VIEW:   nextView = GRID_VIEW; break;
       // none of above: we must be showing some settings view, so go to the first normal user view
       default:          nextView = GRID_VIEW; break;
     }
