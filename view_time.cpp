@@ -70,7 +70,7 @@ int gTimeZone = -7;                     // default local time Pacific (-7 hours)
 float getTemperature() {
   // returns temperature in Farenheight
   if (!baro.performReading()) {
-    Serial.println("Error, failed to read temperature sensor, re-initializeing");
+    Serial.println("Error, failed to read temperature sensor, re-initializing");
 
     baro.begin();   // attempt to initialize
   }
@@ -95,7 +95,7 @@ TextField txtClock[] = {
   {"hh",            12, 90, cVALUE},                  // [HOURS]     giant clock hours
   {":",             94, 90, cVALUE},                  // [COLON1]    :
   {"mm",           120, 90, cVALUE},                  // [MINUTES]   giant clock minutes
-  {":",            206, 90, cVALUE},                  // [COLON2]    :
+  {":",            204, 90, cVALUE},                  // [COLON2]    :
   {"ss",           230, 90, cVALUE},                  // [SECONDS]   giant clock seconds
   {"MMM dd, yyyy",  94,130, cVALUE},                  // [GMTDATE]   GMT date
   {"12.3 F",       132,164, cVALUE},                  // [DEGREES]   Temperature
@@ -165,18 +165,11 @@ void ViewTime::updateScreen() {
   snprintf(sMinute, sizeof(sMinute), "%02d", GPS.minute);
   snprintf(sSeconds,sizeof(sSeconds), "%02d", GPS.seconds);
 
-  if (GPS.seconds == 0) {
-    // report GMT to console, but not too often
-    Serial.print(sHour);    Serial.print(":");
-    Serial.print(sMinute);  Serial.print(":");
-    Serial.print(sSeconds); Serial.println(" GMT");
-  }
-  
   setFontSize(36);
   txtClock[HOURS].print(sHour);
   txtClock[MINUTES].print(sMinute);
   txtClock[SECONDS].print(sSeconds);
-  txtClock[COLON2].dirty = true;
+  txtClock[COLON2].dirty = true;      // re-draw COLON2 because it was erased by SECONDS field
   txtClock[COLON2].print();
 
   setFontSize(12);

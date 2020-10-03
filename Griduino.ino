@@ -756,7 +756,8 @@ void setup() {
   GPS.begin(57600);
   GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA); // turn on RMC (recommended minimum) and GGA (fix data) including altitude
 
-  GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);    // 1 Hz update rate
+  GPS.sendCommand(PMTK_SET_NMEA_UPDATE_5HZ);    // 5 Hz update rate
+  //GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);    // 1 Hz update rate
   //GPS.sendCommand(PMTK_SET_NMEA_UPDATE_200_MILLIHERTZ); // Once every 5 seconds update
   //GPS.sendCommand(PGCMD_ANTENNA);             // Request updates on whether antenna is connected or not (comment out to keep quiet)
 
@@ -830,7 +831,15 @@ void setup() {
 uint32_t prevTimeGPS = millis();
 //uint32_t prevTimeMorse = millis();
 
-const int GPS_PROCESS_INTERVAL = 1000;  // milliseconds between updating the model's GPS data
+// GPS_PROCESS_INTERVAL is how frequently to update the model from GPS data.
+// When the model detects a change, such as updated minutes or seconds, it will
+// trigger a display update. The interval should be short (10 msec) to keep the
+// displayed GMT clock in close match with WWV. But very short intervals will
+// make our displayed colon ":" flicker. We chose 47 msec as a compromise, allowing
+// an almost-unnoticeable flicker and an almost-unnoticeable difference from WWV.
+// Also, 47 msec is relatively prime compared to 200 msec (5 Hz) updates sent from
+// the GPS hardware. Todo - fix the colon's flicker then reduce this interval to 10 msec.
+const int GPS_PROCESS_INTERVAL =  47;   // milliseconds between updating the model's GPS data
 
 void loop() {
 

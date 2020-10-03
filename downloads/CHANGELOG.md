@@ -5,6 +5,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 Version numbers correspond to [Downloads](https://github.com/barry-ha/Griduino/tree/master/downloads) available as pre-compiled binary Griduino programs. To install them, see the [Programming](https://github.com/barry-ha/Griduino/blob/master/docs/PROGRAMMING.md) instructions.
 
+**v0.25** &nbsp; 2020-10-03
+
+Improved timing to make the GMT clock more closely match WWV.
+
+Before this change, it typically displayed 'xx:59' seconds as the tone is heard.  But sometimes the 'xx:58' is displayed, and sometimes it skips the 'xx:59'  display and goes directly to the :00 seconds exactly on the 1 second 'tick'.
+
 **v0.24** &nbsp; 2020-10-02
 
 Added new view to show a frivolous "Groundhog Day" counter display. We feel like we're stuck in a time loop, just like Bill Murray in his 1993 movie. Now we know how long we've been in the pandemic and self-imposed social distancing.
@@ -62,6 +68,7 @@ Added altimeter example program
 **v09.8** &nbsp; 2020-02-18  
 
 Added saving settings in 2MB RAM
+
 
 **v09.4** &nbsp; 2020-02-18
 
