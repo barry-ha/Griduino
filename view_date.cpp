@@ -57,6 +57,13 @@
 #include "view.h"                   // Base class for all views
 #include "TimeLib.h"                // BorisNeubert / Time (who forked it from PaulStoffregen / Time)
 
+// ======= customize this for any count up/down display ========
+#define DISPLAY_LINE_1  "Total days including"
+#define DISPLAY_LINE_2  "Sunday, Feb 2, 2020"
+#define DISPLAY_LINE_3  "Groundhog Day"
+//                       s,m,h, dow, d,m,y
+TimeElements date1gmt  { 1,1,1,  1,  2,2,2020-1970};    // GMT Groundhog Day
+
 // ========== extern ===========================================
 void showNameOfView(String sName, uint16_t fgd, uint16_t bkg);  // Griduino.ino
 extern Model* model;                // "model" portion of model-view-controller
@@ -88,15 +95,15 @@ enum txtIndex {
 };
 
 TextField txtDate[] = {
-  // text                  x,y   color       alignment
-  {"Total days including",      -1, 20, cTEXTCOLOR, ALIGNCENTER}, // [TITLE1] program title, centered
-  {"Sunday, Feb 2, 2020", -1, 44, cTEXTCOLOR, ALIGNCENTER}, // [TITLE2]
-  {"Groundhog Day",       -1, 84, cVALUE,     ALIGNCENTER}, // [TITLE3]
-  {"nnn",                 -1,148, cVALUE,     ALIGNCENTER}, // [COUNTDAYS] giant number
-  {"MMM dd, yyyy",        -1,200, cTEXTFAINT, ALIGNCENTER}, // [LOCALDATE] Local date
-  {"hh:mm:ss",            -1,226, cTEXTFAINT, ALIGNCENTER}, // [LOCALTIME] Local time
-  {"-7h",                  8,226, cTEXTFAINT             }, // [TIMEZONE]  addHours time zone
-  {"6#",                 308,226, cTEXTFAINT, ALIGNRIGHT }, // [NUMSATS]   numSats
+  // text            x,y   color       alignment
+  {DISPLAY_LINE_1,  -1, 20, cTEXTCOLOR, ALIGNCENTER},   // [TITLE1] program title, centered
+  {DISPLAY_LINE_2,  -1, 44, cTEXTCOLOR, ALIGNCENTER},   // [TITLE2]
+  {DISPLAY_LINE_3,  -1, 84, cVALUE,     ALIGNCENTER},   // [TITLE3]
+  {"nnn",           -1,148, cVALUE,     ALIGNCENTER},   // [COUNTDAYS] giant number
+  {"MMM dd, yyyy",  -1,200, cTEXTFAINT, ALIGNCENTER},   // [LOCALDATE] Local date
+  {"hh:mm:ss",      -1,226, cTEXTFAINT, ALIGNCENTER},   // [LOCALTIME] Local time
+  {"-7h",            8,226, cTEXTFAINT             },   // [TIMEZONE]  addHours time zone
+  {"6#",           308,226, cTEXTFAINT, ALIGNRIGHT },   // [NUMSATS]   numSats
 };
 const int numDateFields = sizeof(txtDate)/sizeof(TextField);
 
