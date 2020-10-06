@@ -58,19 +58,33 @@
 #include "TimeLib.h"                // BorisNeubert / Time (who forked it from PaulStoffregen / Time)
 
 // ======= customize this for any count up/down display ========
+// Example 1: Number of "Groundhog Days"
+//      Encode "Sunday, Feb 2, 2020" as a time_t
+//      But use the day before Feb 2, so that our counter will show "Groundhog Day #1" on 2/2/2020
+/* */
+#define HIDE_ELAPSED_HMS
 #define DISPLAY_LINE_1  "Total days including"
 #define DISPLAY_LINE_2  "Sunday, Feb 2, 2020"
 #define DISPLAY_LINE_3  "Groundhog Day"
 //                       s,m,h, dow, d,m,y
-TimeElements date1gmt  { 1,1,1,  1,  2,2,2020-1970};    // GMT Groundhog Day
+TimeElements targetGMT  { 0,0,7,  1,  1,2,2020-1970};    // GMT Groundhog Day (add 7 hours for when Pacific time starts their new day)
+/* */
+
+// Example 2: Time until Halloween Trick'r Treaters
+/* 
+#define DISPLAY_LINE_1  "Countdown to"
+#define DISPLAY_LINE_2  "Halloween 6pm"
+#define DISPLAY_LINE_3  "Days til Trick'n Treaters"
+//                       s,m,h,   dow, d,m,y
+TimeElements targetGMT  { 0,0,7+18,  1,  31,10,2020-1970}; // 6pm Halloween in Pacific time (encoded in GMT by adding 7 hours)
+/* */
 
 // ========== extern ===========================================
-void showNameOfView(String sName, uint16_t fgd, uint16_t bkg);  // Griduino.ino
+extern void showNameOfView(String sName, uint16_t fgd, uint16_t bkg);  // Griduino.ino
 extern Model* model;                // "model" portion of model-view-controller
 extern Adafruit_BMP3XX baro;        // Griduino.ino
 extern void getDate(char* result, int maxlen);  // model.cpp
 
-extern void setFontSize(int font);         // Griduino.ino
 extern int getOffsetToCenterTextOnButton(String text, int leftEdge, int width ); // Griduino.ino
 extern void drawAllIcons();                // draw gear (settings) and arrow (next screen) // Griduino.ino
 extern void showScreenBorder();            // optionally outline visible area
@@ -90,20 +104,21 @@ extern int gTimeZone;               // view_time.cpp; default local time Pacific
 // these are names for the array indexes, must be named in same order as array below
 enum txtIndex {
   TITLE1=0, TITLE2, TITLE3,
-  COUNTDAYS,
+  COUNTDAYS, COUNTTIME,
   LOCALDATE, LOCALTIME, TIMEZONE, NUMSATS,
 };
 
 TextField txtDate[] = {
-  // text            x,y   color       alignment
-  {DISPLAY_LINE_1,  -1, 20, cTEXTCOLOR, ALIGNCENTER},   // [TITLE1] program title, centered
-  {DISPLAY_LINE_2,  -1, 44, cTEXTCOLOR, ALIGNCENTER},   // [TITLE2]
-  {DISPLAY_LINE_3,  -1, 84, cVALUE,     ALIGNCENTER},   // [TITLE3]
-  {"nnn",           -1,148, cVALUE,     ALIGNCENTER},   // [COUNTDAYS] giant number
-  {"MMM dd, yyyy",  -1,200, cTEXTFAINT, ALIGNCENTER},   // [LOCALDATE] Local date
-  {"hh:mm:ss",      -1,226, cTEXTFAINT, ALIGNCENTER},   // [LOCALTIME] Local time
-  {"-7h",            8,226, cTEXTFAINT             },   // [TIMEZONE]  addHours time zone
-  {"6#",           308,226, cTEXTFAINT, ALIGNRIGHT },   // [NUMSATS]   numSats
+  // text            x,y    color       alignment    size
+  {DISPLAY_LINE_1,  -1, 20, cTEXTCOLOR, ALIGNCENTER, eFONTSMALLEST }, // [TITLE1] program title, centered
+  {DISPLAY_LINE_2,  -1, 44, cTEXTCOLOR, ALIGNCENTER, eFONTSMALLEST }, // [TITLE2]
+  {DISPLAY_LINE_3,  -1, 86, cVALUE,     ALIGNCENTER, eFONTSMALL    }, // [TITLE3]
+  {"nnn",           -1,152, cVALUE,     ALIGNCENTER, eFONTGIANT    }, // [COUNTDAYS] counted number of days
+  {"01:02:03",      -1,182, cVALUEFAINT,ALIGNCENTER, eFONTSMALLEST }, // [COUNTTIME] counted number of hms
+  {"MMM dd, yyyy",  66,226, cTEXTFAINT, ALIGNLEFT,   eFONTSMALLEST }, // [LOCALDATE] Local date
+  {"hh:mm:ss",     178,226, cTEXTFAINT, ALIGNLEFT,   eFONTSMALLEST }, // [LOCALTIME] Local time
+  {"-7h",            8,226, cTEXTFAINT, ALIGNLEFT,   eFONTSMALLEST }, // [TIMEZONE]  addHours time zone
+  {"6#",           308,226, cTEXTFAINT, ALIGNRIGHT,  eFONTSMALLEST }, // [NUMSATS]   numSats
 };
 const int numDateFields = sizeof(txtDate)/sizeof(TextField);
 
@@ -128,6 +143,20 @@ char* dateToString(char* msg, int len, time_t datetime) {
   return msg;
 }
 
+// Formatted elapsed time
+//    this is similar to getTimeLocal (view_date.cpp)
+void getTimeElapsed(char* result, int len, time_t elapsed) {
+  // @param result = char[10] = string buffer to modify
+  // @param len = string buffer length
+
+  int dd = elapsedDays(elapsed);
+  int hh = numberOfHours(elapsed);
+  int mm = numberOfMinutes(elapsed);
+  int ss = numberOfSeconds(elapsed);
+  snprintf(result, len, "%02d:%02d:%02d",
+                         hh, mm,  ss);
+}
+
 // ========== class ViewDate ===================================
 void ViewDate::updateScreen() {
   // called on every pass through main()
@@ -145,26 +174,27 @@ void ViewDate::updateScreen() {
     Serial.print(sSeconds); Serial.println(" GMT");
   }
 
-  // encode "Sunday, Feb 2, 2020" as a time_t
-  // use the beginning of Feb 2, so that our counter will show "Groundhog Day #1" on 2/2/2020
   //                       s,m,h, dow, d,m,y 
-  TimeElements date1gmt  { 1,1,1,  1,  2,2,2020-1970};    // GMT Groundhog Day
+  //TimeElements targetGMT{ 1,1,1,  1,  2,2,2020-1970};    // GMT Groundhog Day
   //meElements todaysDate{ 1,1,1,  1,  2,2,2020-1970};    // debug: verify the first Groundhog Day is "day #1"
   //meElements todaysDate{ 1,1,1,  1,  2,10,2020-1970};   // debug: verify Oct 2nd is "day #244" i.e. one more than shown on https://days.to/groundhog-day/2020
   TimeElements todaysDate{ GPS.seconds,GPS.minute,GPS.hour,
-                           1,GPS.day,GPS.month,GPS.year+(2000-1970)}; // GMT current date/time 
+                           1,GPS.day,GPS.month,(byte)(2000-1970+GPS.year)}; // GMT current date/time 
   
   time_t adjustment = gTimeZone * SECS_PER_HOUR;
-  time_t date1local = previousMidnight( makeTime(date1gmt) ) + adjustment;
-  time_t date2local = nextMidnight( makeTime(todaysDate) ) + adjustment;
 
-  int elapsedDays = (date2local - date1local) / SECS_PER_DAY;
+  time_t date1local = makeTime(targetGMT);
+  time_t date2local = makeTime(todaysDate);
+
+  time_t elapsed = abs(date2local - date1local);        // absolute value ensures result is always +ve
+  int elapsedDays = elapsed / SECS_PER_DAY;
+  char sTime[24];         // strlen("01:23:45") = 8
+  getTimeElapsed(sTime, sizeof(sTime), elapsed);
   
-  setFontSize(eFONTGIANT);
   txtDate[COUNTDAYS].print(elapsedDays);
+  txtDate[COUNTTIME].print(sTime);
 
   // Local Date
-  setFontSize(eFONTSMALLEST);
   char sDate[16];         // strlen("Jan 12, 2020 ") = 14
   model->getDate(sDate, sizeof(sDate));   // todo - make this local not GMT date
   txtDate[LOCALDATE].print(sDate);
@@ -177,13 +207,10 @@ void ViewDate::updateScreen() {
   txtDate[TIMEZONE].print(sTimeZone);
 
   // Local Time
-  setFontSize(eFONTSMALLEST);
-  char sTime[10];         // strlen("01:23:45") = 8
   getTimeLocal(sTime, sizeof(sTime));
   txtDate[LOCALTIME].print(sTime);
 
   // Satellite Count
-  setFontSize(eFONTSMALLEST);
   char sBirds[4];         // strlen("5#") = 2
   snprintf(sBirds, sizeof(sBirds), "%d#", model->gSatellites);
   // change colors by number of birds
@@ -202,18 +229,17 @@ void ViewDate::startScreen() {
   showScreenBorder();                 // optionally outline visible area
 
   // ----- draw page title
-  setFontSize(eFONTSMALLEST);
   txtDate[TITLE1].print();
   txtDate[TITLE2].print();
-  setFontSize(eFONTSMALL);
   txtDate[TITLE3].print();
 
   // ----- draw giant fields
-  setFontSize(eFONTGIANT);
   txtDate[COUNTDAYS].print();
+  #ifdef HIDE_ELAPSED_HMS
+    txtDate[COUNTTIME].setColor(cBACKGROUND); // if requested, make invisible the elapsed h:m:s
+  #endif
 
   // ----- draw text fields
-  setFontSize(eFONTSMALLEST);
   for (int ii=LOCALDATE; ii<numDateFields; ii++) {
     txtDate[ii].print();
   }

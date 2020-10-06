@@ -10,6 +10,7 @@
 
 // ========== extern ==================================
 extern Adafruit_ILI9341 tft;        // Griduino.ino  TODO: eliminate this global
+extern void setFontSize(int font);  // Griduino.ino  TODO: eliminate this extern
 
 uint16_t TextField::cBackground;    // background color
 
@@ -21,6 +22,10 @@ void TextField::eraseOld() {
 void TextField::printNew(const char* pText) {
   int16_t x1, y1;
   uint16_t w, h;
+
+  if (fontsize != eFONTUNSPEC) {
+    setFontSize(fontsize);
+  }
 
   int leftedge = x;
   if (align == ALIGNCENTER) {

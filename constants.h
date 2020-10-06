@@ -49,7 +49,8 @@ enum {
   eFONTBIG      = 24,
   eFONTSMALL    = 12,
   eFONTSMALLEST = 9,
-  eFONTSYSTEM   = 0
+  eFONTSYSTEM   = 0,
+  eFONTUNSPEC   = -1,
 };
 
 // ----- color scheme
@@ -59,7 +60,8 @@ enum {
 #define cGRIDNAME       ILI9341_GREEN
 #define cLABEL          ILI9341_GREEN
 #define cDISTANCE       ILI9341_YELLOW
-#define cVALUE          ILI9341_YELLOW
+#define cVALUE          ILI9341_YELLOW    // 255, 255, 0
+#define cVALUEFAINT     0xbdc0            // darker than cVALUE
 #define cHIGHLIGHT      ILI9341_WHITE
 #define cBUTTONFILL     ILI9341_NAVY
 #define cBUTTONOUTLINE  ILI9341_CYAN
