@@ -64,6 +64,9 @@ Electrolytic capacitors are marked with an arrow or "-" to indicate the negative
 
 ![](img/electrolytics-img7041.jpg)
 
+
+
+
 Header pins can join a small PCB onto the main board. They are designed to let you break off the number you need. Use needle nose pliers to hold steady the pins you'll keep and use your fingers to snap off the rest.
 
 ![](img/header-pins-img7080.jpg)
@@ -134,11 +137,17 @@ Insert U1 Digital Potentiometer DS1804 and U4 Audio Amplifier LM386 into the PCB
 
 ![](img/u4-u1-notch-img7070.jpg)
 
-<h3>Step 7: U2 Feather M4 Express</h3>
+<h3>Step 7: Testing Feather M4 Express</h3>
 
-Test the Feather before using it. By testing first, we ensure it's usable before permanently installing it. To test it, plug a standard micro-USB cable into the Feather's onboard connector; the lights should show activity. If this is a new Feather, it comes with a factory program that shines the NeoPixel LED bright green every two seconds as a simple "hello world" program.
+Test the Feather before using it. By testing first, we ensure it's functional before permanently installing it. After soldering it in place, it will be very difficult to remove. 
 
-![](img/feather-test-img7081.jpg)
+To test a Feather, plug a standard micro-USB cable into the onboard connector; the lights should show activity. 
+
+* If this is a new Feather, it comes with a factory program that blinks the NeoPixel LED in green as a simple "hello world" program. ![](img/feather-test-img7081.jpg)
+
+* If this is *not* a new Feather, you can replace its programming. Get the [Blinky](https://learn.adafruit.com/adafruit-arduino-lesson-2-leds/blinking-the-led) demo program to blink the red LED, then compile and install it with the Arduino workbench. ![](img/feather-test-img7425.jpg)
+
+<h3>Step 8: Installing Feather M4 Express</h3>
 
 The Feather comes with two 16-pin header strips loose in the package. Take one strip and break off 4 pins so it exactly matches the Feather's pinout: one 12-pin strip, and one 16-pin strip. Temporarily put the strips into a solderless breadboard to hold them in precise alignment. The long end of the pins go down into the breadboard; the short end goes into the Feather's PCB. (Actually the long pins can go up *or* down, it doesn't matter. We like them down for a more tidy appearance from the top.) Solder the Feather board to both header pin strips.
 
@@ -160,7 +169,7 @@ Insert the Feather board into the PCB. Make sure the pins are completely inserte
 
 Solder the pins to the Griduino board. You don't need to clip off the long ends; there is ample room inside the case.
 
-<h3>Step 8: U5 Ultimate GPS</h3>
+<h3>Step 9: U5 Ultimate GPS</h3>
 
 The "Ultimate GPS" package shipped from Adafruit comes with a header strip and a battery holder.
 
@@ -177,7 +186,7 @@ Tape the GPS assembly in place, if needed. Turn the board over and solder one pi
 
 ![](img/gps-soldered-img7092.jpg)
 
-<h3>Step 9: BT1 Battery Holder</h3>
+<h3>Step 10: BT1 Battery Holder</h3>
 
 Solder the battery holder onto the PCB. This is a surface-mount device; note that is has a small plastic detent to precisely align it in place. You might still need a small clamp or clothespin (remember those?) or tape to temporarily hold it in place while soldering. 
 
@@ -185,7 +194,7 @@ Solder the battery holder onto the PCB. This is a surface-mount device; note tha
 
 **Do not** insert a battery yet. Put the battery aside until the end to avoid any chance of shorts during construction. In fact, the battery is optional. Its only purpose is to maintain the RTC (real time clock) while Griduino is turned off.
 
-<h3>Step 10: Barometric Pressure Sensor</h3>
+<h3>Step 11: Barometric Pressure Sensor</h3>
 
 The barometric sensor comes with a matching 8-pin header strip. Insert this header strip into the main board, long pins first and short pins extending upward. (Okay, it doesn't really matter but we think this looks better.)
 
@@ -201,7 +210,7 @@ Check the assembly is still tight to the board. If not, reheat the pin while pus
 
 ![](img/pressure-img7100.jpg)
 
-<h3>Step 11: U7 Display ILI9341</h3>
+<h3>Step 12: U7 Display ILI9341</h3>
 
 First, solder jumpers IM1/IM2/IM3 on the back of the board. Melt a solder bridge across each "jumper". The traces are close together to make this easier. This enables the SPI interface. Do not solder jumper IM0.
 
@@ -227,7 +236,7 @@ Turn it over, holding the display assembly together, and rest the display on a s
 
 Turn it right side up and gently unplug the display from the sockets for safekeeping while working on other parts. Later, when everything else is completed, the display will be inserted again.
 
-<h3>Step 12: Test Points</h3>
+<h3>Step 13: Test Points</h3>
 
 Griduino has 6 optional test points. Three grounding points are together near the voltage regulator and the other three are in the audio chain for checking sound levels and linearity. See the schematic for details. Test points are intended for software developers and are not used during assembly.
 
@@ -235,13 +244,13 @@ The test points are sized to wedge into their holes up to their shoulders, holdi
 
 ![](img/test-points-img7107.jpg)
 
-<h3>Step 13: Connectors</h3>
+<h3>Step 14: Connectors</h3>
 
 Lastly, insert and solder the power connector, speaker jack and 4-pin terminal strip into place. Be sure to orient the terminal strip so its **openings go toward the edge**. Most of these connectors extend slightly beyond the edge of the PCB, so they are installed after everything else to avoid interfering with the bench vise hardware.
 
 ![](img/connectors-img7108.jpg)
 
-<h3>Step 14: Plastic Case</h3>
+<h3>Step 15: Plastic Case</h3>
 
 The Griduino kit comes with a plastic enclosure from <a href="https://www.polycase.com/">Polycase</a> in their QS-50 Series that exactly matches the PCB mounting holes. Other enclosures could probably be used. If you choose something else, avoid metallic cases since they would block the microwave GPS signal and would need an external antenna.
 
@@ -258,7 +267,7 @@ Screw the PCB onto the case's mounting posts, being careful to *not* overtighten
 * 3D printed cover – The author designed a top cover to fit the Polycase bottom half. The STL design file is available upon request so you can print and decorate your own.<br/>
 ![](img/hersheys-griduino-img56B29.jpg)
 
-<h3>Step 15: Speaker</h3>
+<h3>Step 16: Speaker</h3>
 
 You can connect a small 8-ohm or 4-ohm speaker to the stereo plugin jack or to the screw terminal strip.
 
@@ -272,11 +281,11 @@ Note that increased audio volume is available when powering the Griduino from a 
 
 <h2>5. Before You Use It</h2>
 
-Snap a coin cell battery (3-volt CR1220 lithium) into the battery holder. Flat side is positive (+) and is installed facing up.
+Snap a coin cell battery (3-volt CR1220 lithium) into the battery holder. Flat side is positive (+) and faces up.
 
-Plug in the display board. Check the pin alignment.
+Plug in the display board, checking the pin alignment on all four corners.
 
-You should now have a completed Griduino GPS kit. Congratulations! 
+You should now have a completed Griduino GPS kit. **Congratulations!** 
 
 Before you connect power, make a detailed visual inspection under a magnifier and good light. Look for *un*soldered pads and fix them. Look for possible solder bridges that may have formed between adjacent pads. Remove any surplus solder or solder bridges with desoldering braid. 
 
