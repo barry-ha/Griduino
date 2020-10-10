@@ -67,6 +67,8 @@ Electrolytic capacitors are marked with an arrow or "-" to indicate the negative
 
 
 
+
+
 Header pins can join a small PCB onto the main board. They are designed to let you break off the number you need. Use needle nose pliers to hold steady the pins you'll keep and use your fingers to snap off the rest.
 
 ![](img/header-pins-img7080.jpg)
@@ -143,9 +145,9 @@ Test the Feather before using it. By testing first, we ensure it's functional be
 
 To test a Feather, plug a standard micro-USB cable into the onboard connector; the lights should show activity. 
 
-* If this is a new Feather, it comes with a factory program that blinks the NeoPixel LED in green as a simple "hello world" program. ![](img/feather-test-img7081.jpg)
+* If this is a new Feather, it comes with a factory program that blinks the NeoPixel LED in green as a simple "hello world" program. <br>![](img/feather-test-img7081.jpg)
 
-* If this is *not* a new Feather, you can replace its programming. Get the [Blinky](https://learn.adafruit.com/adafruit-arduino-lesson-2-leds/blinking-the-led) demo program to blink the red LED, then compile and install it with the Arduino workbench. ![](img/feather-test-img7425.jpg)
+* If this is *not* a new Feather, you can replace its programming. Get the [Blinky](https://learn.adafruit.com/adafruit-arduino-lesson-2-leds/blinking-the-led) demo program to blink the red LED, then compile and install the program using the Arduino workbench. <br>![](img/feather-test-img7425.jpg)
 
 <h3>Step 8: Installing Feather M4 Express</h3>
 
@@ -174,7 +176,7 @@ Solder the pins to the Griduino board. You don't need to clip off the long ends;
 The "Ultimate GPS" package shipped from Adafruit comes with a header strip and a battery holder.
 
 * Count the pins on the supplied header strip. The GPS requires a 9-pin header and sometimes Adafruit may ship an 8-pin header. Add an extra pin from some extra strip, such as the one leftover from the Feather.
-* Do not solder a battery holder onto the back of the GPS. It won't hurt anything to have this holder, but it will go unused. Its slot will be unreachable after all the parts are installed. Instead, the Griduino board is designed with a separate coin battery holder, BT1, to replace this one on the back of the Ultimate GPS board.
+* Do not solder a battery holder onto the back of the GPS. It won't hurt anything to have this holder, but it will go unused. Its slot will be unreachable after all the parts are installed. Instead, our Griduino board is designed with a separate coin battery holder, BT1, to replace this one on the back of the Ultimate GPS board.
 
 Insert a 9-pin header pin strip onto the Griduino PCB. Break off two single pins from a leftover strip and insert them into the other two corners. Do not solder them yet. Also shown below are the two battery holders and which one goes on the board in the next step.
 
@@ -188,7 +190,7 @@ Tape the GPS assembly in place, if needed. Turn the board over and solder one pi
 
 <h3>Step 10: BT1 Battery Holder</h3>
 
-Solder the battery holder onto the PCB. This is a surface-mount device; note that is has a small plastic detent to precisely align it in place. You might still need a small clamp or clothespin (remember those?) or tape to temporarily hold it in place while soldering. 
+Solder the battery holder onto the PCB. This is a surface-mount device; note that it has a small plastic detent to precisely align it in place. You might still need a small clamp or clothespin (remember those?) or tape to temporarily hold it in place while soldering. 
 
 ![](img/battery-holder-img7096.jpg)
 
@@ -238,7 +240,7 @@ Turn it right side up and gently unplug the display from the sockets for safekee
 
 <h3>Step 13: Test Points</h3>
 
-Griduino has 6 optional test points. Three grounding points are together near the voltage regulator and the other three are in the audio chain for checking sound levels and linearity. See the schematic for details. Test points are intended for software developers and are not used during assembly.
+Griduino has 6 optional test points. Three grounding points are together near the voltage regulator and the other three are in the audio chain for checking sound levels and linearity. See the schematic for details. Test points are intended to attach an oscilloscope for software developers and are not normally used.
 
 The test points are sized to wedge into their holes up to their shoulders, holding them in place while you turn the board upside down and solder them.
 
