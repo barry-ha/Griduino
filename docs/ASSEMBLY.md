@@ -69,6 +69,9 @@ Electrolytic capacitors are marked with an arrow or "-" to indicate the negative
 
 
 
+
+
+
 Header pins can join a small PCB onto the main board. They are designed to let you break off the number you need. Use needle nose pliers to hold steady the pins you'll keep and use your fingers to snap off the rest.
 
 ![](img/header-pins-img7080.jpg)
@@ -95,7 +98,7 @@ Solder the three diodes into place and snip off excess wire lengths.
 
 ![](img/diodes-img7040.jpg)
 
-Insert the larger TVS diode, D4, and solder into place. Although the board marking shows its location with a banded end, this diode is bidirectional and can go either way.
+Insert the larger TVS diode, D4, and solder into place. Although the board marking shows its location with a banded end, this diode is bidirectional and can go either way. 
 
 <h3>Step 3: Resistors</h3>
 
@@ -252,34 +255,59 @@ Lastly, insert and solder the power connector, speaker jack and 4-pin terminal s
 
 ![](img/connectors-img7108.jpg)
 
-<h3>Step 15: Plastic Case</h3>
+<h3>Step 15: Plastic Case - Bottom Half</h3>
 
-The Griduino kit comes with a plastic enclosure from <a href="https://www.polycase.com/">Polycase</a> in their QS-50 Series that exactly matches the PCB mounting holes. Other enclosures could probably be used. If you choose something else, avoid metallic cases since they would block the microwave GPS signal and would need an external antenna.
+The Griduino kit comes with  a plastic enclosure from <a href="https://www.polycase.com/">Polycase</a> in their QS-50 Series that exactly matches the PCB mounting holes. Other enclosures could probably be used. If you choose something else, avoid metallic cases since they would block the microwave GPS signal and would need an external antenna.
 
 You can buy an active external antenna for this GPS from other vendors. The GPS has a "uFL" connector so be aware that you may need an [SMA to uFL RF Adapter Cable]([https://www.adafruit.com/product/851), depending on your choice of antenna.
 
-*Bottom Half:* Temporarily position the PCB in the Polycase cover. Check for interference and use a craft detail knife to notch out holes for each of the three connectors (speaker, power, USB connector). The exact size depends on your particular cable that you choose to use.  For sake of sizing the USB hole, find a USB cable that has the largest connector available. 
+Temporarily position the PCB in bottom half of the Polycase enclosure. Check for interference and use a craft detail knife to notch out holes for each of the three connectors (speaker, power, USB connector). The exact size depends on your particular cable that you choose to use.  For sake of sizing the USB hole, find a USB cable that has the largest connector available. 
 
-Screw the PCB onto the case's mounting posts, being careful to *not* overtighten the screws. These are small screws and can be easily stripped.
+Screw the PCB onto the case's mounting posts, watching the speaker and power jacks clearance. You may need to carve a little extra room in the cutouts, even with the custom-milled case, depending on how the jacks were soldered onto the board.
 
-*Top Half:* There are at least three choices for the top cover.
+The Griduino kit includes four optional nylon #6 washers that can go under the mounting posts. Put these aside for the next step.
 
-* No cover – this is how I use my Griduino.
-* Polycase cover – carefully cut an opening to fit the display. You'll have to come up with your own cutting template. It's not recommended to cut an opening because it's difficult to do accurately and neatly.
-* 3D printed cover – The author designed a top cover to fit the Polycase bottom half. The STL design file is available upon request so you can print and decorate your own.<br/>
-![](img/hersheys-griduino-img56B29.jpg)
+Don't overtighten the PCB screws. These are small screws and can be easily stripped.
 
-<h3>Step 16: Speaker</h3>
+<h3>Step 16: Plastic Case - Top Half</h3>
+There are at least four choices for the top cover. Choose one of these according to what you have available.
+
+<h3>16.a No cover</h3>
+This is how I use my Griduino.
+
+<h3>16.b Polycase standard cover</h3>
+If you have the unmodified [Polycase QS50](https://www.polycase.com/qs-50), carefully cut an opening to fit the display. A cutting template is available that can be printed and taped on for guidance.  Cutting the top cover's opening by hand is actually rather difficult to do accurately and neatly. 
+
+Carefully cut openings for the connectors with a sharp craft knife.
+
+<h3>16.c Polycase custom-milled cover</h3>
+This is the easiest approach to a professional-looking cover. 
+
+Check the alignment and clearance as you lower it onto the bottom cover.
+
+If the display is not quite centered in the opening, loosen the PCB screws and adjust its location slightly to line up correctly. 
+
+If there's a gap between the display and the top cover, use nylon #6 washers under the PCB to close the gap. 
+
+You will probably need to clean up a little extra plastic from the top cover around the audio jack.
+
+<h3>16.d 3D printed cover</h3>
+The author designed a top cover to fit the Polycase bottom half. The STL design file is available upon request so you can print and decorate your own. Here's an example of a 3D printed cover in "gold" PLA. <br/>
+![](img/hersheys-griduino-img56B29.jpg)<br>
+
+We recommend PETG or ABS (instead of PLA) for improved durability and UV resistance.
+
+<h3>Step 17: Speaker</h3>
 
 You can connect a small 8-ohm or 4-ohm speaker to the stereo plugin jack or to the screw terminal strip.
 
-Note the speaker *plug* must be a standard stereo connector. The correct plug is included in the kit. Do not use a mono plug: it will result in muted or very low volume. However, this kit only generates a single audio channel which is connected to both sides of the stereo jack.
+Note the speaker *plug* must be a standard stereo connector. The correct plug is included in the kit. Do not use a mono plug: it will result in muted or very low volume. This kit only generates a single audio channel which is connected to both sides of the stereo jack.
 
-If you insert a speaker plug into the jack, it will automatically disconnect the hardwired speaker. It can be handy to jam in a plug to quickly silence an internal speaker during testing.
+If you insert a speaker plug into the jack, it will automatically disconnect a speaker, if any, connected to the internal 4-terminal strip. Actually, it can be handy to jam in a plug to quickly silence an internal speaker during testing.
 
-If you're looking for a good audio quality speaker with sufficient volume to fill a car and overcome road noise, Adafruit [part number 3351](https://www.adafruit.com/product/3351) is recommended. This small speaker can be glued to the back of the Griduino case, although it's relatively large so you might try alternatives. 
+A good audio quality speaker is the Adafruit [part number 3351](https://www.adafruit.com/product/3351). This has sufficient volume to fill a car and overcome road noise. It speaker can be glued to the back of the Griduino case, although it's relatively large so you might try alternatives. 
 
-Note that increased audio volume is available when powering the Griduino from a car’s electrical system with 10-15 vdc, compared to powering it from the 5v USB connector.
+Note that additional audio volume is available when powering the Griduino from a car’s electrical system with 10-15 vdc, compared to powering it from the 5v USB connector.
 
 <h2>5. Before You Use It</h2>
 
@@ -287,11 +315,11 @@ Snap a coin cell battery (3-volt CR1220 lithium) into the battery holder. Flat s
 
 Plug in the display board, checking the pin alignment on all four corners.
 
-You should now have a completed Griduino GPS kit. **Congratulations!** 
+You should now have a completed Griduino GPS kit. <span style="green">**Congratulations!**</style>
 
-Before you connect power, make a detailed visual inspection under a magnifier and good light. Look for *un*soldered pads and fix them. Look for possible solder bridges that may have formed between adjacent pads. Remove any surplus solder or solder bridges with desoldering braid. 
+Before you connect power, make a detailed visual inspection under a magnifier and good light. Look for *un*soldered pads and fix them. Look for possible solder bridges that may have formed between adjacent pads. Remove any surplus solder or solder bridges with desoldering braid.
 
-A visual check is **very important** because short circuits or solder bridges can damage the power supply, the battery, the TFT display or the Feather M4. **If that happens it is your responsibility as the builder of the board.** It is better to have to rework or desolder something than to damage it. 
+A visual check is **very important** because short circuits or solder bridges can damage the power supply, the battery, the TFT display or the Feather M4. **If that happens, it is your responsibility as the builder of the board.** It is better to have to rework or desolder something than to damage it. 
 
 Visually check that the display is correctly plugged in to its two sockets. Look for isolated pins at each end that are not engaged in the socket. If it is accidentally mis-aligned onto the wrong pins, the power supply circuit is likely to be damaged. (Don't ask us how we know.)
 
