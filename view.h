@@ -6,7 +6,7 @@
 
   Purpose:  Abstract base class for all Griduino "view" modules.
             Contains default implementation for common functions
-            and for example programming.
+            and for templates to be used in derived classes.
 */
 #pragma once
 
@@ -172,6 +172,7 @@ class ViewTime : public View {
     bool onTouch(Point touch);
 };
 
+/* moved to "view_volume.h"
 class ViewDate : public View {
   public:
     ViewDate(Adafruit_ILI9341* vtft, int vid)  // ctor 
@@ -181,6 +182,7 @@ class ViewDate : public View {
     void startScreen();
     bool onTouch(Point touch);
 };
+*/
 
 /* moved to "view_volume.h"
 class ViewVolume : public View {

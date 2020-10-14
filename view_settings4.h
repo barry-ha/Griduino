@@ -29,13 +29,13 @@
 #include "view.h"                     // Base class for all views
 
 // ========== extern ===========================================
-void showNameOfView(String sName, uint16_t fgd, uint16_t bkg);  // Griduino.ino
+extern void showNameOfView(String sName, uint16_t fgd, uint16_t bkg);  // Griduino.ino
 extern Model* model;                  // "model" portion of model-view-controller
 
 void setFontSize(int font);           // Griduino.ino
-int getOffsetToCenterTextOnButton(String text, int leftEdge, int width ); // Griduino.ino
-void drawAllIcons();                  // draw gear (settings) and arrow (next screen) // Griduino.ino
-void showScreenBorder();              // optionally outline visible area
+extern int getOffsetToCenterTextOnButton(String text, int leftEdge, int width ); // Griduino.ino
+extern void drawAllIcons();           // draw gear (settings) and arrow (next screen) // Griduino.ino
+extern void showScreenBorder();       // optionally outline visible area
 
 
 // ========== class ViewSettings4 ==============================
@@ -147,7 +147,6 @@ void ViewSettings4::startScreen() {
   this->clearScreen(cBACKGROUND);     // clear screen
   txtSettings4[0].setBackground(cBACKGROUND);        // set background for all TextFields in this view
   TextField::setTextDirty( txtSettings4, nFields );  // make sure all fields get re-printed on screen change
-  setFontSize(eFONTSMALLEST);
 
   drawAllIcons();                     // draw gear (settings) and arrow (next screen)
   showScreenBorder();                 // optionally outline visible area

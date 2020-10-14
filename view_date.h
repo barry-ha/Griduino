@@ -1,5 +1,5 @@
 /*
-  File: view_date.cpp
+  File:     view_date.cpp
 
   Special Event Calendar Count - "How many days since Groundhog Day 2020"
 
@@ -14,6 +14,9 @@
             during the pandemic and self-isolation. This is a reference to 
             the film "Groundhog Day," a 1993 comedy starring Bill Murray who 
             is caught in a time loop and relives February 2 repeatedly. 
+            The first cases of covid-19 were reported near the end of January
+			in Washington State near where I live. So Feb 2 is a reasonable
+			stand-in for the start of the pandemic.
 
             This is "total days spanned" and not "days since the event".
             The difference is whether or not the first day is included in the count.
@@ -48,14 +51,14 @@
 */
 
 #include <Arduino.h>
-#include "Adafruit_ILI9341.h"       // TFT color display library
-#include "constants.h"              // Griduino constants and colors
-#include "model.cpp"                // "Model" portion of model-view-controller
-#include "Adafruit_BMP3XX.h"        // Precision barometric and temperature sensor
-#include "save_restore.h"           // Save configuration in non-volatile RAM
-#include "TextField.h"              // Optimize TFT display text for proportional fonts
-#include "view.h"                   // Base class for all views
-#include "TimeLib.h"                // BorisNeubert / Time (who forked it from PaulStoffregen / Time)
+#include "Adafruit_ILI9341.h"         // TFT color display library
+#include "constants.h"                // Griduino constants and colors
+#include "model.cpp"                  // "Model" portion of model-view-controller
+#include "Adafruit_BMP3XX.h"          // Precision barometric and temperature sensor
+//#include "save_restore.h"             // Save configuration in non-volatile RAM
+#include "TextField.h"                // Optimize TFT display text for proportional fonts
+#include "view.h"                     // Base class for all views
+#include "TimeLib.h"                  // BorisNeubert / Time (who forked it from PaulStoffregen / Time)
 
 // ======= customize this for any count up/down display ========
 // Example 1: Number of "Groundhog Days"
@@ -81,83 +84,92 @@ TimeElements targetGMT  { 0,0,7+18,  1,  31,10,2020-1970}; // 6pm Halloween in P
 
 // ========== extern ===========================================
 extern void showNameOfView(String sName, uint16_t fgd, uint16_t bkg);  // Griduino.ino
-extern Model* model;                // "model" portion of model-view-controller
-extern Adafruit_BMP3XX baro;        // Griduino.ino
+extern Model* model;                  // "model" portion of model-view-controller
+extern Adafruit_BMP3XX baro;          // Griduino.ino
 extern void getDate(char* result, int maxlen);  // model.cpp
 
 extern int getOffsetToCenterTextOnButton(String text, int leftEdge, int width ); // Griduino.ino
-extern void drawAllIcons();                // draw gear (settings) and arrow (next screen) // Griduino.ino
-extern void showScreenBorder();            // optionally outline visible area
+extern void drawAllIcons();           // draw gear (settings) and arrow (next screen) // Griduino.ino
+extern void showScreenBorder();       // optionally outline visible area
 extern void getTimeLocal(char* result, int len);   // view_time.cpp
 
-// ========== forward reference ================================
-
-// ============== constants ====================================
-// color scheme: see constants.h
-
-// ========== globals ==========================================
-extern int gTimeZone;               // view_time.cpp; default local time Pacific (-7 hours), saved in nonvolatile memory
-
-// ========== load/save config setting =========================
-
-// ========== main clock view helpers ==========================
-// these are names for the array indexes, must be named in same order as array below
-enum txtIndex {
-  TITLE1=0, TITLE2, TITLE3,
-  COUNTDAYS, COUNTTIME,
-  LOCALDATE, LOCALTIME, TIMEZONE, NUMSATS,
-};
-
-TextField txtDate[] = {
-  // text            x,y    color       alignment    size
-  {DISPLAY_LINE_1,  -1, 20, cTEXTCOLOR, ALIGNCENTER, eFONTSMALLEST }, // [TITLE1] program title, centered
-  {DISPLAY_LINE_2,  -1, 44, cTEXTCOLOR, ALIGNCENTER, eFONTSMALLEST }, // [TITLE2]
-  {DISPLAY_LINE_3,  -1, 86, cVALUE,     ALIGNCENTER, eFONTSMALL    }, // [TITLE3]
-  {"nnn",           -1,152, cVALUE,     ALIGNCENTER, eFONTGIANT    }, // [COUNTDAYS] counted number of days
-  {"01:02:03",      -1,182, cVALUEFAINT,ALIGNCENTER, eFONTSMALLEST }, // [COUNTTIME] counted number of hms
-  {"MMM dd, yyyy",  66,226, cTEXTFAINT, ALIGNLEFT,   eFONTSMALLEST }, // [LOCALDATE] Local date
-  {"hh:mm:ss",     178,226, cTEXTFAINT, ALIGNLEFT,   eFONTSMALLEST }, // [LOCALTIME] Local time
-  {"-7h",            8,226, cTEXTFAINT, ALIGNLEFT,   eFONTSMALLEST }, // [TIMEZONE]  addHours time zone
-  {"6#",           308,226, cTEXTFAINT, ALIGNRIGHT,  eFONTSMALLEST }, // [NUMSATS]   numSats
-};
-const int numDateFields = sizeof(txtDate)/sizeof(TextField);
-
-// ========== helpers ==========================================
-#define TIME_FOLDER  "/GMTclock"     // 8.3 names
-#define TIME_FILE    TIME_FOLDER "/AddHours.cfg"
-#define TIME_VERSION "v01"
-
-char* dateToString(char* msg, int len, time_t datetime) {
-  // utility function to format date:  "2020-9-27 at 11:22:33"
-  // Example 1:
-  //      char sDate[24];
-  //      dateToString( sDate, sizeof(sDate), now() );
-  //      Serial.println( sDate );
-  // Example 2:
-  //      char sDate[24];
-  //      Serial.print("The current time is ");
-  //      Serial.println( dateToString(sDate, sizeof(sDate), now()) );
-  snprintf(msg, len, "%d-%d-%d at %02d:%02d:%02d",
-                     year(datetime),month(datetime),day(datetime), 
-                     hour(datetime),minute(datetime),second(datetime));
-  return msg;
-}
-
-// Formatted elapsed time
-//    this is similar to getTimeLocal (view_date.cpp)
-void getTimeElapsed(char* result, int len, time_t elapsed) {
-  // @param result = char[10] = string buffer to modify
-  // @param len = string buffer length
-
-  int dd = elapsedDays(elapsed);
-  int hh = numberOfHours(elapsed);
-  int mm = numberOfMinutes(elapsed);
-  int ss = numberOfSeconds(elapsed);
-  snprintf(result, len, "%02d:%02d:%02d",
-                         hh, mm,  ss);
-}
+extern int gTimeZone;                 // view_time.cpp; default local time Pacific (-7 hours), saved in nonvolatile memory
 
 // ========== class ViewDate ===================================
+class ViewDate : public View {
+  public:
+    // ---------- public interface ----------
+    // This derived class must implement the public interface:
+    ViewDate(Adafruit_ILI9341* vtft, int vid)  // ctor 
+      : View{ vtft, vid }
+    { }
+    void updateScreen();
+    void startScreen();
+    bool onTouch(Point touch);
+
+  protected:
+    // ---------- local data for this derived class ----------
+    // color scheme: see constants.h
+
+    // ----- main clock view helpers -----
+    // these are names for the array indexes, must be named in same order as array below
+    enum txtIndex {
+      TITLE1=0, TITLE2, TITLE3,
+      COUNTDAYS, COUNTTIME,
+      LOCALDATE, LOCALTIME, TIMEZONE, NUMSATS,
+    };
+
+    #define numDateFields 9
+    TextField txtDate[numDateFields] = {
+      // text            x,y    color       alignment    size
+      {DISPLAY_LINE_1,  -1, 20, cTEXTCOLOR, ALIGNCENTER, eFONTSMALLEST }, // [TITLE1] program title, centered
+      {DISPLAY_LINE_2,  -1, 44, cTEXTCOLOR, ALIGNCENTER, eFONTSMALLEST }, // [TITLE2]
+      {DISPLAY_LINE_3,  -1, 86, cVALUE,     ALIGNCENTER, eFONTSMALL    }, // [TITLE3]
+      {"nnn",           -1,152, cVALUE,     ALIGNCENTER, eFONTGIANT    }, // [COUNTDAYS] counted number of days
+      {"01:02:03",      -1,182, cVALUEFAINT,ALIGNCENTER, eFONTSMALLEST }, // [COUNTTIME] counted number of hms
+      {"MMM dd, yyyy",  66,226, cTEXTFAINT, ALIGNLEFT,   eFONTSMALLEST }, // [LOCALDATE] Local date
+      {"hh:mm:ss",     178,226, cTEXTFAINT, ALIGNLEFT,   eFONTSMALLEST }, // [LOCALTIME] Local time
+      {"-7h",            8,226, cTEXTFAINT, ALIGNLEFT,   eFONTSMALLEST }, // [TIMEZONE]  addHours time zone
+      {"6#",           308,226, cTEXTFAINT, ALIGNRIGHT,  eFONTSMALLEST }, // [NUMSATS]   numSats
+    };
+
+    // ----- helpers -----
+    #define TIME_FOLDER  "/GMTclock"     // 8.3 names
+    #define TIME_FILE    TIME_FOLDER "/AddHours.cfg"
+    #define TIME_VERSION "v01"
+
+    char* dateToString(char* msg, int len, time_t datetime) {
+      // utility function to format date:  "2020-9-27 at 11:22:33"
+      // Example 1:
+      //      char sDate[24];
+      //      dateToString( sDate, sizeof(sDate), now() );
+      //      Serial.println( sDate );
+      // Example 2:
+      //      char sDate[24];
+      //      Serial.print("The current time is ");
+      //      Serial.println( dateToString(sDate, sizeof(sDate), now()) );
+      snprintf(msg, len, "%d-%d-%d at %02d:%02d:%02d",
+                         year(datetime),month(datetime),day(datetime), 
+                         hour(datetime),minute(datetime),second(datetime));
+      return msg;
+    }
+
+    // Formatted elapsed time
+    //    this is similar to getTimeLocal (view_date.cpp)
+    void getTimeElapsed(char* result, int len, time_t elapsed) {
+      // @param result = char[10] = string buffer to modify
+      // @param len = string buffer length
+
+      int dd = elapsedDays(elapsed);
+      int hh = numberOfHours(elapsed);
+      int mm = numberOfMinutes(elapsed);
+      int ss = numberOfSeconds(elapsed);
+      snprintf(result, len, "%02d:%02d:%02d",
+                             hh, mm,  ss);
+    }
+
+};  // end class ViewDate
+// ============== implement public interface ================
 void ViewDate::updateScreen() {
   // called on every pass through main()
 
@@ -186,23 +198,23 @@ void ViewDate::updateScreen() {
   time_t date1local = makeTime(targetGMT);
   time_t date2local = makeTime(todaysDate);
 
-  time_t elapsed = abs(date2local - date1local);        // absolute value ensures result is always +ve
+  time_t elapsed = abs(date2local - date1local);      // absolute value ensures result is always +ve
   int elapsedDays = elapsed / SECS_PER_DAY;
-  char sTime[24];         // strlen("01:23:45") = 8
+  char sTime[24];                     // strlen("01:23:45") = 8
   getTimeElapsed(sTime, sizeof(sTime), elapsed);
   
   txtDate[COUNTDAYS].print(elapsedDays);
   txtDate[COUNTTIME].print(sTime);
 
   // Local Date
-  char sDate[16];         // strlen("Jan 12, 2020 ") = 14
-  model->getDate(sDate, sizeof(sDate));   // todo - make this local not GMT date
+  char sDate[16];                       // strlen("Jan 12, 2020 ") = 14
+  model->getDate(sDate, sizeof(sDate)); // todo - make this local not GMT date
   txtDate[LOCALDATE].print(sDate);
 
   // Hours to add/subtract from GMT for local time
   char sign[2] = { 0, 0 };              // prepend a plus-sign when >=0
   sign[0] = (gTimeZone>=0) ? '+' : 0;   // (don't need to add a minus-sign bc the print stmt does that for us)
-  char sTimeZone[6];      // strlen("-10h") = 4
+  char sTimeZone[6];                    // strlen("-10h") = 4
   snprintf(sTimeZone, sizeof(sTimeZone), "%s%dh", sign, gTimeZone);
   txtDate[TIMEZONE].print(sTimeZone);
 
@@ -216,7 +228,7 @@ void ViewDate::updateScreen() {
   // change colors by number of birds
   txtDate[NUMSATS].color = (model->gSatellites<1) ? cWARN : cTEXTFAINT;
   txtDate[NUMSATS].print(sBirds);
-  //txtDate[NUMSATS].dump();   // debug
+  //txtDate[NUMSATS].dump();          // debug
 }
 
 void ViewDate::startScreen() {
@@ -254,6 +266,6 @@ void ViewDate::startScreen() {
 
 bool ViewDate::onTouch(Point touch) {
   Serial.println("->->-> Touched status screen.");
-  bool handled = false;             // assume a touch target was not hit
-  return handled;                   // true=handled, false=controller uses default action
+  bool handled = false;               // assume a touch target was not hit
+  return handled;                     // true=handled, false=controller uses default action
 }
