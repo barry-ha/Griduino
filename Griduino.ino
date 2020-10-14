@@ -64,6 +64,7 @@
 #include "constants.h"              // Griduino constants, colors, typedefs
 #include "view.h"                   // Griduino screens
 #include "view_date.h"              // counting days to/from special event 
+#include "view_help.h"              // help screen
 #include "view_settings4.h"         // screen rotation 
 #include "view_volume.h"            // volume control 
 #include "DS1804.h"                 // DS1804 digital potentiometer library
@@ -518,19 +519,22 @@ void waitForSerial(int howLong) {
   int y = 0;
   int w = gScreenWidth;
   int h = gScreenHeight;
+  bool done = false;
   clearScreen();
   
   while (millis() < targetTime) {
     if (Serial) break;
+    if (done) break;
     x += 2;
     y += 2;
     w -= 4;
     h -= 4;
-    if (x > gScreenWidth) {
+    if (x >= gScreenWidth) {
       x = y = 0;
       w = gScreenWidth;
       h = gScreenHeight;
       clearScreen();          // erase entire screen
+      done = true;
     }
     tft.drawRect(x, y, w, h, cLABEL);   // look busy
     delay(15);
@@ -610,7 +614,8 @@ enum {
 //      Grid, Help, Settings2, Settings3, Splash, Status, Time, Volume
 View* pView;                           // pointer to a derived class
 
-ViewGrid   gridView(&tft, GRID_VIEW);             // instantiate derived classes
+ViewDate   dateView(&tft, DATE_VIEW);  // instantiate derived classes
+ViewGrid   gridView(&tft, GRID_VIEW);
 ViewHelp   helpView(&tft, HELP_VIEW);
 ViewSettings2 settings2View(&tft, SETTING2_VIEW);
 ViewSettings3 settings3View(&tft, SETTING3_VIEW);
@@ -618,7 +623,6 @@ ViewSettings4 settings4View(&tft, SETTING4_VIEW);
 ViewSplash splashView(&tft, SPLASH_VIEW);
 ViewStatus statusView(&tft, STATUS_VIEW);
 ViewTime   timeView(&tft, TIME_VIEW);
-ViewDate   dateView(&tft, DATE_VIEW);
 ViewVolume volumeView(&tft, VOLUME_VIEW);
 
 void selectNewView(int cmd) {
@@ -807,8 +811,8 @@ void setup() {
 
   // ----- run unit tests, if allowed by "#define RUN_UNIT_TESTS"
   #ifdef RUN_UNIT_TESTS
-  void runUnitTest();                 // extern declaration
-  runUnitTest();                      // see "unit_test.cpp"
+    void runUnitTest();                 // extern declaration
+    runUnitTest();                      // see "unit_test.cpp"
   #endif
 
   // ----- init first data shown with last known position and driving track history

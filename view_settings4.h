@@ -33,7 +33,7 @@ extern void showNameOfView(String sName, uint16_t fgd, uint16_t bkg);  // Gridui
 extern Model* model;                  // "model" portion of model-view-controller
 
 void setFontSize(int font);           // Griduino.ino
-extern int getOffsetToCenterTextOnButton(String text, int leftEdge, int width ); // Griduino.ino
+extern int getOffsetToCenterTextOnButton(String text, int leftEdge, int width);  // Griduino.ino
 extern void drawAllIcons();           // draw gear (settings) and arrow (next screen) // Griduino.ino
 extern void showScreenBorder();       // optionally outline visible area
 
@@ -172,8 +172,8 @@ void ViewSettings4::startScreen() {
 
     #ifdef SHOW_TOUCH_TARGETS
     tft->drawRect(item.hitTarget.ul.x, item.hitTarget.ul.y,  // debug: draw outline around hit target
-                 item.hitTarget.size.x, item.hitTarget.size.y, 
-                 cWARN);
+                  item.hitTarget.size.x, item.hitTarget.size.y, 
+                  cWARN);
     #endif
   }
 

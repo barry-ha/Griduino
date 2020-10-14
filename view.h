@@ -101,6 +101,7 @@ class ViewGrid : public View {
     bool onTouch(Point touch);
 };
 
+/* moved to "view_help.h"
 class ViewHelp : public View {
   public:
     ViewHelp(Adafruit_ILI9341* vtft, int vid)  // ctor 
@@ -110,6 +111,7 @@ class ViewHelp : public View {
     void startScreen();
     bool onTouch(Point touch);
 };
+*/
 
 class ViewSettings2 : public View {
   public:
