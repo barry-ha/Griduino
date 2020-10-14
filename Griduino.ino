@@ -65,8 +65,9 @@
 #include "view.h"                   // Griduino screens
 #include "view_date.h"              // counting days to/from special event 
 #include "view_help.h"              // help screen
-#include "view_settings4.h"         // screen rotation 
-#include "view_volume.h"            // volume control 
+#include "view_settings2.h"         // config GPS
+#include "view_settings4.h"         // config screen rotation 
+#include "view_volume.h"            // config volume level
 #include "DS1804.h"                 // DS1804 digital potentiometer library
 #include "save_restore.h"           // save/restore configuration data to SDRAM
 #include "icons.h"                  // bitmaps for icons

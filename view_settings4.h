@@ -32,7 +32,7 @@
 extern void showNameOfView(String sName, uint16_t fgd, uint16_t bkg);  // Griduino.ino
 extern Model* model;                  // "model" portion of model-view-controller
 
-void setFontSize(int font);           // Griduino.ino
+extern void setFontSize(int font);    // Griduino.ino
 extern int getOffsetToCenterTextOnButton(String text, int leftEdge, int width);  // Griduino.ino
 extern void drawAllIcons();           // draw gear (settings) and arrow (next screen) // Griduino.ino
 extern void showScreenBorder();       // optionally outline visible area

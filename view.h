@@ -113,6 +113,7 @@ class ViewHelp : public View {
 };
 */
 
+/* moved to "view_help.h"
 class ViewSettings2 : public View {
   public:
     ViewSettings2(Adafruit_ILI9341* vtft, int vid)  // ctor 
@@ -122,6 +123,7 @@ class ViewSettings2 : public View {
     void startScreen();
     bool onTouch(Point touch);
 };
+*/
 
 class ViewSettings3 : public View {
   public:
