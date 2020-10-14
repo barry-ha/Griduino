@@ -11,7 +11,7 @@
 class SaveRestore {
   public:
     char fqFilename[64];      // fully qualified filename, e.g. "/Settings/volume.cfg" (strictly 8.3 names)
-    char sVersion[16];        // ID string, detects if settings are actually written
+    char sVersion[32];        // ID string, detects if settings are actually written
 
   public:
     /**
@@ -19,8 +19,17 @@ class SaveRestore {
      */
     SaveRestore(const char* vFilename, const char* vVersion) {
       // vFilename MUST follow 8.3 naming conventions
-      strcpy(fqFilename, vFilename);
-      strcpy(sVersion, vVersion);
+      if (strlen(vFilename) < sizeof(fqFilename)) {
+        strcpy(fqFilename, vFilename);
+      } else {
+        Serial.println("Error! Filename exceeds buffer length");
+      }
+
+      if (strlen(vVersion) < sizeof(sVersion)) {
+        strcpy(sVersion, vVersion);
+      } else {
+        Serial.println("Error! Version string exceeds buffer length");
+      }
     }
     ~SaveRestore() {}
   

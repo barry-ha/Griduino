@@ -130,7 +130,7 @@ int SaveRestore::writeConfig(const byte* pData, const int sizeData) {
   if (!result) { return 0; }
 
   // replace an existing config file
-  gFatfs.remove(fqFilename);  // delete old file, or else it appends data to the end
+  gFatfs.remove(fqFilename);  // delete old file (or else it would append data to the end)
   File writeFile = gFatfs.open(fqFilename, FILE_WRITE); // 
   if (!writeFile) {
     Serial.print("Error, failed to open config file for writing ("); Serial.print(fqFilename); Serial.println(")");

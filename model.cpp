@@ -66,7 +66,7 @@ class Model {
 
     // save current GPS state to non-volatile memory
     const char MODEL_FILE[25] = "/Griduino/gpsmodel.cfg";  // CONFIG_FOLDER
-    const char MODEL_VERS[15] = "GPS Model v03";
+    const char MODEL_VERS[15] = "GPS Model v04";
     int save() {
       SaveRestore sdram(MODEL_FILE, MODEL_VERS);
       if (sdram.writeConfig( (byte*) this, sizeof(Model))) {

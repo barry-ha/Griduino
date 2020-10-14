@@ -63,6 +63,7 @@
 #include "Adafruit_BMP3XX.h"        // Precision barometric and temperature sensor
 #include "constants.h"              // Griduino constants, colors, typedefs
 #include "view.h"                   // Griduino screens
+#include "view_settings4.h"         //
 #include "DS1804.h"                 // DS1804 digital potentiometer library
 #include "save_restore.h"           // save/restore configuration data to SDRAM
 #include "icons.h"                  // bitmaps for icons
@@ -198,7 +199,7 @@ int gFrequency = 1100;        // initial Morse code sidetone pitch
 int gWordsPerMinute = 18;     // initial Morse code sending speed
 
 // ------------ definitions
-const int howLongToWait = 6;  // max number of seconds at startup waiting for Serial port to console
+const int howLongToWait = 5;  // max number of seconds at startup waiting for Serial port to console
 
 // ---------- Morse Code ----------
 #include "morse_dac.h"      // Morse Code using digital-audio converter DAC0
@@ -353,7 +354,7 @@ void mapTouchToScreen(TSPoint touch, Point* screen) {
   //          map(value    in_min,in_max, out_min,out_max)
   screen->x = map(touch.y,  225,825,      0, tft.width());
   screen->y = map(touch.x,  800,300,      0, tft.height());
-  if (SCREEN_ROTATION == 3) {
+  if (tft.getRotation() == 3) {
     // if display is flipped, then also flip both x,y touchscreen coords
     screen->x = tft.width() - screen->x;
     screen->y = tft.height() - screen->y;
@@ -591,12 +592,13 @@ int fGetDataSource() {
 enum {
   GRID_VIEW = 0,
   HELP_VIEW,
-  SETTING2_VIEW,
-  SETTING3_VIEW,
+  SETTING2_VIEW,          // gps/simulator 
+  SETTING3_VIEW,          // english/metric
+  SETTING4_VIEW,          // screen rotation 
   SPLASH_VIEW,
   STATUS_VIEW,
   TIME_VIEW,
-  DATE_VIEW,              // Groundhog Day 
+  DATE_VIEW,              // Groundhog Day, Halloween, or other day-counting screen
   VOLUME_VIEW,
   //VOLUME2_VIEW,
   GOTO_SETTINGS,          // command the state machine to show control panel
@@ -610,6 +612,7 @@ ViewGrid   gridView(&tft, GRID_VIEW);             // instantiate derived classes
 ViewHelp   helpView(&tft, HELP_VIEW);
 ViewSettings2 settings2View(&tft, SETTING2_VIEW);
 ViewSettings3 settings3View(&tft, SETTING3_VIEW);
+ViewSettings4 settings4View(&tft, SETTING4_VIEW);
 ViewSplash splashView(&tft, SPLASH_VIEW);
 ViewStatus statusView(&tft, STATUS_VIEW);
 ViewTime   timeView(&tft, TIME_VIEW);
@@ -623,6 +626,7 @@ void selectNewView(int cmd) {
         &helpView,         // [HELP_VIEW]
         &settings2View,    // [SETTING2_VIEW]
         &settings3View,    // [SETTING3_VIEW]
+        &settings4View,    // [SETTING4_VIEW]
         &splashView,       // [SPLASH_VIEW]
         &statusView,       // [STATUS_VIEW]
         &timeView,         // [TIME_VIEW]
@@ -648,7 +652,8 @@ void selectNewView(int cmd) {
       case VOLUME_VIEW:  nextView = SETTING2_VIEW; break;
       //se VOLUME2_VIEW:  nextView = SETTING2_VIEW; break;
       case SETTING2_VIEW: nextView = SETTING3_VIEW; break;
-      case SETTING3_VIEW: nextView = VOLUME_VIEW; break;
+      case SETTING3_VIEW: nextView = SETTING4_VIEW; break;
+      case SETTING4_VIEW: nextView = VOLUME_VIEW; break;
       // none of above: we must be showing some normal user view, so go to the first settings view
       default:           nextView = VOLUME_VIEW; break;
     }
@@ -722,9 +727,10 @@ void showActivityBar(int row, uint16_t foreground, uint16_t background) {
 void setup() {
 
   // ----- init TFT display
-  tft.begin();                                  // initialize TFT display
-  tft.setRotation(SCREEN_ROTATION);             // 1=landscape (default is 0=portrait)
-  clearScreen();
+  tft.begin();                        // initialize TFT display
+  clearScreen();                      // note that "begin()" does not clear screen 
+  tft.setRotation(1);                 // 1=landscape (default is 0=portrait)
+  settings4View.loadConfig();         // let the settings object initialize itself
 
   // ----- init TFT backlight
   pinMode(TFT_BL, OUTPUT);

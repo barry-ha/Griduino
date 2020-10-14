@@ -2,12 +2,11 @@
 
 // ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE   "Griduino"
-#define PROGRAM_VERSION "v0.25"
+#define PROGRAM_VERSION "v0.26"
 #define PROGRAM_LINE1   "Barry K7BWH"
 #define PROGRAM_LINE2   "John KM7O"
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
 
-#define SCREEN_ROTATION 1           // 1=landscape, 3=landscape 180-degrees
 #define gScreenWidth 320            // screen pixels wide
 #define gScreenHeight 240           // screen pixels high
                                     // we use #define here instead of reading it from "tft.width()" because this
@@ -36,6 +35,12 @@ const double degreesPerRadian = 57.2957795; // conversion factor = (360 degrees)
 //#define EXTERNAL_FLASH_USE_QSPI   // 2020-02-11 added by BarryH, since it seems to be missing from 
                                     // c:\Users\barry\AppData\Local\Arduino15\packages\adafruit\hardware\samd\1.5.7\variants\feather_m4\variant.h
 #define CONFIG_FOLDER  "/Griduino"
+
+// ----- alias names for SCREEN_ROTATION
+enum {
+  eSCREEN_ROTATE_0 = 1,             // 1=landscape
+  eSCREEN_ROTATE_180 = 3,           // 3=landscape 180-degrees
+};
 
 // ----- alias names for fGetDataSource()
 enum {
@@ -78,9 +83,15 @@ enum {
 struct Point {
   int x, y;
 };
-struct PointGPS{
+struct PointGPS {
   public:
     double lat, lng;
+};
+
+struct TwoPoints {
+  int x1, y1;
+  int x2, y2;
+  uint16_t color;
 };
 
 struct Rect {
@@ -110,7 +121,7 @@ struct Button {
   int radius;
   uint16_t color;
   simpleFunction function;
-} ;
+};
 
 struct TimeButton {
   // TimeButton is like Button, but has a larger specifiable hit target
@@ -122,7 +133,20 @@ struct TimeButton {
   int radius;
   uint16_t color;
   simpleFunction function;
-} ;
+};
+
+struct FunctionButton {
+  // FunctionButton is like Button, but has a larger specifiable hit target
+  // It's also like TimeButton, but specifies the function by enum, rather than pointer to function
+  // and this allows its usage in classes derived from "class View"
+  char text[26];
+  int x, y;
+  int w, h;
+  Rect hitTarget;
+  int radius;
+  uint16_t color;
+  int functionIndex;
+};
 
 class Location {
   public:

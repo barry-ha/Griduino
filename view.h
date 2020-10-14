@@ -17,8 +17,9 @@
 class View {
   public:
     // public member variables go here
-    Adafruit_ILI9341* tft;           // an instance of the TFT Display
-    const int screenID;              // unique identifier of which screen this is
+    Adafruit_ILI9341* tft;            // an instance of the TFT Display
+    const int screenID;               // unique identifier of which screen this is
+    int screenRotation;               // 1=landscape, 3=landscape 180-degrees
 
   public:
     /**
@@ -71,11 +72,25 @@ class View {
         tft->drawRect(0, 0, gScreenWidth, gScreenHeight, ILI9341_BLUE);  // debug: border around screen
       #endif
     };
+    /**
+     * Rotate screen right-side-up / upside-down
+     * 1=landscape, 3=landscape 180-degrees 
+     * This is "protected" to ensure *only* the Settings page will set rotation.
+     */
+    void setScreenRotation(int rot) {
+      Serial.print("Rotating screen to: "); Serial.println(rot);
+      this->screenRotation = rot;
+      tft->setRotation(rot);             // 0=portrait (default), 1=landscape, 3=180 degrees 
+      clearScreen();  // todo - necessary?
+      startScreen();  // todo - necessary?
+      updateScreen(); // todo - necessary?
+    }
+
 };  // end class View
 
 // ----------------------------------------------------------
 // In alphabetical order:
-//      Grid, Help, Settings2, Settings3, Splash, Status, Time, Volume
+//      Grid, Help, Settings2, Settings3, Settings4, Splash, Status, Time, Volume
 class ViewGrid : public View {
   public:
     ViewGrid(Adafruit_ILI9341* vtft, int vid)  // ctor 
@@ -115,6 +130,17 @@ class ViewSettings3 : public View {
     void startScreen();
     bool onTouch(Point touch);
 };
+/* moved to "view_settings4.h"
+class ViewSettings4 : public View {
+  public:
+    ViewSettings4(Adafruit_ILI9341* vtft, int vid)  // ctor 
+      : View{ vtft, vid }
+    { }
+    void updateScreen();
+    void startScreen();
+    bool onTouch(Point touch);
+};
+*/
 
 class ViewSplash : public View {
   public:

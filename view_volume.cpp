@@ -217,7 +217,7 @@ bool ViewVolume::onTouch(Point touch) {
 
 // ========== load/save config setting =========================
 #define VOLUME_CONFIG_FILE    CONFIG_FOLDER "/volume.cfg"
-#define CONFIG_VOLUME_VERSION "Volume v01"
+#define CONFIG_VOLUME_VERSION "Volume v02"
 
 // ----- load from SDRAM -----
 void ViewVolume::loadConfig() {

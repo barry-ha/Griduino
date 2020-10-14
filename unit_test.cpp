@@ -123,7 +123,7 @@ void verifySaveRestoreVolume() {
   Serial.print("-------- verifySaveRestoreVolume() at line "); Serial.println(__LINE__);
 
   #define TEST_CONFIG_FILE    CONFIG_FOLDER "/test.cfg"   // strictly 8.3 names
-  #define TEST_CONFIG_VERSION "Test v01"
+  #define TEST_CONFIG_VERSION "Test v02"
   #define TEST_CONFIG_VALUE   5
   int writeValue = TEST_CONFIG_VALUE;
   int readValue = 0;    // different from "writeValue"
@@ -155,7 +155,7 @@ void verifySaveRestoreArray() {
   Serial.print("-------- verifySaveRestoreArray() at line "); Serial.println(__LINE__);
 
   #define TEST_ARRAY_FILE   CONFIG_FOLDER "/testarry.cfg"
-  #define TEST_ARRAY_VERS   "Array v01"
+  #define TEST_ARRAY_VERS   "Array v02"
   int iData[21];
   const int numData = sizeof(iData)/sizeof(int);
   for (int ii=0; ii<numData; ii++) {
@@ -197,7 +197,7 @@ void verifySaveRestoreArray() {
 // verify save/restore GPS model state in SDRAM
 void verifySaveRestoreGPSModel() {
   #define TEST_GPS_STATE_FILE   CONFIG_FOLDER "/test_gps.cfg"   // strictly 8.3 naming
-  #define TEST_GPS_STATE_VERS   "Test v01"
+  #define TEST_GPS_STATE_VERS   "Test v02"
   Serial.print("-------- verifySaveRestoreGPSModel() at line "); Serial.println(__LINE__);
 
   Model gpsModel;     // sample data to read/write, a different object than used in model.cpp
