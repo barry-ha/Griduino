@@ -63,7 +63,8 @@
 #include "Adafruit_BMP3XX.h"        // Precision barometric and temperature sensor
 #include "constants.h"              // Griduino constants, colors, typedefs
 #include "view.h"                   // Griduino screens
-#include "view_settings4.h"         //
+#include "view_settings4.h"         // screen rotation 
+#include "view_volume.h"            // volume control 
 #include "DS1804.h"                 // DS1804 digital potentiometer library
 #include "save_restore.h"           // save/restore configuration data to SDRAM
 #include "icons.h"                  // bitmaps for icons

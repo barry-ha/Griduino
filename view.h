@@ -182,6 +182,7 @@ class ViewDate : public View {
     bool onTouch(Point touch);
 };
 
+/* moved to "view_volume.h"
 class ViewVolume : public View {
   public:
     ViewVolume(Adafruit_ILI9341* vtft, int vid)  // ctor 
@@ -192,5 +193,5 @@ class ViewVolume : public View {
     bool onTouch(Point touch);
     void loadConfig();
     void saveConfig();
-
 };
+*/

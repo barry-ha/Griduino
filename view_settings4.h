@@ -1,5 +1,5 @@
 /*
-  File: view_settings4.h 
+  File:     view_settings4.h 
 
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
@@ -70,6 +70,7 @@ class ViewSettings4 : public View {
       ORIENTATION,
       COMPILED,
     };
+
     #define nFields 4
     TextField txtSettings4[nFields] = {
       //        text                x, y        color
@@ -80,18 +81,17 @@ class ViewSettings4 : public View {
                                  col1,yRow9,    cLABEL, ALIGNLEFT),      // [COMPILED]
     };
 
-    enum txtLines4 {
+    enum functionID {
       THIS_BUTTON=0,
       THAT_BUTTON,
     };
     #define nButtons 2
     FunctionButton myButtons[nButtons] = {
       // label             origin         size      touch-target     
-      // text                x,y           w,h      x,y      w,h  radius  color   function
+      // text                x,y           w,h      x,y      w,h  radius  color   functionID
       {"This edge up", xButton,yRow1-26, 140,40, {120, 35, 190,65},  4,  cVALUE,  THIS_BUTTON },
       {"That edge up", xButton,yRow2-26, 140,40, {120,100, 190,75},  4,  cVALUE,  THAT_BUTTON },
     };
-    /* */
 
     #define xLine (xButton+80)
     #define topY 8
@@ -136,7 +136,7 @@ void ViewSettings4::updateScreen() {
       // it may seem strange, but we ALWAYS highlight the first button as active 
       // because the first button is always the "up" edge 
       buttonFillColor = cLABEL;
-    } 
+    }
     tft->fillCircle(xCenter, yCenter, 4, buttonFillColor);
   }
 }
@@ -217,11 +217,11 @@ bool ViewSettings4::onTouch(Point touch) {
               // nothing - this button is already at top of screen
               break;
           case THAT_BUTTON:
-              // the guy wants the OTHER edge of the screen (whatever it is) to be "up"
+              // end-user wants the OTHER edge of the screen (whatever it is) to be "up"
               fRotateScreen();
               break;
           default:
-              Serial.print("Error, unknown function ");Serial.println(item.functionIndex);
+              Serial.print("Error, unknown function "); Serial.println(item.functionIndex);
               break;
         }
         updateScreen();               // update UI immediately, don't wait for laggy mainline loop
@@ -233,7 +233,7 @@ bool ViewSettings4::onTouch(Point touch) {
 
 // ========== load/save config setting =========================
 #define SCREEN_CONFIG_FILE    CONFIG_FOLDER "/screen.cfg"
-#define CONFIG_SCREEN_VERSION "Screen Orientation v02"
+#define CONFIG_SCREEN_VERSION "Screen Orientation v03"
 
 // ----- load from SDRAM -----
 void ViewSettings4::loadConfig() {
