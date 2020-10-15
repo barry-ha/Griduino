@@ -68,6 +68,7 @@
 #include "view_settings2.h"         // config GPS
 #include "view_settings3.h"         // config miles/km
 #include "view_settings4.h"         // config screen rotation 
+#include "view_splash.h"            // splash screen
 #include "view_volume.h"            // config volume level
 #include "DS1804.h"                 // DS1804 digital potentiometer library
 #include "save_restore.h"           // save/restore configuration data to SDRAM

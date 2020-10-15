@@ -119,6 +119,7 @@ void ViewSettings3::updateScreen() {
   }
 }
 
+
 void ViewSettings3::startScreen() {
   // called once each time this view becomes active
   this->clearScreen(cBACKGROUND);     // clear screen

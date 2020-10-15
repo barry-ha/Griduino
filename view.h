@@ -100,16 +100,6 @@ class ViewGrid : public View {
     bool onTouch(Point touch);
 };
 
-class ViewSplash : public View {
-  public:
-    ViewSplash(Adafruit_ILI9341* vtft, int vid)  // ctor 
-      : View{ vtft, vid }
-    { }
-    void updateScreen();
-    void startScreen();
-    bool onTouch(Point touch);
-};
-
 class ViewStatus : public View {
   public:
     ViewStatus(Adafruit_ILI9341* vtft, int vid)  // ctor 
