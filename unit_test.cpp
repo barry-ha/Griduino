@@ -14,11 +14,11 @@
 #include "view.h"                   // Base class for all views
 
 // ========== extern ==================================
-float nextGridLineEast(float longitudeDegrees);       // Griduino.ino
-float nextGridLineWest(float longitudeDegrees);       // Griduino.ino
-void calcLocator(char* result, double lat, double lon, int precision); // Griduino.ino
-void setFontSize(int font);             // Griduino.ino
-void clearScreen();                     // Griduino.ino
+extern float nextGridLineEast(float longitudeDegrees);       // Griduino.ino
+extern float nextGridLineWest(float longitudeDegrees);       // Griduino.ino
+extern void calcLocator(char* result, double lat, double lon, int precision); // Griduino.ino
+extern void setFontSize(int font);             // Griduino.ino
+extern void clearScreen();                     // Griduino.ino
 
 // ----- globals
 extern Adafruit_ILI9341 tft;

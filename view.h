@@ -63,6 +63,9 @@ class View {
     }
 
   protected:
+  /**
+   *  The One and Only True Clear Screen (TOOTCS) function 
+   */
     void clearScreen(uint16_t color=cBACKGROUND) { // clear the screen
       tft->fillScreen(color);
     }
@@ -93,16 +96,6 @@ class View {
 class ViewGrid : public View {
   public:
     ViewGrid(Adafruit_ILI9341* vtft, int vid)  // ctor 
-      : View{ vtft, vid }
-    { }
-    void updateScreen();
-    void startScreen();
-    bool onTouch(Point touch);
-};
-
-class ViewTime : public View {
-  public:
-    ViewTime(Adafruit_ILI9341* vtft, int vid)  // ctor 
       : View{ vtft, vid }
     { }
     void updateScreen();

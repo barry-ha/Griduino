@@ -3,7 +3,8 @@
 
   Special Event Calendar Count - "How many days since Groundhog Day 2020"
 
-  Date:     2020-10-02 created
+  Date:     2020-10-15 refactored from .cpp to .h
+            2020-10-02 created
 
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
@@ -15,8 +16,8 @@
             the film "Groundhog Day," a 1993 comedy starring Bill Murray who 
             is caught in a time loop and relives February 2 repeatedly. 
             The first cases of covid-19 were reported near the end of January
-			in Washington State near where I live. So Feb 2 is a reasonable
-			stand-in for the start of the pandemic.
+            in Washington State near where I live. So Feb 2 is a reasonable
+            stand-in for the start of the pandemic.
 
             This is "total days spanned" and not "days since the event".
             The difference is whether or not the first day is included in the count.
@@ -55,7 +56,6 @@
 #include "constants.h"                // Griduino constants and colors
 #include "model.cpp"                  // "Model" portion of model-view-controller
 #include "Adafruit_BMP3XX.h"          // Precision barometric and temperature sensor
-//#include "save_restore.h"             // Save configuration in non-volatile RAM
 #include "TextField.h"                // Optimize TFT display text for proportional fonts
 #include "view.h"                     // Base class for all views
 #include "TimeLib.h"                  // BorisNeubert / Time (who forked it from PaulStoffregen / Time)
@@ -83,17 +83,9 @@ TimeElements targetGMT  { 0,0,7+18,  1,  31,10,2020-1970}; // 6pm Halloween in P
 /* */
 
 // ========== extern ===========================================
-extern void showNameOfView(String sName, uint16_t fgd, uint16_t bkg);  // Griduino.ino
 extern Model* model;                  // "model" portion of model-view-controller
 extern Adafruit_BMP3XX baro;          // Griduino.ino
-extern void getDate(char* result, int maxlen);  // model.cpp
-
-extern int getOffsetToCenterTextOnButton(String text, int leftEdge, int width ); // Griduino.ino
 extern void drawAllIcons();           // draw gear (settings) and arrow (next screen) // Griduino.ino
-extern void showScreenBorder();       // optionally outline visible area
-extern void getTimeLocal(char* result, int len);   // view_time.cpp
-
-extern int gTimeZone;                 // view_time.cpp; default local time Pacific (-7 hours), saved in nonvolatile memory
 
 // ========== class ViewDate ===================================
 class ViewDate : public View {
@@ -193,7 +185,7 @@ void ViewDate::updateScreen() {
   TimeElements todaysDate{ GPS.seconds,GPS.minute,GPS.hour,
                            1,GPS.day,GPS.month,(byte)(2000-1970+GPS.year)}; // GMT current date/time 
   
-  time_t adjustment = gTimeZone * SECS_PER_HOUR;
+  time_t adjustment = model->gTimeZone * SECS_PER_HOUR;
 
   time_t date1local = makeTime(targetGMT);
   time_t date2local = makeTime(todaysDate);
@@ -213,13 +205,13 @@ void ViewDate::updateScreen() {
 
   // Hours to add/subtract from GMT for local time
   char sign[2] = { 0, 0 };              // prepend a plus-sign when >=0
-  sign[0] = (gTimeZone>=0) ? '+' : 0;   // (don't need to add a minus-sign bc the print stmt does that for us)
+  sign[0] = (model->gTimeZone >= 0) ? '+' : 0;   // (don't need to add a minus-sign bc the print stmt does that for us)
   char sTimeZone[6];                    // strlen("-10h") = 4
-  snprintf(sTimeZone, sizeof(sTimeZone), "%s%dh", sign, gTimeZone);
+  snprintf(sTimeZone, sizeof(sTimeZone), "%s%dh", sign, model->gTimeZone);
   txtDate[TIMEZONE].print(sTimeZone);
 
   // Local Time
-  getTimeLocal(sTime, sizeof(sTime));
+  model->getTimeLocal(sTime, sizeof(sTime));
   txtDate[LOCALTIME].print(sTime);
 
   // Satellite Count
@@ -265,7 +257,7 @@ void ViewDate::startScreen() {
 }
 
 bool ViewDate::onTouch(Point touch) {
-  Serial.println("->->-> Touched status screen.");
+  Serial.println("->->-> Touched date screen.");
   bool handled = false;               // assume a touch target was not hit
   return handled;                     // true=handled, false=controller uses default action
 }

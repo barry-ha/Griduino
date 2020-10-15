@@ -7,6 +7,9 @@
   Purpose:  This screen shows most of what the GPS knows about location
             and velocity in text format. Results are updated in real time.
 
+            Todo: Add "internal temperature: 97F" readout
+            Add "local time zone: -7h" readout
+
             +-----------------------------------+
             |         GMT:  19:54:14            |...yRow1
             |               Jan 15, 2020        |...yRow2
@@ -27,14 +30,7 @@
 #include "view.h"                     // Base class for all views
 
 // ========== extern ===========================================
-extern int gTextSize;                 // no such function as "get text size" so remember size on our own
-extern void showNameOfView(String sName, uint16_t fgd, uint16_t bkg);  // Griduino.ino
 extern Model* model;                  // "model" portion of model-view-controller
-
-extern void setFontSize(int font);    // Griduino.ino
-extern int getOffsetToCenterText(String text); // Griduino.ino
-extern void drawAllIcons();           // draw gear (settings) and arrow (next screen) // Griduino.ino
-extern void showScreenBorder();       // optionally outline visible area
 
 // ========== class ViewStatus =================================
 class ViewStatus : public View {

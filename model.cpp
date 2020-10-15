@@ -40,6 +40,7 @@ class Model {
     float  gSpeed = 0.0;              // current speed over ground in MPH
     float  gAngle = 0.0;              // direction of travel, degrees from true north
     bool   gMetric = false;           // distance reported in miles(false), kilometers(true)
+    int    gTimeZone = -7;            // default local time Pacific (-7 hours)
 
     Location history[600];            // remember a list of GPS coordinates
     int nextHistoryItem = 0;          // index of next item to write
@@ -66,7 +67,7 @@ class Model {
 
     // save current GPS state to non-volatile memory
     const char MODEL_FILE[25] = "/Griduino/gpsmodel.cfg";  // CONFIG_FOLDER
-    const char MODEL_VERS[15] = "GPS Model v04";
+    const char MODEL_VERS[15] = "GPS Model v05";
     int save() {
       SaveRestore sdram(MODEL_FILE, MODEL_VERS);
       if (sdram.writeConfig( (byte*) this, sizeof(Model))) {
@@ -312,6 +313,42 @@ class Model {
       snprintf(result, 25, "%04d-%02d-%02d  %02d:%02d:%02d",
                             yy,  mo,  dd,  hh,  mm,  ss);
     }
+
+  //=========== local time helpers ===============================
+  //#define TIME_FOLDER  "/GMTclock"     // 8.3 names
+  //#define TIME_FILE    TIME_FOLDER "/AddHours.cfg"
+  //#define TIME_VERSION "v01"
+
+  // Formatted Local time
+  void getTimeLocal(char* result, int len) {
+    // @param result = char[10] = string buffer to modify
+    // @param len = string buffer length
+    int hh = GPS.hour + gTimeZone;      // 24-hour clock (format matches GMT time)
+    hh = (hh + 24) % 24;                // ensure positive number of hours
+    int mm = GPS.minute;
+    int ss = GPS.seconds;
+    snprintf(result, len, "%02d:%02d:%02d",
+                            hh,  mm,  ss);
+  }
+
+  void timeZonePlus() {
+    gTimeZone++;
+    if (gTimeZone > 12) {
+      gTimeZone = -11;
+    }
+    Serial.print("Time zone changed to "); Serial.println(gTimeZone);
+    this->save();                         // save the new timezone (and model) in non-volatile memory
+    //myconfig.writeConfig();
+  }
+  void timeZoneMinus() {
+    gTimeZone--;
+    if (gTimeZone < -12) {
+      gTimeZone = 11;
+    }
+    Serial.print("Time zone changed to "); Serial.println(gTimeZone);
+    this->save();                         // save the new timezone (and model) in non-volatile memory
+    //myconfig.writeConfig();
+  }
 
     //=========== distance helpers =============================
     double calcDistanceLat(double fromLat, double toLat) {

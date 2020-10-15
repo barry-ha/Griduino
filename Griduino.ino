@@ -74,6 +74,7 @@
 #include "view_settings4.h"         // config screen rotation 
 #include "view_splash.h"            // splash screen
 #include "view_status.h"            // status screen 
+#include "view_time.h"              // GMT time screen 
 #include "view_volume.h"            // config volume level
 
 // ---------- Hardware Wiring ----------
@@ -455,10 +456,6 @@ void showNameOfView(String sName, uint16_t fgd, uint16_t bkg) {
   tft.print(sName);
 }
 
-void clearScreen() {
-  tft.fillScreen(ILI9341_BLACK);  // (cBACKGROUND);
-}
-
 // ============== grid helpers =================================
 
 // given a position, find the longitude of the next grid line
@@ -525,7 +522,7 @@ void waitForSerial(int howLong) {
   int w = gScreenWidth;
   int h = gScreenHeight;
   bool done = false;
-  clearScreen();
+  tft.fillScreen(ILI9341_BLACK);      // (cBACKGROUND)
   
   while (millis() < targetTime) {
     if (Serial) break;
@@ -538,7 +535,7 @@ void waitForSerial(int howLong) {
       x = y = 0;
       w = gScreenWidth;
       h = gScreenHeight;
-      clearScreen();          // erase entire screen
+      tft.fillScreen(ILI9341_BLACK);    // (cBACKGROUND)
       done = true;
     }
     tft.drawRect(x, y, w, h, cLABEL);   // look busy
@@ -739,7 +736,7 @@ void setup() {
 
   // ----- init TFT display
   tft.begin();                        // initialize TFT display
-  clearScreen();                      // note that "begin()" does not clear screen 
+  tft.fillScreen(ILI9341_BLACK);      // note that "begin()" does not clear screen 
   tft.setRotation(1);                 // 1=landscape (default is 0=portrait)
   settings4View.loadConfig();         // let the settings object initialize itself
 
