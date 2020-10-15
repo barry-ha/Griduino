@@ -123,7 +123,7 @@ void ViewSettings3::updateScreen() {
 void ViewSettings3::startScreen() {
   // called once each time this view becomes active
   this->clearScreen(cBACKGROUND);     // clear screen
-  txtSettings3[0].setBackground(cBACKGROUND);                  // set background for all TextFields in this view
+  txtSettings3[0].setBackground(cBACKGROUND);           // set background for all TextFields in this view
   TextField::setTextDirty( txtSettings3, nTextUnits );  // make sure all fields get re-printed on screen change
   setFontSize(eFONTSMALLEST);
 
