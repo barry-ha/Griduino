@@ -85,7 +85,6 @@ TimeElements targetGMT  { 0,0,7+18,  1,  31,10,2020-1970}; // 6pm Halloween in P
 // ========== extern ===========================================
 extern Model* model;                  // "model" portion of model-view-controller
 extern Adafruit_BMP3XX baro;          // Griduino.ino
-extern void drawAllIcons();           // draw gear (settings) and arrow (next screen) // Griduino.ino
 
 // ========== class ViewDate ===================================
 class ViewDate : public View {

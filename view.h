@@ -11,8 +11,9 @@
 #pragma once
 
 #include <Arduino.h>
-#include "Adafruit_ILI9341.h"       // TFT color display library
-#include "constants.h"              // Griduino constants and colors
+#include "Adafruit_ILI9341.h"         // TFT color display library
+#include "constants.h"                // Griduino constants and colors
+#include "icons.h"                    // bitmaps for icons
 
 class View {
   public:
@@ -70,11 +71,27 @@ class View {
       tft->fillScreen(color);
     }
 
+    void drawAllIcons() {
+      // draw gear (settings) and arrow (next screen)
+      //              ul x,y                     w,h   color
+      tft->drawBitmap(   5,5, iconGear20,       20,20, cTEXTFAINT);  // "settings" upper left
+      tft->drawBitmap( 300,5, iconRightArrow18, 14,18, cTEXTFAINT);  // "next screen" upper right
+    }
     void showScreenBorder() {           // optionally outline visible area
       #ifdef SHOW_SCREEN_BORDER
         tft->drawRect(0, 0, gScreenWidth, gScreenHeight, ILI9341_BLUE);  // debug: border around screen
       #endif
     };
+    void showNameOfView(String sName, uint16_t fgd, uint16_t bkg) {
+      // Some of the "view" modules want to label themselves in the upper left corner
+      // Caution: this function changes font. The caller needs to change it back, if needed.
+      tft->setFont();
+      tft->setTextSize(2);               // setFontSize(0);
+      tft->setTextColor(fgd, bkg);
+      tft->setCursor(1,1);
+      tft->print(sName);
+    }
+
     /**
      * Rotate screen right-side-up / upside-down
      * 1=landscape, 3=landscape 180-degrees 

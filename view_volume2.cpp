@@ -41,10 +41,10 @@ extern Adafruit_ILI9341 tft;        // Griduino.ino
 extern DACMorseSender dacMorse;     // morse code (so we can send audio samples)
 extern DS1804 volume;               // digital potentiometer
 
-void setFontSize(int font);         // Griduino.ino
-int getOffsetToCenterTextOnButton(String text, int leftEdge, int width ); // Griduino.ino
-void drawAllIcons();                // draw gear (settings) and arrow (next screen) // Griduino.ino
-void showScreenBorder();            // optionally outline visible area
+extern void setFontSize(int font);         // Griduino.ino
+extern int getOffsetToCenterTextOnButton(String text, int leftEdge, int width ); // Griduino.ino
+//tern void drawAllIcons();                // draw gear (settings) and arrow (next screen) // Griduino.ino
+//tern void showScreenBorder();            // optionally outline visible area
 
 // ========== forward reference ================================
 void updateVolume2Screen();
@@ -165,8 +165,8 @@ void startVolume2Screen() {
   TextField::setTextDirty( txtVolume2, numVolFields );     // make sure all fields get re-printed on screen change
   setFontSize(eFONTSMALL);
 
-  drawAllIcons();                   // draw gear (settings) and arrow (next screen)
-  showScreenBorder();               // optionally outline visible area
+  // drawAllIcons();                   // todo: update "drawAllIcons" draw gear (settings) and arrow (next screen)
+  // showScreenBorder();               // todo: optionally outline visible area
 
   // ----- draw text fields
   for (int ii=1; ii<numVolFields; ii++) {       // start at [1], since [0] is a different font size

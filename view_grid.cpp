@@ -34,12 +34,10 @@
 extern Adafruit_ILI9341 tft;        // Griduino.ino
 extern Model* model;                // "model" portion of model-view-controller
 
-void setFontSize(int font);         // Griduino.ino
-float nextGridLineEast(float longitudeDegrees);       // Griduino.ino
-float nextGridLineWest(float longitudeDegrees);       // Griduino.ino
-void floatToCharArray(char* result, int maxlen, double fValue, int decimalPlaces);  // Griduino.ino
-void drawAllIcons();                // draw gear (settings) and arrow (next screen) // Griduino.ino
-void showScreenBorder();            // optionally outline visible area
+extern void setFontSize(int font);         // Griduino.ino
+extern float nextGridLineEast(float longitudeDegrees);       // Griduino.ino
+extern float nextGridLineWest(float longitudeDegrees);       // Griduino.ino
+extern void floatToCharArray(char* result, int maxlen, double fValue, int decimalPlaces);  // Griduino.ino
 
 // ============== constants ====================================
 const int gMarginX = 70;            // define space for grid outline on screen

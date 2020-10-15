@@ -50,8 +50,8 @@
 //#define SHOW_TOUCH_TARGET           // comment out for production
 
 // ========== forward reference ================================
-void timePlus();
-void timeMinus();
+void timeZonePlus();
+void timeZoneMinus();
 
 // ---------- Hardware Wiring ----------
 /* Same as Griduino platform
@@ -476,8 +476,8 @@ Button timeButtons[] = {
   //
   // label  origin   size      touch-target     
   // text    x,y      w,h      x,y      w,h   radius  color     function
-  {  "+",   66,204,  36,30, { 30,180, 110,59},  4,  cTEXTCOLOR, timePlus  },  // Up
-  {  "-",  226,204,  36,30, {190,180, 110,59},  4,  cTEXTCOLOR, timeMinus },  // Down
+  {  "+",   66,204,  36,30, { 30,180, 110,59},  4,  cTEXTCOLOR, timeZonePlus  },  // Up
+  {  "-",  226,204,  36,30, {190,180, 110,59},  4,  cTEXTCOLOR, timeZoneMinus },  // Down
 };
 const int nTimeButtons = sizeof(timeButtons)/sizeof(Button);
 
@@ -616,7 +616,7 @@ void waitForSerial(int howLong) {
 #define TIME_FILE    TIME_FOLDER "/AddHours.cfg"
 #define TIME_VERSION "v01"
 
-void timePlus() {
+void timeZonePlus() {
   gTimeZone++;
   if (gTimeZone > 12) {
     gTimeZone = -11;
@@ -626,7 +626,7 @@ void timePlus() {
   SaveRestore myconfig = SaveRestore(TIME_FOLDER, TIME_FILE, TIME_VERSION, gTimeZone);
   myconfig.writeConfig();
 }
-void timeMinus() {
+void timeZoneMinus() {
   gTimeZone--;
   if (gTimeZone < -12) {
     gTimeZone = 11;
@@ -806,7 +806,7 @@ void loop() {
 
       for (int ii=0; ii<nTimeButtons; ii++) {
         if (timeButtons[ii].hitTarget.contains( touch )) {
-          timeButtons[ii].function(); // dispatch to timePlus() or timeMinus()
+          timeButtons[ii].function(); // dispatch to timeZonePlus() or timeZoneMinus()
           Serial.print("Hit! target = "); Serial.println(ii);
         }
       }

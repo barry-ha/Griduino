@@ -30,15 +30,12 @@
 #include "view.h"                     // Base class for all views
 
 // ========== extern ===========================================
-extern void showNameOfView(String sName, uint16_t fgd, uint16_t bkg);  // Griduino.ino
 extern Model* model;                  // "model" portion of model-view-controller
 
 extern void fSetReceiver();           // Griduino.ino
 extern void fSetSimulated();          // Griduino.ino
 extern int fGetDataSource();          // Griduino.ino
 extern int getOffsetToCenterTextOnButton(String text, int leftEdge, int width);  // Griduino.ino
-extern void drawAllIcons();           // draw gear (settings) and arrow (next screen) // Griduino.ino
-extern void showScreenBorder();       // optionally outline visible area
 
 // ========== class ViewSettings2 ==============================
 class ViewSettings2 : public View {

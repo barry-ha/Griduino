@@ -27,7 +27,6 @@
 #include "view.h"                     // Base class for all views
 
 // ========== extern ===========================================
-extern void showNameOfView(String sName, uint16_t fgd, uint16_t bkg); // Griduino.ino
 extern void setFontSize(int font);                                    // Griduino.ino
 extern int getOffsetToCenterText(String text);                        // Griduino.ino
 extern int getOffsetToCenterTextOnButton(String text, int leftEdge, int width);  // Griduino.ino

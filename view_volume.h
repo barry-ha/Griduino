@@ -34,13 +34,10 @@
 #include "view.h"                     // Base class for all views
 
 // ========== extern ===========================================
-void showNameOfView(String sName, uint16_t fgd, uint16_t bkg);  // Griduino.ino
 extern DACMorseSender dacMorse;       // morse code (so we can send audio samples)
 extern DS1804 volume;                 // digital potentiometer
 
-int getOffsetToCenterTextOnButton(String text, int leftEdge, int width ); // Griduino.ino
-void drawAllIcons();                  // draw gear (settings) and arrow (next screen) // Griduino.ino
-void showScreenBorder();              // optionally outline visible area
+extern int getOffsetToCenterTextOnButton(String text, int leftEdge, int width ); // Griduino.ino
 
 // ========== class ViewVolume =================================
 class ViewVolume : public View {

@@ -55,27 +55,26 @@
          7. loop()
 */
 
-#include "SPI.h"                    // Serial Peripheral Interface
-#include "Adafruit_GFX.h"           // Core graphics display library
-#include "Adafruit_ILI9341.h"       // TFT color display library
-#include "Adafruit_GPS.h"           // Ultimate GPS library
-#include "TouchScreen.h"            // Touchscreen built in to 3.2" Adafruit TFT display
-#include "Adafruit_BMP3XX.h"        // Precision barometric and temperature sensor
-#include "DS1804.h"                 // DS1804 digital potentiometer library
-#include "save_restore.h"           // save/restore configuration data to SDRAM
-#include "icons.h"                  // bitmaps for icons
-#include "constants.h"              // Griduino constants, colors, typedefs
+#include "SPI.h"                      // Serial Peripheral Interface
+#include "Adafruit_GFX.h"             // Core graphics display library
+#include "Adafruit_ILI9341.h"         // TFT color display library
+#include "Adafruit_GPS.h"             // Ultimate GPS library
+#include "TouchScreen.h"              // Touchscreen built in to 3.2" Adafruit TFT display
+#include "Adafruit_BMP3XX.h"          // Precision barometric and temperature sensor
+#include "DS1804.h"                   // DS1804 digital potentiometer library
+#include "save_restore.h"             // save/restore configuration data to SDRAM
+#include "constants.h"                // Griduino constants, colors, typedefs
 
-#include "view.h"                   // Griduino screens
-#include "view_date.h"              // counting days to/from special event 
-#include "view_help.h"              // help screen
-#include "view_settings2.h"         // config GPS
-#include "view_settings3.h"         // config miles/km
-#include "view_settings4.h"         // config screen rotation 
-#include "view_splash.h"            // splash screen
-#include "view_status.h"            // status screen 
-#include "view_time.h"              // GMT time screen 
-#include "view_volume.h"            // config volume level
+#include "view.h"                     // Griduino screens
+#include "view_date.h"                // counting days to/from special event 
+#include "view_help.h"                // help screen
+#include "view_settings2.h"           // config GPS
+#include "view_settings3.h"           // config miles/km
+#include "view_settings4.h"           // config screen rotation 
+#include "view_splash.h"              // splash screen
+#include "view_status.h"              // status screen 
+#include "view_time.h"                // GMT time screen 
+#include "view_volume.h"              // config volume level
 
 // ---------- Hardware Wiring ----------
 /*                                Arduino       Adafruit
@@ -371,20 +370,6 @@ void mapTouchToScreen(TSPoint touch, Point* screen) {
   return;
 }
 
-void drawAllIcons() {
-  // draw gear (settings) and arrow (next screen)
-  //             ul x,y                     w,h   color
-  tft.drawBitmap(   5,5, iconGear20,       20,20, cTEXTFAINT);  // "settings" upper left
-  tft.drawBitmap( 300,5, iconRightArrow18, 14,18, cTEXTFAINT);  // "next screen" upper right
-}
-
-void showScreenBorder() {
-  // optionally outline the display hardware visible border
-  #ifdef SHOW_SCREEN_BORDER
-    tft.drawRect(0, 0, gScreenWidth, gScreenHeight, ILI9341_BLUE);  // debug: border around screen
-  #endif
-}
-
 // ========== font management helpers ==========================
 /* Using fonts: https://learn.adafruit.com/adafruit-gfx-graphics-library/using-fonts
 
@@ -446,14 +431,6 @@ int getOffsetToCenterTextOnButton(String text, int leftEdge, int width ) {
   uint16_t w, h;
   tft.getTextBounds(text, 0, 0, &x1, &y1, &w, &h);  // compute "pixels wide"
   return leftEdge + (width - w) / 2;
-}
-
-void showNameOfView(String sName, uint16_t fgd, uint16_t bkg) {
-  // All our various "view" routines want to label themselves in the upper left corner
-  setFontSize(0);
-  tft.setTextColor(fgd, bkg);
-  tft.setCursor(1,1);
-  tft.print(sName);
 }
 
 // ============== grid helpers =================================

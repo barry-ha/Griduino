@@ -26,7 +26,7 @@
 
 // ========== extern ===========================================
 //extern void setFontSize(int font);    // Griduino.ino
-extern void showScreenBorder();       // optionally outline visible area
+//tern void showScreenBorder();       // optionally outline visible area
 
 // ========== class ViewSplash =================================
 class ViewSplash : public View {
