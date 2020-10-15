@@ -1,5 +1,5 @@
 /*
-  File:     view_settings2.h
+  File:     view_settings3.h
 
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
@@ -9,13 +9,13 @@
             a smaller font and cram more stuff onto the screen.
 
             +-----------------------------------+
-            |              Settings 2           |
+            |              Settings 3           |
             |                                   |
-            | Breadcrumb trail    [ Clear ]     |
-            | 123 of 6000                       |
+            | Distance      (o)[ Miles        ] |
+            |               ( )[ Kilometers   ] |
             |                                   |
-            | Route         (o)[ GPS Receiver ] |
-            |                  [  Simulator   ] |
+            |                                   |
+            |                                   |
             |                                   |
             | Version 0.23                      |
             |     Compiled Sep 02 2020  09:16   |
@@ -33,19 +33,16 @@
 extern void showNameOfView(String sName, uint16_t fgd, uint16_t bkg);  // Griduino.ino
 extern Model* model;                  // "model" portion of model-view-controller
 
-extern void fSetReceiver();           // Griduino.ino
-extern void fSetSimulated();          // Griduino.ino
-extern int fGetDataSource();          // Griduino.ino
 extern int getOffsetToCenterTextOnButton(String text, int leftEdge, int width);  // Griduino.ino
 extern void drawAllIcons();           // draw gear (settings) and arrow (next screen) // Griduino.ino
 extern void showScreenBorder();       // optionally outline visible area
 
-// ========== class ViewSettings2 ==============================
-class ViewSettings2 : public View {
+// ========== class ViewSettings3 ==============================
+class ViewSettings3 : public View {
   public:
     // ---------- public interface ----------
     // This derived class must implement the public interface:
-    ViewSettings2(Adafruit_ILI9341* vtft, int vid)  // ctor 
+    ViewSettings3(Adafruit_ILI9341* vtft, int vid)  // ctor 
       : View{ vtft, vid }
     { }
     void updateScreen();
@@ -57,116 +54,90 @@ class ViewSettings2 : public View {
     // color scheme: see constants.h
 
     // vertical placement of text rows   ---label---         ---button---
-    const int yRow1 = 70;             // "Breadcrumb trail", "Clear"
-    const int yRow2 = yRow1 + 20;     // "%d of %d"
-    const int yRow3 = yRow2 + 56;     // "Route",            "GPS Receiver"
-    const int yRow4 = yRow3 + 48;     //                     "Simulator"
+    const int yRow1 = 70;             // "Distance",         "Miles"
+    const int yRow2 = yRow1 + 50;     //                     "Kilometers"
     const int yRow9 = 234;            // "v0.22, Aug 21 2020 45:67:89"
 
     #define col1 10                   // left-adjusted column of text
     #define xButton 160               // indented column of buttons
 
-    enum txtSettings2 {
+    enum txtSettings3 {
       SETTINGS=0, 
-      TRAIL,   TRAILCOUNT,
-      GPSTYPE,
       COMPILED,
     };
-    #define nTextGPS 5
-    TextField txtSettings2[nTextGPS] = {
+    #define nTextUnits 3
+    TextField txtSettings3[nTextUnits] = {
       //        text                  x, y     color
-      TextField("Settings 2",      col1, 20,   cHIGHLIGHT, ALIGNCENTER),// [SETTINGS]
-      TextField("Breadcrumb trail",col1,yRow1, cVALUE),                 // [TRAIL]
-      TextField(   "%d crumbs",    col1,yRow2, cLABEL),                 // [TRAILCOUNT]
-      TextField("Route",           col1,yRow3, cVALUE),                 // [GPSTYPE]
+      TextField("Settings 3",      col1, 20,   cHIGHLIGHT, ALIGNCENTER),// [SETTINGS]
+      TextField("Distance",        col1,yRow1, cVALUE),                 // 
       TextField(PROGRAM_VERSION ", " PROGRAM_COMPILED, 
                                    col1,yRow9, cLABEL, ALIGNCENTER),    // [COMPILED]
     };
 
-    enum buttonID {
-      eCLEAR,
-      eRECEIVER,
-      eSIMULATOR,
-      eFACTORYRESET,
-    };
-    #define nButtonsGPS 3
-    FunctionButton settings2Buttons[nButtonsGPS] = {
-      // label             origin         size      touch-target     
-      // text                x,y           w,h      x,y      w,h  radius  color   functionID
-      {"Clear",        xButton,yRow1-20, 130,40, {130, 40, 180,60},  4,  cVALUE,  eCLEAR    },   // [eCLEAR] Clear track history
-      {"GPS Receiver", xButton,yRow3-26, 130,40, {128,112, 180,50},  4,  cVALUE,  eRECEIVER },   // [eRECEIVER] Satellite receiver
-      {"Simulator",    xButton,yRow4-26, 130,40, {130,164, 180,60},  4,  cVALUE,  eSIMULATOR},   // [eSIMULATOR] Simulated track
-      //{"Factory Reset",xButton,180,    130,30, {138,174, 180,50},  4,  cVALUE,  fFactoryReset},// [eFACTORYRESET] Factory Reset
-    };
-
     // ----- helpers -----
-    void fClear() {
-      Serial.println("->->-> Clicked CLEAR button.");
-      model->clearHistory();
-      model->save();
+    void fMiles() {
+      Serial.println("->->-> Clicked DISTANCE MILES button.");
+      model->setMiles();
     }
-    void fReceiver() {
-      // select GPS receiver data
-      Serial.println("->->-> Clicked GPS RECEIVER button.");
-      fSetReceiver();       // use "class Model" for GPS receiver hardware
-    }
-    void fSimulated() {
-      // simulate satellite track
-      Serial.println("->->-> Clicked GPS SIMULATOR button.");
-      fSetSimulated();      // use "class MockModel" for simulated track
-    }
-    void fFactoryReset() {
-      // todo: clear all settings, erase all saved files
-      Serial.println("->->-> Clicked FACTORY RESET button.");
+    void fKilometers() {
+      Serial.println("->->-> Clicked DISTANCE KILOMETERS button.");
+      model->setKilometers();
     }
 
-};  // end class ViewSettings2
+    enum buttonID {
+      eMILES = 0,
+      eKILOMETERS,
+    };
+    #define nButtonsUnits 2
+    FunctionButton settings3Buttons[nButtonsUnits] = {
+      // label             origin         size      touch-target     
+      // text                x,y           w,h      x,y      w,h  radius  color   function
+      {"Miles",        xButton,yRow1-26, 130,40, {130, 30, 180,60},  4,  cVALUE,  eMILES      },   // [eMILES] set units English
+      {"Kilometers",   xButton,yRow2-26, 130,40, {130, 90, 180,60},  4,  cVALUE,  eKILOMETERS },   // [eKILOMETERS] set units Metric
+    };
+
+};  // end class ViewSettings3
 
 // ============== implement public interface ================
-void ViewSettings2::updateScreen() {
+void ViewSettings3::updateScreen() {
   // called on every pass through main()
 
-  // ----- fill in replacment string text
-  char temp[100];
-  snprintf(temp, sizeof(temp), "%d of %d", model->getHistoryCount(), model->numHistory );
-  txtSettings2[TRAILCOUNT].print(temp);
-
   // ----- show selected radio buttons by filling in the circle
-  for (int ii=eRECEIVER; ii<=eSIMULATOR; ii++) {
-    FunctionButton item = settings2Buttons[ii];
+  for (int ii=eMILES; ii<=eKILOMETERS; ii++) {
+    FunctionButton item = settings3Buttons[ii];
     int xCenter = item.x - 16;
     int yCenter = item.y + (item.h/2);
     int buttonFillColor = cBACKGROUND;
 
-    if (ii==eRECEIVER && fGetDataSource()==eGPSRECEIVER) {
+    if (ii==eMILES && !model->gMetric) {
       buttonFillColor = cLABEL;
     } 
-    if (ii==eSIMULATOR && fGetDataSource()==eGPSSIMULATOR) {
+    if (ii==eKILOMETERS && model->gMetric) {
       buttonFillColor = cLABEL;
     }
     tft->fillCircle(xCenter, yCenter, 4, buttonFillColor);
   }
 }
 
-void ViewSettings2::startScreen() {
+void ViewSettings3::startScreen() {
   // called once each time this view becomes active
   this->clearScreen(cBACKGROUND);     // clear screen
-  txtSettings2[0].setBackground(cBACKGROUND);                  // set background for all TextFields in this view
-  TextField::setTextDirty( txtSettings2, nTextGPS );  // make sure all fields get re-printed on screen change
+  txtSettings3[0].setBackground(cBACKGROUND);                  // set background for all TextFields in this view
+  TextField::setTextDirty( txtSettings3, nTextUnits );  // make sure all fields get re-printed on screen change
   setFontSize(eFONTSMALLEST);
 
   drawAllIcons();                     // draw gear (settings) and arrow (next screen)
   showScreenBorder();                 // optionally outline visible area
 
   // ----- draw text fields
-  for (int ii=0; ii<nTextGPS; ii++) {
-      txtSettings2[ii].print();
+  for (int ii=0; ii<nTextUnits; ii++) {
+      txtSettings3[ii].print();
   }
 
   // ----- draw buttons
   setFontSize(eFONTSMALLEST);
-  for (int ii=0; ii<nButtonsGPS; ii++) {
-    FunctionButton item = settings2Buttons[ii];
+  for (int ii=0; ii<nButtonsUnits; ii++) {
+    FunctionButton item = settings3Buttons[ii];
     tft->fillRoundRect(item.x, item.y, item.w, item.h, item.radius, cBUTTONFILL);
     tft->drawRoundRect(item.x, item.y, item.w, item.h, item.radius, cBUTTONOUTLINE);
 
@@ -185,8 +156,8 @@ void ViewSettings2::startScreen() {
   }
 
   // ----- show outlines of radio buttons
-  for (int ii=eRECEIVER; ii<=eSIMULATOR; ii++) {
-    FunctionButton item = settings2Buttons[ii];
+  for (int ii=eMILES; ii<=eKILOMETERS; ii++) {
+    FunctionButton item = settings3Buttons[ii];
     int xCenter = item.x - 16;
     int yCenter = item.y + (item.h/2);
 
@@ -203,28 +174,27 @@ void ViewSettings2::startScreen() {
   #endif
 }
 
-bool ViewSettings2::onTouch(Point touch) {
+bool ViewSettings3::onTouch(Point touch) {
   Serial.println("->->-> Touched settings screen.");
   bool handled = false;               // assume a touch target was not hit
-  for (int ii=0; ii<nButtonsGPS; ii++) {
-    FunctionButton item = settings2Buttons[ii];
+  for (int ii=0; ii<nButtonsUnits; ii++) {
+    FunctionButton item = settings3Buttons[ii];
     if (item.hitTarget.contains(touch)) {
         handled = true;               // hit!
         switch (item.functionIndex)   // do the thing
         {
-          case eCLEAR:
-              fClear();
+          case eMILES:
+              fMiles();
               break;
-          case eRECEIVER:
-              fReceiver();
-              break;
-          case eSIMULATOR:
-              fSimulated();
+          case eKILOMETERS:
+              fKilometers();
               break;
           default:
               Serial.print("Error, unknown function "); Serial.println(item.functionIndex);
               break;
         }
+        updateScreen();               // update UI immediately, don't wait for laggy mainline loop
+        this->saveConfig();           // after UI is updated, save setting to nvr
      }
   }
   return handled;                     // true=handled, false=controller uses default action

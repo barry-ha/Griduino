@@ -89,8 +89,7 @@ class View {
 };  // end class View
 
 // ----------------------------------------------------------
-// In alphabetical order:
-//      Grid, Help, Settings2, Settings3, Settings4, Splash, Status, Time, Volume
+// Derived classes
 class ViewGrid : public View {
   public:
     ViewGrid(Adafruit_ILI9341* vtft, int vid)  // ctor 
@@ -100,51 +99,6 @@ class ViewGrid : public View {
     void startScreen();
     bool onTouch(Point touch);
 };
-
-/* moved to "view_help.h"
-class ViewHelp : public View {
-  public:
-    ViewHelp(Adafruit_ILI9341* vtft, int vid)  // ctor 
-      : View{ vtft, vid }
-    { }
-    void updateScreen();
-    void startScreen();
-    bool onTouch(Point touch);
-};
-*/
-
-/* moved to "view_help.h"
-class ViewSettings2 : public View {
-  public:
-    ViewSettings2(Adafruit_ILI9341* vtft, int vid)  // ctor 
-      : View{ vtft, vid }
-    { }
-    void updateScreen();
-    void startScreen();
-    bool onTouch(Point touch);
-};
-*/
-
-class ViewSettings3 : public View {
-  public:
-    ViewSettings3(Adafruit_ILI9341* vtft, int vid)  // ctor 
-      : View{ vtft, vid }
-    { }
-    void updateScreen();
-    void startScreen();
-    bool onTouch(Point touch);
-};
-/* moved to "view_settings4.h"
-class ViewSettings4 : public View {
-  public:
-    ViewSettings4(Adafruit_ILI9341* vtft, int vid)  // ctor 
-      : View{ vtft, vid }
-    { }
-    void updateScreen();
-    void startScreen();
-    bool onTouch(Point touch);
-};
-*/
 
 class ViewSplash : public View {
   public:
@@ -175,29 +129,3 @@ class ViewTime : public View {
     void startScreen();
     bool onTouch(Point touch);
 };
-
-/* moved to "view_volume.h"
-class ViewDate : public View {
-  public:
-    ViewDate(Adafruit_ILI9341* vtft, int vid)  // ctor 
-      : View{ vtft, vid }
-    { }
-    void updateScreen();
-    void startScreen();
-    bool onTouch(Point touch);
-};
-*/
-
-/* moved to "view_volume.h"
-class ViewVolume : public View {
-  public:
-    ViewVolume(Adafruit_ILI9341* vtft, int vid)  // ctor 
-      : View{ vtft, vid }
-    { }
-    void updateScreen();
-    void startScreen();
-    bool onTouch(Point touch);
-    void loadConfig();
-    void saveConfig();
-};
-*/

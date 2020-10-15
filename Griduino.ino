@@ -66,6 +66,7 @@
 #include "view_date.h"              // counting days to/from special event 
 #include "view_help.h"              // help screen
 #include "view_settings2.h"         // config GPS
+#include "view_settings3.h"         // config miles/km
 #include "view_settings4.h"         // config screen rotation 
 #include "view_volume.h"            // config volume level
 #include "DS1804.h"                 // DS1804 digital potentiometer library
