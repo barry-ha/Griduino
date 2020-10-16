@@ -504,6 +504,7 @@ void waitForSerial(int howLong) {
   while (millis() < targetTime) {
     if (Serial) break;
     if (done) break;
+    tft.drawRect(x, y, w, h, cLABEL);   // look busy
     x += 2;
     y += 2;
     w -= 4;
@@ -515,7 +516,6 @@ void waitForSerial(int howLong) {
       tft.fillScreen(ILI9341_BLACK);    // (cBACKGROUND)
       done = true;
     }
-    tft.drawRect(x, y, w, h, cLABEL);   // look busy
     delay(15);
   }
 }
@@ -739,11 +739,17 @@ void setup() {
     Serial.println("Sorry, your hardware platform is not recognized.");
   #endif
 
+  // one-time Splash screen
+  pView = &splashView;
+  pView->startScreen();
+  pView->updateScreen();
+  delay(2000);
+
   // ----- init GPS
   GPS.begin(9600);                              // 9600 NMEA is the default baud rate for Adafruit MTK GPS's
-  delay(200);                                   // is delay really needed?
+  delay(50);                                    // is delay really needed?
   GPS.sendCommand(PMTK_SET_BAUD_57600);         // set baud rate to 57600
-  delay(200);
+  delay(50);
   GPS.begin(57600);
   GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA); // turn on RMC (recommended minimum) and GGA (fix data) including altitude
 
@@ -794,21 +800,15 @@ void setup() {
     runUnitTest();                      // see "unit_test.cpp"
   #endif
 
-  // ----- init first data shown with last known position and driving track history
-  model->restore();
-  model->gHaveGPSfix = false;          // assume no satellite signal yet
-  model->gSatellites = 0;
-
-  // one-time Splash screen
-  pView = &splashView;
-  pView->startScreen();
-  pView->updateScreen();
-  delay(2000);
-
   // one-time Help screen
   pView = &helpView;
   pView->startScreen();
   delay(2000);
+
+  // ----- init first data shown with last known position and driving track history
+  model->restore();                     // this takes noticeable time (~0.2 sec) 
+  model->gHaveGPSfix = false;           // assume no satellite signal yet
+  model->gSatellites = 0;
 
   // ----- select opening view screen
   pView = &gridView;
