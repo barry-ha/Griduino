@@ -33,6 +33,11 @@
 #define ALIGNCENTER 2           // center text left-right
 #define UNSPECIFIEDCOLOR 0x71ce // oddball purple that's unlikely to be deliberately used
 
+// utilities in TextField.cpp
+void setFontSize(int font);
+int getOffsetToCenterText(String text);
+int getOffsetToCenterTextOnButton(String text, int leftEdge, int width);
+
 class TextField {
   // Write dynamic text to the TFT display and optimize
   // redrawing text in proportional fonts to reduce flickering

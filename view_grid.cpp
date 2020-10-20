@@ -34,7 +34,7 @@
 extern Adafruit_ILI9341 tft;        // Griduino.ino
 extern Model* model;                // "model" portion of model-view-controller
 
-extern void setFontSize(int font);         // Griduino.ino
+extern void setFontSize(int font);         // TextField.cpp
 extern float nextGridLineEast(float longitudeDegrees);       // Griduino.ino
 extern float nextGridLineWest(float longitudeDegrees);       // Griduino.ino
 extern void floatToCharArray(char* result, int maxlen, double fValue, int decimalPlaces);  // Griduino.ino

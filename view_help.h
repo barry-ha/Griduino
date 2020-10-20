@@ -26,11 +26,6 @@
 #include "TextField.h"                // Optimize TFT display text for proportional fonts
 #include "view.h"                     // Base class for all views
 
-// ========== extern ===========================================
-extern void setFontSize(int font);                                    // Griduino.ino
-extern int getOffsetToCenterText(String text);                        // Griduino.ino
-extern int getOffsetToCenterTextOnButton(String text, int leftEdge, int width);  // Griduino.ino
-
 // ========== class ViewHelp ===================================
 class ViewHelp : public View {
   public:

@@ -32,8 +32,6 @@
 // ========== extern ===========================================
 extern Model* model;                  // "model" portion of model-view-controller
 
-extern int getOffsetToCenterTextOnButton(String text, int leftEdge, int width);  // Griduino.ino
-
 // ========== class ViewSettings3 ==============================
 class ViewSettings3 : public View {
   public:

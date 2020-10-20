@@ -35,7 +35,6 @@ extern Model* model;                  // "model" portion of model-view-controlle
 extern void fSetReceiver();           // Griduino.ino
 extern void fSetSimulated();          // Griduino.ino
 extern int fGetDataSource();          // Griduino.ino
-extern int getOffsetToCenterTextOnButton(String text, int leftEdge, int width);  // Griduino.ino
 
 // ========== class ViewSettings2 ==============================
 class ViewSettings2 : public View {

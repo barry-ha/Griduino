@@ -14,6 +14,7 @@ extern void setFontSize(int font);  // Griduino.ino  TODO: eliminate this extern
 
 uint16_t TextField::cBackground;    // background color
 
+// ========== TextField ===============================
 void TextField::eraseOld() {
   // we remember the area to erase from the previous print()
   tft.fillRect(xPrev, yPrev, wPrev, hPrev, cBackground); // erase the requested width of old text
@@ -80,3 +81,67 @@ void TextButton::print() {            // override base class: buttons draw their
   // base class will draw text
   TextField::print(text);
 }
+
+// ========== font management helpers ==========================
+/* Using fonts: https://learn.adafruit.com/adafruit-gfx-graphics-library/using-fonts
+
+  "Fonts" folder is inside \Documents\User\Arduino\libraries\Adafruit_GFX_Library\fonts
+*/
+#include "Fonts/FreeSans18pt7b.h"       // eFONTGIANT    36 pt (see constants.h)
+#include "Fonts/FreeSansBold24pt7b.h"   // eFONTBIG      24 pt
+#include "Fonts/FreeSans12pt7b.h"       // eFONTSMALL    12 pt
+#include "Fonts/FreeSans9pt7b.h"        // eFONTSMALLEST  9 pt
+// (built-in)                           // eFONTSYSTEM    8 pt
+
+void setFontSize(int font) {
+  // input: "font" = point size
+  switch (font) {
+    case 36:  // eFONTGIANT
+      tft.setFont(&FreeSans18pt7b);
+      tft.setTextSize(2);
+      break;
+
+    case 24:  // eFONTBIG
+      tft.setFont(&FreeSansBold24pt7b);
+      tft.setTextSize(1);
+      break;
+
+    case 12:  // eFONTSMALL
+      tft.setFont(&FreeSans12pt7b);
+      tft.setTextSize(1);
+      break;
+
+    case 9:   // eFONTSMALLEST
+      tft.setFont(&FreeSans9pt7b);
+      tft.setTextSize(1);
+      break;
+
+    case 0:   // eFONTSYSTEM
+      tft.setFont();
+      tft.setTextSize(2);
+      break;
+
+    default:
+      Serial.print("Error, unknown font size ("); Serial.print(font); Serial.println(")");
+      break;
+  }
+}
+
+int getOffsetToCenterText(String text) {
+  // measure width of given text in current font and 
+  // calculate X-offset to make it centered left-right on screen
+  int16_t x1, y1;
+  uint16_t w, h;
+  tft.getTextBounds(text, 0, 0, &x1, &y1, &w, &h);  // compute "pixels wide"
+  return (gScreenWidth - w) / 2;
+}
+
+int getOffsetToCenterTextOnButton(String text, int leftEdge, int width ) {
+  // measure width of given text in current font and 
+  // calculate X-offset to make it centered left-right within given bounds
+  int16_t x1, y1;
+  uint16_t w, h;
+  tft.getTextBounds(text, 0, 0, &x1, &y1, &w, &h);  // compute "pixels wide"
+  return leftEdge + (width - w) / 2;
+}
+

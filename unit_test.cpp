@@ -17,7 +17,7 @@
 extern float nextGridLineEast(float longitudeDegrees);       // Griduino.ino
 extern float nextGridLineWest(float longitudeDegrees);       // Griduino.ino
 extern void calcLocator(char* result, double lat, double lon, int precision); // Griduino.ino
-extern void setFontSize(int font);             // Griduino.ino
+extern void setFontSize(int font);             // TextField.cpp
 extern void clearScreen();                     // Griduino.ino
 
 // ----- globals

@@ -24,10 +24,6 @@
 #include "TextField.h"                // Optimize TFT display text for proportional fonts
 #include "view.h"                     // Base class for all views
 
-// ========== extern ===========================================
-//extern void setFontSize(int font);    // Griduino.ino
-//tern void showScreenBorder();       // optionally outline visible area
-
 // ========== class ViewSplash =================================
 class ViewSplash : public View {
   public:

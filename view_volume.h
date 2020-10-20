@@ -37,8 +37,6 @@
 extern DACMorseSender dacMorse;       // morse code (so we can send audio samples)
 extern DS1804 volume;                 // digital potentiometer
 
-extern int getOffsetToCenterTextOnButton(String text, int leftEdge, int width ); // Griduino.ino
-
 // ========== class ViewVolume =================================
 class ViewVolume : public View {
   public:

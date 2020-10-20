@@ -50,10 +50,6 @@ extern Model* model;                  // "model" portion of model-view-controlle
 extern Adafruit_BMP3XX baro;          // Griduino.ino
 extern void getDate(char* result, int maxlen);  // model.cpp
 
-extern void setFontSize(int font);    // Griduino.ino
-extern int getOffsetToCenterTextOnButton(String text, int leftEdge, int width);  // Griduino.ino
-//tern void showScreenBorder();       // optionally outline visible area
-
 // ========== class ViewTime ===================================
 class ViewTime : public View {
   public:
@@ -95,17 +91,17 @@ class ViewTime : public View {
     #define numClockFields 11
     TextField txtClock[numClockFields] = {
       // text            x,y    color             index
-      {"Griduino GMT",  -1, 10, cTEXTCOLOR, ALIGNCENTER}, // [TITLE] program title, centered
-      {"hh",            12, 90, cVALUE},                  // [HOURS]     giant clock hours
-      {":",             94, 90, cVALUE},                  // [COLON1]    :
-      {"mm",           120, 90, cVALUE},                  // [MINUTES]   giant clock minutes
-      {":",            204, 90, cVALUE},                  // [COLON2]    :
-      {"ss",           230, 90, cVALUE},                  // [SECONDS]   giant clock seconds
-      {"MMM dd, yyyy",  94,130, cVALUE},                  // [GMTDATE]   GMT date
-      {"12.3 F",       132,164, cVALUE},                  // [DEGREES]   Temperature
-      {"hh:mm:ss",     118,226, cTEXTCOLOR},              // [LOCALTIME] Local time
-      {"-7h",            8,226, cTEXTFAINT},              // [TIMEZONE]  addHours time zone
-      {"6#",           308,226, cTEXTFAINT, ALIGNRIGHT},  // [NUMSATS]   numSats
+      {"Griduino GMT",  -1, 10, cTEXTCOLOR, ALIGNCENTER,eFONTSYSTEM}, // [TITLE] program title, centered
+      {"hh",            12, 90, cVALUE,     ALIGNLEFT, eFONTGIANT},   // [HOURS]     giant clock hours
+      {":",             94, 90, cVALUE,     ALIGNLEFT, eFONTGIANT},   // [COLON1]    :
+      {"mm",           120, 90, cVALUE,     ALIGNLEFT, eFONTGIANT},   // [MINUTES]   giant clock minutes
+      {":",            204, 90, cVALUE,     ALIGNLEFT, eFONTGIANT},   // [COLON2]    :
+      {"ss",           230, 90, cVALUE,     ALIGNLEFT, eFONTGIANT},   // [SECONDS]   giant clock seconds
+      {"MMM dd, yyyy",  -1,130, cVALUE,     ALIGNCENTER, eFONTSMALL}, // [GMTDATE]   GMT date
+      {"12.3 F",        -1,164, cVALUE,     ALIGNCENTER, eFONTSMALL}, // [DEGREES]   Temperature
+      {"hh:mm:ss",     118,226, cTEXTCOLOR, ALIGNLEFT, eFONTSMALL},   // [LOCALTIME] Local time
+      {"-7h",            8,226, cTEXTFAINT, ALIGNLEFT, eFONTSMALLEST},// [TIMEZONE]  addHours time zone
+      {"6#",           308,226, cTEXTFAINT, ALIGNRIGHT,eFONTSMALLEST},// [NUMSATS]   numSats
     };
 
     enum buttonID {
@@ -165,14 +161,11 @@ void ViewTime::updateScreen() {
   snprintf(sMinute, sizeof(sMinute), "%02d", GPS.minute);
   snprintf(sSeconds,sizeof(sSeconds), "%02d", GPS.seconds);
 
-  setFontSize(36);
   txtClock[HOURS].print(sHour);
   txtClock[MINUTES].print(sMinute);
   txtClock[SECONDS].print(sSeconds);
   txtClock[COLON2].dirty = true;      // re-draw COLON2 because it was erased by SECONDS field
   txtClock[COLON2].print();
-
-  setFontSize(12);
 
   // GMT Date
   char sDate[16];                     // strlen("Jan 12, 2020 ") = 14
@@ -222,7 +215,6 @@ void ViewTime::startScreen() {
   showScreenBorder();                 // optionally outline visible area
 
   // ----- draw page title
-  setFontSize(eFONTSYSTEM);
   txtClock[TITLE].print();
 
   // ----- draw giant fields

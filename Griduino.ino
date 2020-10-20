@@ -25,25 +25,38 @@
             |            47.5644, -122.0378         |
             +---------------------------------------+
 
-  Tested with:
-         1. Arduino Feather M4 Express (120 MHz SAMD51)
-            Spec: https://www.adafruit.com/product/3857
+  Units of Time:
+         This relies on "TimeLib.h" which uses "time_t" to represent time.
+         The basic unit of time (time_t) is the number of seconds since Jan 1, 1970, 
+         a compact 4-byte integer.
+         https://github.com/PaulStoffregen/Time
 
-         2. Adafruit 3.2" TFT color LCD display ILI-9341
-            Spec: http://adafru.it/1743
-            How to: https://learn.adafruit.com/adafruit-2-dot-8-color-tft-touchscreen-breakout-v2
-            SPI Wiring: https://learn.adafruit.com/adafruit-2-dot-8-color-tft-touchscreen-breakout-v2/spi-wiring-and-test
+  Real Time Clock:
+         The real time clock in the Adafruit Ultimate GPS is not directly readable or 
+         accessible from the Arduino. It's definitely not writeable. It's only internal to the GPS. 
+         Once the battery is installed, and the GPS gets its first data reception from satellites 
+         it will set the internal RTC. Then as long as the battery is installed, you can read the 
+         time from the GPS as normal. Even without a current "gps fix" the time will be correct.
+         The RTC timezone cannot be changed, it is always UTC.
+
+  Tested with:
+         1. Arduino Feather M4 Express (120 MHz SAMD51)     https://www.adafruit.com/product/3857
+
+         2. Adafruit 3.2" TFT color LCD display ILI-9341    https://www.adafruit.com/product/1743
+            How to:      https://learn.adafruit.com/adafruit-2-dot-8-color-tft-touchscreen-breakout-v2
+            SPI Wiring:  https://learn.adafruit.com/adafruit-2-dot-8-color-tft-touchscreen-breakout-v2/spi-wiring-and-test
             Touchscreen: https://learn.adafruit.com/adafruit-2-dot-8-color-tft-touchscreen-breakout-v2/resistive-touchscreen
 
-         3. Adafruit Ultimate GPS
-            Spec: https://www.adafruit.com/product/746
+         3. Adafruit Ultimate GPS                           https://www.adafruit.com/product/746
 
-         4. One-transistor audio amplifier, digital potentiometer and mini speaker
-            This is a commodity item and many similar devices are available.
+         4. Adafruit BMP388 Barometric Pressure             https://www.adafruit.com/product/3966
+
+         5. One-transistor audio amplifier, digital potentiometer and mini speaker
+            Speaker is a commodity item and many devices and options are available.
             We tested a piezo speaker but they're tuned for a narrow frequency and 
             unsatisfactory for anything but a single pitch.
-            Here is a breadboard-friendly speaker from Adafruit.
-            Spec: https://www.adafruit.com/product/1898
+            Breadboard-friendly speaker:                    https://www.adafruit.com/product/1898
+            Better fidelity speaker:                        https://www.adafruit.com/product/4445
 
   Source Code Outline:
          1. Hardware Wiring  (pin definitions)
@@ -55,12 +68,12 @@
          7. loop()
 */
 
-#include "SPI.h"                      // Serial Peripheral Interface
 #include "Adafruit_GFX.h"             // Core graphics display library
 #include "Adafruit_ILI9341.h"         // TFT color display library
-#include "Adafruit_GPS.h"             // Ultimate GPS library
 #include "TouchScreen.h"              // Touchscreen built in to 3.2" Adafruit TFT display
+#include "Adafruit_GPS.h"             // Ultimate GPS library
 #include "Adafruit_BMP3XX.h"          // Precision barometric and temperature sensor
+#include "Adafruit_NeoPixel.h"        // On-board color addressable LED
 #include "DS1804.h"                   // DS1804 digital potentiometer library
 #include "save_restore.h"             // save/restore configuration data to SDRAM
 #include "constants.h"                // Griduino constants, colors, typedefs
@@ -149,6 +162,10 @@ On-board lights:
 // create an instance of the TFT Display
 Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 
+// ---------- neopixel
+#define NUMPIXELS 1         // Feather M4 has one NeoPixel on board
+Adafruit_NeoPixel pixel = Adafruit_NeoPixel(NUMPIXELS, PIN_NEOPIXEL, NEO_GRB + NEO_KHZ800);
+
 // ---------- Touch Screen
 // For touch point precision, we need to know the resistance
 // between X+ and X- Use any multimeter to read it
@@ -173,7 +190,7 @@ Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 TouchScreen ts = TouchScreen(PIN_XP, PIN_YP, PIN_XM, PIN_YM, 295);
 
 // ---------- Barometric and Temperature Sensor
-Adafruit_BMP3XX baro(BMP_CS); // hardware SPI
+Adafruit_BMP3XX baro(BMP_CS);         // hardware SPI
 
 // ---------- Feather's onboard lights
 #define RED_LED 13          // diagnostics RED LED
@@ -368,69 +385,6 @@ void mapTouchToScreen(TSPoint touch, Point* screen) {
     screen->y = tft.height() - screen->y;
   }
   return;
-}
-
-// ========== font management helpers ==========================
-/* Using fonts: https://learn.adafruit.com/adafruit-gfx-graphics-library/using-fonts
-
-  "Fonts" folder is inside \Documents\User\Arduino\libraries\Adafruit_GFX_Library\fonts
-*/
-#include "Fonts/FreeSans18pt7b.h"       // eFONTGIANT    36 pt (see constants.h)
-#include "Fonts/FreeSansBold24pt7b.h"   // eFONTBIG      24 pt
-#include "Fonts/FreeSans12pt7b.h"       // eFONTSMALL    12 pt
-#include "Fonts/FreeSans9pt7b.h"        // eFONTSMALLEST  9 pt
-// (built-in)                           // eFONTSYSTEM    8 pt
-
-void setFontSize(int font) {
-  // input: "font" = point size
-  switch (font) {
-    case 36:  // eFONTGIANT
-      tft.setFont(&FreeSans18pt7b);
-      tft.setTextSize(2);
-      break;
-
-    case 24:  // eFONTBIG
-      tft.setFont(&FreeSansBold24pt7b);
-      tft.setTextSize(1);
-      break;
-
-    case 12:  // eFONTSMALL
-      tft.setFont(&FreeSans12pt7b);
-      tft.setTextSize(1);
-      break;
-
-    case 9:   // eFONTSMALLEST
-      tft.setFont(&FreeSans9pt7b);
-      tft.setTextSize(1);
-      break;
-
-    case 0:   // eFONTSYSTEM
-      tft.setFont();
-      tft.setTextSize(2);
-      break;
-
-    default:
-      Serial.print("Error, unknown font size ("); Serial.print(font); Serial.println(")");
-      break;
-  }
-}
-
-int getOffsetToCenterText(String text) {
-  // measure width of given text in current font and 
-  // calculate X-offset to make it centered left-right on screen
-  int16_t x1, y1;
-  uint16_t w, h;
-  tft.getTextBounds(text, 0, 0, &x1, &y1, &w, &h);  // compute "pixels wide"
-  return (gScreenWidth - w) / 2;
-}
-
-int getOffsetToCenterTextOnButton(String text, int leftEdge, int width ) {
-  // measure width of given text in current font and 
-  // calculate X-offset to make it centered left-right within given bounds
-  int16_t x1, y1;
-  uint16_t w, h;
-  tft.getTextBounds(text, 0, 0, &x1, &y1, &w, &h);  // compute "pixels wide"
-  return leftEdge + (width - w) / 2;
 }
 
 // ============== grid helpers =================================
@@ -715,7 +669,7 @@ void setup() {
   tft.begin();                        // initialize TFT display
   tft.fillScreen(ILI9341_BLACK);      // note that "begin()" does not clear screen 
   tft.setRotation(1);                 // 1=landscape (default is 0=portrait)
-  settings4View.loadConfig();         // let the settings object initialize itself
+  //settings4View.loadConfig();         // let the settings object initialize itself
 
   // ----- init TFT backlight
   pinMode(TFT_BL, OUTPUT);
