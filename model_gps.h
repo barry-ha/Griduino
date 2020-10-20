@@ -1,7 +1,6 @@
-#ifndef _GRIDUINO_MODEL_CPP
-#define _GRIDUINO_MODEL_CPP
+#pragma once
 
-/* File: model.cpp
+/* File:    model_gps.h
    Project: Griduino by Barry K7BWH
 
    Note: All data must be self-contained so it can be save/restored in 
@@ -474,5 +473,3 @@ class MockModel : public Model {
       }
     }
 };
-
-#endif // _GRIDUINO_MODEL_CPP

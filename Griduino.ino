@@ -492,11 +492,11 @@ void waitForSerial(int howLong) {
 //    to help guide the programmer into designing an independent Model object 
 //    with very specific functionality and interfaces.
 //==============================================================
-#include "model.cpp"
+#include "model_gps.h"
 
 // create an instance of the model
 Model modelGPS;             // normal: use real GPS hardware
-MockModel modelSimulator;   // test: simulated travel (see model.cpp)
+MockModel modelSimulator;   // test: simulated travel (see model_gps.h)
 
 // at power-on, we choose to always start with real GPS receiver hardware 
 // because I don't want to bother saving/restoring this selection right now

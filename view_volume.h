@@ -27,7 +27,7 @@
 #include <Arduino.h>
 #include "Adafruit_ILI9341.h"         // TFT color display library
 #include "constants.h"                // Griduino constants and colors
-#include "model.cpp"                  // "Model" portion of model-view-controller
+#include "model_gps.h"                // "Model" portion of model-view-controller
 #include "morse_dac.h"                // morse code
 #include "DS1804.h"                   // DS1804 digital potentiometer library
 #include "TextField.h"                // Optimize TFT display text for proportional fonts

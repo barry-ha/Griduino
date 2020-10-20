@@ -39,7 +39,7 @@
 #include <Arduino.h>
 #include "Adafruit_ILI9341.h"         // TFT color display library
 #include "constants.h"                // Griduino constants and colors
-#include "model.cpp"                  // "Model" portion of model-view-controller
+#include "model_gps.h"                // "Model" portion of model-view-controller
 #include "Adafruit_BMP3XX.h"          // Precision barometric and temperature sensor
 #include "save_restore.h"             // Save configuration in non-volatile RAM
 #include "TextField.h"                // Optimize TFT display text for proportional fonts
@@ -48,7 +48,7 @@
 // ========== extern ===========================================
 extern Model* model;                  // "model" portion of model-view-controller
 extern Adafruit_BMP3XX baro;          // Griduino.ino
-extern void getDate(char* result, int maxlen);  // model.cpp
+extern void getDate(char* result, int maxlen);  // model_gps.h
 
 // ========== class ViewTime ===================================
 class ViewTime : public View {
@@ -123,7 +123,7 @@ class ViewTime : public View {
     };
 
     // ----- time helpers
-    /* 2020-10-15 bwh - moved this into model.cpp
+    /* 2020-10-15 bwh - moved this into model_gps.h
     #define TIME_FOLDER  "/GMTclock"     // 8.3 names
     #define TIME_FILE    TIME_FOLDER "/AddHours.cfg"
     #define TIME_VERSION "v01"

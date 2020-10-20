@@ -9,7 +9,7 @@
 #include "Adafruit_ILI9341.h"       // TFT color display library
 #include "morse_dac.h"              // Morse code
 #include "save_restore.h"           // Configuration data in nonvolatile RAM
-#include "model.cpp"                // Class Model (for model-view-controller)
+#include "model_gps.h"              // Class Model (for model-view-controller)
 #include "TextField.h"              // Optimize TFT display text for proportional fonts
 #include "view.h"                   // Base class for all views
 
@@ -200,7 +200,7 @@ void verifySaveRestoreGPSModel() {
   #define TEST_GPS_STATE_VERS   "Test v02"
   Serial.print("-------- verifySaveRestoreGPSModel() at line "); Serial.println(__LINE__);
 
-  Model gpsModel;     // sample data to read/write, a different object than used in model.cpp
+  Model gpsModel;     // sample data to read/write, a different object than used in model_gps.h
 
   if (gpsModel.save()) {
     Serial.println("Success, GPS model stored to SDRAM");
