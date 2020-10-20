@@ -1,5 +1,5 @@
 /*
-  Griduino -- demonstrate BMP388 barometric sensor
+  Baroduino -- demonstrate BMP388 barometric sensor
 
   Version history: 
             2020-10-02 v0.24 published to the GitHub downloads folder
@@ -73,22 +73,25 @@
 
   Tested with:
          1. Arduino Feather M4 Express (120 MHz SAMD51)     https://www.adafruit.com/product/3857
+
          2. Adafruit 3.2" TFT color LCD display ILI-9341    https://www.adafruit.com/product/1743
+
          3. Adafruit Ultimate GPS                           https://www.adafruit.com/product/746
+
          4. Adafruit BMP388 Barometric Pressure             https://www.adafruit.com/product/3966
 */
 
-#include "Adafruit_GFX.h"           // Core graphics display library
-#include "Adafruit_ILI9341.h"       // TFT color display library
-#include "Adafruit_GPS.h"           // Ultimate GPS library
-#include "Adafruit_BMP3XX.h"        // Precision barometric and temperature sensor
-#include "Adafruit_NeoPixel.h"      // On-board color addressable LED
-#include "TouchScreen.h"            // Touchscreen built in to 3.2" Adafruit TFT display
-#include "hardware.h"               // Griduino pin definitions 
-#include "constants.h"              // Griduino constants, colors, typedefs
-#include "save_restore.h"           // save/restore configuration data to SDRAM
-#include "TextField.h"              // Optimize TFT display text for proportional fonts
-#include "TimeLib.h"                // BorisNeubert / Time (who forked it from PaulStoffregen / Time)
+#include "Adafruit_GFX.h"             // Core graphics display library
+#include "Adafruit_ILI9341.h"         // TFT color display library
+#include "TouchScreen.h"              // Touchscreen built in to 3.2" Adafruit TFT display
+#include "Adafruit_GPS.h"             // Ultimate GPS library
+#include "Adafruit_BMP3XX.h"          // Precision barometric and temperature sensor
+#include "Adafruit_NeoPixel.h"        // On-board color addressable LED
+#include "save_restore.h"             // save/restore configuration data to SDRAM
+#include "hardware.h"                 // Griduino pin definitions 
+#include "constants.h"                // Griduino constants, colors, typedefs
+#include "TextField.h"                // Optimize TFT display text for proportional fonts
+#include "TimeLib.h"                  // BorisNeubert / Time (who forked it from PaulStoffregen / Time)
 
 // ------- Identity for splash screen and console --------
 #define BAROGRAPH_TITLE "Griduino"
@@ -108,6 +111,12 @@ float fMinHg = 29.4;          // lower bound of graph, inHg
 enum units { eMetric, eEnglish };
 int gUnits = eEnglish;         // units on startup: 0=english=inches mercury, 1=metric=millibars
 
+// ---------- extern
+extern bool newScreenTap(Point* pPoint, int orientation);  // Touch.cpp
+extern uint16_t myPressure(void);                          // Touch.cpp
+//extern bool TouchScreen::isTouching(void);               // Touch.cpp
+extern void mapTouchToScreen(TSPoint touch, Point* screen, int orientation);
+
 // ========== forward reference ================================
 int loadConfigUnits();
 void saveConfigUnits();
@@ -119,6 +128,7 @@ void saveConfigUnits();
 Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 
 // ---------- neopixel
+#define NUMPIXELS 1         // Feather M4 has one NeoPixel on board
 Adafruit_NeoPixel pixel = Adafruit_NeoPixel(NUMPIXELS, PIN_NEOPIXEL, NEO_GRB + NEO_KHZ800);
 
 const uint32_t colorRed    = pixel.Color(HALFBR, OFF,    OFF);
@@ -126,14 +136,8 @@ const uint32_t colorGreen  = pixel.Color(OFF,    HALFBR, OFF);
 const uint32_t colorBlue   = pixel.Color(OFF,    OFF,    BRIGHT);
 const uint32_t colorPurple = pixel.Color(HALFBR, OFF,    HALFBR);
 
-// ---------- extern
-bool newScreenTap(Point* pPoint, int orientation);  // Touch.cpp
-uint16_t myPressure(void);                          // Touch.cpp
-//bool TouchScreen::isTouching(void);               // Touch.cpp
-void mapTouchToScreen(TSPoint touch, Point* screen, int orientation);
-
 // ---------- Barometric and Temperature Sensor
-Adafruit_BMP3XX baro(BMP_CS);   // hardware SPI
+Adafruit_BMP3XX baro(BMP_CS);         // hardware SPI
 
 // ---------- GPS ----------
 // Hardware serial port for GPS
@@ -999,6 +1003,7 @@ void loop() {
   if (prevShowTime > millis()) { prevShowTime = millis(); }
 
   GPS.read();   // if you can, read the GPS serial port every millisecond in an interrupt
+
   if (GPS.newNMEAreceived()) {
     // sentence received -- verify checksum, parse it
     // GPS parsing: https://learn.adafruit.com/adafruit-ultimate-gps/parsed-data-output
@@ -1084,7 +1089,7 @@ void loop() {
     adjustUnits();              // change between "inches mercury" and "millibars" units
   }
 
-  // make a small progress bar crawl along bottom edge
-  // this gives a sense of how frequently the main loop is executing
+  // small activity bar crawls along bottom edge to give 
+  // a sense of how frequently the main loop is executing
   showActivityBar(tft.height()-1, ILI9341_RED, cBACKGROUND);
 }

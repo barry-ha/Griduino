@@ -114,19 +114,19 @@ Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 TouchScreen ts = TouchScreen(PIN_XP, PIN_YP, PIN_XM, PIN_YM, 295);
 
 // ---------- Barometric and Temperature Sensor
-Adafruit_BMP3XX baro(BMP_CS); // hardware SPI
+Adafruit_BMP3XX baro(BMP_CS);         // hardware SPI
 
 // ---------- Feather's onboard lights
-//efine PIN_NEOPIXEL 8      // already defined in Feather's board variant.h
-//efine PIN_LED 13          // already defined in Feather's board variant.h
+//efine PIN_NEOPIXEL 8                // already defined in Feather's board variant.h
+//efine PIN_LED 13                    // already defined in Feather's board variant.h
 
-#define NUMPIXELS 1         // Feather M4 has one NeoPixel on board
+#define NUMPIXELS 1                   // Feather M4 has one NeoPixel on board
 Adafruit_NeoPixel pixel = Adafruit_NeoPixel(NUMPIXELS, PIN_NEOPIXEL, NEO_GRB + NEO_KHZ800);
 
-const int MAXBRIGHT = 255;    // = 100% brightness = maximum allowed on individual LED
-const int BRIGHT = 32;        // = tolerably bright indoors
-const int HALFBR = 20;        // = half of tolerably bright
-const int OFF = 0;            // = turned off
+const int MAXBRIGHT = 255;            // = 100% brightness = maximum allowed on individual LED
+const int BRIGHT = 32;                // = tolerably bright indoors
+const int HALFBR = 20;                // = half of tolerably bright
+const int OFF = 0;                    // = turned off
 
 const uint32_t colorRed    = pixel.Color(HALFBR, OFF,    OFF);
 const uint32_t colorGreen  = pixel.Color(OFF,    HALFBR, OFF);
@@ -191,7 +191,7 @@ float hPa;
 float feet;
 float tempF;
 
-float deltaPressure1h = 5000;     // 5k is arbitrary, it just needs to be out of range to prevent display on cold start
+float deltaPressure1h = 5000;             // 5k is arbitrary, it just needs to be out of range to prevent display on cold start
 float deltaPressure3h = 5000;
 
 // 144 steps at 20 minute refresh time is a 2880 minute (48 hr) graph with 20 minute resolution.
@@ -203,13 +203,13 @@ const int lastIndex = maxReadings - 1;      // index to the last element in pres
 
 // ============== touchscreen helpers ==========================
 
-bool gTouching = false;             // keep track of previous state
+bool gTouching = false;               // keep track of previous state
 bool newScreenTap(Point* pPoint) {
   // find leading edge of a screen touch
   // returns TRUE only once on initial screen press
   // if true, also return screen coordinates of the touch
 
-  bool result = false;        // assume no touch
+  bool result = false;                // assume no touch
   if (gTouching) {
     // the touch was previously processed, so ignore continued pressure until they let go
     if (!ts.isTouching()) {

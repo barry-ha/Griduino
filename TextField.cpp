@@ -4,15 +4,15 @@
 
 #include <Arduino.h>
 //#include "Adafruit_GFX.h"           // Core graphics display library
-#include "Adafruit_ILI9341.h"       // TFT color display library
-#include "constants.h"              // Griduino constants, colors and typedefs
-#include "TextField.h"              // Optimize TFT display text for proportional fonts
+#include "Adafruit_ILI9341.h"         // TFT color display library
+#include "constants.h"                // Griduino constants, colors and typedefs
+#include "TextField.h"                // Optimize TFT display text for proportional fonts
 
 // ========== extern ==================================
-extern Adafruit_ILI9341 tft;        // Griduino.ino  TODO: eliminate this global
-extern void setFontSize(int font);  // Griduino.ino  TODO: eliminate this extern
+extern Adafruit_ILI9341 tft;          // Griduino.ino  TODO: eliminate this global
+extern void setFontSize(int font);    // Griduino.ino  TODO: eliminate this extern
 
-uint16_t TextField::cBackground;    // background color
+uint16_t TextField::cBackground;      // background color
 
 // ========== TextField ===============================
 void TextField::eraseOld() {

@@ -14,9 +14,9 @@
 //#define ECHO_GPS_SENTENCE           // use this to see once-per-second GPS sentences
 //#define SHOW_TOUCH_TARGETS          // use this to outline touchscreen sensitive buttons
 //#define SHOW_SCREEN_BORDER          // use this to outline the screen's displayable area
+//#define SHOW_SCREEN_CENTERLINE      // use this visual aid to help layout the screen
 
 // ------- TFT screen definitions ---------
-#define SCREEN_ROTATION 1             // 1=landscape, 3=landscape 180-degrees
 #define gScreenWidth 320              // screen pixels wide
 #define gScreenHeight 240             // screen pixels high
                                       // we use #define here instead of reading it from "tft.width()" because this
@@ -29,6 +29,7 @@
 // ------- Physical constants ---------
 const float gridWidthDegrees = 2.0;   // size of one grid square, degrees
 const float gridHeightDegrees = 1.0;
+
 #define feetPerMeters 3.28084         // altitude conversion
 #define mphPerKnots   1.15078
 const double degreesPerRadian = 57.2957795; // conversion factor = (360 degrees)/(2 pi radians)
@@ -37,6 +38,9 @@ const double degreesPerRadian = 57.2957795; // conversion factor = (360 degrees)
 //#define EXTERNAL_FLASH_USE_QSPI     // 2020-02-11 added by BarryH, since it seems to be missing from 
                                       // c:\Users\barry\AppData\Local\Arduino15\packages\adafruit\hardware\samd\1.5.7\variants\feather_m4\variant.h
 #define CONFIG_FOLDER  "/Griduino"
+
+// ----- alias names for SCREEN_ROTATION
+#define SCREEN_ROTATION 1             // 1=landscape, 3=landscape 180-degrees
 
 // ----- alias names for fGetDataSource()
 enum {
@@ -50,7 +54,8 @@ enum {
   eFONTBIG      = 24,
   eFONTSMALL    = 12,
   eFONTSMALLEST = 9,
-  eFONTSYSTEM   = 0
+  eFONTSYSTEM   = 0,
+  eFONTUNSPEC   = -1,
 };
 
 // ------- NeoPixel brightness ---------
@@ -66,7 +71,8 @@ const int OFF = 0;                    // = turned off
 #define cGRIDNAME       ILI9341_GREEN
 #define cLABEL          ILI9341_GREEN
 #define cDISTANCE       ILI9341_YELLOW
-#define cVALUE          ILI9341_YELLOW
+#define cVALUE          ILI9341_YELLOW  // 255, 255, 0
+#define cVALUEFAINT     0xbdc0          // darker than cVALUE
 #define cHIGHLIGHT      ILI9341_WHITE
 #define cBUTTONFILL     ILI9341_NAVY
 #define cBUTTONOUTLINE  ILI9341_CYAN
@@ -83,9 +89,15 @@ const int OFF = 0;                    // = turned off
 struct Point {
   int x, y;
 };
-struct PointGPS{
+struct PointGPS {
   public:
     double lat, lng;
+};
+
+struct TwoPoints {
+  int x1, y1;
+  int x2, y2;
+  uint16_t color;
 };
 
 struct Rect {
@@ -115,7 +127,7 @@ struct Button {
   int radius;
   uint16_t color;
   simpleFunction function;
-} ;
+};
 
 struct TimeButton {
   // TimeButton is like Button, but has a larger specifiable hit target
@@ -127,7 +139,20 @@ struct TimeButton {
   int radius;
   uint16_t color;
   simpleFunction function;
-} ;
+};
+
+struct FunctionButton {
+  // FunctionButton is like Button, but has a larger specifiable hit target
+  // It's also like TimeButton, but specifies the function by enum, rather than pointer to function
+  // and this allows its usage in classes derived from "class View"
+  char text[26];
+  int x, y;
+  int w, h;
+  Rect hitTarget;
+  int radius;
+  uint16_t color;
+  int functionIndex;
+};
 
 class Location {
   public:

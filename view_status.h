@@ -18,6 +18,7 @@
             |  Satellites:  None                |...yRow5
             |          47.0753, -122.2847       |...yRow6
             |   Waiting for GPS                 |...yRow7?
+            |                                   |
             +------------:--:-------------------+
                     labelX  valueX
 */

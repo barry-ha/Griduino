@@ -124,7 +124,7 @@ void drawPositionLL(double fLat, double fLong) {
   } else {
     strcpy(sTemp, "Waiting for GPS");
   }
-  txtGrid[LATLONG].print(sTemp);          // latitude-longitude
+  txtGrid[LATLONG].print(sTemp);      // latitude-longitude
 
 }
 
@@ -137,14 +137,14 @@ void drawNumSatellites() {
   } else {
     snprintf(sTemp, sizeof(sTemp), "%d#", model->gSatellites);
   }
-  txtGrid[NUMSAT].print(sTemp);           // number of satellites
+  txtGrid[NUMSAT].print(sTemp);       // number of satellites
  
 }
 
 void drawAltitude() {
   setFontSize(0);
 
-  char sTemp[8];      // strlen("12345'") = 6
+  char sTemp[8];                      // strlen("12345'") = 6
   if (model->gMetric) {
     int altMeters = model->gAltitude;
     snprintf(sTemp, sizeof(sTemp), "%dm", altMeters);
@@ -152,7 +152,7 @@ void drawAltitude() {
     int altFeet = model->gAltitude * feetPerMeters;
     snprintf(sTemp, sizeof(sTemp), "%d'", altFeet);
   }
-  txtGrid[ALTITUDE].print(sTemp);         // altitude
+  txtGrid[ALTITUDE].print(sTemp);     // altitude
 }
 
 void drawCompassPoints() {
@@ -398,8 +398,8 @@ void ViewGrid::updateScreen() {
   
   char grid6[7];
   calcLocator(grid6, model->gLatitude, model->gLongitude, 6);
-  drawGridName(grid6);              // huge letters centered on screen
-  drawAltitude();                   // height above sea level
+  drawGridName(grid6);                // huge letters centered on screen
+  drawAltitude();                     // height above sea level
   drawNumSatellites();
   drawPositionLL(model->gLatitude, model->gLongitude);  // lat-long of current position
   //drawCompassPoints();              // show N-S-E-W compass points (disabled, it makes the screen too busy)
@@ -428,14 +428,14 @@ void ViewGrid::startScreen() {
   Serial.print(latMiles,2); Serial.println(" miles");
 
   setFontSize(12);
-  drawGridOutline();                // box outline around grid
-  drawAllIcons();                   // draw gear (settings) and arrow (next screen)
-  showScreenBorder();               // optionally outline visible area
+  drawGridOutline();                  // box outline around grid
+  drawAllIcons();                     // draw gear (settings) and arrow (next screen)
+  showScreenBorder();                 // optionally outline visible area
 
-  updateScreen();                   // fill in values immediately, don't wait for the main loop to eventually get around to it
+  updateScreen();                     // fill in values immediately, don't wait for the main loop to eventually get around to it
 }
 
 bool ViewGrid::onTouch(Point touch) {
   Serial.println("->->-> Touched grid detail screen.");
-  return false;                     // true=handled, false=controller uses default action
+  return false;                       // true=handled, false=controller uses default action
 }

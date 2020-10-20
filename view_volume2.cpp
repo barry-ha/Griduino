@@ -28,23 +28,20 @@
 */
 
 #include <Arduino.h>
-#include "Adafruit_ILI9341.h"       // TFT color display library
-#include "constants.h"              // Griduino constants and colors
-#include "model.cpp"                // "Model" portion of model-view-controller
-#include "morse_dac.h"              // morse code
-#include "DS1804.h"                 // DS1804 digital potentiometer library
-#include "save_restore.h"           // save/restore configuration data to SDRAM
-#include "TextField.h"              // Optimize TFT display text for proportional fonts
+#include "Adafruit_ILI9341.h"         // TFT color display library
+#include "constants.h"                // Griduino constants and colors
+#include "model.cpp"                  // "Model" portion of model-view-controller
+#include "morse_dac.h"                // morse code
+#include "DS1804.h"                   // DS1804 digital potentiometer library
+#include "save_restore.h"             // save/restore configuration data to SDRAM
+#include "TextField.h"                // Optimize TFT display text for proportional fonts
 
 // ========== extern ===========================================
-extern Adafruit_ILI9341 tft;        // Griduino.ino
-extern DACMorseSender dacMorse;     // morse code (so we can send audio samples)
-extern DS1804 volume;               // digital potentiometer
+extern Adafruit_ILI9341 tft;          // Griduino.ino
+extern DACMorseSender dacMorse;       // morse code (so we can send audio samples)
+extern DS1804 volume;                 // digital potentiometer
 
-extern void setFontSize(int font);         // Griduino.ino
-extern int getOffsetToCenterTextOnButton(String text, int leftEdge, int width ); // Griduino.ino
-//tern void drawAllIcons();                // draw gear (settings) and arrow (next screen) // Griduino.ino
-//tern void showScreenBorder();            // optionally outline visible area
+extern void setFontSize(int font);    // TextField.cpp
 
 // ========== forward reference ================================
 void updateVolume2Screen();
@@ -56,23 +53,23 @@ void volMute2();
 
 // ============== constants ====================================
 // vertical placement of text rows
-const int yRow1 = 32;             // label: "Audio Volume"
-const int yRow2 = yRow1 + 30;     // text:  "of 10"
+const int yRow1 = 32;                 // label: "Audio Volume"
+const int yRow2 = yRow1 + 30;         // text:  "of 10"
 
 // color scheme: see constants.h
 
 // ========== globals ==========================================
-int gVolIndex2 = 5;          // init to middle value
-int gPrevVolIndex2 = -1;     // remembers previous volume setting to avoid erase/write the same value
+int gVolIndex2 = 5;                   // init to middle value
+int gPrevVolIndex2 = -1;              // remembers previous volume setting to avoid erase/write the same value
 
 TextField txtVolume2[] = {
   //        text             x,y      color  
-  TextField("Audio Volume", 98,yRow1, cLABEL),              // normal size text labels
+  TextField("Audio Volume", 98,yRow1, cLABEL),  // normal size text labels
 };
 const int numVolFields = sizeof(txtVolume2)/sizeof(TextField);
 
-const int margin = 10;      // slight margin between button border and edge of screen
-const int radius = 10;      // rounded corners
+const int margin = 10;                // slight margin between button border and edge of screen
+const int radius = 10;                // rounded corners
 Button volButtons2[] = {
   // text     x,y        w,h        r      color
   {"",       38, 76,   136,72,  radius, cBUTTONLABEL, volUp2  }, // Up
@@ -197,23 +194,23 @@ void startVolume2Screen() {
   tft.fillTriangle(xx-ww,yy-nn,  xx+ww,yy-nn,  xx,yy+ht-nn, cVALUE);  // arrow DOWN
 
   gPrevVolIndex2 = -1;
-  updateVolume2Screen();             // fill in values immediately, don't wait for loop() to eventually get around to it
+  updateVolume2Screen();              // fill in values immediately, don't wait for loop() to eventually get around to it
 }
 bool onTouchVolume2(Point touch) {
   Serial.println("->->-> Touched volume2 screen.");
-  bool handled = false;             // assume a touch target was not hit
+  bool handled = false;               // assume a touch target was not hit
   for (int ii=0; ii<nVolButtons; ii++) {
     Button item = volButtons2[ii];
     if (touch.x >= item.x && touch.x <= item.x+item.w
      && touch.y >= item.y && touch.y <= item.y+item.h) {
-        handled = true;             // hit!
-        item.function();            // do the thing
+        handled = true;               // hit!
+        item.function();              // do the thing
 
         #ifdef SHOW_TOUCH_TARGETS
-          const int radius = 3;     // debug: show where touched
+          const int radius = 3;       // debug: show where touched
           tft.fillCircle(touch.x, touch.y, radius, cWARN);  // debug - show dot
         #endif
      }
   }
-  return handled;                   // true=handled, false=controller uses default action
+  return handled;                     // true=handled, false=controller uses default action
 }

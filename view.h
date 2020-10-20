@@ -50,7 +50,7 @@ class View {
      */
     virtual bool onTouch(Point touch) {
       Serial.println("->->-> Touched screen.");
-      return false;                     // true=handled, false=controller uses default action
+      return false;                   // true=handled, false=controller uses default action
     }
 
     /**
@@ -77,7 +77,7 @@ class View {
       tft->drawBitmap(   5,5, iconGear20,       20,20, cTEXTFAINT);  // "settings" upper left
       tft->drawBitmap( 300,5, iconRightArrow18, 14,18, cTEXTFAINT);  // "next screen" upper right
     }
-    void showScreenBorder() {           // optionally outline visible area
+    void showScreenBorder() {         // optionally outline visible area
       #ifdef SHOW_SCREEN_BORDER
         tft->drawRect(0, 0, gScreenWidth, gScreenHeight, ILI9341_BLUE);  // debug: border around screen
       #endif
@@ -86,7 +86,7 @@ class View {
       // Some of the "view" modules want to label themselves in the upper left corner
       // Caution: this function changes font. The caller needs to change it back, if needed.
       tft->setFont();
-      tft->setTextSize(2);               // setFontSize(0);
+      tft->setTextSize(2);            // setFontSize(0);
       tft->setTextColor(fgd, bkg);
       tft->setCursor(1,1);
       tft->print(sName);
@@ -100,10 +100,10 @@ class View {
     void setScreenRotation(int rot) {
       Serial.print("Rotating screen to: "); Serial.println(rot);
       this->screenRotation = rot;
-      tft->setRotation(rot);             // 0=portrait (default), 1=landscape, 3=180 degrees 
-      clearScreen();  // todo - necessary?
-      startScreen();  // todo - necessary?
-      updateScreen(); // todo - necessary?
+      tft->setRotation(rot);          // 0=portrait (default), 1=landscape, 3=180 degrees 
+      clearScreen();                  // todo - necessary?
+      startScreen();                  // todo - necessary?
+      updateScreen();                 // todo - necessary?
     }
 
 };  // end class View
