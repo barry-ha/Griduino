@@ -28,20 +28,22 @@
 //------------------------------------------------------------------------------
 #pragma once
 
-#define ALIGNLEFT 0       // align text toward left, using x=left edge of string
-#define ALIGNRIGHT 1      // align text toward right, using x=right edge of string
-#define ALIGNCENTER 2     // center text left-right
+#define ALIGNLEFT 0             // align text toward left, using x=left edge of string
+#define ALIGNRIGHT 1            // align text toward right, using x=right edge of string
+#define ALIGNCENTER 2           // center text left-right
+#define UNSPECIFIEDCOLOR 0x71ce // oddball purple that's unlikely to be deliberately used
 
 class TextField {
   // Write dynamic text to the TFT display and optimize
   // redrawing text in proportional fonts to reduce flickering
   //
   // Example Usage:
-  //      Declare     TextField txtItem("Hello", 64,64, ILI9341_GREEN);
-  //      Set bkg     txtItem.setBackground(ILI9341_BLACK);
-  //      Force one   txtItem.setDirty();
-  //      Force all   TextField::setDirty(txtItem, count);
-  //      Print       txtItem.print();
+  //      Declare       TextField txtItem("Hello", 64,64, ILI9341_GREEN);
+  //      Declare size  TextField txtItem("Hello", 64,84, ILI9341_GREEN, eFONTSMALL);
+  //      Set bkg       txtItem.setBackground(ILI9341_BLACK);
+  //      Force one     txtItem.setDirty();
+  //      Force all     TextField::setDirty(txtItem, count);
+  //      Print one     txtItem.print();
   //
   // Note about proportional fonts:
   //      1. Text origin is bottom left corner
@@ -53,6 +55,7 @@ class TextField {
     int x, y;               // screen coordinates
     uint16_t color;         // text color
     int align;              // ALIGNLEFT | ALIGNRIGHT | ALIGNCENTER
+    int fontsize;           // eFONTGIANT | eFONTBIG | eFONTSMALL | eFONTSMALLEST | eFONTSYSTEM | eFONTUNSPEC
     bool dirty;             // true=force reprint even if old=new
 
     void dump() {
@@ -64,27 +67,28 @@ class TextField {
       Serial.println(buf);
     }
     // ctor - text field where contents will come later
-    TextField(int vxx, int vyy, uint16_t vcc, int valign=ALIGNLEFT) {
-      init("", vxx, vyy, vcc, valign);
+    TextField(int vxx, int vyy, uint16_t vcc, int valign=ALIGNLEFT, int vsize=eFONTUNSPEC) {
+      init("", vxx, vyy, vcc, valign, vsize);
     }
     // ctor - text field including its content
-    TextField(const char vtxt[26], int vxx, int vyy, uint16_t vcc, int valign=ALIGNLEFT) {
-      init(vtxt, vxx, vyy, vcc, valign);
+    TextField(const char vtxt[26], int vxx, int vyy, uint16_t vcc, int valign=ALIGNLEFT, int vsize=eFONTUNSPEC) {
+      init(vtxt, vxx, vyy, vcc, valign, vsize);
     }
     // ctor - text field content specified by a "class String"
-    TextField(const String vstr, int vxx, int vyy, uint16_t vcc, int valign=ALIGNLEFT) {
+    TextField(const String vstr, int vxx, int vyy, uint16_t vcc, int valign=ALIGNLEFT, int vsize=eFONTUNSPEC) {
       char temp[ vstr.length()+1 ];
       vstr.toCharArray(temp, sizeof(temp));
-      init(temp, vxx, vyy, vcc, valign);
+      init(temp, vxx, vyy, vcc, valign, vsize);
     }
     // delegating ctor for common setup code
-    void init(const char vtxt[26], int vxx, int vyy, uint16_t vcc, int valign) {
+    void init(const char vtxt[26], int vxx, int vyy, uint16_t vcc, int valign, int vsize) {
       strncpy(textPrev, vtxt, sizeof(textPrev)-1);
       strncpy(text, vtxt, sizeof(text)-1);
       x = vxx;
       y = vyy;
       color = vcc;
       align = valign;
+      fontsize = vsize;
       dirty = true;
       xPrev = yPrev = wPrev = hPrev = 0;
     }
@@ -125,8 +129,11 @@ class TextField {
         pTable[ii].dirty = true;
       }
     }
+    void setColor(uint16_t fgd) {
+      this->color = fgd;
+    }
     void setBackground(uint16_t bkg) {
-      // Set all text fields background color
+      // Set all text field's background color
       cBackground = bkg;
     }
 

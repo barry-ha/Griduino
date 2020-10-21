@@ -46,8 +46,8 @@ class SaveRestore {
     /**
      * Delete file
      */
-    int remove(const char* vFilename) {
-      /* todo */ 
+    int remove(const char* vFilename) { 
+      // todo
       return 0;
     }
 

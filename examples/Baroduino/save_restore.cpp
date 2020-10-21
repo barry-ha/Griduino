@@ -124,13 +124,13 @@ int SaveRestore::writeConfig(const byte* pData, const int sizeData) {
   // assumes this is Feather M4 Express with 2 MB flash
   // returns 1=success, 0=failure
   int result = 1;             // assume success
-  Serial.println("Writing config to SDRAM...");
+  Serial.println("Starting to write config to SDRAM...");
 
   result = openFlash();       // open file system
   if (!result) { return 0; }
 
   // replace an existing config file
-  gFatfs.remove(fqFilename);  // delete old file, or else it appends data to the end
+  gFatfs.remove(fqFilename);  // delete old file (or else it would append data to the end)
   File writeFile = gFatfs.open(fqFilename, FILE_WRITE); // 
   if (!writeFile) {
     Serial.print("Error, failed to open config file for writing ("); Serial.print(fqFilename); Serial.println(")");
