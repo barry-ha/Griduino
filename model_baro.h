@@ -1,7 +1,7 @@
 #pragma once
+/*
+  File:     model_baro.h
 
-/* File:    model_baro.h
-   Project: Griduino by Barry K7BWH
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
 
@@ -25,7 +25,7 @@
          So if you take the Pascal value of say 100734 and divide by 3386.39 you'll get 29.72 inHg.
          
          The BMP388 sensor has a relative accuracy of 8 Pascals, which translates to 
-         about ± 0.5 meter of altitude. 
+         about +/- 0.5 meter of altitude. 
          
 */
 
@@ -47,13 +47,36 @@ class Reading {
 #define BARS_PER_INCHES_MERCURY      (0.0338639)
 #define PASCALS_PER_INCHES_MERCURY   (3386.39)
 
-// ========== class Model ======================
+// ========== class BarometerModel ======================
 class BarometerModel {
   public:
     // Class member variables
     void process() {
       getBaroData();
 
+    }
+
+    // init BMP388 hardware 
+    int begin(void) {
+      int rc = 1;                     // assume success
+      if (baro.begin()) {
+        // Set up BMP388 oversampling and filter initialization
+        baro.setTemperatureOversampling(BMP3_OVERSAMPLING_2X);
+        baro.setPressureOversampling(BMP3_OVERSAMPLING_32X);
+        baro.setIIRFilterCoeff(BMP3_IIR_FILTER_COEFF_127);
+        // baro.setOutputDataRate(BMP3_ODR_50_HZ);
+
+        // Get and discard the first data point (repeated because first reading is always bad)
+        for (int ii=0; ii<4; ii++) {
+          baro.performReading();
+          delay(50);
+        }
+
+      } else {
+        Serial.println("Error, unable to initialize BMP388, check the wiring");
+        rc = 0;                       // return failure
+      }
+      return rc;
     }
 
   protected:
@@ -90,7 +113,7 @@ class BarometerModel {
     void dumpPressureHistory() {            // debug
       Serial.print("Pressure history stack, non-zero values [line "); Serial.print(__LINE__); Serial.println("]");
       for (int ii=0; ii<maxReadings; ii++) {
-        Reading item = pressureStack[ii];
+        BaroReading item = pressureStack[ii];
         if (item.pressure > 0) {
           Serial.print("Stack["); Serial.print(ii); Serial.print("] = ");
           Serial.print(item.pressure);
@@ -116,7 +139,7 @@ class BarometerModel {
     const char PRESSURE_HISTORY_VERSION[15] = "Pressure v01";
     int loadPressureHistory() {
       SaveRestore history(PRESSURE_HISTORY_FILE, PRESSURE_HISTORY_VERSION);
-      Reading tempStack[maxReadings] = {};      // array to hold pressure data, fill with zeros
+      BaroReading tempStack[maxReadings] = {};      // array to hold pressure data, fill with zeros
       int result = history.readConfig( (byte*) &tempStack, sizeof(tempStack) );
       if (result) {
         int numNonZero = 0;
@@ -131,6 +154,7 @@ class BarometerModel {
         Serial.print(numNonZero);
         Serial.println(" readings found");
       }
+      dumpPressureHistory();              // debug
       return result;
     }
 
@@ -138,12 +162,6 @@ class BarometerModel {
       SaveRestore history(PRESSURE_HISTORY_FILE, PRESSURE_HISTORY_VERSION);
       history.writeConfig( (byte*) &pressureStack, sizeof(pressureStack) );
       Serial.print("Saved the pressure history to non-volatile memory [line "); Serial.print(__LINE__); Serial.println("]");
-    }
-
-
-    // read barometer BMP388 hardware
-    virtual void process() {                 // "virtual" allows derived class MockModel to replace it
-      // todo 
     }
 
     // the Model will update its internal state on a schedule determined by the Controller

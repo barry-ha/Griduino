@@ -41,6 +41,10 @@ const double degreesPerRadian = 57.2957795; // conversion factor = (360 degrees)
 
 // ----- alias names for SCREEN_ROTATION
 #define SCREEN_ROTATION 1             // 1=landscape, 3=landscape 180-degrees
+enum {
+  eSCREEN_ROTATE_0 = 1,               // 1=landscape
+  eSCREEN_ROTATE_180 = 3,             // 3=landscape 180-degrees
+};
 
 // ----- alias names for fGetDataSource()
 enum {
@@ -96,8 +100,8 @@ struct PointGPS {
 
 class BaroReading {
   public:
-    float pressure;             // in millibars, from BMP388 sensor
-    time_t time;                // in GMT, from realtime clock 
+    float pressure;                   // in millibars, from BMP388 sensor
+    time_t time;                      // in GMT, from realtime clock 
 };
 
 struct TwoPoints {

@@ -32,7 +32,7 @@
             |      |        |        |        | |
             |      |        |        |  Today | |
             | 29.5 +--------------------------+ | <- yBot
-            |         9/18     9/19     9/20    |
+            |        10/18    10/19    10/20    |
             +------:--------:--------:--------:-+
                    xDay1    xDay2    xDay3    xRight
 
@@ -102,14 +102,14 @@
 
 float elevCorr = 0;
 
-float fMaxPa = 102000;        // upper bound of graph, Pa
-float fMinPa = 98000;         // lower bound of graph, Pa
+float fMaxPa = 102000;                // upper bound of graph, Pa
+float fMinPa = 98000;                 // lower bound of graph, Pa
 
-float fMaxHg = 30.6;          // upper gound of graph, inHg
-float fMinHg = 29.4;          // lower bound of graph, inHg
+float fMaxHg = 30.6;                  // upper bound of graph, inHg
+float fMinHg = 29.4;                  // lower bound of graph, inHg
 
 enum units { eMetric, eEnglish };
-int gUnits = eEnglish;         // units on startup: 0=english=inches mercury, 1=metric=millibars
+int gUnits = eEnglish;                // units on startup: 0=english=inches mercury, 1=metric=millibars
 
 // ---------- extern
 extern bool newScreenTap(Point* pPoint, int orientation); // Touch.cpp
@@ -129,7 +129,7 @@ void saveConfigUnits();
 Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 
 // ---------- neopixel
-#define NUMPIXELS 1         // Feather M4 has one NeoPixel on board
+#define NUMPIXELS 1                   // Feather M4 has one NeoPixel on board
 Adafruit_NeoPixel pixel = Adafruit_NeoPixel(NUMPIXELS, PIN_NEOPIXEL, NEO_GRB + NEO_KHZ800);
 
 const uint32_t colorRed    = pixel.Color(HALFBR, OFF,    OFF);
@@ -145,7 +145,7 @@ Adafruit_BMP3XX baro(BMP_CS);         // hardware SPI
 Adafruit_GPS GPS(&Serial1);
 
 // ------------ definitions
-const int howLongToWait = 8;    // max number of seconds at startup waiting for Serial port to console
+const int howLongToWait = 8;          // max number of seconds at startup waiting for Serial port to console
 
 #define MILLIBARS_PER_INCHES_MERCURY (0.02953)
 #define BARS_PER_INCHES_MERCURY      (0.0338639)
@@ -160,8 +160,8 @@ const int howLongToWait = 8;    // max number of seconds at startup waiting for 
 #define cGRAPHCOLOR     ILI9341_WHITE     // graphed line of baro pressure
 #define cICON           ILI9341_CYAN
 #define cTITLE          ILI9341_GREEN     
-#define cWARN           0xF844            // brighter than ILI9341_RED but not pink
-//efine cSINKING        0xF882            // highlight rapidly sinking barometric pressure
+#define cWARN           0xF844        // brighter than ILI9341_RED but not pink
+//efine cSINKING        0xF882        // highlight rapidly sinking barometric pressure
 
 // ------------ global barometric data
 float inchesHg;
@@ -175,11 +175,11 @@ float feet;
 // New:
 //    288px wide graph ==> allows 96 px/day ==> 4px/hour
 //    
-const int maxReadings = 288;                // 288 = (4 readings/hour)*(24 hours/day)*(3 days)
+const int maxReadings = 288;              // 288 = (4 readings/hour)*(24 hours/day)*(3 days)
 BaroReading pressureStack[maxReadings] = {};    // array to hold pressure data, fill with zeros
-const int lastIndex = maxReadings - 1;      // index to the last element in pressure array
-bool redrawGraph = true;                    // true=request graph be drawn
-bool waitingForRTC = true;                  // true=waiting for GPS hardware to give us the first valid date/time
+const int lastIndex = maxReadings - 1;    // index to the last element in pressure array
+bool redrawGraph = true;                  // true=request graph be drawn
+bool waitingForRTC = true;                // true=waiting for GPS hardware to give us the first valid date/time
 
 // ======== barometer and temperature helpers ==================
 void getBaroData() {
@@ -190,7 +190,7 @@ void getBaroData() {
     Serial.println("Error, failed to read barometer");
   }
   // continue anyway, for demo
-  gPressure = baro.pressure + elevCorr;   // Pressure is returned in SI units of Pascals. 100 Pascals = 1 hPa = 1 millibar
+  gPressure = baro.pressure + elevCorr; // Pressure is returned in SI units of Pascals. 100 Pascals = 1 hPa = 1 millibar
   hPa = gPressure / 100;
   inchesHg = 0.0002953 * gPressure;
   Serial.print("Barometer ");
@@ -212,7 +212,7 @@ void rememberPressure( float pressure, time_t time ) {
   pressureStack[lastIndex].time = time;
 }
 
-void dumpPressureHistory() {            // debug
+void dumpPressureHistory() {          // debug
   Serial.print("Pressure history stack, non-zero values [line "); Serial.print(__LINE__); Serial.println("]");
   for (int ii=0; ii<maxReadings; ii++) {
     BaroReading item = pressureStack[ii];
@@ -300,8 +300,8 @@ void initTestSineWave() {
   //      y = 1010.0hPa + 20*sin(w)   where 'w' goes from 0..2pi in the desired period
   //      timestamps start today at midnight, every 15 minutes
   int numTestData = lastIndex/5;      // add this many entries of test data
-  float offsetPa = 1020.0*100;          // readings are saved in Pa (not hPa)
-  float amplitude = 10.1*100;           // readings are saved in Pa (not hPa)
+  float offsetPa = 1020.0*100;        // readings are saved in Pa (not hPa)
+  float amplitude = 10.1*100;         // readings are saved in Pa (not hPa)
 
   //                              ss,mm,hh, dow, dd,mm,yy
   //meElements tm = TimeElements{  1, 2, 3,  4,   5, 6, 7 };   // 1977-06-05 on Wed at 03:02:01
@@ -331,10 +331,10 @@ void initTestSineWave() {
 
 // ========== splash screen helpers ============================
 // splash screen layout
-#define yRow1   54                // program title: "Barograph"
-#define yRow2   yRow1 + 28        // program version
-#define yRow3   yRow2 + 48        // author line 1
-#define yRow4   yRow3 + 32        // author line 2
+#define yRow1   54                    // program title: "Barograph"
+#define yRow2   yRow1 + 28            // program version
+#define yRow3   yRow2 + 48            // author line 1
+#define yRow4   yRow3 + 32            // author line 2
 
 TextField txtSplash[] = {
   //        text               x,y       color  
@@ -364,24 +364,24 @@ void startSplashScreen() {
 }
 
 // ========== graph screen layout ==============================
-const int graphHeight = 160;    // in pixels
-const int pixelsPerHour = 4;    // 4 px/hr graph
-//nst int pixelsPerDay = 72;    // 3 px/hr * 24 hr/day = 72 px/day
+const int graphHeight = 160;          // in pixels
+const int pixelsPerHour = 4;          // 4 px/hr graph
+//nst int pixelsPerDay = 72;          // 3 px/hr * 24 hr/day = 72 px/day
 const int pixelsPerDay = pixelsPerHour * 24;  // 4 px/hr * 24 hr/day = 96 px/day
 
-const int MARGIN = 6;           // reserve an outer blank margin on all sides
+const int MARGIN = 6;                 // reserve an outer blank margin on all sides
 
 // to center the graph: xDay1 = [(total screen width) - (reserved margins) - (graph width)]/2 + margin
 //                      xDay1 = [(320 px) - (2*6 px) - (3*96 px)]/2 + 6
 //                      xDay1 = 16
-const int xDay1 = MARGIN+10;    // pixels
+const int xDay1 = MARGIN+10;          // pixels
 const int xDay2 = xDay1 + pixelsPerDay;
 const int xDay3 = xDay2 + pixelsPerDay;
 
 const int xRight = xDay3 + pixelsPerDay;
 
-const int TEXTHEIGHT = 16;      // text line spacing, pixels
-const int DESCENDERS = 6;       // proportional font descenders may go 6 pixels below baseline
+const int TEXTHEIGHT = 16;            // text line spacing, pixels
+const int DESCENDERS = 6;             // proportional font descenders may go 6 pixels below baseline
 const int yBot = gScreenHeight - MARGIN - DESCENDERS - TEXTHEIGHT;
 const int yTop = yBot - graphHeight;
 
@@ -391,8 +391,8 @@ void clearScreen() {
 }
 
 enum { eTitle, eDate, eNumSat, eTimeHHMM, eTimeSS, valPressure, unitPressure };
-const int xIndent = 12;         // in pixels, text on main screen
-const int yText1 = MARGIN+12;   // in pixels, top row, main screen
+const int xIndent = 12;               // in pixels, text on main screen
+const int yText1 = MARGIN+12;         // in pixels, top row, main screen
 const int yText2 = yText1 + 28;
 TextField txtReading[] = {
   TextField{ BAROGRAPH_TITLE, xIndent,yText1, cTITLE,      ALIGNCENTER},    // [eTitle]
@@ -428,7 +428,7 @@ void showReadings() {
 
 void showTimeOfDay() {
   // fetch RTC and display it on screen
-  char msg[12];               // strlen("12:34:56") = 8
+  char msg[12];                       // strlen("12:34:56") = 8
   int mo, dd, hh, mm, ss;
   if (timeStatus() == timeNotSet) {
     mo = dd = hh = mm = ss = 0;
@@ -538,8 +538,8 @@ void autoScaleGraph() {
     highestPa = 105000.0 - 0.1;
   }
  
-  const float PA_RES = 2000.0;      // metric y-axis resolution
-  const float HG_RES = 0.2;         // english y-axis resolution
+  const float PA_RES = 2000.0;        // metric y-axis resolution
+  const float HG_RES = 0.2;           // english y-axis resolution
 
   // metric: calculate graph limits in Pa
   fMinPa = (int)(lowestPa/PA_RES) * PA_RES;
@@ -644,14 +644,14 @@ void drawScale() {
   snprintf(msg, sizeof(msg), "RTC time %d-%d-%d at %02d:%02d:%02d",
                                        year(today),month(today),day(today), 
                                        hour(today),minute(today),second(today));
-  Serial.println(msg);      // debug
+  Serial.println(msg);                // debug
 
   TextField::setTextDirty(txtDate, numDates);
   txtDate[eTODAY].print();
 
   char sDate[12];      // strlen("12/34") = 5
   snprintf(sDate, sizeof(sDate), "%d/%d", month(today), day(today));
-  txtDate[eDATETODAY].print(sDate);  // "8/25"
+  txtDate[eDATETODAY].print(sDate);   // "8/25"
 
   snprintf(sDate, sizeof(sDate), "%d/%d", month(yesterday), day(yesterday));
   txtDate[eYESTERDAY].print(sDate);
@@ -779,37 +779,6 @@ void saveConfigUnits() {
   config.writeConfig( (byte*) &gUnits, sizeof(gUnits) );
 }
 
-// ========== load/save barometer pressure readings ============
-// To erase and rewrite a new data file, change the version string below.
-#define PRESSURE_HISTORY_FILE     CONFIG_FOLDER "/barometr.dat"
-#define PRESSURE_HISTORY_VERSION  "Pressure v01"
-
-int loadPressureHistory() {
-  SaveRestore history(PRESSURE_HISTORY_FILE, PRESSURE_HISTORY_VERSION);
-  BaroReading tempStack[maxReadings] = {};      // array to hold pressure data, fill with zeros
-  int result = history.readConfig( (byte*) &tempStack, sizeof(tempStack) );
-  if (result) {
-    int numNonZero = 0;
-    for (int ii=0; ii<maxReadings; ii++) {
-      pressureStack[ii] = tempStack[ii];
-      if (pressureStack[ii].pressure > 0) {
-        numNonZero++;
-      }
-    }
-    
-    Serial.print(". Loaded barometric pressure history file, ");
-    Serial.print(numNonZero);
-    Serial.println(" readings found");
-  }
-  return result;
-}
-
-void savePressureHistory() {
-  SaveRestore history(PRESSURE_HISTORY_FILE, PRESSURE_HISTORY_VERSION);
-  history.writeConfig( (byte*) &pressureStack, sizeof(pressureStack) );
-  Serial.print("Saved the pressure history to non-volatile memory [line "); Serial.print(__LINE__); Serial.println("]");
-}
-
 // ----- console Serial port helper
 void waitForSerial(int howLong) {
   // Adafruit Feather M4 Express takes awhile to restore its USB connx to the PC
@@ -848,10 +817,8 @@ void showActivityBar(int row, uint16_t foreground, uint16_t background) {
 //    288px wide graph ==> allows 96 px/day ==> 4px/hour ==> log pressure every 15 minutes
 //
 //==============================================================
-//#include "model_baro.h"
-
-// create an instance of the model
-//BarometerModel baroModel;
+#include "model_baro.h"
+BarometerModel baroModel;             // create an instance of the model
 
 //=========== setup ============================================
 void setup() {
@@ -907,12 +874,11 @@ void setup() {
   }
 
   // ----- restore pressure history
-  if (loadPressureHistory()) {
+  if (baroModel.loadPressureHistory()) {
     Serial.println("Successfully restored barometric pressure history");
-    dumpPressureHistory();            // debug
   } else {
     Serial.println("Failed to load barometric pressure history, re-initializing config file");
-    savePressureHistory();
+    baroModel.savePressureHistory();
   }
   #ifdef RUN_UNIT_TESTS
     initTestStepValues();
@@ -920,8 +886,10 @@ void setup() {
   #endif
 
   // ----- init barometer
-  if (!baro.begin()) {
-    Serial.println("Error, unable to initialize BMP388, check the wiring");
+  if (baroModel.begin()) {
+    // success
+  } else {
+    // failed to initialize hardware
     tft.setCursor(0, yText1);
     tft.setTextColor(cWARN);
     setFontSize(12);
@@ -929,21 +897,10 @@ void setup() {
     delay(4000);
   }
 
-  // Set up BMP388 oversampling and filter initialization
-  baro.setTemperatureOversampling(BMP3_OVERSAMPLING_2X);
-  baro.setPressureOversampling(BMP3_OVERSAMPLING_32X);
-  baro.setIIRFilterCoeff(BMP3_IIR_FILTER_COEFF_127);
-  // baro.setOutputDataRate(BMP3_ODR_50_HZ);
-
   // all done with setup, prepare screen for main program
   delay(3000);              // milliseconds
   clearScreen();
 
-  // Get first data point (repeated because first reading is always bad)
-  for (int ii=0; ii<4; ii++) {
-    getBaroData();
-    delay(100);
-  }
   redrawGraph = true;                 // draw graph
 }
 
@@ -988,12 +945,12 @@ void loop() {
     redrawGraph = true;
     waitingForRTC = false;
 
-    char msg[128];            // debug
+    char msg[128];                    // debug
     Serial.println("-----> Found first correct date/time value <-----");  // debug
     snprintf(msg, sizeof(msg), "       GPS time %d-%02d-%02d at %02d:%02d:%02d",
                                        GPS.year,GPS.month,GPS.day, 
                                        GPS.hour,GPS.minute,GPS.seconds);
-    Serial.println(msg);      // debug
+    Serial.println(msg);              // debug
   }
 
   // every 1 second update the clock display
@@ -1004,7 +961,7 @@ void loop() {
     if (isDateValid(GPS.year, GPS.month, GPS.day)) {
       
       setTime(GPS.hour, GPS.minute, GPS.seconds, GPS.day, GPS.month, GPS.year);
-      //adjustTime(offset * SECS_PER_HOUR);   // todo - adjust to local time zone. for now, we only do GMT
+      //adjustTime(offset * SECS_PER_HOUR);  // todo - adjust to local time zone. for now, we only do GMT
     }
 
     // update display
@@ -1031,7 +988,7 @@ void loop() {
       nextSavePressure = nextFifteenMinuteMark(rightnow);
 
       rememberPressure( gPressure, rightnow );
-      savePressureHistory();
+      baroModel.savePressureHistory();
     }
   }
 
@@ -1046,12 +1003,12 @@ void loop() {
   if (newScreenTap(&touch, SCREEN_ROTATION)) {
 
     #ifdef SHOW_TOUCH_TARGETS
-      const int radius = 3;     // debug
+      const int radius = 3;           // debug
       tft.fillCircle(touch.x, touch.y, radius, cWARN);  // debug - show dot
-      touchHandled = true;      // debug - true=stay on same screen
+      touchHandled = true;            // debug - true=stay on same screen
     #endif
 
-    adjustUnits();              // change between "inches mercury" and "millibars" units
+    adjustUnits();                    // change between "inches mercury" and "millibars" units
   }
 
   // small activity bar crawls along bottom edge to give 
