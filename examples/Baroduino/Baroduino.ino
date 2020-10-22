@@ -863,7 +863,7 @@ void setup() {
 
   // ----- init RTC
   // Note: See the main() loop. 
-  //       The RTC is not available until after receiving a few NMEA sentences.
+  //       The realtime clock is not available until after receiving a few NMEA sentences.
 
   // ----- restore settings
   if (loadConfigUnits()) {
@@ -898,7 +898,7 @@ void setup() {
   }
 
   // all done with setup, prepare screen for main program
-  delay(3000);              // milliseconds
+  delay(3000);                        // milliseconds
   clearScreen();
 
   redrawGraph = true;                 // draw graph
