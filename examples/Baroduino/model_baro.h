@@ -5,6 +5,8 @@
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
 
+  Barometric Sensor:
+         Adafruit BMP388 Barometric Pressure             https://www.adafruit.com/product/3966
 
   Units of Time:
          This relies on "TimeLib.h" which uses "time_t" to represent time.
@@ -31,8 +33,17 @@
          So if you take the Pascal value of say 100734 and divide by 3386.39 you'll get 29.72 inHg.
          
          The BMP388 sensor has a relative accuracy of 8 Pascals, which translates to 
-         about +/- 0.5 meter of altitude. 
-         
+         about +/- 0.5 meter of altitude.
+
+  Pressure History:
+         This class is basically a data logger for barometric pressure samples.
+         Q: How many data points should we store?
+         A: 288 samples
+         . Assume we want 288-pixel wide graph which leaves room for graph labels on the 320-pixel TFT display
+         . Assume we want one pixel for each sample, and yes this makes a pretty dense graph
+         . Assume we want a 3-day display, which means 288/3 = 96 pixels (samples) per day
+         . Then 24 hours / 96 pixels = 4 samples/hour = 15 minutes per sample
+
 */
 
 #include <Arduino.h>
@@ -40,6 +51,7 @@
 //#include "save_restore.h"           // Configuration data in nonvolatile RAM
 
 // ========== extern ===========================================
+char* dateToString(char* msg, int len, time_t datetime);  // Baroduino.ino
 
 // ------------ definitions
 #define MILLIBARS_PER_INCHES_MERCURY (0.02953)
@@ -49,25 +61,39 @@
 // ========== class BarometerModel ======================
 class BarometerModel {
   public:
+    Adafruit_BMP3XX* baro;            // pointer to the hardware-managing class 
+    float inchesHg;
+    float gPressure;
+    float hPa;
+    float feet;
+
+    #define maxReadings 288           // 288 = (4 readings/hour)*(24 hours/day)*(3 days)
+    #define lastIndex (maxReadings - 1)  // index to the last element in pressure array
+    BaroReading pressureStack[maxReadings] = {};  // array to hold pressure data, init filled with zeros
+
+    // Constructor - create and initialize member variables
+    BarometerModel(Adafruit_BMP3XX* vbaro) {
+      baro = vbaro;
+    }
+
     // Class member variables
     void process() {
       getBaroData();
-
     }
 
     // init BMP388 hardware 
     int begin(void) {
       int rc = 1;                     // assume success
-      if (baro.begin()) {
+      if (baro->begin()) {
         // Set up BMP388 oversampling and filter initialization
-        baro.setTemperatureOversampling(BMP3_OVERSAMPLING_2X);
-        baro.setPressureOversampling(BMP3_OVERSAMPLING_32X);
-        baro.setIIRFilterCoeff(BMP3_IIR_FILTER_COEFF_127);
-        // baro.setOutputDataRate(BMP3_ODR_50_HZ);
+        baro->setTemperatureOversampling(BMP3_OVERSAMPLING_2X);
+        baro->setPressureOversampling(BMP3_OVERSAMPLING_32X);
+        baro->setIIRFilterCoeff(BMP3_IIR_FILTER_COEFF_127);
+        // baro->setOutputDataRate(BMP3_ODR_50_HZ);
 
         // Get and discard the first data point (repeated because first reading is always bad)
         for (int ii=0; ii<4; ii++) {
-          baro.performReading();
+          baro->performReading();
           delay(50);
         }
 
@@ -78,16 +104,16 @@ class BarometerModel {
       return rc;
     }
 
-  protected:
+  //protected:
     void getBaroData() {
-      // returns: gPressure (global var)
-      //          hPa       (global var)
-      //          inchesHg  (global var)
-      if (!baro.performReading()) {
+      // returns: gPressure (class var)
+      //          hPa       (class var)
+      //          inchesHg  (class var)
+      if (!baro->performReading()) {
         Serial.println("Error, failed to read barometer");
       }
       // continue anyway, for demo
-      gPressure = baro.pressure + elevCorr;   // Pressure is returned in SI units of Pascals. 100 Pascals = 1 hPa = 1 millibar
+      gPressure = baro->pressure + elevCorr;   // Pressure is returned in SI units of Pascals. 100 Pascals = 1 hPa = 1 millibar
       hPa = gPressure / 100;
       inchesHg = 0.0002953 * gPressure;
       Serial.print("Barometer ");
@@ -126,11 +152,6 @@ class BarometerModel {
 
 
   public:
-    // Constructor - create and initialize member variables
-    BarometerModel() { }
-
-    // Setters
-
     // ========== load/save barometer pressure readings ============
     // Filenames MUST match between Griduino and Baroduino example program
     // To erase and rewrite a new data file, change the version string below.

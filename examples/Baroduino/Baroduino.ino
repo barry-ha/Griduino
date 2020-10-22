@@ -163,70 +163,26 @@ const int howLongToWait = 8;          // max number of seconds at startup waitin
 #define cWARN           0xF844        // brighter than ILI9341_RED but not pink
 //efine cSINKING        0xF882        // highlight rapidly sinking barometric pressure
 
-// ------------ global barometric data
-float inchesHg;
-float gPressure;
-float hPa;
-float feet;
-
-// Old:
-//    144 steps at 20 minute refresh time is a 2880 minute (48 hr) graph with 20 minute resolution.
-//    with 2px per step, we get 10 minutes/px, and 288px per 48 hrs, leaving some space for graph labels
-// New:
-//    288px wide graph ==> allows 96 px/day ==> 4px/hour
-//    
-const int maxReadings = 288;              // 288 = (4 readings/hour)*(24 hours/day)*(3 days)
-BaroReading pressureStack[maxReadings] = {};    // array to hold pressure data, fill with zeros
-const int lastIndex = maxReadings - 1;    // index to the last element in pressure array
 bool redrawGraph = true;                  // true=request graph be drawn
 bool waitingForRTC = true;                // true=waiting for GPS hardware to give us the first valid date/time
 
-// ======== barometer and temperature helpers ==================
-void getBaroData() {
-  // returns: gPressure (global var)
-  //          hPa       (global var)
-  //          inchesHg  (global var)
-  if (!baro.performReading()) {
-    Serial.println("Error, failed to read barometer");
-  }
-  // continue anyway, for demo
-  gPressure = baro.pressure + elevCorr; // Pressure is returned in SI units of Pascals. 100 Pascals = 1 hPa = 1 millibar
-  hPa = gPressure / 100;
-  inchesHg = 0.0002953 * gPressure;
-  Serial.print("Barometer ");
-  Serial.print(gPressure);
-  Serial.print(" Pa [");
-  Serial.print(__LINE__);
-  Serial.println("]");
-}
+//==============================================================
+//
+//      BarometerModel
+//      "Class BarometerModel" is intended to be identical 
+//      for both Griduino and the Barograph
+//
+//    This model collects data from the BMP388 barometric pressure 
+//    and temperature sensor on a schedule determined by the Controller.
+//
+//    288px wide graph ==> allows 96 px/day ==> 4px/hour ==> log pressure every 15 minutes
+//
+//==============================================================
 
-void rememberPressure( float pressure, time_t time ) {
-  // push the barometer reading onto the stack 
-  // shift existing stack to the left
-  for (int ii = 0; ii < lastIndex; ii++) {
-    pressureStack[ii] = pressureStack[ii + 1];
-  }
-  
-  // put the latest pressure onto the stack
-  pressureStack[lastIndex].pressure = pressure;
-  pressureStack[lastIndex].time = time;
-}
+#include "model_baro.h"
+BarometerModel baroModel( &baro );    // create an instance of the model
 
-void dumpPressureHistory() {          // debug
-  Serial.print("Pressure history stack, non-zero values [line "); Serial.print(__LINE__); Serial.println("]");
-  for (int ii=0; ii<maxReadings; ii++) {
-    BaroReading item = pressureStack[ii];
-    if (item.pressure > 0) {
-      Serial.print("Stack["); Serial.print(ii); Serial.print("] = ");
-      Serial.print(item.pressure);
-      Serial.print("  ");
-      char msg[24];
-      Serial.println( dateToString(msg, sizeof(msg), item.time) );                          // debug
-    }
-  }
-  return;
-}
-
+// ======== date helpers =======================================
 char* dateToString(char* msg, int len, time_t datetime) {
   // utility function to format date:  "2020-9-27 at 11:22:33"
   // Example 1:
@@ -257,6 +213,7 @@ char* dateToString(char* msg, int len, time_t datetime) {
     return true;
   }
 
+// ======== unit tests =========================================
 #ifdef RUN_UNIT_TESTS
 void initTestStepValues() {
   // inject a straight line constant value and visually verify graph scaling
@@ -276,21 +233,21 @@ void initTestStepValues() {
   // ---test: 1000 hPa---
   for (int ii=0; ii<numTestData; ii++) {
     fakeTime += 15*SECS_PER_MIN;
-    rememberPressure( fakePressure, fakeTime );   // inject several samples of the same value
+    baroModel.rememberPressure( fakePressure, fakeTime );   // inject several samples of the same value
   }
 
   // ---test: 1020 hPa---
   fakePressure = 1020.0*100;
   for (int ii=0; ii<numTestData; ii++) {
     fakeTime += 15*SECS_PER_MIN;
-    rememberPressure( fakePressure, fakeTime );   // inject several samples of the same value
+    baroModel.rememberPressure( fakePressure, fakeTime );   // inject several samples of the same value
   }
 
   // ---test: 1040 hPa---
   fakePressure = 1039.9*100;
   for (int ii=0; ii<numTestData; ii++) {
     fakeTime += 15*SECS_PER_MIN;
-    rememberPressure( fakePressure, fakeTime );   // inject several samples of the same value
+    baroModel.rememberPressure( fakePressure, fakeTime );   // inject several samples of the same value
   }
 }
 
@@ -312,7 +269,7 @@ void initTestSineWave() {
     float w = 2.0 * PI * ii / numTestData;
     float fakePressure = offsetPa + amplitude * sin( w );
     time_t fakeTime = todayMidnight + ii*15*SECS_PER_MIN;
-    rememberPressure( fakePressure, fakeTime );
+    baroModel.rememberPressure( fakePressure, fakeTime );
 
     Serial.print(ii);                 // debug
     Serial.print(". pressure(");
@@ -469,11 +426,11 @@ void printPressure() {
   char hPa[] = "hPa";
   switch (gUnits) {
     case eEnglish:
-      fPressure = gPressure / PASCALS_PER_INCHES_MERCURY;
+      fPressure = baroModel.gPressure / PASCALS_PER_INCHES_MERCURY;
       sUnits = inHg;
       break;
     case eMetric:
-      fPressure = gPressure / 100;
+      fPressure = baroModel.gPressure / 100;
       sUnits = hPa;
       break;
     default:
@@ -527,9 +484,9 @@ void autoScaleGraph() {
   bool isEmpty = true;
   for (int ii = 0; ii <= lastIndex ; ii++) {
     // if element has zero pressure, then it is empty
-    if (pressureStack[ii].pressure > 0) {
-      lowestPa = min(pressureStack[ii].pressure, lowestPa);
-      highestPa = max(pressureStack[ii].pressure, highestPa);
+    if (baroModel.pressureStack[ii].pressure > 0) {
+      lowestPa = min(baroModel.pressureStack[ii].pressure, lowestPa);
+      highestPa = max(baroModel.pressureStack[ii].pressure, highestPa);
     }
   }
   if (isEmpty) {
@@ -698,7 +655,7 @@ void drawGraph() {
 
   int x = xRight;
   for (int ii = lastIndex; ii > 0 ; ii--) {
-    if (pressureStack[ii - 1].pressure != 0) {
+    if (baroModel.pressureStack[ii - 1].pressure != 0) {
       // Y-axis:
       //    The data to plot is always 'float Pascals' 
       //    but the graph's y-axis is either Pascals or inches-Hg, each with different scale
@@ -706,11 +663,11 @@ void drawGraph() {
       if (gUnits == eMetric) {
         
       }
-      int y1 = map(pressureStack[ii-0].pressure,  yBotPa,yTopPa,  yBot,yTop);
+      int y1 = map(baroModel.pressureStack[ii-0].pressure,  yBotPa,yTopPa,  yBot,yTop);
   
       // X-axis:
       //    Scale from timestamps onto x-axis
-      int t1 = pressureStack[ii-0].time;
+      int t1 = baroModel.pressureStack[ii-0].time;
       //       map(value, fromLow,fromHigh, toLow,toHigh)
       int x1 = map( t1,   minTime,maxTime,  xDay1,xRight);
 
@@ -724,7 +681,7 @@ void drawGraph() {
       }
 
       tft.drawPixel(x1,y1, cGRAPHCOLOR);
-      int approxPa = (int)pressureStack[ii-0].pressure;
+      int approxPa = (int)baroModel.pressureStack[ii-0].pressure;
       //snprintf(msg, sizeof(msg), "%d. Plot %d at pixel (%d,%d)", ii, approxPa, x1,y1);
       //Serial.println(msg);    // debug
     }
@@ -804,21 +761,6 @@ void showActivityBar(int row, uint16_t foreground, uint16_t background) {
     tft.drawPixel(rmvDotX, row, background);  // erase old
   }
 }
-
-//==============================================================
-//
-//      BarometerModel
-//      "Class BarometerModel" is intended to be identical 
-//      for both Griduino and the Barograph
-//
-//    This model collects data from the BMP388 barometric pressure 
-//    and temperature sensor on a schedule determined by the Controller.
-//
-//    288px wide graph ==> allows 96 px/day ==> 4px/hour ==> log pressure every 15 minutes
-//
-//==============================================================
-#include "model_baro.h"
-BarometerModel baroModel;             // create an instance of the model
 
 //=========== setup ============================================
 void setup() {
@@ -975,8 +917,8 @@ void loop() {
   if ( rightnow >= nextShowPressure) {
     nextShowPressure = nextFiveMinuteMark(rightnow);
   
-    getBaroData();
-    redrawGraph = true;               // draw graph
+    baroModel.getBaroData();
+    redrawGraph = true;               // request draw graph
   }
 
   // every 15 minutes save pressure in nonvolatile RAM
@@ -987,7 +929,7 @@ void loop() {
 
       nextSavePressure = nextFifteenMinuteMark(rightnow);
 
-      rememberPressure( gPressure, rightnow );
+      baroModel.rememberPressure( baroModel.gPressure, rightnow );
       baroModel.savePressureHistory();
     }
   }
