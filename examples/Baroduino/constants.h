@@ -94,6 +94,12 @@ struct PointGPS {
     double lat, lng;
 };
 
+class BaroReading {
+  public:
+    float pressure;             // in millibars, from BMP388 sensor
+    time_t time;                // in GMT, from realtime clock 
+};
+
 struct TwoPoints {
   int x1, y1;
   int x2, y2;

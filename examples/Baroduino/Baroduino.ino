@@ -112,10 +112,11 @@ enum units { eMetric, eEnglish };
 int gUnits = eEnglish;         // units on startup: 0=english=inches mercury, 1=metric=millibars
 
 // ---------- extern
-extern bool newScreenTap(Point* pPoint, int orientation);  // Touch.cpp
-extern uint16_t myPressure(void);                          // Touch.cpp
-//extern bool TouchScreen::isTouching(void);               // Touch.cpp
+extern bool newScreenTap(Point* pPoint, int orientation); // Touch.cpp
+extern uint16_t myPressure(void);                         // Touch.cpp
+//extern bool TouchScreen::isTouching(void);              // Touch.cpp
 extern void mapTouchToScreen(TSPoint touch, Point* screen, int orientation);
+extern void setFontSize(int font);                        // TextField.cpp
 
 // ========== forward reference ================================
 int loadConfigUnits();
@@ -142,13 +143,6 @@ Adafruit_BMP3XX baro(BMP_CS);         // hardware SPI
 // ---------- GPS ----------
 // Hardware serial port for GPS
 Adafruit_GPS GPS(&Serial1);
-
-// ------------ typedef's
-class Reading {
-  public:
-    float pressure;             // in millibars, from BMP388 sensor
-    time_t time;                // in GMT, from realtime clock 
-};
 
 // ------------ definitions
 const int howLongToWait = 8;    // max number of seconds at startup waiting for Serial port to console
@@ -181,8 +175,8 @@ float feet;
 // New:
 //    288px wide graph ==> allows 96 px/day ==> 4px/hour
 //    
-const int maxReadings = 144;
-Reading pressureStack[maxReadings] = {};    // array to hold pressure data, fill with zeros
+const int maxReadings = 288;                // 288 = (4 readings/hour)*(24 hours/day)*(3 days)
+BaroReading pressureStack[maxReadings] = {};    // array to hold pressure data, fill with zeros
 const int lastIndex = maxReadings - 1;      // index to the last element in pressure array
 bool redrawGraph = true;                    // true=request graph be drawn
 bool waitingForRTC = true;                  // true=waiting for GPS hardware to give us the first valid date/time
@@ -221,7 +215,7 @@ void rememberPressure( float pressure, time_t time ) {
 void dumpPressureHistory() {            // debug
   Serial.print("Pressure history stack, non-zero values [line "); Serial.print(__LINE__); Serial.println("]");
   for (int ii=0; ii<maxReadings; ii++) {
-    Reading item = pressureStack[ii];
+    BaroReading item = pressureStack[ii];
     if (item.pressure > 0) {
       Serial.print("Stack["); Serial.print(ii); Serial.print("] = ");
       Serial.print(item.pressure);
@@ -334,51 +328,6 @@ void initTestSineWave() {
   }
 }
 #endif // RUN_UNIT_TESTS
-
-// ========== font management helpers ==========================
-/* Using fonts: https://learn.adafruit.com/adafruit-gfx-graphics-library/using-fonts
-
-  "Fonts" folder is inside \Documents\User\Arduino\libraries\Adafruit_GFX_Library\fonts
-*/
-#include "Fonts/FreeSans18pt7b.h"       // eFONTGIANT    36 pt (see constants.h)
-#include "Fonts/FreeSansBold24pt7b.h"   // eFONTBIG      24 pt
-#include "Fonts/FreeSans12pt7b.h"       // eFONTSMALL    12 pt
-#include "Fonts/FreeSans9pt7b.h"        // eFONTSMALLEST  9 pt
-// (built-in)                           // eFONTSYSTEM    8 pt
-
-void setFontSize(int font) {
-  // input: "font" = point size
-  switch (font) {
-    case 36:  // eFONTGIANT
-      tft.setFont(&FreeSans18pt7b);
-      tft.setTextSize(2);
-      break;
-
-    case 24:  // eFONTBIG
-      tft.setFont(&FreeSansBold24pt7b);
-      tft.setTextSize(1);
-      break;
-
-    case 12:  // eFONTSMALL
-      tft.setFont(&FreeSans12pt7b);
-      tft.setTextSize(1);
-      break;
-
-    case 9:   // eFONTSMALLEST
-      tft.setFont(&FreeSans9pt7b);
-      tft.setTextSize(1);
-      break;
-
-    case 0:   // eFONTSYSTEM
-      tft.setFont();
-      tft.setTextSize(2);
-      break;
-
-    default:
-      Serial.print("Error, unknown font size ("); Serial.print(font); Serial.println(")");
-      break;
-  }
-}
 
 // ========== splash screen helpers ============================
 // splash screen layout
@@ -807,7 +756,6 @@ void adjustUnits() {
   }
 
   Serial.print(". unitPressure = "); Serial.println( txtReading[unitPressure].text );
-  //getBaroData();              // delete? I think this disturbs the scheduled 5-minute readings
   redrawGraph = true;           // draw graph
 }
 
@@ -838,7 +786,7 @@ void saveConfigUnits() {
 
 int loadPressureHistory() {
   SaveRestore history(PRESSURE_HISTORY_FILE, PRESSURE_HISTORY_VERSION);
-  Reading tempStack[maxReadings] = {};      // array to hold pressure data, fill with zeros
+  BaroReading tempStack[maxReadings] = {};      // array to hold pressure data, fill with zeros
   int result = history.readConfig( (byte*) &tempStack, sizeof(tempStack) );
   if (result) {
     int numNonZero = 0;
@@ -888,17 +836,34 @@ void showActivityBar(int row, uint16_t foreground, uint16_t background) {
   }
 }
 
+//==============================================================
+//
+//      BarometerModel
+//      "Class BarometerModel" is intended to be identical 
+//      for both Griduino and the Barograph
+//
+//    This model collects data from the BMP388 barometric pressure 
+//    and temperature sensor on a schedule determined by the Controller.
+//
+//    288px wide graph ==> allows 96 px/day ==> 4px/hour ==> log pressure every 15 minutes
+//
+//==============================================================
+//#include "model_baro.h"
+
+// create an instance of the model
+//BarometerModel baroModel;
+
 //=========== setup ============================================
 void setup() {
 
   // ----- init TFT display
-  tft.begin();                                  // initialize TFT display
-  tft.setRotation(SCREEN_ROTATION);             // 1=landscape (default is 0=portrait)
+  tft.begin();                        // initialize TFT display
+  tft.setRotation(SCREEN_ROTATION);   // 1=landscape (default is 0=portrait)
   clearScreen();
 
   // ----- init TFT backlight
   pinMode(TFT_BL, OUTPUT);
-  analogWrite(TFT_BL, 255);             // start at full brightness
+  analogWrite(TFT_BL, 255);           // start at full brightness
 
   // ----- init Feather M4 onboard lights
   pixel.begin();
@@ -920,9 +885,9 @@ void setup() {
 
   // ----- init GPS
   GPS.begin(9600);                              // 9600 NMEA is the default baud rate for Adafruit MTK GPS's
-  delay(200);                                   // is delay really needed?
+  delay(50);                                    // is delay really needed?
   GPS.sendCommand(PMTK_SET_BAUD_57600);         // set baud rate to 57600
-  delay(200);
+  delay(50);
   GPS.begin(57600);
   GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA); // turn on RMC (recommended minimum) and GGA (fix data) including altitude
 

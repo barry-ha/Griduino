@@ -10,9 +10,10 @@
 
 // ========== extern ==================================
 extern Adafruit_ILI9341 tft;          // Griduino.ino  TODO: eliminate this global
-extern void setFontSize(int font);    // Griduino.ino  TODO: eliminate this extern
 
 uint16_t TextField::cBackground;      // background color
+
+void setFontSize(int font);           // forward definition
 
 // ========== TextField ===============================
 void TextField::eraseOld() {
@@ -144,4 +145,3 @@ int getOffsetToCenterTextOnButton(String text, int leftEdge, int width ) {
   tft.getTextBounds(text, 0, 0, &x1, &y1, &w, &h);  // compute "pixels wide"
   return leftEdge + (width - w) / 2;
 }
-
