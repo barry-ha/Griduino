@@ -3,7 +3,7 @@
 
   Version history: 
             2020-10-02 v0.24 published to the GitHub downloads folder
-            2020-09-18 this is really two independent functions: 1.data logging, 2. visualization
+            2020-09-18 this is really two independent functions: (1)data logger, (2)visualizer
             2020-08-27 save unit setting (english/metric) in nonvolatile RAM
             2020-08-24 start rewriting user interface
             2020-05-18 added NeoPixel control to illustrate technique
@@ -222,7 +222,7 @@ void initTestStepValues() {
   int numTestData = 12;                 // add this many entries of test data
   float fakePressure = 1000.1*100;      // first value
   //                              ss,mm,hh, dow, dd,mm,yy
-  TimeElements tm = TimeElements{ 0, 0, 0,   1,  26, 9,2020-1970 };   // 27 Sept 2020 on Sun at 12:00:00 am
+  TimeElements tm = TimeElements{ 0, 0, 0,   1,  23,10,2020-1970 };   // 23 Oct 2020 on Sun at 12:00:00 am
   time_t fakeTime = makeTime(tm);
 
   char sDate[24];                       // strlen("1999-12-31 at 00:11:22") = 22
@@ -233,21 +233,21 @@ void initTestStepValues() {
   // ---test: 1000 hPa---
   for (int ii=0; ii<numTestData; ii++) {
     fakeTime += 15*SECS_PER_MIN;
-    baroModel.rememberPressure( fakePressure, fakeTime );   // inject several samples of the same value
+    baroModel.testRememberPressure( fakePressure, fakeTime );   // inject several samples of the same value
   }
 
   // ---test: 1020 hPa---
   fakePressure = 1020.0*100;
   for (int ii=0; ii<numTestData; ii++) {
     fakeTime += 15*SECS_PER_MIN;
-    baroModel.rememberPressure( fakePressure, fakeTime );   // inject several samples of the same value
+    baroModel.testRememberPressure( fakePressure, fakeTime );   // inject several samples of the same value
   }
 
   // ---test: 1040 hPa---
   fakePressure = 1039.9*100;
   for (int ii=0; ii<numTestData; ii++) {
     fakeTime += 15*SECS_PER_MIN;
-    baroModel.rememberPressure( fakePressure, fakeTime );   // inject several samples of the same value
+    baroModel.testRememberPressure( fakePressure, fakeTime );   // inject several samples of the same value
   }
 }
 
@@ -269,7 +269,7 @@ void initTestSineWave() {
     float w = 2.0 * PI * ii / numTestData;
     float fakePressure = offsetPa + amplitude * sin( w );
     time_t fakeTime = todayMidnight + ii*15*SECS_PER_MIN;
-    baroModel.rememberPressure( fakePressure, fakeTime );
+    baroModel.testRememberPressure( fakePressure, fakeTime );
 
     Serial.print(ii);                 // debug
     Serial.print(". pressure(");
@@ -352,13 +352,13 @@ const int xIndent = 12;               // in pixels, text on main screen
 const int yText1 = MARGIN+12;         // in pixels, top row, main screen
 const int yText2 = yText1 + 28;
 TextField txtReading[] = {
-  TextField{ BAROGRAPH_TITLE, xIndent,yText1, cTITLE,      ALIGNCENTER},    // [eTitle]
-  TextField{ "09-22",    xIndent+2,yText1,    cWARN,       ALIGNLEFT  },    // [eDate]
-  TextField{ "0#",       xIndent+2,yText2-10, cWARN,       ALIGNLEFT  },    // [eNumSat]
-  TextField{ "12:34",    gScreenWidth-20,yText1, cWARN,    ALIGNRIGHT },    // [eTimeHHMM]
-  TextField{ "56",       gScreenWidth-20,yText2-10, cWARN, ALIGNRIGHT },    // [eTimeSS]
-  TextField{ "30.00",    xIndent+150,yText2,  ILI9341_WHITE, ALIGNRIGHT },  // [valPressure]
-  TextField{ "inHg",     xIndent+168,yText2,  ILI9341_WHITE, ALIGNLEFT  },  // [unitPressure]
+  TextField{ BAROGRAPH_TITLE, xIndent,yText1, cTITLE,      ALIGNCENTER, 9 }, // [eTitle]
+  TextField{ "09-22",    xIndent+2,yText1,    cWARN,       ALIGNLEFT,   9 }, // [eDate]
+  TextField{ "0#",       xIndent+2,yText2-10, cWARN,       ALIGNLEFT,   9 }, // [eNumSat]
+  TextField{ "12:34",    gScreenWidth-20,yText1, cWARN,    ALIGNRIGHT,  9 }, // [eTimeHHMM]
+  TextField{ "56",       gScreenWidth-20,yText2-10, cWARN, ALIGNRIGHT,  9 }, // [eTimeSS]
+  TextField{ "30.00",    xIndent+150,yText2,  ILI9341_WHITE, ALIGNRIGHT,12}, // [valPressure]
+  TextField{ "inHg",     xIndent+168,yText2,  ILI9341_WHITE, ALIGNLEFT, 12}, // [unitPressure]
 };
 const int numReadings = sizeof(txtReading) / sizeof(txtReading[0]);
 
@@ -367,7 +367,8 @@ void showReadings() {
   txtSplash[0].setBackground(cBACKGROUND);          // set background for all TextFields
   TextField::setTextDirty( txtReading, numReadings ); // make sure all fields are updated
 
-  printPressure();
+  float pascals = baroModel.getBaroData();
+  printPressure( pascals );
   tickMarks(3, 5);      // draw 8 short ticks every day (24hr/8ticks = 3-hour intervals, 5 px high)
   tickMarks(12, 10);    // draw 2 long ticks every day (24hr/2ticks = 12-hour intervals, 10 px high)
   autoScaleGraph();     // update fMinPa/fMaxPa limits on vertical scale
@@ -411,6 +412,12 @@ void showTimeOfDay() {
   txtReading[eTimeSS].print(msg);
 }
 
+time_t nextOneSecondMark(time_t timestamp) {
+  return timestamp+1;
+}
+time_t nextOneMinuteMark(time_t timestamp) {
+  return ((timestamp+1+SECS_PER_MIN)/SECS_PER_MIN)*SECS_PER_MIN;
+}
 time_t nextFiveMinuteMark(time_t timestamp) {
   return ((timestamp+1+SECS_PER_5MIN)/SECS_PER_5MIN)*SECS_PER_5MIN;
 }
@@ -419,35 +426,24 @@ time_t nextFifteenMinuteMark(time_t timestamp) {
 }
 
 // ----- print current value of pressure reading
-void printPressure() {
-  float fPressure;
+// input: pressure in Pascals 
+void printPressure(float pascals) {
   char* sUnits;
   char inHg[] = "inHg";
   char hPa[] = "hPa";
-  switch (gUnits) {
-    case eEnglish:
-      fPressure = baroModel.gPressure / PASCALS_PER_INCHES_MERCURY;
-      sUnits = inHg;
-      break;
-    case eMetric:
-      fPressure = baroModel.gPressure / 100;
-      sUnits = hPa;
-      break;
-    default:
-      Serial.println("Internal Error! Unknown units");
-      break;
+  float fPressure;
+  if (gUnits == eEnglish) {
+    fPressure = pascals / PASCALS_PER_INCHES_MERCURY;
+    sUnits = inHg;
+  } else {
+    fPressure = pascals / 100;
+    sUnits = hPa;
   }
 
-  setFontSize(9);
   txtReading[eTitle].print();
-  //txtReading[eDate].print();
-  //txtReading[eTimeHHMM].print();
-  //txtReading[eTimeSS].print();
-
-  setFontSize(12);
   txtReading[valPressure].print( fPressure, 2 );
   txtReading[unitPressure].print( sUnits );
-  Serial.print("Currently "); Serial.print(fPressure, 2); Serial.print(" "); Serial.print(sUnits);
+  Serial.print("Displaying "); Serial.print(fPressure, 2); Serial.print(" "); Serial.print(sUnits);
   Serial.print(" ["); Serial.print(__LINE__); Serial.println("]");
 }
 
@@ -550,10 +546,10 @@ void superimposeLabel(int x, int y, double value, int precision) {
 
 enum { eTODAY, eDATETODAY, eYESTERDAY, eDAYBEFORE };
 TextField txtDate[] = {
-  TextField{"Today", xDay3+20,yBot-TEXTHEIGHT+2,  ILI9341_CYAN },  // [eTODAY]
-  TextField{"8/25",  xDay3+34,yBot+TEXTHEIGHT+1,  ILI9341_CYAN },  // [eDATETODAY]
-  TextField{"8/24",  xDay2+34,yBot+TEXTHEIGHT+1,  ILI9341_CYAN },  // [eYESTERDAY]
-  TextField{"8/23",  xDay1+20,yBot+TEXTHEIGHT+1,  ILI9341_CYAN },  // [eDAYBEFORE]
+  TextField{"Today", xDay3+20,yBot-TEXTHEIGHT+2,  ILI9341_CYAN, 9}, // [eTODAY]
+  TextField{"8/25",  xDay3+34,yBot+TEXTHEIGHT+1,  ILI9341_CYAN, 9}, // [eDATETODAY]
+  TextField{"8/24",  xDay2+34,yBot+TEXTHEIGHT+1,  ILI9341_CYAN, 9}, // [eYESTERDAY]
+  TextField{"8/23",  xDay1+20,yBot+TEXTHEIGHT+1,  ILI9341_CYAN, 9}, // [eDAYBEFORE]
 };
 const int numDates = sizeof(txtDate) / sizeof(txtDate[0]);
 
@@ -590,7 +586,6 @@ void drawScale() {
   }
 
   // labels along horizontal axis
-  setFontSize(9);
 
   // get today's date from the RTC (real time clock)
   time_t today = now();
@@ -653,7 +648,8 @@ void drawGraph() {
   Serial.print("Top graph pressure = "); Serial.print(yTopPa,1); Serial.println(" Pa");     // debug
   Serial.print("Bottom graph pressure = "); Serial.print(yBotPa,1); Serial.println(" Pa");  // debug
 
-  int x = xRight;
+  // loop through entire saved array of pressure readings
+  // each reading is one point, i.e., one pixel (we don't draw lines connecting the dots)
   for (int ii = lastIndex; ii > 0 ; ii--) {
     if (baroModel.pressureStack[ii - 1].pressure != 0) {
       // Y-axis:
@@ -661,7 +657,7 @@ void drawGraph() {
       //    but the graph's y-axis is either Pascals or inches-Hg, each with different scale
       //    so scale the data into the appropriate units on the y-axis
       if (gUnits == eMetric) {
-        
+        // todo
       }
       int y1 = map(baroModel.pressureStack[ii-0].pressure,  yBotPa,yTopPa,  yBot,yTop);
   
@@ -816,11 +812,11 @@ void setup() {
   }
 
   // ----- restore pressure history
-  if (baroModel.loadPressureHistory()) {
+  if (baroModel.loadHistory()) {
     Serial.println("Successfully restored barometric pressure history");
   } else {
     Serial.println("Failed to load barometric pressure history, re-initializing config file");
-    baroModel.savePressureHistory();
+    baroModel.saveHistory();
   }
   #ifdef RUN_UNIT_TESTS
     initTestStepValues();
@@ -910,27 +906,28 @@ void loop() {
     showTimeOfDay();
   }
 
-  // every 5 minutes acquire/print temp and pressure
-  // synchronize showReadings() on exactly the 5-minute marks 
+  // every 5 minutes read current pressure
+  // synchronize showReadings() on exactly 5-minute marks 
   // so the user can easily predict when the next update will occur
   time_t rightnow = now();
   if ( rightnow >= nextShowPressure) {
-    nextShowPressure = nextFiveMinuteMark(rightnow);
+    //nextShowPressure = nextFiveMinuteMark( rightnow );
+    //nextShowPressure = nextOneMinuteMark( rightnow );
+    nextShowPressure = nextOneSecondMark( rightnow );
   
-    baroModel.getBaroData();
-    redrawGraph = true;               // request draw graph
+    float pascals = baroModel.getBaroData();
+    //redrawGraph = true;               // request draw graph
+    printPressure( pascals );
   }
 
-  // every 15 minutes save pressure in nonvolatile RAM
+  // every 15 minutes read pressure and save it in nonvolatile RAM
   if ( rightnow >= nextSavePressure) {
     
-    // log this pressure reading ONLY IF the time-of-day is correct and initialized 
+    // log this pressure reading only if the time-of-day is correct and initialized 
     if (timeStatus() == timeSet) {
-
-      nextSavePressure = nextFifteenMinuteMark(rightnow);
-
-      baroModel.rememberPressure( baroModel.gPressure, rightnow );
-      baroModel.savePressureHistory();
+      baroModel.logPressure( rightnow );
+      redrawGraph = true;             // request draw graph
+      nextSavePressure = nextFifteenMinuteMark( rightnow );
     }
   }
 

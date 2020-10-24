@@ -51,10 +51,8 @@ class Reading {
 class BarometerModel {
   public:
     // Class member variables
-    void process() {
-      getBaroData();
-
-    }
+    // Constructor - create and initialize member variables
+    BarometerModel() { }
 
     // init BMP388 hardware 
     int begin(void) {
@@ -88,14 +86,10 @@ class BarometerModel {
         Serial.println("Error, failed to read barometer");
       }
       // continue anyway, for demo
-      gPressure = baro.pressure + elevCorr;   // Pressure is returned in SI units of Pascals. 100 Pascals = 1 hPa = 1 millibar
+      gPressure = baro.pressure + elevCorr; // Pressure in SI units of Pascals. 100 Pascals = 1 hPa = 1 millibar
       hPa = gPressure / 100;
       inchesHg = 0.0002953 * gPressure;
-      Serial.print("Barometer ");
-      Serial.print(gPressure);
-      Serial.print(" Pa [");
-      Serial.print(__LINE__);
-      Serial.println("]");
+      Serial.print("Barometer "); Serial.print(gPressure); Serial.print(" Pa ["); Serial.print(__LINE__); Serial.println("]");
     }
 
     void rememberPressure( float pressure, time_t time ) {
@@ -127,9 +121,6 @@ class BarometerModel {
 
 
   public:
-    // Constructor - create and initialize member variables
-    BarometerModel() { }
-
     // Setters
 
     // ========== load/save barometer pressure readings ============
