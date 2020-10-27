@@ -53,12 +53,10 @@
          The basic unit of time (time_t) is the number of seconds since Jan 1, 1970, 
          a compact 4-byte integer.
          https://github.com/PaulStoffregen/Time
-
 */
 
 #include <Arduino.h>
 #include "constants.h"                // Griduino constants, colors, typedefs
-//#include "save_restore.h"           // Configuration data in nonvolatile RAM
 
 // ========== extern ===========================================
 char* dateToString(char* msg, int len, time_t datetime);  // Baroduino.ino
