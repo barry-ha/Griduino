@@ -432,19 +432,21 @@ void printPressure(float pascals) {
   char inHg[] = "inHg";
   char hPa[] = "hPa";
   float fPressure;
+  int decimals = 1;
   if (gUnits == eEnglish) {
     fPressure = pascals / PASCALS_PER_INCHES_MERCURY;
     sUnits = inHg;
+    decimals = 2;
   } else {
     fPressure = pascals / 100;
     sUnits = hPa;
+    decimals = 1;
   }
 
   txtReading[eTitle].print();
-  txtReading[valPressure].print( fPressure, 2 );
+  txtReading[valPressure].print( fPressure, decimals );
   txtReading[unitPressure].print( sUnits );
-  Serial.print("Displaying "); Serial.print(fPressure, 2); Serial.print(" "); Serial.print(sUnits);
-  Serial.print(" ["); Serial.print(__LINE__); Serial.println("]");
+  //Serial.print("Displaying "); Serial.print(fPressure, decimals); Serial.print(" "); Serial.println(sUnits);
 }
 
 void tickMarks(int t, int h) {
@@ -650,8 +652,8 @@ void drawGraph() {
 
   // loop through entire saved array of pressure readings
   // each reading is one point, i.e., one pixel (we don't draw lines connecting the dots)
-  for (int ii = lastIndex; ii > 0 ; ii--) {
-    if (baroModel.pressureStack[ii - 1].pressure != 0) {
+  for (int ii = lastIndex; ii >= 0 ; ii--) {
+    if (baroModel.pressureStack[ii].pressure != 0) {
       // Y-axis:
       //    The data to plot is always 'float Pascals' 
       //    but the graph's y-axis is either Pascals or inches-Hg, each with different scale
@@ -659,25 +661,29 @@ void drawGraph() {
       if (gUnits == eMetric) {
         // todo
       }
-      int y1 = map(baroModel.pressureStack[ii-0].pressure,  yBotPa,yTopPa,  yBot,yTop);
+      int y1 = map(baroModel.pressureStack[ii].pressure,  yBotPa,yTopPa,  yBot,yTop);
   
       // X-axis:
       //    Scale from timestamps onto x-axis
-      int t1 = baroModel.pressureStack[ii-0].time;
+      time_t t1 = baroModel.pressureStack[ii].time;
       //       map(value, fromLow,fromHigh, toLow,toHigh)
       int x1 = map( t1,   minTime,maxTime,  xDay1,xRight);
 
       if (x1 < xDay1) {
-        snprintf(msg, sizeof(msg), "%d. Ignored: Date x1 (%d) is off left edge of (%d).", ii, x1, xDay1); Serial.println(msg);
+        dateToString(sDate, sizeof(sDate), t1);
+        snprintf(msg, sizeof(msg), "%d. Ignored: Date x1 (%s = %d) is off left edge of (%d).", 
+                                    ii,                  sDate,x1,                   xDay1); Serial.println(msg);
         continue;
       }
       if (x1 > xRight) {
-        snprintf(msg, sizeof(msg), "%d. Ignored: Date x1 (%d) is off right edge of (%d).", ii, x1, xRight); Serial.println(msg);
+        dateToString(sDate, sizeof(sDate), t1);
+        snprintf(msg, sizeof(msg), "%d. Ignored: Date x1 (%s = %d) is off right edge of (%d).", 
+                                                        sDate, ii, x1, xRight); Serial.println(msg);
         continue;
       }
 
       tft.drawPixel(x1,y1, cGRAPHCOLOR);
-      int approxPa = (int)baroModel.pressureStack[ii-0].pressure;
+      int approxPa = (int)baroModel.pressureStack[ii].pressure;
       //snprintf(msg, sizeof(msg), "%d. Plot %d at pixel (%d,%d)", ii, approxPa, x1,y1);
       //Serial.println(msg);    // debug
     }
