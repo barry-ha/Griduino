@@ -96,7 +96,7 @@ In the Arduino IDE menu bar, go to **Tools > Manage Libraries**. Install the lat
    - LiquidCrystal v1.0.7
    - SD v1.2.4
    - TFT v1.0.6
-   - Adafruit BMP3XX Library v1.1.0
+   - Adafruit BMP3XX Library v1.1.0 <br>(do not use v2.0.0, Adafruit made incompatible changes as a result of new Bosch sensor software)
    - Adafruit GFX Library v1.10.1
    - Adafruit GPS Library v1.5.2
    - Adafruit ILI9341 v1.5.6
