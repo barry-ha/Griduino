@@ -74,7 +74,7 @@ int SaveRestore::readConfig(byte* pData, const int sizeData) {
   // Echo metadata about the file:
   Serial.print(". Total file size (bytes): "); Serial.println(readFile.size(), DEC);
   Serial.print(". Current position in file: "); Serial.println(readFile.position(), DEC);
-  Serial.print(". Available data remaining to read: "); Serial.println(readFile.available(), DEC);
+  //Serial.print(". Available data remaining to read: "); Serial.println(readFile.available(), DEC);
 
   // read first field (filename) from config file...
   char temp[sizeof(fqFilename)];     // buffer size is as large as our largest member variable
