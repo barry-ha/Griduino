@@ -34,6 +34,9 @@ const float gridHeightDegrees = 1.0;
 #define mphPerKnots   1.15078
 const double degreesPerRadian = 57.2957795; // conversion factor = (360 degrees)/(2 pi radians)
 
+#define SECS_PER_5MIN  ((time_t)(300UL))
+#define SECS_PER_15MIN ((time_t)(900UL))
+
 // ----- load/save configuration using SDRAM
 //#define EXTERNAL_FLASH_USE_QSPI     // 2020-02-11 added by BarryH, since it seems to be missing from 
                                       // c:\Users\barry\AppData\Local\Arduino15\packages\adafruit\hardware\samd\1.5.7\variants\feather_m4\variant.h
