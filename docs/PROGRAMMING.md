@@ -77,12 +77,12 @@ The Arduino IDE (integrated development environment) is the main workbench for w
 As of 10-29-2020, the latest workbench version is Arduino IDE v1.8.13 
 
 1. **Add Feather board support to Arduino IDE**<br/>
-The IDE can't find the list of SAMD boards unless we add a URL to preferences.
+The IDE can't find the list of SAMD boards unless we add a URL to preferences:
 <ul>
 <li>File > Preferences</li>
-<li>Find the "Additional Boards Manager URLs" section</li>
-<li>Add: **https://adafruit.github.io/arduino-board-index/package_adafruit_index.json**<br/>
-![Preferences dialog](img/ide-preferences-img7024.jpg)</li>
+<li>Find the "Additional Boards Manager URLs" section<br/>
+![](img/ide-preferences-img7024.jpg)</li>
+<li>Add: https://adafruit.github.io/arduino-board-index/package_adafruit_index.json</li>
 <li>Click OK</li>
 </ul> 
 
