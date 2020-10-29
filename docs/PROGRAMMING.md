@@ -67,21 +67,20 @@ Run the Python conversion script (author https://github.com/microsoft/uf2):
 If you want to compile Griduino source code or work with its example files (and we hope you do) then here's everything you need to setup the workbench.
 
 1. **Download and Run Arduino IDE**<br/>
-The Arduino IDE (integrated development environment) is the main workbench for writing, compiling and testing Arduino programs. 
+The Arduino IDE (integrated development environment) is the main workbench for writing, compiling and testing Arduino programs. As of October 2020, the latest version is Arduino IDE v1.8.13 
 <ul>
 <li>Visit www.arduino.cc and find the **Software Downloads** section.</li>
 <li>Scroll down to the **Download the Arduino IDE** section.</li>
 <li>Find and **run the installer** for your operating system.<br/>For Windows, it is normal for it to open the Microsoft Store and download over 200 MB. Follow the prompts to install the software.</li>
 <li>**Launch the Arduino IDE**.</li>
 </ul>
-As of 10-29-2020, the latest workbench version is Arduino IDE v1.8.13 
 
 1. **Add Feather board support to Arduino IDE**<br/>
 The IDE can't find the list of SAMD boards unless we add a URL to preferences:
 <ul>
 <li>File > Preferences</li>
 <li>Find the "Additional Boards Manager URLs" section<br/>
-![](img/ide-preferences-img7024.jpg)</li>
+[Preferences dialog](https://github.com/barry-ha/Griduino/blob/master/docs/img/ide-preferences-img7024.jpg)</li>
 <li>Add: https://adafruit.github.io/arduino-board-index/package_adafruit_index.json</li>
 <li>Click OK</li>
 </ul> 
