@@ -10,7 +10,7 @@ Griduino is open-source: https://github.com/barry-ha/Griduino
 
 When complete, you'll have a useful driver's aid dedicated to show your location in the Maidenhead grid square system, your altitude, the exact time in GMT, barometric pressure and more.
 
-![](../hardware/img/overview-img6804.jpg)
+![](img/overview-img6804.jpg)
 
 <h2>2. How to Install the Griduino Program</h2>
 Follow these steps to obtain the Griduino binary file and update the hardware.
@@ -75,12 +75,11 @@ The Arduino IDE (integrated development environment) is the main workbench for w
 <li>**Launch the Arduino IDE**.</li>
 </ul>
 
-1. **Add Feather board support to Arduino IDE**<br/>
-The IDE can't find the list of SAMD boards unless we add a URL to preferences:
+1. **Add Packages Link to Board Manager**<br/>
+The IDE can't find the list of SAMD boards unless we add their magic URL to preferences:
 <ul>
-<li>File > Preferences</li>
-<li>Find the "Additional Boards Manager URLs" section<br/>
-[Preferences dialog](https://github.com/barry-ha/Griduino/blob/master/docs/img/ide-preferences-img7024.jpg)</li>
+<li>**File** > **Preferences**</li>
+<li>Find the "Additional Boards Manager URLs" section<br/><img src="img/ide-preferences-img7024.jpg" alt="Preferences dialog" title="Preferences dialog"/></li>
 <li>Add: https://adafruit.github.io/arduino-board-index/package_adafruit_index.json</li>
 <li>Click OK</li>
 </ul> 
