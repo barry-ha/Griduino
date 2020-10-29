@@ -1,9 +1,13 @@
 # Changelog
-All notable changes to this project will be documented in this file.
+All notable changes to this project are documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and the Griduino project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+The changelog format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and the Griduino project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 Version numbers correspond to [Downloads](https://github.com/barry-ha/Griduino/tree/master/downloads) available as pre-compiled binary Griduino programs. To install them, see the [Programming](https://github.com/barry-ha/Griduino/blob/master/docs/PROGRAMMING.md) instructions.
+
+**v0.26** &nbsp; 2020-10-29
+
+Added data logger for barometric pressure into the main Griduino program. Now it collects the weather history in the background while doing everything else.  Then, to display the pressure graph, download baroduino_v026.uf2.
 
 **v0.25** &nbsp; 2020-10-03
 
@@ -13,7 +17,7 @@ Before this change, it typically displayed 'xx:59' seconds as the tone is heard.
 
 **v0.24** &nbsp; 2020-10-02
 
-Added new view to show a frivolous "Groundhog Day" counter display. We feel like we're stuck in a time loop, just like Bill Murray in his 1993 movie. Now we know how long we've been in the pandemic and self-imposed social distancing.
+Added new view for a frivolous "Groundhog Day" counter display. We feel like we're stuck in a time loop, just like Bill Murray in his 1993 movie. Now we know how long we've been in the pandemic and self-imposed social distancing.
 
 Also vastly updated the stadalone "Baroduino" example program.
 
