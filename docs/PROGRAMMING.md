@@ -67,13 +67,24 @@ Run the Python conversion script (author https://github.com/microsoft/uf2):
 If you want to compile Griduino source code or work with its example files (and we hope you do) then here's everything you need to setup the workbench.
 
 1. **Download and Run Arduino IDE**<br/>
-The Arduino IDE (integrated development environment) is the main workbench for writing, compiling and testing Arduino programs. Visit www.arduino.cc and find the **Software Downloads** section. Scroll down to the **Download the Arduino IDE** section. Find and **run the installer** for your operating system. For Windows, it is normal for it to open the Microsoft Store and download over 200 MB. Follow the prompts to install the software. **Launch the Arduino IDE**.<br/>
-As of 8-14-2020, the latest workbench version is Arduino IDE v1.8.13
+The Arduino IDE (integrated development environment) is the main workbench for writing, compiling and testing Arduino programs. 
+<ul>
+<li>Visit www.arduino.cc and find the **Software Downloads** section.</li>
+<li>Scroll down to the **Download the Arduino IDE** section.</li>
+<li>Find and **run the installer** for your operating system.<br/>For Windows, it is normal for it to open the Microsoft Store and download over 200 MB. Follow the prompts to install the software.</li>
+<li>**Launch the Arduino IDE**.</li>
+</ul>
+As of 10-29-2020, the latest workbench version is Arduino IDE v1.8.13 
 
-1. **Select Port**<br/>
-You'll need to figure out your COM port for this step. Here's how:<br/>
-On Windows, run the **Device Manager** and expand the section for **Ports**. One of the items listed under Ports represents the Griduino device. It is possible for the port assignment to change from day to day, so be prepared to return to the Device Manager as needed.<br/>
-In the Arduino IDE menu bar, go to **Tools > Port** and select the COM port that was given by the Device Manager. If there was more than one port listed, try them one by one.
+1. **Add Feather board support to Arduino IDE**<br/>
+The IDE can't find the list of SAMD boards unless we add a URL to preferences.
+<ul>
+<li>File > Preferences</li>
+<li>Find the "Additional Boards Manager URLs" section</li>
+<li>Add: **https://adafruit.github.io/arduino-board-index/package_adafruit_index.json**<br/>
+![Preferences dialog](./img/ide-preferences-img7024.jpg)</li>
+<li>Click OK</li>
+</ul> 
 
 1. **Install Board Support**<br/>
 In this step, we will install support files needed by Arduino IDE to talk to the Feather M4. Here's how:<br/>
@@ -88,6 +99,11 @@ In the Arduino IDE menu bar, go to **Tools > Board > Boards Manager**. It will d
 On the Arduino IDE menu bar, select **Tools > Board > Arduino SAMD (32-bits ARM Cortex-M0+ and Cortex-M4) > Adafruit Feather M4 Express**<br/>
 If the option is not available, please review previous step "Install Board Support".
 
+1. **Select Port**<br/>
+You'll need to figure out your COM port for this step. Here's how:<br/>
+On Windows, run the **Device Manager** and expand the section for **Ports**. One of the items listed under Ports represents the Griduino device. It is possible for the port assignment to change from day to day, so be prepared to return to the Device Manager as needed.<br/>
+In the Arduino IDE menu bar, go to **Tools > Port** and select the COM port that was given by the Device Manager. If there was more than one port listed, try them one by one.
+
 1. **Install Libraries**</br>
 In the Arduino IDE menu bar, go to **Tools > Manage Libraries**. Install the latest version (and their dependencies) of these libraries:
    - AudioZero v1.1.1
@@ -96,7 +112,7 @@ In the Arduino IDE menu bar, go to **Tools > Manage Libraries**. Install the lat
    - LiquidCrystal v1.0.7
    - SD v1.2.4
    - TFT v1.0.6
-   - Adafruit BMP3XX Library v1.1.0 <br>(do not use v2.0.0, Adafruit made incompatible changes as a result of new Bosch sensor software)
+   - Adafruit BMP3XX Library v1.1.0 <br>(do not use BMP3XX v2.0.0, Adafruit made incompatible changes as a result of October 2020 driver updates from Bosch sensor software)
    - Adafruit GFX Library v1.10.1
    - Adafruit GPS Library v1.5.2
    - Adafruit ILI9341 v1.5.6
