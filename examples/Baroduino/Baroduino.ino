@@ -151,9 +151,6 @@ const int howLongToWait = 8;          // max number of seconds at startup waitin
 #define BARS_PER_INCHES_MERCURY      (0.0338639)
 #define PASCALS_PER_INCHES_MERCURY   (3386.39)
 
-#define SECS_PER_5MIN  ((time_t)(300UL))
-#define SECS_PER_15MIN ((time_t)(900UL))
-
 // ----- color scheme -----
 // RGB 565 color code: http://www.barth-dev.de/online/rgb565-color-picker/
 #define cSCALECOLOR     ILI9341_DARKGREEN // tried yellow but it's too bright
@@ -163,26 +160,7 @@ const int howLongToWait = 8;          // max number of seconds at startup waitin
 #define cWARN           0xF844        // brighter than ILI9341_RED but not pink
 //efine cSINKING        0xF882        // highlight rapidly sinking barometric pressure
 
-bool redrawGraph = true;                  // true=request graph be drawn
-bool waitingForRTC = true;                // true=waiting for GPS hardware to give us the first valid date/time
-
-//==============================================================
-//
-//      BarometerModel
-//      "Class BarometerModel" is intended to be identical 
-//      for both Griduino and the Barograph
-//
-//    This model collects data from the BMP388 barometric pressure 
-//    and temperature sensor on a schedule determined by the Controller.
-//
-//    288px wide graph ==> allows 96 px/day ==> 4px/hour ==> log pressure every 15 minutes
-//
-//==============================================================
-
-#include "model_baro.h"
-BarometerModel baroModel( &baro );    // create an instance of the model
-
-// ======== date helpers =======================================
+// ======== date time helpers =================================
 char* dateToString(char* msg, int len, time_t datetime) {
   // utility function to format date:  "2020-9-27 at 11:22:33"
   // Example 1:
@@ -199,19 +177,51 @@ char* dateToString(char* msg, int len, time_t datetime) {
   return msg;
 }
 
-  // Does the GPS real-time clock contain a valid date?
-  bool isDateValid(int yy, int mm, int dd) {
-    if (yy < 20) {
-      return false;
-    }
-    if (mm < 1 || mm > 12) {
-      return false;
-    }
-    if (dd < 1 || dd > 31) {
-      return false;
-    }
-    return true;
+// Does the GPS real-time clock contain a valid date?
+bool isDateValid(int yy, int mm, int dd) {
+  if (yy < 20) {
+    return false;
   }
+  if (mm < 1 || mm > 12) {
+    return false;
+  }
+  if (dd < 1 || dd > 31) {
+    return false;
+  }
+  return true;
+}
+
+time_t nextOneSecondMark(time_t timestamp) {
+  return timestamp+1;
+}
+time_t nextOneMinuteMark(time_t timestamp) {
+  return ((timestamp+1+SECS_PER_MIN)/SECS_PER_MIN)*SECS_PER_MIN;
+}
+time_t nextFiveMinuteMark(time_t timestamp) {
+  return ((timestamp+1+SECS_PER_5MIN)/SECS_PER_5MIN)*SECS_PER_5MIN;
+}
+time_t nextFifteenMinuteMark(time_t timestamp) {
+  return ((timestamp+1+SECS_PER_15MIN)/SECS_PER_15MIN)*SECS_PER_15MIN;
+}
+
+//==============================================================
+//
+//      BarometerModel
+//      "Class BarometerModel" is intended to be identical 
+//      for both Griduino and the Barograph example
+//
+//    This model collects data from the BMP388 barometric pressure 
+//    and temperature sensor on a schedule determined by the Controller.
+//
+//    288px wide graph ==> 96 px/day ==> 4px/hour ==> log pressure every 15 minutes
+//
+//==============================================================
+
+bool redrawGraph = true;              // true=request graph be drawn
+bool waitingForRTC = true;            // true=waiting for GPS hardware to give us the first valid date/time
+
+#include "model_baro.h"
+BarometerModel baroModel( &baro );    // create instance of the model, giving it ptr to hardware
 
 // ======== unit tests =========================================
 #ifdef RUN_UNIT_TESTS
@@ -400,29 +410,16 @@ void showTimeOfDay() {
   }
 
   snprintf(msg, sizeof(msg), "%d-%02d", mo, dd);
-  txtReading[eDate].print(msg);
+  //txtReading[eDate].print(msg);       // 2020-10-28 simplify screen, don't show date
 
   snprintf(msg, sizeof(msg), "%d#", GPS.satellites);
-  txtReading[eNumSat].print(msg);
+  //txtReading[eNumSat].print(msg);     // 2020-10-28 simplify screen, don't show number of satellites
 
   snprintf(msg, sizeof(msg), "%02d:%02d", hh,mm);
   txtReading[eTimeHHMM].print(msg);
 
   snprintf(msg, sizeof(msg), "%02d", ss);
   txtReading[eTimeSS].print(msg);
-}
-
-time_t nextOneSecondMark(time_t timestamp) {
-  return timestamp+1;
-}
-time_t nextOneMinuteMark(time_t timestamp) {
-  return ((timestamp+1+SECS_PER_MIN)/SECS_PER_MIN)*SECS_PER_MIN;
-}
-time_t nextFiveMinuteMark(time_t timestamp) {
-  return ((timestamp+1+SECS_PER_5MIN)/SECS_PER_5MIN)*SECS_PER_5MIN;
-}
-time_t nextFifteenMinuteMark(time_t timestamp) {
-  return ((timestamp+1+SECS_PER_15MIN)/SECS_PER_15MIN)*SECS_PER_15MIN;
 }
 
 // ----- print current value of pressure reading
@@ -678,7 +675,7 @@ void drawGraph() {
       if (x1 > xRight) {
         dateToString(sDate, sizeof(sDate), t1);
         snprintf(msg, sizeof(msg), "%d. Ignored: Date x1 (%s = %d) is off right edge of (%d).", 
-                                                        sDate, ii, x1, xRight); Serial.println(msg);
+                                    ii,                 sDate, x1,                   xRight); Serial.println(msg);
         continue;
       }
 
@@ -805,11 +802,19 @@ void setup() {
   GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);    // 1 Hz update rate
   //GPS.sendCommand(PMTK_SET_NMEA_UPDATE_200_MILLIHERTZ); // Once every 5 seconds update
 
+  // ----- report on our memory hogs
+  char temp[200];
+  Serial.println("Large resources:");
+  snprintf(temp, sizeof(temp),
+          ". baroModel.pressureStack[%d] uses %d bytes/entry = %d bytes total",
+             maxReadings, sizeof(BaroReading), sizeof(baroModel.pressureStack));
+  Serial.println(temp);
+
   // ----- init RTC
   // Note: See the main() loop. 
   //       The realtime clock is not available until after receiving a few NMEA sentences.
 
-  // ----- restore settings
+  // ----- restore barograph english/metric settings
   if (loadConfigUnits()) {
     Serial.println("Successfully loaded settings from non-volatile RAM");
   } else {
@@ -817,17 +822,13 @@ void setup() {
     saveConfigUnits();
   }
 
-  // ----- restore pressure history
+  // ----- restore barometric pressure history
   if (baroModel.loadHistory()) {
     Serial.println("Successfully restored barometric pressure history");
   } else {
     Serial.println("Failed to load barometric pressure history, re-initializing config file");
     baroModel.saveHistory();
   }
-  #ifdef RUN_UNIT_TESTS
-    initTestStepValues();
-    //initTestSineWave();
-  #endif
 
   // ----- init barometer
   if (baroModel.begin()) {
@@ -841,7 +842,13 @@ void setup() {
     delay(4000);
   }
 
-  // all done with setup, prepare screen for main program
+  // ----- run unit tests, if allowed by "#define RUN_UNIT_TESTS"
+  #ifdef RUN_UNIT_TESTS
+    initTestStepValues();
+    //initTestSineWave();
+  #endif
+
+  // ----- all done with setup, show opening view screen
   delay(3000);                        // milliseconds
   clearScreen();
 
@@ -853,14 +860,14 @@ void setup() {
 // This number will overflow after about 50 days.
 // Initialized to trigger all processing on first pass in mainline
 uint32_t prevTimeGPS = 0;             // timer to process GPS sentence
-uint32_t prevShowTime = 0;            // timer to update displayed time-of-day (1 second)
+uint32_t prevShowTime = 0;            // timer to update time-of-day (1 second)
 
 time_t nextShowPressure = 0;          // timer to update displayed value (5 min), init to take a reading soon after startup
 time_t nextSavePressure = 0;          // timer to log pressure reading (15 min)
 
 const int RTC_PROCESS_INTERVAL = 1000;          // Timer RTC = 1 second
-const int READ_BAROMETER_INTERVAL = 5*60*1000;  // Timer 1 =  5 minutes
-const int LOG_PRESSURE_INTERVAL = 15*60*1000;   // Timer 2 = 15 minutes
+const int READ_BAROMETER_INTERVAL = 5*60*1000;  // Timer 1 =  5 minutes, in milliseconds
+const int LOG_PRESSURE_INTERVAL = 15*60*1000;   // 15 minutes, in milliseconds
 
 void loop() {
 
@@ -881,23 +888,24 @@ void loop() {
     }
   }
 
-  // look for the first "setTime()" and request to display the graph
+  // look for the first "setTime()" to begin the datalogger
   if (waitingForRTC && isDateValid(GPS.year, GPS.month, GPS.day)) {
     // found a transition from an unknown date -> correct date/time
-    // assuming "class Adafruit_GPS" contains 2000-01-01 00:00 until it receives an update via NMEA sentences
+    // assuming "class Adafruit_GPS" contains 2000-01-01 00:00 until 
+    // it receives an update via NMEA sentences
     // the next step (1 second timer) will actually set the clock
-    redrawGraph = true;
+    //redrawGraph = true;
     waitingForRTC = false;
 
     char msg[128];                    // debug
-    Serial.println("-----> Found first correct date/time value <-----");  // debug
-    snprintf(msg, sizeof(msg), "       GPS time %d-%02d-%02d at %02d:%02d:%02d",
-                                       GPS.year,GPS.month,GPS.day, 
-                                       GPS.hour,GPS.minute,GPS.seconds);
+    Serial.println("Received first correct date/time from GPS");  // debug
+    snprintf(msg, sizeof(msg), ". GPS time %d-%02d-%02d at %02d:%02d:%02d",
+                                  GPS.year,GPS.month,GPS.day, 
+                                  GPS.hour,GPS.minute,GPS.seconds);
     Serial.println(msg);              // debug
   }
 
-  // every 1 second update the clock display
+  // every 1 second update the realtime clock
   if (millis() - prevShowTime > RTC_PROCESS_INTERVAL) {
     prevShowTime = millis();
 
@@ -914,7 +922,7 @@ void loop() {
 
   // every 5 minutes read current pressure
   // synchronize showReadings() on exactly 5-minute marks 
-  // so the user can easily predict when the next update will occur
+  // so the user can more easily predict when the next update will occur
   time_t rightnow = now();
   if ( rightnow >= nextShowPressure) {
     //nextShowPressure = nextFiveMinuteMark( rightnow );
@@ -926,7 +934,7 @@ void loop() {
     printPressure( pascals );
   }
 
-  // every 15 minutes read pressure and save it in nonvolatile RAM
+  // every 15 minutes read barometric pressure and save it in nonvolatile RAM
   if ( rightnow >= nextSavePressure) {
     
     // log this pressure reading only if the time-of-day is correct and initialized 

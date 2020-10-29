@@ -19,7 +19,7 @@
          Adafruit BMP388 Barometric Pressure             https://www.adafruit.com/product/3966
 
   Pressure History:
-         This class is basically a data logger for barometric pressure samples.
+         This class is basically a data logger for barometric pressure.
          Q: How many data points should we store?
          A: 288 samples
          . Assume we want 288-pixel wide graph which leaves room for graph labels on the 320-pixel TFT display
@@ -59,7 +59,7 @@
 #include "constants.h"                // Griduino constants, colors, typedefs
 
 // ========== extern ===========================================
-char* dateToString(char* msg, int len, time_t datetime);  // Baroduino.ino
+extern char* dateToString(char* msg, int len, time_t datetime);  // Griduino/Baroduino.ino
 
 // ------------ definitions
 #define MILLIBARS_PER_INCHES_MERCURY (0.02953)
@@ -80,6 +80,10 @@ class BarometerModel {
     #define maxReadings 288           // 288 = (4 readings/hour)*(24 hours/day)*(3 days)
     #define lastIndex (maxReadings - 1)  // index to the last element in pressure array
     BaroReading pressureStack[maxReadings] = {};  // array to hold pressure data, init filled with zeros
+
+    //float elevCorr = 4241;          // elevation correction in Pa, 
+    // use difference between altimeter setting and station pressure: https://www.weather.gov/epz/wxcalc_altimetersetting
+    float elevCorr = 0;               // todo: unused for now, review and change if needed
 
     // Constructor - create and initialize member variables
     BarometerModel(Adafruit_BMP3XX* vbaro) {
@@ -129,7 +133,7 @@ class BarometerModel {
         *****/
 
         // Get and discard the first data point 
-        // Repeated because first reading is always bad, until iir&oversampling buffers are populated
+        // Repeated because first reading is always bad, until iir oversampling buffers are populated
         for (int ii=0; ii<4; ii++) {
           baro->performReading();     // read hardware 
           delay(50);

@@ -518,6 +518,69 @@ int fGetDataSource() {
   }
 }
 
+// ======== date time helpers =================================
+char* dateToString(char* msg, int len, time_t datetime) {
+  // utility function to format date:  "2020-9-27 at 11:22:33"
+  // Example 1:
+  //      char sDate[24];
+  //      dateToString( sDate, sizeof(sDate), now() );
+  //      Serial.println( sDate );
+  // Example 2:
+  //      char sDate[24];
+  //      Serial.print("The current time is ");
+  //      Serial.println( dateToString(sDate, sizeof(sDate), now()) );
+  snprintf(msg, len, "%d-%d-%d at %02d:%02d:%02d",
+                     year(datetime),month(datetime),day(datetime), 
+                     hour(datetime),minute(datetime),second(datetime));
+  return msg;
+}
+
+// Does the GPS real-time clock contain a valid date?
+bool isDateValid(int yy, int mm, int dd) {
+  if (yy < 20) {
+    return false;
+  }
+  if (mm < 1 || mm > 12) {
+    return false;
+  }
+  if (dd < 1 || dd > 31) {
+    return false;
+  }
+  return true;
+}
+
+time_t nextOneSecondMark(time_t timestamp) {
+  return timestamp+1;
+}
+time_t nextOneMinuteMark(time_t timestamp) {
+  return ((timestamp+1+SECS_PER_MIN)/SECS_PER_MIN)*SECS_PER_MIN;
+}
+time_t nextFiveMinuteMark(time_t timestamp) {
+  return ((timestamp+1+SECS_PER_5MIN)/SECS_PER_5MIN)*SECS_PER_5MIN;
+}
+time_t nextFifteenMinuteMark(time_t timestamp) {
+  return ((timestamp+1+SECS_PER_15MIN)/SECS_PER_15MIN)*SECS_PER_15MIN;
+}
+
+//==============================================================
+//
+//      BarometerModel
+//      "Class BarometerModel" is intended to be identical 
+//      for both Griduino and the Barograph example
+//
+//    This model collects data from the BMP388 barometric pressure 
+//    and temperature sensor on a schedule determined by the Controller.
+//
+//    288px wide graph ==> 96 px/day ==> 4px/hour ==> log pressure every 15 minutes
+//
+//==============================================================
+
+//bool redrawGraph = true;              // true=request graph be drawn
+bool waitingForRTC = true;            // true=waiting for GPS hardware to give us the first valid date/time
+
+#include "model_baro.h"
+BarometerModel baroModel( &baro );    // create instance of the model, giving it ptr to hardware
+
 //==============================================================
 //
 //      Views
@@ -667,13 +730,20 @@ void setup() {
 
   // ----- init TFT display
   tft.begin();                        // initialize TFT display
-  tft.fillScreen(ILI9341_BLACK);      // note that "begin()" does not clear screen 
   tft.setRotation(1);                 // 1=landscape (default is 0=portrait)
-  //settings4View.loadConfig();         // let the settings object initialize itself
+  tft.fillScreen(ILI9341_BLACK);      // note that "begin()" does not clear screen 
+  //settings4View.loadConfig();       // let the settings object initialize itself
 
   // ----- init TFT backlight
   pinMode(TFT_BL, OUTPUT);
   analogWrite(TFT_BL, 255);           // start at full brightness
+
+  // ----- init Feather M4 onboard lights
+  pixel.begin();
+  pixel.clear();                        // turn off NeoPixel
+  pinMode(RED_LED, OUTPUT);             // diagnostics RED LED
+  digitalWrite(PIN_LED, LOW);           // turn off little red LED
+  Serial.println("NeoPixel initialized and turned off");
 
   // ----- init touch screen
   ts.pressureThreshhold = 200;
@@ -710,7 +780,6 @@ void setup() {
   GPS.sendCommand(PMTK_SET_NMEA_UPDATE_5HZ);    // 5 Hz update rate
   //GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);    // 1 Hz update rate
   //GPS.sendCommand(PMTK_SET_NMEA_UPDATE_200_MILLIHERTZ); // Once every 5 seconds update
-  //GPS.sendCommand(PGCMD_ANTENNA);             // Request updates on whether antenna is connected or not (comment out to keep quiet)
 
   // ----- query GPS
   Serial.print("Sending command to query GPS Firmware version");
@@ -720,7 +789,23 @@ void setup() {
   //GPS.sendCommand(PGCMD_ANTENNA);   // Request antenna status (comment out to keep quiet)
                                       // expected reply: $PGTOP,11,...
 
-  // ----- init digital potentiometer
+  // ----- report on our memory hogs
+  char temp[200];
+  Serial.println("Large resources:");
+  snprintf(temp, sizeof(temp), 
+          ". Model.history[%d] uses %d bytes/entry = %d bytes total",
+             model->numHistory, sizeof(Location), sizeof(model->history));
+  Serial.println(temp);
+  snprintf(temp, sizeof(temp),
+          ". baroModel.pressureStack[%d] uses %d bytes/entry = %d bytes total",
+             maxReadings, sizeof(BaroReading), sizeof(baroModel.pressureStack));
+  Serial.println(temp);
+
+  // ----- init RTC
+  // Note: See the main() loop. 
+  //       The realtime clock is not available until after receiving a few NMEA sentences.
+
+  // ----- init digital potentiometer, restore volume setting
   volume.unlock();                    // unlock digipot (in case someone else, like an example pgm, has locked it)
   volume.setToZero();                 // set digipot hardware to match its ctor (wiper=0) because the chip cannot be read
                                       // and all "setWiper" commands are really incr/decr pulses. This gets it sync.
@@ -740,13 +825,36 @@ void setup() {
   // ----- init onboard LED
   pinMode(RED_LED, OUTPUT);           // diagnostics RED LED
   
-  // ----- report on our memory hog
-  char temp[200];
-  Serial.println("Large resources:");
-  snprintf(temp, sizeof(temp), 
-          "  Model.history[%d] uses %d bytes/entry = %d bytes total size",
-             model->numHistory, sizeof(Location), sizeof(model->history));
-  Serial.println(temp);
+  // one-time Help screen
+  pView = &helpView;
+  pView->startScreen();
+  delay(2000);
+
+  // ----- restore GPS driving track breadcrumb history
+  model->restore();                     // this takes noticeable time (~0.2 sec) 
+  model->gHaveGPSfix = false;           // assume no satellite signal yet
+  model->gSatellites = 0;
+
+  // ----- restore barometric pressure history
+  if (baroModel.loadHistory()) {
+    Serial.println("Successfully restored barometric pressure history");
+  } else {
+    Serial.println("Failed to load barometric pressure history, re-initializing config file");
+    baroModel.saveHistory();
+  }
+
+  // ----- init barometer
+  if (baroModel.begin()) {
+    // success
+  } else {
+    // failed to initialize hardware
+    tft.fillScreen(cBACKGROUND);
+    tft.setCursor(0, 48);
+    tft.setTextColor(cWARN);
+    setFontSize(12);
+    tft.println("Error!\n Unable to init\n  BMP388 sensor\n   check wiring");
+    delay(5000);
+  }
 
   // ----- run unit tests, if allowed by "#define RUN_UNIT_TESTS"
   #ifdef RUN_UNIT_TESTS
@@ -754,17 +862,7 @@ void setup() {
     runUnitTest();                      // see "unit_test.cpp"
   #endif
 
-  // one-time Help screen
-  pView = &helpView;
-  pView->startScreen();
-  delay(2000);
-
-  // ----- init first data shown with last known position and driving track history
-  model->restore();                     // this takes noticeable time (~0.2 sec) 
-  model->gHaveGPSfix = false;           // assume no satellite signal yet
-  model->gSatellites = 0;
-
-  // ----- select opening view screen
+  // ----- all done with setup, show opening view screen
   pView = &gridView;
   pView->startScreen();                 // start current view
   pView->updateScreen();                // update current view
@@ -774,17 +872,25 @@ void setup() {
 // "millis()" is number of milliseconds since the Arduino began running the current program.
 // This number will overflow after about 50 days.
 uint32_t prevTimeGPS = millis();
+uint32_t prevTimeBaro = millis();
 //uint32_t prevTimeMorse = millis();
+uint32_t prevCheckRTC = 0;            // timer to update time-of-day (1 second)
+
+//time_t nextShowPressure = 0;        // timer to update displayed value (5 min), init to take a reading soon after startup
+time_t nextSavePressure = 0;          // timer to log pressure reading (15 min)
 
 // GPS_PROCESS_INTERVAL is how frequently to update the model from GPS data.
 // When the model detects a change, such as updated minutes or seconds, it will
-// trigger a display update. The interval should be short (10 msec) to keep the
+// trigger a display update. The interval should be short (50 msec) to keep the
 // displayed GMT clock in close match with WWV. But very short intervals will
 // make our displayed colon ":" flicker. We chose 47 msec as a compromise, allowing
 // an almost-unnoticeable flicker and an almost-unnoticeable difference from WWV.
 // Also, 47 msec is relatively prime compared to 200 msec (5 Hz) updates sent from
 // the GPS hardware. Todo - fix the colon's flicker then reduce this interval to 10 msec.
 const int GPS_PROCESS_INTERVAL =  47;   // milliseconds between updating the model's GPS data
+const int RTC_PROCESS_INTERVAL = 1000;          // Timer RTC = 1 second
+//const int BAROMETRIC_PROCESS_INTERVAL = 15*60*1000;  // fifteen minutes in milliseconds
+const int LOG_PRESSURE_INTERVAL = 15*60*1000;   // 15 minutes, in milliseconds
 
 void loop() {
 
@@ -813,6 +919,50 @@ void loop() {
       #ifdef ECHO_GPS_SENTENCE
       Serial.print(GPS.lastNMEA());   // debug
       #endif
+    }
+  }
+
+  // look for the first "setTime()" to begin the datalogger
+  if (waitingForRTC && isDateValid(GPS.year, GPS.month, GPS.day)) {
+    // found a transition from an unknown date -> correct date/time
+    // assuming "class Adafruit_GPS" contains 2000-01-01 00:00 until 
+    // it receives an update via NMEA sentences
+    // the next step (1 second timer) will actually set the clock
+    //redrawGraph = true;
+    waitingForRTC = false;
+
+    char msg[128];                    // debug
+    Serial.println("Received first correct date/time from GPS");  // debug
+    snprintf(msg, sizeof(msg), ". GPS time %d-%02d-%02d at %02d:%02d:%02d",
+                                  GPS.year,GPS.month,GPS.day, 
+                                  GPS.hour,GPS.minute,GPS.seconds);
+    Serial.println(msg);              // debug
+  }
+
+  // every 1 second update the realtime clock
+  if (millis() - prevCheckRTC > RTC_PROCESS_INTERVAL) {
+    prevCheckRTC = millis();
+
+    // update RTC from GPS
+    if (isDateValid(GPS.year, GPS.month, GPS.day)) {
+      
+      setTime(GPS.hour, GPS.minute, GPS.seconds, GPS.day, GPS.month, GPS.year);
+      //adjustTime(offset * SECS_PER_HOUR);  // todo - adjust to local time zone. for now, we only do GMT
+    }
+  }
+
+  // every 15 minutes read barometric pressure and save it in nonvolatile RAM
+  // synchronize showReadings() on exactly 15-minute marks 
+  // so the user can more easily predict when the next update will occur
+  time_t rightnow = now();
+  if ( rightnow >= nextSavePressure) {
+    
+    // log this pressure reading only if the time-of-day is correct and initialized 
+    if (timeStatus() == timeSet) {
+      baroModel.logPressure( rightnow );
+      //redrawGraph = true;             // request draw graph
+      nextSavePressure = nextFifteenMinuteMark( rightnow ); // production
+      //nextSavePressure = nextOneMinuteMark( rightnow );   // debug
     }
   }
 
