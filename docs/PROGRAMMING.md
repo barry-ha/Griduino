@@ -80,7 +80,11 @@ The IDE can't find the list of SAMD boards unless we add their magic URL to pref
 <ul>
 <li>**File** > **Preferences**</li>
 <li>Find the "Additional Boards Manager URLs" section<br/><img src="img/ide-preferences-img7024.jpg" alt="Preferences dialog" title="Preferences dialog"/></li>
+<li>To the right is an icon that when selected will open up a window to add the new URL.</li>
+<li>If the below URL is not visible or a different one is showing, add the following URL using the icon to be able to see the file "Adafruit SAMD Boards v 1.6.3" in the next step.
+</li>
 <li>Add: https://adafruit.github.io/arduino-board-index/package_adafruit_index.json</li>
+<li>It's important to use the icon because if you just type the above in to the URL slot, and select OK it will not store the new URL and be empty when you check it again.</li>
 <li>Click OK</li>
 </ul> 
 
