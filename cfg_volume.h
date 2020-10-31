@@ -1,5 +1,5 @@
 /*
-  File:     view_volume.h
+  File:     cfg_volume.h
 
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
