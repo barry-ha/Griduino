@@ -81,13 +81,14 @@
 #include "view.h"                     // Griduino screens
 #include "view_date.h"                // counting days to/from special event 
 #include "view_help.h"                // help screen
-#include "view_settings2.h"           // config GPS
-#include "view_settings3.h"           // config miles/km
-#include "view_settings4.h"           // config screen rotation 
 #include "view_splash.h"              // splash screen
 #include "view_status.h"              // status screen 
 #include "view_time.h"                // GMT time screen 
-#include "view_volume.h"              // config volume level
+
+#include "cfg_volume.h"               // config volume level
+#include "cfg_settings2.h"            // config GPS
+#include "cfg_settings3.h"            // config miles/km
+#include "cfg_settings4.h"            // config screen rotation 
 
 // ---------- Hardware Wiring ----------
 /*                                Arduino       Adafruit
@@ -697,6 +698,7 @@ void sendMorseLostSignal() {
   dacMorse.setMessage(msg);
   dacMorse.sendBlocking();  // TODO - use non-blocking
 }
+
 void sendMorseGrid4(String gridName) {
   // announce new grid by Morse code
   String grid4 = gridName.substring(0, 4);
@@ -706,6 +708,18 @@ void sendMorseGrid4(String gridName) {
   dacMorse.sendBlocking();
 
   //spkrMorse.setMessage( grid4 );
+  //spkrMorse.startSending();   // would prefer non-blocking but some bug causes random dashes to be too long
+  //spkrMorse.sendBlocking();
+}
+
+void sendMorseGrid6(String gridName) {
+  // announce new grid by Morse code
+  gridName.toLowerCase();
+
+  dacMorse.setMessage( gridName );
+  dacMorse.sendBlocking();
+
+  //spkrMorse.setMessage( gridName );
   //spkrMorse.startSending();   // would prefer non-blocking but some bug causes random dashes to be too long
   //spkrMorse.sendBlocking();
 }
@@ -989,10 +1003,12 @@ void loop() {
   }
 
   if (model->enteredNewGrid()) {
-    pView->updateScreen();            // update display so they can see new grid while listening to audible announcement
-    char newGrid4[5];
-    calcLocator(newGrid4, model->gLatitude, model->gLongitude, 4);
-    sendMorseGrid4( newGrid4 );       // announce new grid by Morse code
+    pView->startScreen();             // update display so they can see new grid while listening to audible announcement
+    pView->updateScreen();
+    char newGrid6[7];
+    calcLocator(newGrid6, model->gLatitude, model->gLongitude, 6);
+    sendMorseGrid4( newGrid6 );       // announce new grid by Morse code
+    //sendMorseGrid6( newGrid6 );       // todo - add config option for 4/6
   }
 
   // if there's touchscreen input, handle it

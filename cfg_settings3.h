@@ -1,5 +1,5 @@
 /*
-  File:     view_settings3.h
+  File:     cfg_settings3.h
 
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
