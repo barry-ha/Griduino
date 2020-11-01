@@ -246,7 +246,7 @@ void ViewTime::startScreen() {
     #ifdef SHOW_TOUCH_TARGETS
     tft->drawRect(item.hitTarget.ul.x, item.hitTarget.ul.y,  // debug: draw outline around hit target
                   item.hitTarget.size.x, item.hitTarget.size.y, 
-                  cWARN);
+                  cTOUCHTARGET);
     #endif
   }
 

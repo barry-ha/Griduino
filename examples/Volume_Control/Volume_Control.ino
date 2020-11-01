@@ -139,14 +139,16 @@ const int gRotation = 1;  // This rotates the display coordinate system
                           // Be aware that your reported touches will have different x/y axis
                           // than the display screen.
 
-// ----- color scheme
+// ----- Griduino color scheme
 // RGB 565 color code: http://www.barth-dev.de/online/rgb565-color-picker/
-const int cBACKGROUND = ILI9341_NAVY;
-const int cLABEL = ILI9341_GREEN;
-const int cVALUE = ILI9341_YELLOW;
-const int cBUTTON_OUTLINE = ILI9341_CYAN;
-const int cBUTTON_LABEL = ILI9341_WHITE;
+#define cBACKGROUND     0x00A           // 0,   0,  10 = darker than ILI9341_NAVY, but not black
+#define cLABEL          ILI9341_GREEN
+#define cVALUE          ILI9341_YELLOW  // 255, 255, 0
+#define cBUTTON_OUTLINE ILI9341_CYAN
+#define cBUTTON_LABEL   ILI9341_WHITE
 
+#define cWARN           0xF844          // brighter than ILI9341_RED but not pink
+#define cTOUCHTARGET    ILI9341_RED     // outline touch-sensitive areas
 
 const int gNumButtons = 2;
 Rectangle gaRect[gNumButtons] = {

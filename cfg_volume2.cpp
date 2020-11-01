@@ -208,7 +208,7 @@ bool onTouchVolume2(Point touch) {
 
         #ifdef SHOW_TOUCH_TARGETS
           const int radius = 3;       // debug: show where touched
-          tft.fillCircle(touch.x, touch.y, radius, cWARN);  // debug - show dot
+          tft.fillCircle(touch.x, touch.y, radius, cTOUCHTARGET);  // debug - show dot
         #endif
      }
   }

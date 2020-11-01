@@ -9,7 +9,7 @@
             a smaller font and cram more stuff onto the screen.
 
             +-----------------------------------+
-            |              Settings 2           |
+            |            Settings 2             |
             |                                   |
             | Breadcrumb trail    [ Clear ]     |
             | 123 of 6000                       |
@@ -17,8 +17,8 @@
             | Route         (o)[ GPS Receiver ] |
             |                  [  Simulator   ] |
             |                                   |
-            | Version 0.23                      |
-            |     Compiled Sep 02 2020  09:16   |
+            | Version 0.27                      |
+            |     Compiled Oct 31 2020  06:56   |
             +-----------------------------------+
 */
 
@@ -57,7 +57,7 @@ class ViewSettings2 : public View {
     const int yRow2 = yRow1 + 20;     // "%d of %d"
     const int yRow3 = yRow2 + 56;     // "Route",            "GPS Receiver"
     const int yRow4 = yRow3 + 48;     //                     "Simulator"
-    const int yRow9 = 234;            // "v0.22, Aug 21 2020 45:67:89"
+    const int yRow9 = gScreenHeight - 12; // "v0.27, Oct 31 2020"
 
     #define col1 10                   // left-adjusted column of text
     #define xButton 160               // indented column of buttons
@@ -176,7 +176,7 @@ void ViewSettings2::startScreen() {
     #ifdef SHOW_TOUCH_TARGETS
     tft->drawRect(item.hitTarget.ul.x, item.hitTarget.ul.y,  // debug: draw outline around hit target
                   item.hitTarget.size.x, item.hitTarget.size.y, 
-                  cWARN);
+                  cTOUCHTARGET);
     #endif
   }
 

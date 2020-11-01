@@ -21,7 +21,7 @@
             Its RTC (realtime clock) is updated from the GPS satellite network.
 
             +-----------------------------------+
-            | date        Griduino        hh:mm |
+            | date        Baroduino       hh:mm |
             | #sat       29.97 inHg          ss |
             | 30.5 +--------------------------+ | <- yTop
             |      |        |        |        | |
@@ -94,7 +94,7 @@
 #include "TimeLib.h"                  // BorisNeubert / Time (who forked it from PaulStoffregen / Time)
 
 // ------- Identity for splash screen and console --------
-#define BAROGRAPH_TITLE "Griduino"
+#define BAROGRAPH_TITLE "Baroduino"
 
 //--------------CONFIG--------------
 //float elevCorr = 4241;  // elevation correction in Pa, 
@@ -151,7 +151,7 @@ const int howLongToWait = 8;          // max number of seconds at startup waitin
 #define BARS_PER_INCHES_MERCURY      (0.0338639)
 #define PASCALS_PER_INCHES_MERCURY   (3386.39)
 
-// ----- color scheme -----
+// ----- Griduino color scheme
 // RGB 565 color code: http://www.barth-dev.de/online/rgb565-color-picker/
 #define cSCALECOLOR     ILI9341_DARKGREEN // tried yellow but it's too bright
 #define cGRAPHCOLOR     ILI9341_WHITE     // graphed line of baro pressure
@@ -957,8 +957,7 @@ void loop() {
 
     #ifdef SHOW_TOUCH_TARGETS
       const int radius = 3;           // debug
-      tft.fillCircle(touch.x, touch.y, radius, cWARN);  // debug - show dot
-      touchHandled = true;            // debug - true=stay on same screen
+      tft.fillCircle(touch.x, touch.y, radius, cTOUCHTARGET);  // debug - show dot
     #endif
 
     adjustUnits();                    // change between "inches mercury" and "millibars" units

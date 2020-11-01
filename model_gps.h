@@ -24,8 +24,8 @@ bool isVisibleDistance(const PointGPS from, const PointGPS to); // view_grid.cpp
 // ========== constants ========================================
 // These initial values are displayed until GPS gets comes up with better info.
 
-#define INIT_GRID6 "CN77tt";   // initialize to a nearby grid for demo but not
-#define INIT_GRID4 "CN77";     // to my home grid CN87, so that GPS lock will announce where we are in Morse code
+#define INIT_GRID6 "CN77tt";   // initialize to a nearby grid for demo
+#define INIT_GRID4 "CN77";     // but not my home grid CN87, so that GPS lock will announce where we are in Morse code
 
 // ========== class Model ======================
 class Model {
@@ -40,6 +40,7 @@ class Model {
     float  gAngle = 0.0;              // direction of travel, degrees from true north
     bool   gMetric = false;           // distance reported in miles(false), kilometers(true)
     int    gTimeZone = -7;            // default local time Pacific (-7 hours)
+    bool   compare4digits = true;     // true=4 digit, false=6 digit comparisons
 
     Location history[600];            // remember a list of GPS coordinates
     int nextHistoryItem = 0;          // index of next item to write
@@ -51,6 +52,7 @@ class Model {
   protected:
     int  gPrevFix = false;            // previous value of gHaveGPSfix, to help detect "signal lost"
     char sPrevGrid4[5] = INIT_GRID4;  // previous value of gsGridName, to help detect "enteredNewGrid()"
+    char sPrevGrid6[7] = INIT_GRID6;  // previous value of gsGridName, to help detect "enteredNewGrid()"
 
   public:
     // Constructor - create and initialize member variables
@@ -66,7 +68,7 @@ class Model {
 
     // save current GPS state to non-volatile memory
     const char MODEL_FILE[25] = "/Griduino/gpsmodel.cfg";  // CONFIG_FOLDER
-    const char MODEL_VERS[15] = "GPS Model v05";
+    const char MODEL_VERS[15] = "GPS Model v07";
     int save() {
       SaveRestore sdram(MODEL_FILE, MODEL_VERS);
       if (sdram.writeConfig( (byte*) this, sizeof(Model))) {
@@ -108,6 +110,7 @@ class Model {
       gSpeed = 0.0;                   // assume speed unknown
       gAngle = 0.0;                   // assume direction of travel unknown
       gMetric = from.gMetric;         // distance report in miles/kilometers
+      compare4digits = from.compare4digits;
 
       for (int ii=0; ii<numHistory; ii++) {
         history[ii] = from.history[ii];
@@ -208,18 +211,32 @@ class Model {
         Serial.println(" ");
       }
     }
+    // grid-crossing detector
     bool enteredNewGrid() {
-      // grid-crossing detector
-      // returns TRUE if the first four characters of grid name have changed
-      char newGrid4[5];   // strlen("CN87us") = 6
-      calcLocator(newGrid4, gLatitude, gLongitude, 4);
-      if (strcmp(newGrid4, sPrevGrid4) != 0) {
-        Serial.print("Prev grid: "); Serial.print(sPrevGrid4);
-        Serial.print(" New grid: "); Serial.println(newGrid4);
-        strncpy(sPrevGrid4, newGrid4, sizeof(sPrevGrid4));
-        return true;
+      if (compare4digits) {
+        // returns TRUE if the first FOUR characters of grid name have changed
+        char newGrid4[5];   // strlen("CN87") = 4
+        calcLocator(newGrid4, gLatitude, gLongitude, 4);
+        if (strcmp(newGrid4, sPrevGrid4) != 0) {
+          Serial.print("Prev grid: "); Serial.print(sPrevGrid4);
+          Serial.print(" New grid: "); Serial.println(newGrid4);
+          strncpy(sPrevGrid4, newGrid4, sizeof(sPrevGrid4));
+          return true;
+        } else {
+          return false;
+        }
       } else {
-        return false;
+        // returns TRUE if the first SIX characters of grid name have changed
+        char newGrid6[7];   // strlen("CN87us") = 6
+        calcLocator(newGrid6, gLatitude, gLongitude, 6);
+        if (strcmp(newGrid6, sPrevGrid6) != 0) {
+          Serial.print("Prev grid: "); Serial.print(sPrevGrid6);
+          Serial.print(" New grid: "); Serial.println(newGrid6);
+          strncpy(sPrevGrid6, newGrid6, sizeof(sPrevGrid6));
+          return true;
+        } else {
+          return false;
+        }
       }
     }
     bool signalLost() {

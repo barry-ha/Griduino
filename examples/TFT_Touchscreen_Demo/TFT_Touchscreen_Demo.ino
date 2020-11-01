@@ -34,7 +34,7 @@
 
 // ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE   "Touch Screen Demo"
-#define PROGRAM_VERSION "v0.9"
+#define PROGRAM_VERSION "v0.27"
 #define PROGRAM_LINE1   "Barry K7BWH"
 #define PROGRAM_LINE2   "John KM7O"
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
@@ -100,17 +100,18 @@ struct Point {
 // ------------ definitions
 #define gScreenWidth 320      // pixels wide, landscape orientation
 
-// ----- color scheme
+// ----- Griduino color scheme
 // RGB 565 color code: http://www.barth-dev.de/online/rgb565-color-picker/
-#define cBACKGROUND     0x00A             // 0,   0,  10 = darker than ILI9341_NAVY, but not black
-#define cTEXTCOLOR       ILI9341_CYAN     // 0, 255, 255
-#define cTEXTFAINT      0x514             // 0, 160, 160 = blue, between CYAN and DARKCYAN
+#define cBACKGROUND     0x00A           // 0,   0,  10 = darker than ILI9341_NAVY, but not black
 #define cLABEL          ILI9341_GREEN
-#define cVALUE           ILI9341_YELLOW
-#define cINPUT           ILI9341_WHITE
-#define cBUTTONFILL      ILI9341_NAVY
-#define cBUTTONOUTLINE   ILI9341_BLUE     // 0,   0, 255 = darker than cyan
-#define cWARN           0xF844            // brighter than ILI9341_RED but not pink
+#define cVALUE          ILI9341_YELLOW  // 255, 255, 0
+#define cINPUT          ILI9341_WHITE
+#define cBUTTONFILL     ILI9341_NAVY
+#define cBUTTONOUTLINE  ILI9341_BLUE    // 0,   0, 255 = darker than cyan
+#define cTEXTCOLOR      ILI9341_CYAN    // 0, 255, 255
+#define cTEXTFAINT      0x0514          // 0, 160, 160 = blue, between CYAN and DARKCYAN
+#define cWARN           0xF844          // brighter than ILI9341_RED but not pink
+#define cTOUCHTARGET    ILI9341_RED     // outline touch-sensitive areas
 
 // ============== touchscreen helpers ==========================
 
@@ -226,7 +227,7 @@ void mapTouchToScreen(TSPoint touch, Point* screen) {
 // When using default system fonts, screen pixel coordinates will identify top left of character cell
 
 const int xLabel = 8;             // indent labels, slight margin on left edge of screen
-#define yRow1   0                 // title: "Touchscreen Demo"
+#define yRow1   8                 // title: "Touchscreen Demo"
 #define yRow2   yRow1 + 40        // program version
 #define yRow3   yRow2 + 20        // compiled date
 #define yRow4   yRow3 + 20        // author line 1

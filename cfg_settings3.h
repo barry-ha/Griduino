@@ -9,7 +9,7 @@
             a smaller font and cram more stuff onto the screen.
 
             +-----------------------------------+
-            |              Settings 3           |
+            |            Settings 3             |
             |                                   |
             | Distance      (o)[ Miles        ] |
             |               ( )[ Kilometers   ] |
@@ -17,8 +17,8 @@
             |                                   |
             |                                   |
             |                                   |
-            | Version 0.23                      |
-            |     Compiled Sep 02 2020  09:16   |
+            | Version 0.27                      |
+            |     Compiled Oct 31 2020  06:56   |
             +-----------------------------------+
 */
 
@@ -51,20 +51,21 @@ class ViewSettings3 : public View {
     // vertical placement of text rows   ---label---         ---button---
     const int yRow1 = 70;             // "Distance",         "Miles"
     const int yRow2 = yRow1 + 50;     //                     "Kilometers"
-    const int yRow9 = 234;            // "v0.22, Aug 21 2020 45:67:89"
+    const int yRow9 = gScreenHeight - 12; // "v0.27, Oct 31 2020"
 
     #define col1 10                   // left-adjusted column of text
     #define xButton 160               // indented column of buttons
 
     enum txtSettings3 {
       SETTINGS=0, 
+      DISTANCE,
       COMPILED,
     };
     #define nTextUnits 3
     TextField txtSettings3[nTextUnits] = {
       //        text                  x, y     color
       TextField("Settings 3",      col1, 20,   cHIGHLIGHT, ALIGNCENTER),// [SETTINGS]
-      TextField("Distance",        col1,yRow1, cVALUE),                 // 
+      TextField("Distance",        col1,yRow1, cVALUE),                 // [DISTANCE]
       TextField(PROGRAM_VERSION ", " PROGRAM_COMPILED, 
                                    col1,yRow9, cLABEL, ALIGNCENTER),    // [COMPILED]
     };
@@ -147,7 +148,7 @@ void ViewSettings3::startScreen() {
     #ifdef SHOW_TOUCH_TARGETS
     tft->drawRect(item.hitTarget.ul.x, item.hitTarget.ul.y,  // debug: draw outline around hit target
                   item.hitTarget.size.x, item.hitTarget.size.y, 
-                  cWARN);
+                  cTOUCHTARGET);
     #endif
   }
 

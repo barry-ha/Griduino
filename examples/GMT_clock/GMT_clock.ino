@@ -1,12 +1,13 @@
 /*
   GMT_clock - bright colorful Greenwich Mean Time based on GPS
 
-  Date:     2020-04-22 created
-            2020-04-29 added touch adjustment of local time zone
-            2020-05-01 added save/restore to nonvolatile RAM
-            2020-05-12 updated TouchScreen code
+  Date:     2020-06-03 merged this clock into the main Griduino program as another view
             2020-05-13 proportional fonts
-
+            2020-05-12 updated TouchScreen code
+            2020-05-01 added save/restore to nonvolatile RAM
+            2020-04-29 added touch adjustment of local time zone
+            2020-04-22 created
+  
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
 
@@ -167,20 +168,21 @@ int gSatellites = 0;                    // number of satellites
 // ----- alias names for setFontSize()
 enum { eFONTGIANT=36, eFONTBIG=24, eFONTSMALL=12, eFONTSMALLEST=9, eFONTSYSTEM=0 };
 
-// ----- color scheme
+// ----- Griduino color scheme
 // RGB 565 color code: http://www.barth-dev.de/online/rgb565-color-picker/
-#define cBACKGROUND     0x00A             // 0,   0,  10 = darker than ILI9341_NAVY, but not black
-//efine cSCALECOLOR     ILI9341_YELLOW
-#define cTEXTCOLOR      ILI9341_CYAN      // 0, 255, 255
-#define cTEXTFAINT      0x514             // 0, 160, 160 = blue, between CYAN and DARKCYAN
+#define BACKGROUND      0x00A           // a little darker than ILI9341_NAVY
+#define cBACKGROUND     0x00A           // 0,   0,  10 = darker than ILI9341_NAVY, but not black
 #define cLABEL          ILI9341_GREEN
-#define cVALUE          ILI9341_YELLOW
+#define cVALUE          ILI9341_YELLOW  // 255, 255, 0
 #define cINPUT          ILI9341_WHITE
 //efine cHIGHLIGHT      ILI9341_WHITE
 #define cBUTTONFILL     ILI9341_NAVY
-#define cBUTTONOUTLINE  ILI9341_BLUE      // 0,   0, 255 = darker than cyan
+#define cBUTTONOUTLINE  ILI9341_BLUE    // 0,   0, 255 = darker than cyan
+#define cTEXTCOLOR      ILI9341_CYAN    // 0, 255, 255
+#define cTEXTFAINT      0x0514          // 0, 160, 160 = blue, between CYAN and DARKCYAN
 #define cBUTTONLABEL    ILI9341_YELLOW
-#define cWARN           0xF844            // brighter than ILI9341_RED but not pink
+#define cWARN           0xF844          // brighter than ILI9341_RED but not pink
+#define cTOUCHTARGET    ILI9341_RED     // outline touch-sensitive areas
 
 // ============== GPS helpers ==================================
 void processGPS() {

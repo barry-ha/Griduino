@@ -75,7 +75,7 @@ void TextButton::print() {            // override base class: buttons draw their
   #ifdef SHOW_TOUCH_TARGETS
   tft.drawRect(hitTarget.ul.x, hitTarget.ul.y,  // debug: draw outline around hit target
                hitTarget.size.x, hitTarget.size.y, 
-               cWARN); 
+               cTOUCHTARGET); 
   #endif
   
   // base class will draw text

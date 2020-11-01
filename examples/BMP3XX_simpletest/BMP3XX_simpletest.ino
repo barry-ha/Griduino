@@ -30,6 +30,8 @@
 // ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE   "BMP388 Simple Test"
 #define PROGRAM_VERSION "v1.0"
+#define PROGRAM_LINE1   "Barry K7BWH"
+#define PROGRAM_LINE2   "John KM7O"
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
 
 // ---------- Hardware Wiring ----------
