@@ -158,13 +158,13 @@ struct FunctionButton {
   // FunctionButton is like Button, but has a larger specifiable hit target
   // It's also like TimeButton, but specifies the function by enum, rather than pointer to function
   // and this allows its usage in classes derived from "class View"
-  char text[26];
-  int x, y;
-  int w, h;
-  Rect hitTarget;
-  int radius;
-  uint16_t color;
-  int functionIndex;
+  char text[26];                      // one line of text, centered
+  int x, y;                           // fillRoundRect ul corner
+  int w, h;                           // fillRoundRect size
+  Rect hitTarget;                     // touch-sensitive area
+  int radius;                         // radio button size
+  uint16_t color;                     // text color
+  int functionIndex;                  // button identifier
 };
 
 class Location {
