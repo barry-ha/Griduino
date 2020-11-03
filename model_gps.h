@@ -436,10 +436,6 @@ class MockModel : public Model {
   
   public:
     // read SIMULATED GPS hardware
-    // Funny note!
-    //    The simulated ground speeds are:
-    //    1-degree north-south in one minute is about (70 miles / minute) = 4,200 mph
-    //    2-degrees east-west in one minute is about (100 miles / minute) = 7,000 mph
     void getGPS() {
       gHaveGPSfix = true;         // indicate 'fix' whether the GPS hardware sees 
                                   // any satellites or not, so the simulator can work 
@@ -484,8 +480,14 @@ class MockModel : public Model {
           break;
 
         case 4: // ----- move in oval around a single grid
-          gLatitude = midCN87.lat + 0.6 * gridHeightDegrees * cos(secondHand/800.0 * 2.0 * PI);
-          gLongitude = midCN87.lng + 0.6 * gridWidthDegrees * sin(secondHand/800.0 * 2.0 * PI);
+          // Funny note! 
+          //    How fast are we going???
+          //    The simulated ground speeds with timeScale=1200 are:
+          //    1-degree north-south is about (69.1 miles / (6m 17s) = 660 mph
+          //    2-degrees east-west is about (94.3 miles) / (6m 17s) = 900 mph
+          float timeScale = 1200.0;     // arbitrary divisor to slow down the motion
+          gLatitude = midCN87.lat + 0.6 * gridHeightDegrees * cos(secondHand/timeScale * 2.0 * PI);
+          gLongitude = midCN87.lng + 0.6 * gridWidthDegrees * sin(secondHand/timeScale * 2.0 * PI);
           break;
       }
     }
