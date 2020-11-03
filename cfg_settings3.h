@@ -141,7 +141,7 @@ void ViewSettings3::startScreen() {
     // ----- label on top of button
     int xx = getOffsetToCenterTextOnButton(item.text, item.x, item.w);
 
-    tft->setCursor(xx, item.y+item.h/2+5);
+    tft->setCursor(xx, item.y+item.h/2+5);  // place text centered inside button
     tft->setTextColor(item.color);
     tft->print(item.text);
 
@@ -152,7 +152,7 @@ void ViewSettings3::startScreen() {
     #endif
   }
 
-  // ----- show outlines of radio buttons
+  // ----- draw outlines of radio buttons
   for (int ii=eMILES; ii<=eKILOMETERS; ii++) {
     FunctionButton item = settings3Buttons[ii];
     int xCenter = item.x - 16;
