@@ -1009,12 +1009,16 @@ void loop() {
   if (model->enteredNewGrid()) {
     pView->startScreen();             // update display so they can see new grid while listening to audible announcement
     pView->updateScreen();
-    char newGrid6[7];
-    calcLocator(newGrid6, model->gLatitude, model->gLongitude, 6);
-    if (model->compare4digits) {
-      sendMorseGrid4( newGrid6 );       // announce 4-digit grid by Morse code
-    } else {
-      sendMorseGrid6( newGrid6 );       // announce 6-digit grid by Morse code
+
+    // note that cfg_settings4 will handle all of its own morse code announcement 
+    if (pView->screenID != SETTING4_VIEW) {
+      char newGrid6[7];
+      calcLocator(newGrid6, model->gLatitude, model->gLongitude, 6);
+      if (model->compare4digits) {
+        sendMorseGrid4( newGrid6 );       // announce 4-digit grid by Morse code
+      } else {
+        sendMorseGrid6( newGrid6 );       // announce 6-digit grid by Morse code
+      }
     }
   }
 

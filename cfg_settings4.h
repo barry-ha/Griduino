@@ -11,7 +11,7 @@
             +-----------------------------------+
             |            Settings 4             |
             |                                   |
-            | Announce      (o)[ 4-digit      ] |
+            | Announce at   (o)[ 4-digit      ] |
             | grid crossing ( )[ 6-digit      ] |
             |                                   |
             |                                   |
@@ -25,12 +25,13 @@
 #include <Arduino.h>
 #include "Adafruit_ILI9341.h"         // TFT color display library
 #include "constants.h"                // Griduino constants and colors
-//nclude "model_gps.h"                // "Model" portion of model-view-controller
 #include "TextField.h"                // Optimize TFT display text for proportional fonts
 #include "view.h"                     // Base class for all views
 
 // ========== extern ===========================================
 extern Model* model;                  // "model" portion of model-view-controller
+extern void sendMorseGrid4(String gridName);  // Griduino.ino
+extern void sendMorseGrid6(String gridName);  // Griduino.ino
 
 // ========== class ViewSettings4 ==============================
 class ViewSettings4 : public View {
@@ -43,6 +44,8 @@ class ViewSettings4 : public View {
     void updateScreen();
     void startScreen();
     bool onTouch(Point touch);
+    void loadConfig();
+    void saveConfig();
 
   protected:
     // ---------- local data for this derived class ----------
@@ -50,8 +53,9 @@ class ViewSettings4 : public View {
 
     // vertical placement of text rows   ---label---         ---button---
     const int yRow1 = 70;             // "Announce at",      "4-Digit"
-    const int yRow2 = yRow1 + 68;     //                     "6-Digit"
-    const int yRow9 = gScreenHeight - 12; // "v0.27, Oct 31 2020"
+    const int yRow2 = yRow1 + 24;     // "grid crossing"
+    const int yRow3 = yRow1 + 68;     //                     "6-Digit"
+    const int yRow9 = gScreenHeight - 12; // "v0.27, Nov 03 2020"
 
     #define col1 10                   // left-adjusted column of text
     #define xButton 160               // indented column of buttons
@@ -69,9 +73,9 @@ class ViewSettings4 : public View {
       //        text                  x, y        color
       TextField("Settings 4",      col1, 20,      cHIGHLIGHT, ALIGNCENTER),// [SETTINGS]
       TextField("Announce at",     col1,yRow1,    cVALUE),                 // [ANNOUNCE1]
-      TextField("grid crossing",   col1,yRow1+24, cVALUE),                 // [ANNOUNCE2]
+      TextField("grid crossing",   col1,yRow2,    cVALUE),                 // [ANNOUNCE2]
       TextField("70 - 100 mi",  xButton+24,yRow1+22,cVALUE),               // [DISTANCE4]
-      TextField("3 - 4 mi",     xButton+38,yRow2+22,cVALUE),               // [DISTANCE6]
+      TextField("3 - 4 mi",     xButton+38,yRow3+22,cVALUE),               // [DISTANCE6]
       TextField(PROGRAM_VERSION ", " PROGRAM_COMPILED, 
                                    col1,yRow9,    cLABEL, ALIGNCENTER),    // [COMPILED]
     };
@@ -80,10 +84,22 @@ class ViewSettings4 : public View {
     void f4Digit() {
       Serial.println("->->-> Clicked 4-DIGIT button.");
       model->compare4digits = true;
+      this->updateScreen();             // update UI before starting the slow morse code
+
+      // announce grid square, so they have an audible example of this selection
+      char newGrid4[7];
+      calcLocator(newGrid4, model->gLatitude, model->gLongitude, 4);
+      sendMorseGrid4( newGrid4 );       // announce 4-digit grid by Morse code
     }
     void f6Digit() {
       Serial.println("->->-> Clicked 6-DIGIT button.");
       model->compare4digits = false;
+      this->updateScreen();             // update UI before starting the slow morse code
+
+      // announce grid square, so they have an audible example of this selection
+      char newGrid6[7];
+      calcLocator(newGrid6, model->gLatitude, model->gLongitude, 6);
+      sendMorseGrid6( newGrid6 );       // announce 4-digit grid by Morse code
     }
 
     enum buttonID {
@@ -91,11 +107,11 @@ class ViewSettings4 : public View {
       e6DIGIT,
     };
     #define nButtonsDigits 2
-    FunctionButton settings4Buttons[nButtonsDigits] = {
+    FunctionButton myButtons[nButtonsDigits] = {
       // label           visible rectangle      touch-target          text
       // text            x,y           w,h      x,y      w,h  radius  color   function
       {"4-Digit",  xButton,yRow1-26, 140,60, {130, 40, 180,70},  4,  cVALUE,  e4DIGIT },   // [e4DIGIT] set units English
-      {"6-Digit",  xButton,yRow2-26, 140,60, {130,110, 180,70},  4,  cVALUE,  e6DIGIT },   // [e6DIGIT] set units Metric
+      {"6-Digit",  xButton,yRow3-26, 140,60, {130,110, 180,70},  4,  cVALUE,  e6DIGIT },   // [e6DIGIT] set units Metric
     };
 
 };  // end class ViewSettings4
@@ -106,7 +122,7 @@ void ViewSettings4::updateScreen() {
 
   // ----- show selected radio buttons by filling in the circle
   for (int ii=e4DIGIT; ii<=e6DIGIT; ii++) {
-    FunctionButton item = settings4Buttons[ii];
+    FunctionButton item = myButtons[ii];
     int xCenter = item.x - 16;
     int yCenter = item.y + (item.h/2);
     int buttonFillColor = cBACKGROUND;
@@ -127,7 +143,6 @@ void ViewSettings4::startScreen() {
   this->clearScreen(cBACKGROUND);     // clear screen
   txtSettings4[0].setBackground(cBACKGROUND);           // set background for all TextFields in this view
   TextField::setTextDirty( txtSettings4, nTextCrossing );  // make sure all fields get re-printed on screen change
-  //setFontSize(eFONTSMALLEST);
 
   drawAllIcons();                     // draw gear (settings) and arrow (next screen)
   showScreenBorder();                 // optionally outline visible area
@@ -135,7 +150,7 @@ void ViewSettings4::startScreen() {
   // ----- draw buttons
   setFontSize(eFONTSMALLEST);
   for (int ii=0; ii<nButtonsDigits; ii++) {
-    FunctionButton item = settings4Buttons[ii];
+    FunctionButton item = myButtons[ii];
     tft->fillRoundRect(item.x, item.y, item.w, item.h, item.radius, cBUTTONFILL);
     tft->drawRoundRect(item.x, item.y, item.w, item.h, item.radius, cBUTTONOUTLINE);
 
@@ -143,7 +158,8 @@ void ViewSettings4::startScreen() {
     int xx = getOffsetToCenterTextOnButton(item.text, item.x, item.w);
 
     tft->setCursor(xx, item.y+item.h/3+5);  // place text on top third of button (not centered vertically) 
-    tft->setTextColor(item.color);          // to make room for a second row of text on the button
+                                            // to make room for a second row of text on the button
+    tft->setTextColor(item.color);
     tft->print(item.text);
 
     #ifdef SHOW_TOUCH_TARGETS
@@ -155,7 +171,7 @@ void ViewSettings4::startScreen() {
 
   // ----- draw outlines of radio buttons
   for (int ii=e4DIGIT; ii<=e6DIGIT; ii++) {
-    FunctionButton item = settings4Buttons[ii];
+    FunctionButton item = myButtons[ii];
     int xCenter = item.x - 16;
     int yCenter = item.y + (item.h/2);
 
@@ -178,11 +194,12 @@ void ViewSettings4::startScreen() {
   #endif
 }
 
+
 bool ViewSettings4::onTouch(Point touch) {
   Serial.println("->->-> Touched settings screen.");
   bool handled = false;               // assume a touch target was not hit
   for (int ii=0; ii<nButtonsDigits; ii++) {
-    FunctionButton item = settings4Buttons[ii];
+    FunctionButton item = myButtons[ii];
     if (item.hitTarget.contains(touch)) {
         handled = true;               // hit!
         switch (item.functionIndex)   // do the thing
@@ -197,9 +214,21 @@ bool ViewSettings4::onTouch(Point touch) {
               Serial.print("Error, unknown function "); Serial.println(item.functionIndex);
               break;
         }
-        this->updateScreen();         // update UI immediately, don't wait for laggy mainline loop
         this->saveConfig();           // after UI is updated, save setting to nvr
      }
   }
   return handled;                     // true=handled, false=controller uses default action
+}
+
+// ========== load/save config setting =========================
+// the user's choice of 4- or 6-digit grid announcments is saved in the model, not here
+// so all we have to do is tell the model to save itself (a lengthy operation)
+
+// ----- load from SDRAM -----
+void ViewSettings4::loadConfig() {
+  // Nothing to load - this setting is stored in the model
+}
+// ----- save to SDRAM -----
+void ViewSettings4::saveConfig() {
+  model->save();
 }
