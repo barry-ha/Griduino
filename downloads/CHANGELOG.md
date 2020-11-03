@@ -5,6 +5,10 @@ The changelog format is based on [Keep a Changelog](https://keepachangelog.com/e
 
 Version numbers correspond to [Downloads](https://github.com/barry-ha/Griduino/tree/master/downloads) available as pre-compiled binary Griduino programs. To install them, see the [Programming](https://github.com/barry-ha/Griduino/blob/master/docs/PROGRAMMING.md) instructions.
 
+**v0.27** &nbsp; 2020-11-03
+
+Added new feature to select how often grid-crossing announcements are made. You can choose either 4-digit grid lines (about 70 miles N-S and 100 miles E-W) or 6-digit grid lines (about 3 miles N-S and 4 miles E-W). The setting is implemented as a new 'view' in cfg_setting4.h and is retained in non-volatile RAM.
+
 **v0.26** &nbsp; 2020-10-29
 
 Added data logger for barometric pressure into the main Griduino program. Now it collects the weather history in the background while doing everything else.  Then, to display the pressure graph, download baroduino_v026.uf2.
