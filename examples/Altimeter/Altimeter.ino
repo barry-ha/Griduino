@@ -56,7 +56,7 @@
 
 // ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE   "Griduino Altimeter"
-#define PROGRAM_VERSION "v0.10"
+#define PROGRAM_VERSION "v0.27"
 #define PROGRAM_LINE1   "Barry K7BWH"
 #define PROGRAM_LINE2   "John KM7O"
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
@@ -140,11 +140,11 @@ Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 TouchScreen ts = TouchScreen(PIN_XP, PIN_YP, PIN_XM, PIN_YM, 295);
 
 // ---------- Barometric and Temperature Sensor
-Adafruit_BMP3XX baro(BMP_CS); // hardware SPI
+Adafruit_BMP3XX baro(BMP_CS);         // hardware SPI
 
 // ---------- Feather's onboard lights
-#define RED_LED 13          // diagnostics RED LED
-//efine PIN_LED 13          // already defined in Feather's board variant.h
+#define RED_LED 13                    // diagnostics RED LED
+//efine PIN_LED 13                    // already defined in Feather's board variant.h
 
 // ---------- GPS ----------
 /* "Ultimate GPS" pin wiring is connected to a dedicated hardware serial port
@@ -178,27 +178,27 @@ typedef struct {
 } Button;
 
 // ------------ definitions
-const int howLongToWait = 6;  // max number of seconds at startup waiting for Serial port to console
-#define gScreenWidth 320      // pixels wide, landscape orientation
-#define gScreenHeight 240     // pixels high
-#define SCREEN_ROTATION  1    // 1=landscape, 3=landscape 180 degrees
+const int howLongToWait = 6;          // max number of seconds at startup waiting for Serial port to console
+#define gScreenWidth 320              // pixels wide, landscape orientation
+#define gScreenHeight 240             // pixels high
+#define SCREEN_ROTATION  1            // 1=landscape, 3=landscape 180 degrees
 #define FEET_PER_METER 3.28084
 
 // ----- screen layout
 // When using default system fonts, screen pixel coordinates will identify top left of character cell
-const int xLabel = 8;             // indent labels, slight margin on left edge of screen
-#define yRow1   0                 // title: "Griduino Altimeter"
-#define yRow2   yRow1 + 40        // more text
-#define yRow3   yRow2 + 24        // GPS altitude
-#define yRow4   138               // label: "Your current local"
-#define yRow5   yRow4 + 20        // label: "pressure at sea level:"
-#define yRow6   yRow5 + 42        // value: "1016.2 hPa"
+const int xLabel = 8;                 // indent labels, slight margin on left edge of screen
+#define yRow1   6                     // title: "Griduino Altimeter"
+#define yRow2   yRow1 + 34            // more text
+#define yRow3   yRow2 + 24            // GPS altitude
+#define yRow4   138                   // label: "Your current local"
+#define yRow5   yRow4 + 20            // label: "pressure at sea level:"
+#define yRow6   yRow5 + 42            // value: "1016.2 hPa"
 
-// ----- color scheme
+// ----- Griduino color scheme
 // RGB 565 color code: http://www.barth-dev.de/online/rgb565-color-picker/
-#define cBACKGROUND      0x00A             // 0,   0,  10 = darker than ILI9341_NAVY, but not black
-#define cSCALECOLOR      0xF844            // color picker: http://www.barth-dev.de/online/rgb565-color-picker/
-#define cTEXTCOLOR       ILI9341_CYAN      // 0, 255, 255
+#define cBACKGROUND     0x00A           // 0,   0,  10 = darker than ILI9341_NAVY, but not black
+#define cSCALECOLOR      0xF844         // color picker: http://www.barth-dev.de/online/rgb565-color-picker/
+#define cTEXTCOLOR       ILI9341_CYAN   // 0, 255, 255
 #define cLABEL           ILI9341_GREEN
 #define cVALUE           ILI9341_YELLOW
 #define cINPUT           ILI9341_WHITE

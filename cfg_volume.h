@@ -181,7 +181,7 @@ void ViewVolume::startScreen() {
     #ifdef SHOW_TOUCH_TARGETS
     tft->drawRect(item.x, item.y,     // debug: draw outline around hit target
                  item.w, item.h, 
-                 cWARN);
+                 cTOUCHTARGET);
     #endif
   }
 

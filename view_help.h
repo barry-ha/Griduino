@@ -92,7 +92,7 @@ void ViewHelp::startScreen() {
     #ifdef SHOW_TOUCH_TARGETS
     tft->drawRect(item.x-2, item.y-2,  // debug: draw outline around hit target
                   item.w+4, item.h+4, 
-                  cWARN);
+                  cTOUCHTARGET);
     #endif
   }
 

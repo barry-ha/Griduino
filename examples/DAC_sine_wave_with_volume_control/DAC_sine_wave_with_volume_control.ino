@@ -105,10 +105,10 @@ const float gFrequency = 1500.0;          // desired output frequency, Hz
 const float gSamplesPerWaveform = 25.0;   // desired steps in each cycle
 //=======================================================================
 
-// ----- color scheme
+// ----- Griduino color scheme
 // RGB 565 color code: http://www.barth-dev.de/online/rgb565-color-picker/
-#define cBACKGROUND     0x00A             // 0,   0,  10 = darker than ILI9341_NAVY, but not black
-#define cTEXTCOLOR      ILI9341_CYAN      // 0, 255, 255
+#define cBACKGROUND     0x00A           // 0,   0,  10 = darker than ILI9341_NAVY, but not black
+#define cTEXTCOLOR      ILI9341_CYAN    // 0, 255, 255
 #define cLABEL          ILI9341_GREEN
 
 // screen layout

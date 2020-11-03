@@ -30,8 +30,6 @@
 
 */
 
-//#include <Wire.h>
-//#include "SPI.h"                    // Serial Peripheral Interface
 #include "Adafruit_GFX.h"           // Core graphics display library
 #include "Adafruit_ILI9341.h"       // TFT color display library
 #include "Adafruit_GPS.h"           // Ultimate GPS library
@@ -43,7 +41,7 @@
 
 // ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE   "Barograph Demo"
-#define PROGRAM_VERSION "v0.13"
+#define PROGRAM_VERSION "v0.27"
 #define PROGRAM_LINE1   "Barry K7BWH"
 #define PROGRAM_LINE2   "John KM7O"
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
@@ -166,23 +164,26 @@ const int howLongToWait = 4;  // max number of seconds at startup waiting for Se
 #define BARS_PER_INCHES_MERCURY      (0.033864)
 #define PASCALS_PER_INCHES_MERCURY   (3386.4)
 
-// ----- color scheme
+// ----- Griduino color scheme
 // RGB 565 color code: http://www.barth-dev.de/online/rgb565-color-picker/
-#define cBACKGROUND     0x00A             // 0,   0,  10 = darker than ILI9341_NAVY, but not black
+#define cBACKGROUND     0x00A           // 0,   0,  10 = darker than ILI9341_NAVY, but not black
 #define cSCALECOLOR     ILI9341_YELLOW
-#define cGRAPHCOLOR     ILI9341_WHITE     // graphed line of baro pressure
+#define cGRAPHCOLOR     ILI9341_WHITE   // graphed line of baro pressure
 #define cTEXTCOLOR      ILI9341_GREEN
-//efine cTEXTFAINT      0x514             // 0, 160, 160 = blue, between CYAN and DARKCYAN
 #define cLABEL          ILI9341_GREEN
-#define cICON           ILI9341_CYAN
 //efine cVALUE          ILI9341_YELLOW
-//efine cINPUT          ILI9341_WHITE
+//efine cVALUEFAINT     0xbdc0          // darker than cVALUE
 //efine cHIGHLIGHT      ILI9341_WHITE
 //efine cBUTTONFILL     ILI9341_NAVY
-//efine cBUTTONOUTLINE  ILI9341_BLUE      // 0,   0, 255 = darker than cyan
+//efine cBUTTONOUTLINE  ILI9341_BLUE    // 0,   0, 255 = darker than cyan
 //efine cBUTTONLABEL    ILI9341_YELLOW
-#define cWARN           0xF844            // brighter than ILI9341_RED but not pink
-#define cSINKING        0xF882            // highlight rapidly sinking barometric pressure
+//efine cTEXTCOLOR      ILI9341_CYAN    // 0, 255, 255
+//efine cTEXTFAINT      0x0514          // 0, 160, 160 = blue, between CYAN and DARKCYAN
+#define cICON           ILI9341_CYAN
+//efine cINPUT          ILI9341_WHITE
+#define cWARN           0xF844          // brighter than ILI9341_RED but not pink
+#define cSINKING        0xF882          // highlight rapidly sinking barometric pressure
+#define cTOUCHTARGET    ILI9341_RED     // outline touch-sensitive areas
 
 // ------------ global barometric data
 float inchesHg;

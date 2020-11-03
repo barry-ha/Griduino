@@ -1,35 +1,37 @@
 /*
-  File:     cfg_settings4.h 
+  File:     cfg_settings4.h
 
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
 
-  Purpose:  This is the 'control panel' for screen rotation.
-            Since it's NOT intended for a driver in motion, we use a
-            smaller font to cram more stuff onto the screen.
+  Purpose:  This is one of the 'control panel' screens for Griduino setup.
+            Since it's not intended for a driver in motion, we can use 
+            a smaller font and cram more stuff onto the screen.
 
             +-----------------------------------+
-            |              Settings 4  /|\      |
-            | Screen                    |       |
-            | Orientation   (o)[ This edge up ] |
+            |            Settings 4             |
             |                                   |
-            |               ( )[ That edge up ] |
-            |                           |       |
-            |                           |       |
-            |                           |       |
-            | v0.26, Oct 12 2020       \|/      |
+            | Announce at   (o)[ 4-digit      ] |
+            | grid crossing ( )[ 6-digit      ] |
+            |                                   |
+            |                                   |
+            |                                   |
+            |                                   |
+            | Version 0.27                      |
+            |     Compiled Oct 31 2020  06:56   |
             +-----------------------------------+
 */
 
 #include <Arduino.h>
 #include "Adafruit_ILI9341.h"         // TFT color display library
 #include "constants.h"                // Griduino constants and colors
-#include "model_gps.h"                // "Model" portion of model-view-controller
 #include "TextField.h"                // Optimize TFT display text for proportional fonts
 #include "view.h"                     // Base class for all views
 
 // ========== extern ===========================================
 extern Model* model;                  // "model" portion of model-view-controller
+extern void sendMorseGrid4(String gridName);  // Griduino.ino
+extern void sendMorseGrid6(String gridName);  // Griduino.ino
 
 // ========== class ViewSettings4 ==============================
 class ViewSettings4 : public View {
@@ -49,68 +51,68 @@ class ViewSettings4 : public View {
     // ---------- local data for this derived class ----------
     // color scheme: see constants.h
 
-    // vertical placement of text rows   ---label---           ---button---
-    const int yRow1 = 70;             // "Screen Orientation", "This edge up"
-    const int yRow2 = yRow1 + 70;     //                       "That edge up"
-    const int yRow9 = gScreenHeight - 8; // "v0.25, Oct 12 2020"
+    // vertical placement of text rows   ---label---         ---button---
+    const int yRow1 = 70;             // "Announce at",      "4-Digit"
+    const int yRow2 = yRow1 + 24;     // "grid crossing"
+    const int yRow3 = yRow1 + 68;     //                     "6-Digit"
+    const int yRow9 = gScreenHeight - 12; // "v0.27, Nov 03 2020"
 
     #define col1 10                   // left-adjusted column of text
     #define xButton 160               // indented column of buttons
 
     enum txtSettings4 {
       SETTINGS=0, 
-      SCREEN,
-      ORIENTATION,
+      ANNOUNCE1,
+      ANNOUNCE2,
+      DISTANCE4,
+      DISTANCE6,
       COMPILED,
     };
-
-    #define nFields 4
-    TextField txtSettings4[nFields] = {
-      //        text                x, y        color
-      TextField("Settings 4",    col1, 20,      cHIGHLIGHT, ALIGNCENTER),// [SETTINGS]
-      TextField("Screen",        col1,yRow1,    cVALUE),                 // [SCREEN]
-      TextField("Orientation",   col1,yRow1+20, cVALUE),                 // [ORIENTATION]
-      TextField(PROGRAM_VERSION ", " __DATE__, 
-                                 col1,yRow9,    cLABEL, ALIGNLEFT),      // [COMPILED]
+    #define nTextCrossing 6
+    TextField txtSettings4[nTextCrossing] = {
+      //        text                  x, y        color
+      TextField("Settings 4",      col1, 20,      cHIGHLIGHT, ALIGNCENTER),// [SETTINGS]
+      TextField("Announce at",     col1,yRow1,    cVALUE),                 // [ANNOUNCE1]
+      TextField("grid crossing",   col1,yRow2,    cVALUE),                 // [ANNOUNCE2]
+      TextField("70 - 100 mi",  xButton+24,yRow1+22,cVALUE),               // [DISTANCE4]
+      TextField("3 - 4 mi",     xButton+38,yRow3+22,cVALUE),               // [DISTANCE6]
+      TextField(PROGRAM_VERSION ", " PROGRAM_COMPILED, 
+                                   col1,yRow9,    cLABEL, ALIGNCENTER),    // [COMPILED]
     };
 
-    enum functionID {
-      THIS_BUTTON=0,
-      THAT_BUTTON,
-    };
-    #define nButtons 2
-    FunctionButton myButtons[nButtons] = {
-      // label             origin         size      touch-target     
-      // text                x,y           w,h      x,y      w,h  radius  color   functionID
-      {"This edge up", xButton,yRow1-26, 140,40, {120, 35, 190,65},  4,  cVALUE,  THIS_BUTTON },
-      {"That edge up", xButton,yRow2-26, 140,40, {120,100, 190,75},  4,  cVALUE,  THAT_BUTTON },
-    };
+    // ----- helpers -----
+    void f4Digit() {
+      Serial.println("->->-> Clicked 4-DIGIT button.");
+      model->compare4digits = true;
+      this->updateScreen();             // update UI before starting the slow morse code
 
-    #define xLine (xButton+80)
-    #define topY 8
-    #define botY (gScreenHeight-6)
-
-    #define nLines 6
-    TwoPoints myLines[nLines] = {
-      //   x1,y1           x2,y2
-      {xLine,yRow1-26,  xLine,  topY,    cBUTTONOUTLINE},    // from top outline of top button, to top edge of screen
-      {xLine,5,         xLine-4,topY+15, cBUTTONOUTLINE},    // left half of arrowhead
-      {xLine,5,         xLine+4,topY+15, cBUTTONOUTLINE},    // right half of arrowhead
-
-      {xLine,yRow2+14,  xLine,botY,      cBUTTONOUTLINE},    // from bottom outline of bottom button, to bottom edge of screen
-      {xLine,botY,      xLine-4,botY-16, cBUTTONOUTLINE},    // left half of arrowhead
-      {xLine,botY,      xLine+4,botY-16, cBUTTONOUTLINE},    // right half of arrowhead
-    };
-
-    // ---------- local functions for this derived class ----------
-    void fRotateScreen() {
-      Serial.println("->->-> Clicked OTHER EDGE UP button.");
-      if (this->screenRotation == eSCREEN_ROTATE_0) {
-        this->setScreenRotation(eSCREEN_ROTATE_180);
-      } else {
-        this->setScreenRotation(eSCREEN_ROTATE_0);
-      }
+      // announce grid square, so they have an audible example of this selection
+      char newGrid4[7];
+      calcLocator(newGrid4, model->gLatitude, model->gLongitude, 4);
+      sendMorseGrid4( newGrid4 );       // announce 4-digit grid by Morse code
     }
+    void f6Digit() {
+      Serial.println("->->-> Clicked 6-DIGIT button.");
+      model->compare4digits = false;
+      this->updateScreen();             // update UI before starting the slow morse code
+
+      // announce grid square, so they have an audible example of this selection
+      char newGrid6[7];
+      calcLocator(newGrid6, model->gLatitude, model->gLongitude, 6);
+      sendMorseGrid6( newGrid6 );       // announce 4-digit grid by Morse code
+    }
+
+    enum buttonID {
+      e4DIGIT = 0,
+      e6DIGIT,
+    };
+    #define nButtonsDigits 2
+    FunctionButton myButtons[nButtonsDigits] = {
+      // label           visible rectangle      touch-target          text
+      // text            x,y           w,h      x,y      w,h  radius  color   function
+      {"4-Digit",  xButton,yRow1-26, 140,60, {130, 40, 180,70},  4,  cVALUE,  e4DIGIT },   // [e4DIGIT] set units English
+      {"6-Digit",  xButton,yRow3-26, 140,60, {130,110, 180,70},  4,  cVALUE,  e6DIGIT },   // [e6DIGIT] set units Metric
+    };
 
 };  // end class ViewSettings4
 
@@ -119,15 +121,16 @@ void ViewSettings4::updateScreen() {
   // called on every pass through main()
 
   // ----- show selected radio buttons by filling in the circle
-  for (int ii=0; ii<nButtons; ii++) {
+  for (int ii=e4DIGIT; ii<=e6DIGIT; ii++) {
     FunctionButton item = myButtons[ii];
     int xCenter = item.x - 16;
     int yCenter = item.y + (item.h/2);
     int buttonFillColor = cBACKGROUND;
 
-    if (item.functionIndex == THIS_BUTTON) {
-      // it may seem strange, but we ALWAYS highlight the first button as active 
-      // because the first button is always the "up" edge 
+    if (ii==e4DIGIT && model->compare4digits) {
+      buttonFillColor = cLABEL;
+    } 
+    if (ii==e6DIGIT && !model->compare4digits) {
       buttonFillColor = cLABEL;
     }
     tft->fillCircle(xCenter, yCenter, 4, buttonFillColor);
@@ -138,20 +141,15 @@ void ViewSettings4::updateScreen() {
 void ViewSettings4::startScreen() {
   // called once each time this view becomes active
   this->clearScreen(cBACKGROUND);     // clear screen
-  txtSettings4[0].setBackground(cBACKGROUND);        // set background for all TextFields in this view
-  TextField::setTextDirty( txtSettings4, nFields );  // make sure all fields get re-printed on screen change
+  txtSettings4[0].setBackground(cBACKGROUND);           // set background for all TextFields in this view
+  TextField::setTextDirty( txtSettings4, nTextCrossing );  // make sure all fields get re-printed on screen change
 
   drawAllIcons();                     // draw gear (settings) and arrow (next screen)
   showScreenBorder();                 // optionally outline visible area
 
-  // ----- draw text fields
-  for (int ii=0; ii<nFields; ii++) {
-      txtSettings4[ii].print();
-  }
-
   // ----- draw buttons
   setFontSize(eFONTSMALLEST);
-  for (int ii=0; ii<nButtons; ii++) {
+  for (int ii=0; ii<nButtonsDigits; ii++) {
     FunctionButton item = myButtons[ii];
     tft->fillRoundRect(item.x, item.y, item.w, item.h, item.radius, cBUTTONFILL);
     tft->drawRoundRect(item.x, item.y, item.w, item.h, item.radius, cBUTTONOUTLINE);
@@ -159,25 +157,20 @@ void ViewSettings4::startScreen() {
     // ----- label on top of button
     int xx = getOffsetToCenterTextOnButton(item.text, item.x, item.w);
 
-    tft->setCursor(xx, item.y+item.h/2+5);
+    tft->setCursor(xx, item.y+item.h/3+5);  // place text on top third of button (not centered vertically) 
+                                            // to make room for a second row of text on the button
     tft->setTextColor(item.color);
     tft->print(item.text);
 
     #ifdef SHOW_TOUCH_TARGETS
     tft->drawRect(item.hitTarget.ul.x, item.hitTarget.ul.y,  // debug: draw outline around hit target
                   item.hitTarget.size.x, item.hitTarget.size.y, 
-                  cWARN);
+                  cTOUCHTARGET);
     #endif
   }
 
-  // ----- draw arrows from buttons to top/bottom edges
-  for (int ii=0; ii<nLines; ii++) {
-    TwoPoints m = myLines[ii];
-    tft->drawLine(m.x1, m.y1, m.x2, m.y2, m.color);
-  }
-
-  // ----- show outlines of radio buttons
-  for (int ii=0; ii<nButtons; ii++) {
+  // ----- draw outlines of radio buttons
+  for (int ii=e4DIGIT; ii<=e6DIGIT; ii++) {
     FunctionButton item = myButtons[ii];
     int xCenter = item.x - 16;
     int yCenter = item.y + (item.h/2);
@@ -185,6 +178,12 @@ void ViewSettings4::startScreen() {
     // outline the radio button
     // the active button will be indicated in updateScreen()
     tft->drawCircle(xCenter, yCenter, 7, cVALUE);
+  }
+
+  // ----- draw text fields
+  txtSettings4[0].setBackground(cBUTTONFILL); // change background for text on top of buttons
+  for (int ii=0; ii<nTextCrossing; ii++) {
+      txtSettings4[ii].print();
   }
 
   updateScreen();                     // fill in values immediately, don't wait for the main loop to eventually get around to it
@@ -199,24 +198,22 @@ void ViewSettings4::startScreen() {
 bool ViewSettings4::onTouch(Point touch) {
   Serial.println("->->-> Touched settings screen.");
   bool handled = false;               // assume a touch target was not hit
-  for (int ii=0; ii<nButtons; ii++) {
+  for (int ii=0; ii<nButtonsDigits; ii++) {
     FunctionButton item = myButtons[ii];
     if (item.hitTarget.contains(touch)) {
         handled = true;               // hit!
         switch (item.functionIndex)   // do the thing
         {
-          case THIS_BUTTON:
-              // nothing - this button is already at top of screen
+          case e4DIGIT:
+              f4Digit();
               break;
-          case THAT_BUTTON:
-              // end-user wants the OTHER edge of the screen (whatever it is) to be "up"
-              fRotateScreen();
+          case e6DIGIT:
+              f6Digit();
               break;
           default:
               Serial.print("Error, unknown function "); Serial.println(item.functionIndex);
               break;
         }
-        updateScreen();               // update UI immediately, don't wait for laggy mainline loop
         this->saveConfig();           // after UI is updated, save setting to nvr
      }
   }
@@ -224,30 +221,14 @@ bool ViewSettings4::onTouch(Point touch) {
 }
 
 // ========== load/save config setting =========================
-#define SCREEN_CONFIG_FILE    CONFIG_FOLDER "/screen.cfg"
-#define CONFIG_SCREEN_VERSION "Screen Orientation v03"
+// the user's choice of 4- or 6-digit grid announcments is saved in the model, not here
+// so all we have to do is tell the model to save itself (a lengthy operation)
 
 // ----- load from SDRAM -----
 void ViewSettings4::loadConfig() {
-  // Load screen orientation from NVR, and do minimal amount of work
-  // Since this is called first thing during setup, we can't use 
-  // resource-heavy functions like "this->setScreenRotation(int rot)"
-
-  SaveRestore config(SCREEN_CONFIG_FILE, CONFIG_SCREEN_VERSION);
-  int tempRotation;
-  int result = config.readConfig( (byte*) &tempRotation, sizeof(tempRotation) );
-  if (result) {
-    this->screenRotation = tempRotation;
-    tft->setRotation(tempRotation);    // 0=portrait (default), 1=landscape, 3=180 degrees
-    Serial.print("Loaded screen orientation: "); Serial.println(this->screenRotation);
-  } else {
-    Serial.println("Failed to load screen orientation, re-initializing config file");
-    saveConfig();
-  }
+  // Nothing to load - this setting is stored in the model
 }
 // ----- save to SDRAM -----
 void ViewSettings4::saveConfig() {
-  SaveRestore config(SCREEN_CONFIG_FILE, CONFIG_SCREEN_VERSION);
-  int rc = config.writeConfig( (byte*) &screenRotation, sizeof(screenRotation) );
-  //Serial.print("Finished with rc = "); Serial.println(rc);  // debug
+  model->save();
 }

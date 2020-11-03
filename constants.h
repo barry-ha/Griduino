@@ -2,7 +2,7 @@
 
 // ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE   "Griduino"
-#define PROGRAM_VERSION "v0.26"
+#define PROGRAM_VERSION "v0.27"
 #define PROGRAM_LINE1   "Barry K7BWH"
 #define PROGRAM_LINE2   "John KM7O"
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
@@ -90,6 +90,7 @@ const int OFF = 0;                    // = turned off
 #define cBUTTONLABEL    ILI9341_YELLOW
 #define cCOMPASS        ILI9341_BLUE    // a little darker than cBUTTONOUTLINE
 #define cWARN           0xF844          // brighter than ILI9341_RED but not pink
+#define cTOUCHTARGET    ILI9341_RED     // outline touch-sensitive areas
 
 // ------------ typedef's
 struct Point {
@@ -157,13 +158,13 @@ struct FunctionButton {
   // FunctionButton is like Button, but has a larger specifiable hit target
   // It's also like TimeButton, but specifies the function by enum, rather than pointer to function
   // and this allows its usage in classes derived from "class View"
-  char text[26];
-  int x, y;
-  int w, h;
-  Rect hitTarget;
-  int radius;
-  uint16_t color;
-  int functionIndex;
+  char text[26];                      // one line of text, centered
+  int x, y;                           // fillRoundRect ul corner
+  int w, h;                           // fillRoundRect size
+  Rect hitTarget;                     // touch-sensitive area
+  int radius;                         // radio button size
+  uint16_t color;                     // text color
+  int functionIndex;                  // button identifier
 };
 
 class Location {

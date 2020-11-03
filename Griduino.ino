@@ -88,7 +88,8 @@
 #include "cfg_volume.h"               // config volume level
 #include "cfg_settings2.h"            // config GPS
 #include "cfg_settings3.h"            // config miles/km
-#include "cfg_settings4.h"            // config screen rotation 
+#include "cfg_settings4.h"            // config 4/6 digit crossing
+#include "cfg_settings5.h"            // config screen rotation 
 
 // ---------- Hardware Wiring ----------
 /*                                Arduino       Adafruit
@@ -275,7 +276,7 @@ bool newScreenTap(Point* pPoint) {
 void showWhereTouched(Point touch) {
   #ifdef SHOW_TOUCH_TARGETS
     const int radius = 3;     // debug
-    tft.fillCircle(touch.x, touch.y, radius, cWARN);  // debug - show dot
+    tft.fillCircle(touch.x, touch.y, radius, cTOUCHTARGET);  // debug - show dot
   #endif
 }
 // WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
@@ -597,7 +598,8 @@ enum {
   HELP_VIEW,
   SETTING2_VIEW,          // gps/simulator 
   SETTING3_VIEW,          // english/metric
-  SETTING4_VIEW,          // screen rotation 
+  SETTING4_VIEW,          // announce grid crossing 4/6 digit boundaries 
+  SETTING5_VIEW,          // screen rotation
   SPLASH_VIEW,
   STATUS_VIEW,
   TIME_VIEW,
@@ -607,8 +609,7 @@ enum {
   GOTO_SETTINGS,          // command the state machine to show control panel
   GOTO_NEXT_VIEW,         // command the state machine to show next screen
 };
-// list of objects derived from "class View", in alphabetical order:
-//      Grid, Help, Settings2, Settings3, Splash, Status, Time, Volume
+// list of objects derived from "class View", in alphabetical order
 View* pView;                           // pointer to a derived class
 
 ViewDate   dateView(&tft, DATE_VIEW);  // instantiate derived classes
@@ -617,6 +618,7 @@ ViewHelp   helpView(&tft, HELP_VIEW);
 ViewSettings2 settings2View(&tft, SETTING2_VIEW);
 ViewSettings3 settings3View(&tft, SETTING3_VIEW);
 ViewSettings4 settings4View(&tft, SETTING4_VIEW);
+ViewSettings5 settings5View(&tft, SETTING5_VIEW);
 ViewSplash splashView(&tft, SPLASH_VIEW);
 ViewStatus statusView(&tft, STATUS_VIEW);
 ViewTime   timeView(&tft, TIME_VIEW);
@@ -630,6 +632,7 @@ void selectNewView(int cmd) {
         &settings2View,    // [SETTING2_VIEW]
         &settings3View,    // [SETTING3_VIEW]
         &settings4View,    // [SETTING4_VIEW]
+        &settings5View,    // [SETTING5_VIEW]
         &splashView,       // [SPLASH_VIEW]
         &statusView,       // [STATUS_VIEW]
         &timeView,         // [TIME_VIEW]
@@ -656,7 +659,8 @@ void selectNewView(int cmd) {
       //se VOLUME2_VIEW:  nextView = SETTING2_VIEW; break;
       case SETTING2_VIEW: nextView = SETTING3_VIEW; break;
       case SETTING3_VIEW: nextView = SETTING4_VIEW; break;
-      case SETTING4_VIEW: nextView = VOLUME_VIEW; break;
+      case SETTING4_VIEW: nextView = SETTING5_VIEW; break;
+      case SETTING5_VIEW: nextView = VOLUME_VIEW; break;
       // none of above: we must be showing some normal user view, so go to the first settings view
       default:           nextView = VOLUME_VIEW; break;
     }
@@ -1005,10 +1009,17 @@ void loop() {
   if (model->enteredNewGrid()) {
     pView->startScreen();             // update display so they can see new grid while listening to audible announcement
     pView->updateScreen();
-    char newGrid6[7];
-    calcLocator(newGrid6, model->gLatitude, model->gLongitude, 6);
-    sendMorseGrid4( newGrid6 );       // announce new grid by Morse code
-    //sendMorseGrid6( newGrid6 );       // todo - add config option for 4/6
+
+    // note that cfg_settings4 will handle all of its own morse code announcement 
+    if (pView->screenID != SETTING4_VIEW) {
+      char newGrid6[7];
+      calcLocator(newGrid6, model->gLatitude, model->gLongitude, 6);
+      if (model->compare4digits) {
+        sendMorseGrid4( newGrid6 );       // announce 4-digit grid by Morse code
+      } else {
+        sendMorseGrid6( newGrid6 );       // announce 6-digit grid by Morse code
+      }
+    }
   }
 
   // if there's touchscreen input, handle it
