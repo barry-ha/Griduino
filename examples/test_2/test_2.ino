@@ -39,7 +39,7 @@
 #define PROGRAM_VERSION  "v0.27"
 #define PROGRAM_LINE1    "Barry K7BWH"
 #define PROGRAM_LINE2    "ACV"
-#define PROGRAM_COMPILED __DATE__ " " __TIME__
+#define PROGRAM_COMPILED PROGRAM_VERSION " " __DATE__ " " __TIME__
 
 //------------------------------------------------------------------------------
 //  Screen Rotation:
@@ -106,12 +106,14 @@
 // splash screen layout
 //------------------------------------------------------------------------------
 #define yRow1    8                    // title: "Touchscreen Demo"
-#define yRow2    yRow1 + 40           // program version
-#define yRow3    yRow2 + 20           // compiled date
-#define yRow4    yRow3 + 20           // author line 1
-#define yRow5    yRow4 + 20           // author line 2
-#define yRow6    yRow5 + 40           // "Pressure threshold = "
-#define yRow7    yRow6 + 40           // x / y pressure
+#define yRow2    yRow1 + 40           // author line 1
+#define yRow3    yRow2 + 20           // author line 2
+#define yRow4    yRow3 + 30           // hint 1
+#define yRow5    yRow4 + 20           // hint 2
+#define yRow6    yRow5 + 20           // hint 3
+#define yRow7    yRow6 + 20           // hint 4
+#define yRow8    yRow7 + 20
+#define yRowBot  216                  // program version, compiled date
 
 //------------------------------------------------------------------------------
 //  Color scheme
@@ -126,6 +128,10 @@
 #define cTEXTFAINT      0x514         // 0, 160, 160 = blue, between CYAN and DARKCYAN
 #define cWARN           0xF844        // brighter than ILI9341_RED but not pink
 #define cTOUCHTARGET    ILI9341_RED   // outline touch-sensitive areas
+#define cCLICK          ILI9341_WHITE
+#define cDOUBLECLICK    ILI9341_MAGENTA
+#define cCLICKPRESS     ILI9341_YELLOW
+#define cCLICKLONGPRESS ILI9341_CYAN
 
 //------------------------------------------------------------------------------
 //  System event defines
@@ -329,18 +335,38 @@ static void SplashScreen(void)
   tft.setTextColor(cTEXTCOLOR);
   tft.print(PROGRAM_TITLE);
 
-  tft.setCursor(xLabel, yRow2);       // Program Version
+  tft.setCursor(xLabel, yRow2);       // Line one (Barry)
   tft.setTextColor(cLABEL);
-  tft.print(PROGRAM_VERSION);
-
-  tft.setCursor(xLabel, yRow3);       // Date / Time
-  tft.print(__DATE__ " " __TIME__);
-
-  tft.setCursor(xLabel, yRow4);       // Line one (Barry)
   tft.println(PROGRAM_LINE1);
 
-  tft.setCursor(xLabel, yRow5);       // Line two (others)
+  tft.setCursor(xLabel, yRow3);       // Line two (others)
   tft.println(PROGRAM_LINE2);
+
+  tft.setCursor(xLabel, yRowBot);     // Program Version
+  tft.print(PROGRAM_COMPILED);
+
+  // help text
+  const int xCol1 = 10;
+  const int xCol2 = 24;
+  showClick(xCol1, yRow4+6);
+  tft.setCursor(xCol2, yRow4);
+  tft.print("Click");
+  
+  showDoubleClick(xCol1, yRow5+6);
+  tft.setCursor(xCol2, yRow5);
+  tft.print("Double click");
+
+  showClickPress(xCol1, yRow6+6);
+  tft.setCursor(xCol2, yRow6);
+  tft.print("Click + press");
+
+  showClickLongPress(xCol1, yRow7+6);
+  tft.setCursor(xCol2, yRow7);
+  tft.print("Click + long press");
+
+  showPress(xCol1, yRow8+6);
+  tft.setCursor(xCol2, yRow8);
+  tft.print("Press");
 }
 
 //------------------------------------------------------------------------------
@@ -377,7 +403,7 @@ static void showActivityBar(int row, uint16_t foreground, uint16_t background)
   static int addDotX = 10;            // current screen column, 0..319 pixels
   static int rmvDotX = 0;
   static int count = 0;
-  const int SCALEF = 512;             // how much to slow it down so it becomes visible
+  const int SCALEF = 8192;            // how much to slow it down so it becomes visible
 
   count = (count + 1) % SCALEF;
   if (count == 0)
@@ -425,6 +451,13 @@ void setup(void)
   btn_thread_start();
 }
 
+void showClick(int x, int y)       { tft.drawCircle(x, y, 3, cCLICK); }
+void showDoubleClick(int x, int y) { tft.fillCircle(x, y, 3, cDOUBLECLICK); }
+void showPress(int x, int y)       { tft.setCursor(x-4, y-4); tft.print("p"); }
+void showClickPress(int x, int y)  { tft.fillCircle(x, y, 3, cCLICKPRESS); }
+void showClickLongPress(int x, int y){ tft.drawCircle(x, y, 3, cCLICKLONGPRESS);
+                                       tft.drawCircle(x, y, 6, cCLICKLONGPRESS); }
+
 //=========== main work loop ===================================
 void loop(void)
 {
@@ -437,34 +470,35 @@ void loop(void)
 
     case btn_click:
       Serial.println("btn_click");
-      tft.fillCircle(touch.x, touch.y, 3, ILI9341_YELLOW);
+      showClick(touch.x, touch.y);
       break;
 
     case btn_press:
       Serial.println("btn_press");
-      clearScreen();
-      SplashScreen();
+      showPress(touch.x, touch.y);
       break;
 
     case btn_long_press:
       Serial.println("btn_long_press");
       gScreenRotation = (gScreenRotation == 1) ? 3 : 1;
       tft.setRotation(gScreenRotation); // landscape (default is portrait)
-      clearScreen();
-      SplashScreen();
+      //clearScreen();
+      //SplashScreen();
       break;
 
     case btn_double_click:
       Serial.println("btn_double_click");
-      tft.fillCircle(touch.x, touch.y, 3, ILI9341_MAGENTA);
+      showDoubleClick(touch.x, touch.y);
       break;
 
     case btn_click_press:
       Serial.println("btn_click_press");
+      showClickPress(touch.x, touch.y);
       break;
 
     case btn_click_long_press:
       Serial.println("btn_click_long_press");
+      showClickLongPress(touch.x, touch.y);
       break;
 
     default:
@@ -474,5 +508,5 @@ void loop(void)
   }
   sys_events = 0;
 
-  showActivityBar(239, ILI9341_RED, ILI9341_BLACK); // activity bar
+  showActivityBar(236, ILI9341_RED, cBACKGROUND); // activity bar
 }
