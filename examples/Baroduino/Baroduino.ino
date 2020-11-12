@@ -145,7 +145,7 @@ Adafruit_BMP3XX baro(BMP_CS);         // hardware SPI
 Adafruit_GPS GPS(&Serial1);
 
 // ------------ definitions
-const int howLongToWait = 8;          // max number of seconds at startup waiting for Serial port to console
+const int howLongToWait = 10;         // max number of seconds at startup waiting for Serial port to console
 
 #define MILLIBARS_PER_INCHES_MERCURY (0.02953)
 #define BARS_PER_INCHES_MERCURY      (0.0338639)
@@ -208,7 +208,7 @@ time_t nextFifteenMinuteMark(time_t timestamp) {
 //
 //      BarometerModel
 //      "Class BarometerModel" is intended to be identical 
-//      for both Griduino and the Barograph example
+//      for both Griduino and the Baroduino example
 //
 //    This model collects data from the BMP388 barometric pressure 
 //    and temperature sensor on a schedule determined by the Controller.
@@ -410,10 +410,10 @@ void showTimeOfDay() {
   }
 
   snprintf(msg, sizeof(msg), "%d-%02d", mo, dd);
-  //txtReading[eDate].print(msg);       // 2020-10-28 simplify screen, don't show date
+  txtReading[eDate].print(msg);       // 2020-11-12 do show date, help identify when RTC stops
 
   snprintf(msg, sizeof(msg), "%d#", GPS.satellites);
-  //txtReading[eNumSat].print(msg);     // 2020-10-28 simplify screen, don't show number of satellites
+  txtReading[eNumSat].print(msg);     // 2020-11-12 do show date, help identify when RTC stops
 
   snprintf(msg, sizeof(msg), "%02d:%02d", hh,mm);
   txtReading[eTimeHHMM].print(msg);
@@ -614,7 +614,7 @@ void drawScale() {
 void drawGraph() {
   // check that RTC has been initialized, otherwise we cannot display a sensible graph
   if (timeStatus() == timeNotSet) {
-    Serial.println("!! No graph, time has not been started.");
+    Serial.println("!! No graph, real-time clock has not been set.");
     return;
   }
 
@@ -626,26 +626,28 @@ void drawGraph() {
   char msg[100], sDate[24];
   dateToString(sDate, sizeof(sDate), today);
 
-  snprintf(msg, sizeof(msg), "Right now is %d-%d-%d at %02d:%02d:%02d",
+  snprintf(msg, sizeof(msg), ". Right now is %d-%d-%d at %02d:%02d:%02d",
                                     year(today),month(today),day(today), 
                                     hour(today),minute(today),second(today));
-  Serial.println(msg);
-  snprintf(msg, sizeof(msg), "Leftmost graph minTime = %d-%02d-%02d at %02d:%02d:%02d (x=%d)",
+  Serial.println(msg);                // debug
+  snprintf(msg, sizeof(msg), ". Leftmost graph minTime = %d-%02d-%02d at %02d:%02d:%02d (x=%d)",
                                     year(minTime),month(minTime),day(minTime),
                                     hour(minTime),minute(minTime),second(minTime),
                                     xDay1);
-  Serial.println(msg);
-  snprintf(msg, sizeof(msg), "Rightmost graph maxTime = %d-%02d-%02d at %02d:%02d:%02d (x=%d)",
+  Serial.println(msg);                // debug
+  snprintf(msg, sizeof(msg), ". Rightmost graph maxTime = %d-%02d-%02d at %02d:%02d:%02d (x=%d)",
                                     year(maxTime),month(maxTime),day(maxTime),
                                     hour(maxTime),minute(maxTime),second(maxTime),
                                     xRight);
-  Serial.println(msg);
+  Serial.println(msg);                // debug
 
   float yTopPa = (gUnits == eMetric) ? fMaxPa : (fMaxHg*PASCALS_PER_INCHES_MERCURY);
   float yBotPa = (gUnits == eMetric) ? fMinPa : (fMinHg*PASCALS_PER_INCHES_MERCURY);
 
-  Serial.print("Top graph pressure = "); Serial.print(yTopPa,1); Serial.println(" Pa");     // debug
-  Serial.print("Bottom graph pressure = "); Serial.print(yBotPa,1); Serial.println(" Pa");  // debug
+  Serial.print(". Top graph pressure = "); Serial.print(yTopPa,1); Serial.println(" Pa");     // debug
+  Serial.print(". Bottom graph pressure = "); Serial.print(yBotPa,1); Serial.println(" Pa");  // debug
+  Serial.print(". Saving "); Serial.print(sizeof(baroModel.pressureStack)); Serial.print(" bytes, ");  // debug
+  Serial.print(sizeof(baroModel.pressureStack)/sizeof(baroModel.pressureStack[0])); Serial.println(" readings");  // debug
 
   // loop through entire saved array of pressure readings
   // each reading is one point, i.e., one pixel (we don't draw lines connecting the dots)
@@ -669,20 +671,22 @@ void drawGraph() {
       if (x1 < xDay1) {
         dateToString(sDate, sizeof(sDate), t1);
         snprintf(msg, sizeof(msg), "%d. Ignored: Date x1 (%s = %d) is off left edge of (%d).", 
-                                    ii,                  sDate,x1,                   xDay1); Serial.println(msg);
+                                    ii,                  sDate,x1,                   xDay1); 
+        Serial.println(msg);          // debug
         continue;
       }
       if (x1 > xRight) {
         dateToString(sDate, sizeof(sDate), t1);
         snprintf(msg, sizeof(msg), "%d. Ignored: Date x1 (%s = %d) is off right edge of (%d).", 
-                                    ii,                 sDate, x1,                   xRight); Serial.println(msg);
+                                    ii,                 sDate, x1,                   xRight); 
+        Serial.println(msg);          // debug
         continue;
       }
 
       tft.drawPixel(x1,y1, cGRAPHCOLOR);
       int approxPa = (int)baroModel.pressureStack[ii].pressure;
       //snprintf(msg, sizeof(msg), "%d. Plot %d at pixel (%d,%d)", ii, approxPa, x1,y1);
-      //Serial.println(msg);    // debug
+      //Serial.println(msg);          // debug
     }
   }
 }
@@ -693,7 +697,7 @@ void adjustUnits() {
   } else {
     gUnits = eMetric;
   }
-  saveConfigUnits();     // non-volatile storage
+  saveConfigUnits();                  // non-volatile storage
 
   char sInchesHg[] = "inHg";
   char sHectoPa[] = "hPa";
@@ -712,7 +716,7 @@ void adjustUnits() {
   }
 
   Serial.print(". unitPressure = "); Serial.println( txtReading[unitPressure].text );
-  redrawGraph = true;           // draw graph
+  redrawGraph = true;                 // draw graph
 }
 
 // ========== load/save config setting =========================
@@ -724,7 +728,7 @@ int loadConfigUnits() {
   int tempUnitSetting;
   int result = config.readConfig( (byte*) &tempUnitSetting, sizeof(tempUnitSetting) );
   if (result) {
-    gUnits = tempUnitSetting;                // set english/metric units
+    gUnits = tempUnitSetting;         // set english/metric units
     Serial.print(". Loaded units setting: "); Serial.println(tempUnitSetting);
   }
   return result;
@@ -775,16 +779,16 @@ void setup() {
 
   // ----- init Feather M4 onboard lights
   pixel.begin();
-  pixel.clear();                        // turn off NeoPixel
-  digitalWrite(PIN_LED, LOW);           // turn off little red LED
+  pixel.clear();                      // turn off NeoPixel
+  digitalWrite(PIN_LED, LOW);         // turn off little red LED
   Serial.println("NeoPixel initialized and turned off");
 
   // ----- announce ourselves
   startSplashScreen();
 
   // ----- init serial monitor
-  Serial.begin(115200);                               // init for debuggging in the Arduino IDE
-  waitForSerial(howLongToWait);                       // wait for developer to connect debugging console
+  Serial.begin(115200);               // init for debuggging in the Arduino IDE
+  waitForSerial(howLongToWait);       // wait for developer to connect debugging console
 
   // now that Serial is ready and connected (or we gave up)...
   Serial.println(BAROGRAPH_TITLE " " PROGRAM_VERSION);// Report our program name to console
