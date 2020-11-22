@@ -66,12 +66,6 @@ Electrolytic capacitors are marked with an arrow or "-" to indicate the negative
 
 
 
-
-
-
-
-
-
 Header pins can join a small PCB onto the main board. They are designed to let you break off the number you need. Use needle nose pliers to hold steady the pins you'll keep and use your fingers to snap off the rest.
 
 ![](img/header-pins-img7080.jpg)
@@ -98,7 +92,11 @@ Solder the three diodes into place and snip off excess wire lengths.
 
 ![](img/diodes-img7040.jpg)
 
-Insert the larger TVS diode, D4, and solder into place. Although the board marking shows its location with a banded end, this diode is bidirectional and can go either way. 
+Insert the larger TVS diode, D4, and solder into place. Although the board marking shows its location with a banded end, this diode is bidirectional and can go either way.
+
+![](img/tvs-diode-img7572.jpg)
+
+Automobiles are "the power supply from hell." The TVS diode protects the Griduino from wild voltage spikes in either direction. 
 
 <h3>Step 3: Resistors</h3>
 
@@ -148,17 +146,17 @@ Test the Feather before using it. By testing first, we ensure it's functional be
 
 To test a Feather, plug a standard micro-USB cable into the onboard connector; the lights should show activity. 
 
-* If this is a new Feather, it comes with a factory program that blinks the NeoPixel LED in green as a simple "hello world" program. <br>![](img/feather-test-img7081.jpg)
+* If this is a new Feather, it comes with a factory program that blinks the NeoPixel LED in *green* as a simple "hello world" program. <br>![](img/feather-test-img7081.jpg)
 
-* If this is *not* a new Feather, you can replace its programming. Get the [Blinky](https://learn.adafruit.com/adafruit-arduino-lesson-2-leds/blinking-the-led) demo program to blink the red LED, then compile and install the program using the Arduino workbench. <br>![](img/feather-test-img7425.jpg)
+* If this is *not* a new Feather, you can replace its programming. Get the [Blinky](https://learn.adafruit.com/adafruit-arduino-lesson-2-leds/blinking-the-led) demo program to blink the *red* LED, then compile and install the program using the Arduino workbench. <br>![](img/feather-test-img7425.jpg)
 
 <h3>Step 8: Installing Feather M4 Express</h3>
 
-The Feather comes with two 16-pin header strips loose in the package. Take one strip and break off 4 pins so it exactly matches the Feather's pinout: one 12-pin strip, and one 16-pin strip. Temporarily put the strips into a solderless breadboard to hold them in precise alignment. The long end of the pins go down into the breadboard; the short end goes into the Feather's PCB. (Actually the long pins can go up *or* down, it doesn't matter. We like them down for a more tidy appearance from the top.) Solder the Feather board to both header pin strips.
+The Feather comes with two 16-pin header strips loose in the package. Take one 16-pin strip and break off 4 pins so it exactly matches the Feather's pinout: one 12-pin strip, and one 16-pin strip. Temporarily put the strips into a solderless breadboard to hold them in precise alignment. The long end of the pins go down into the breadboard; the short end goes into the Feather's PCB. (Actually the long pins can go up *or* down, it doesn't matter. We like them down for a more tidy appearance from the top.) Solder the Feather board to both header pin strips.
 
 ![](img/feather-headers-img7072.jpg)
 
-To remove the Feather from the breadboard, carefully work it upward gently from both ends. It can be helpful to lever it *gently* upwards with a small screwdriver from underneath.
+To remove the Feather from the breadboard, carefully work it upward gently from both ends. It can be helpful to lever it *gently* upwards with a small screwdriver from underneath. It's a good idea to test the Feather again with the Blinky program.
 
 ![](img/feather-removal-img7073.jpg)
 
@@ -173,6 +171,8 @@ Insert the Feather board into the PCB. Make sure the pins are completely inserte
 ![](img/feather-correct-img7075.jpg)
 
 Solder the pins to the Griduino board. You don't need to clip off the long ends; there is ample room inside the case.
+
+It's a good idea to test the Feather once again with the Blinky program.
 
 <h3>Step 9: U5 Ultimate GPS</h3>
 
@@ -226,6 +226,10 @@ Note the orientation of the 3.2" TFT display board is important:
 * The two **GND pins** must go nearest to the USB connector. 
 * The corner with **CD and CCS pins must go nearest to the GPS**; this is the SPI interface that Griduino uses. The other side with pins D0-D7 is the parallel port which is unused.
 
+**Warning:** Always insert the display in this orientation. The circuit *will* be damaged if you reverse it. Don't ask us how we know.
+
+Since both sides have a 20-pin connector, it's easy to plug in backwards. Please mark your display board somehow to recognize which way is up. 
+
 Assemble the display parts on the main board, which will hold everything in correct alignment before soldering:
 
 1. Start with Griduino main board
@@ -239,6 +243,8 @@ From the top, solder the header pins on the display board.
 
 Turn it over, holding the display assembly together, and rest the display on a soft surface. Solder the socket pins on the bottom of the main board.
 
+Hey, want to check your work? At this point of assembly, you can plug in USB power: The Blinky program will flash the red LED and the backlight will turn on. You can even load the Griduino program and it will basically work fine except it lacks all other connectors.
+
 Turn it right side up and gently unplug the display from the sockets for safekeeping while working on other parts. Later, when everything else is completed, the display will be inserted again.
 
 <h3>Step 13: Test Points</h3>
@@ -246,6 +252,8 @@ Turn it right side up and gently unplug the display from the sockets for safekee
 Griduino has 6 optional test points. Three grounding points are together near the voltage regulator and the other three are in the audio chain for checking sound levels and linearity. See the schematic for details. Test points are intended to attach an oscilloscope for software developers and are not normally used.
 
 The test points are sized to wedge into their holes up to their shoulders, holding them in place while you turn the board upside down and solder them.
+
+Some people say the test points are easier to solder from the top side if you have a good fine-tip soldering iron.
 
 ![](img/test-points-img7107.jpg)
 
@@ -255,25 +263,33 @@ Lastly, insert and solder the power connector, speaker jack and 4-pin terminal s
 
 ![](img/connectors-img7108.jpg)
 
-<h3>Step 15: Plastic Case - Bottom Half</h3>
+<h3>Step 15: Bottom Half of Plastic Case</h3>
 
 The Griduino kit comes with  a plastic enclosure from <a href="https://www.polycase.com/">Polycase</a> in their QS-50 Series that exactly matches the PCB mounting holes. Other enclosures could probably be used. If you choose something else, avoid metallic cases since they would block the microwave GPS signal and would need an external antenna.
-
-You can buy an active external antenna for this GPS from other vendors. The GPS has a "uFL" connector so be aware that you may need an [SMA to uFL RF Adapter Cable]([https://www.adafruit.com/product/851), depending on your choice of antenna.
 
 Temporarily position the PCB in bottom half of the Polycase enclosure. Check for interference and use a craft detail knife to notch out holes for each of the three connectors (speaker, power, USB connector). The exact size depends on your particular cable that you choose to use.  For sake of sizing the USB hole, find a USB cable that has the largest connector available. 
 
 Screw the PCB onto the case's mounting posts, watching the speaker and power jacks clearance. You may need to carve a little extra room in the cutouts, even with the custom-milled case, depending on how the jacks were soldered onto the board.
 
-The Griduino kit includes four optional nylon #6 washers that can go under the mounting posts. Put these aside for the next step.
+Don't overtighten the PCB screws. These are short, small screws and can be easily stripped.
 
-Don't overtighten the PCB screws. These are small screws and can be easily stripped.
+**Optional:** You can buy an active external antenna for this GPS from other vendors. The GPS has a "uFL" connector so be aware that you may need an [SMA to uFL RF Adapter Cable]([https://www.adafruit.com/product/851), depending on your choice of antenna.
 
-<h3>Step 16: Plastic Case - Top Half</h3>
-There are at least four choices for the top cover. Choose one of these according to what you have available.
+**Optional:** If you'd like to run wires (e.g. power or speaker) through the back of the case, then drill a 3/8" hole (9 mm) at the position the mark in the mold as shown in the photo below.
+
+![](img/feedthru-hole-img7588.jpg)
+
+There is just enough room for a few thin wires to fit between the PCB and the case, allowing them to exit through your drilled hole. Here's an example of power wires escaping out the back for an Anderson Powerpole connector to the shack's power supply.
+
+![](img/feedthru-power-img7468.jpg)
+
+**Optional:** The Griduino kit includes four optional nylon #6 washers that can go under the mounting posts as a standoff. Put these aside for later. They can help close a possible gap between the display and top cover surface.
+
+<h3>Step 16: Top Half of Plastic Case</h3>
+There are several choices for the top cover. Choose one of these according to your desires and what you have available.
 
 <h3>16.a No cover</h3>
-This is how I use my Griduino.
+This is how I use my Griduino. This is the easiest way to reach the Reset button for testing and for 
 
 <h3>16.b Polycase standard cover</h3>
 If you have the unmodified [Polycase QS50](https://www.polycase.com/qs-50), carefully cut an opening to fit the display. A cutting template is available that can be printed and taped on for guidance.  Cutting the top cover's opening by hand is actually rather difficult to do accurately and neatly. 
@@ -283,19 +299,20 @@ Carefully cut openings for the connectors with a sharp craft knife.
 <h3>16.c Polycase custom-milled cover</h3>
 This is the easiest approach to a professional-looking cover. 
 
-Check the alignment and clearance as you lower it onto the bottom cover.
+During final assembly, check the alignment and clearance as you lower the top case onto the bottom cover.
 
 If the display is not quite centered in the opening, loosen the PCB screws and adjust its location slightly to line up correctly. 
 
-If there's a gap between the display and the top cover, use nylon #6 washers under the PCB to close the gap. 
+If there's a gap between the display and the top cover, use nylon #6 washers under the PCB to raise the interior assembly and close the gap. 
 
 You will probably need to clean up a little extra plastic from the top cover around the audio jack.
 
 <h3>16.d 3D printed cover</h3>
-The author designed a top cover to fit the Polycase bottom half. The STL design file is available upon request so you can print and decorate your own. Here's an example of a 3D printed cover in "gold" PLA. <br/>
+
+We designed a 3D printed top cover to fit the Polycase bottom half. The STL design file is available on request so you can print and decorate your own. Here's an example of a 3D printed cover in "gold" PLA. <br/>
 ![](img/hersheys-griduino-img56B29.jpg)<br>
 
-We recommend PETG or ABS (instead of PLA) for improved durability and UV resistance.
+We recommend 3D printing with PETG or ABS (instead of PLA) for improved durability and UV resistance.
 
 <h3>Step 17: Speaker</h3>
 
@@ -329,13 +346,13 @@ Connect a micro-USB cable to the Feather M4 Express connector. If this is a fact
 
 * Backlight turns on for the display
 * Yellow LED flashes rapidly
-* NeoPixel LED flashes green once per second
+* NeoPixel LED flashes green once per second (or the Blinky program will flash the red LED)
 * No text or graphics is shown on the display
 * No audio is produced by the speaker
 
 <h2>7. Programming the Griduino GPS</h2>
 
-To load the Griduino programming onto your device, please see the latest documentation on GitHub: 
+You can download the latest pre-compiled binary image from GitHub. To load the Griduino programming onto your device, please see the documentation: 
 
 https://github.com/barry-ha/Griduino
 
@@ -347,47 +364,32 @@ You may find the "examples" folder useful. It contains a variety of smaller prog
 
 <h2>8. Using the Griduino GPS</h2>
 
-After loading and running the Griduino program, touch the top half of the screen to advance from one view to the next:
+The [docs/USERS_GUIDE.md](https://github.com/barry-ha/Griduino/blob/master/docs/USERS_GUIDE.md) file has complete information about using and configuring your Griduino.
 
-
-1. Power-up animation (one time only)<br/>
-![](img/view-anim-img7044.jpg)
-
-2. Credits screen (one time only)<br/>
-![](img/view-credits-img7045.jpg)
-
-3. Help screen (one time only)<br/>
-![](img/view-help-img7111.jpg)
-
-4. Grid location view<br/>
 ![](img/view-grid-img7046.jpg)
 
-5. Grid details view<br/>
-![](img/view-detail-img7047.jpg)
+When you cross a grid line, the new grid is announced in Morse Code on the speaker.
 
-6. GMT clock view<br/>
+After loading and running the Griduino program, 
+
+* Touch the "settings" area in the upper left to advance from one configuration screen to the next.
+* Touch the "next view" area in the upper right to advance from one view to the next.
+* Touch the bottom half of the screen to adjust brightness.
+
+![](img/view-help-img7111.jpg)
+
+When you arrive at a destination, you may find it useful to switch over to the GMT clock view.
+
 ![](img/view-gmt-img7048.jpg)
 
-7. Audio volume control<br/>
-![](img/view-volume-img7049.jpg)
+Sometimes, you may find it interesting to switch over to the graphing barometer view.
 
-8. Settings<br/>
-![](img/view-settings-img7050.jpg)
-
-Touch the bottom half of the screen to adjust brightness levels.
-
-Griduino has non-volatile storage to save your breadcrumb trail (driving track) from one day to the next. 
-
-For a demonstration, bring up the **Settings** view. Change the Route to **Simulator** and return to the main grid view. It follows a pre-programmed route to show the breadcrumb trail and what happens at grid crossings. There are a few different routes available, which can be selected at compile-time. The most interesting canned route will drive in a big ellipse near the edges of one grid square. 
-
-When you cross a grid line, the new grid is announced with CW on the speaker.
-
-When you arrive at a destination, you can switch to the GMT clock view. This is useful to visually compare to your computer clock for accurate time.
+![](img/barometer-img7524.jpg)
 
 <h2>9. Disclaimer</h2>
 
 The information provided is for general education and entertainment. We hope you learn from this and enjoy your hobbies in a safe manner with this new GPS information available at a glance. We take no responsibility for your assembly and construction, nor for how you use these devices. 
 
-**Do not adjust Griduino while driving**. Keep your full attention on the road and the traffic around you. We can not be held responsible for any property or medical damages caused by these projects. You are advised to check your local laws and consult professionals for any project involving electricity, construction or assembly. You are advised to drive in a safe and legal manner, consistent with all local laws, safety rules and good common sense.
+**Do not adjust Griduino while driving**. Keep your full attention on the road and the traffic around you. We can not be held responsible for any property or medical damages caused by these projects. You are advised to check your local laws and consult professionals for any project involving electricity, assembly or mounting accessories in your vehicle. Many areas restrict where and how you are allowed to mount items around your dashboard. You are advised to drive in a safe and legal manner, consistent with all local laws, safety rules and good common sense.
 
-You must accept that you and you alone are responsible for your safety and safety of others in all aspects of working with Griduino.
+You must accept that you and you alone are responsible for your safety and safety of others in all aspects of driving with and using a Griduino.
