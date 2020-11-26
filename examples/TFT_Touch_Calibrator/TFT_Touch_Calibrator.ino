@@ -1,16 +1,23 @@
 /*
-  TFT Touchscreen Demo - Touch screen with X, Y and Z (pressure) readings
+  TFT Touchscreen Calibrator - Touch screen with X, Y and Z (pressure) readings
 
-  Date:     2019-11-15 created v6
-            2020-05-12 updated TouchScreen code
+  Date:
+            2020-11-23 created touch calibrator
 
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
 
-  Purpose:  Touch screen library with X Y and Z (pressure) readings as well
-            as oversampling to avoid 'bouncing'
-            This demo code returns raw readings.
-            Use SERIAL MONITOR in the Arduino workbench to see results of touching screen.
+  Purpose:  Interactive display of the effects of Touch Screen calibration settings.
+            This program shows the current compiled touch settings alongside the
+            current realtime measurements as you touch the screen.
+
+  Usage:    1. Compile and run the program
+            2. Slide a finger gently around the screen edges
+            3. It will plot a scattergram of dots showing how resistance measurements are mapped to screen area
+            4. Edit source code "Touch configuration parameters" to adjust the mapping
+               a. use larger X value to move apparent screen response left
+               b. use larger Y value to move apparent screen response down
+            5. Recompile and run this again
 
   Tested with:
          1. Arduino Feather M4 Express (120 MHz SAMD51)     https://www.adafruit.com/product/3857
@@ -22,10 +29,10 @@
 
 */
 
-#include "SPI.h"                      // Serial Peripheral Interface
-#include "Adafruit_GFX.h"             // Core graphics display library
 #include <Adafruit_ILI9341.h>         // TFT color display library
+#include "constants.h"                // Griduino constants, colors, typedefs
 #include "TouchScreen.h"              // Touchscreen built in to 3.2" Adafruit TFT display
+#include "TextField.h"                // Optimize TFT display text for proportional fonts
 
 // ------- TFT 4-Wire Resistive Touch Screen configuration parameters
 #define TOUCHPRESSURE 200             // Minimum pressure threshhold considered an actual "press"
@@ -37,11 +44,7 @@
                                       // measure this with an ohmmeter while Griduino turned off
 
 // ------- Identity for splash screen and console --------
-#define PROGRAM_TITLE   "Touch Screen Demo"
-#define PROGRAM_VERSION "v0.27"
-#define PROGRAM_LINE1   "Barry K7BWH"
-#define PROGRAM_LINE2   "John KM7O"
-#define PROGRAM_COMPILED __DATE__ " " __TIME__
+#define PROGRAM_NAME    "TFT Touch Calibrator"
 
 #define SCREEN_ROTATION 1             // 1=landscape, 3=landscape 180-degrees
 
@@ -94,26 +97,11 @@ Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 #endif
 TouchScreen ts = TouchScreen(PIN_XP, PIN_YP, PIN_XM, PIN_YM, XP_XM_OHMS);
 
-// ------------ typedef's
-struct Point {
-  int x, y;
-};
-
 // ------------ definitions
-#define gScreenWidth 320              // pixels wide, landscape orientation
+const int howLongToWait = 5;          // max number of seconds at startup waiting for Serial port to console
+#define SCREEN_ROTATION 1             // 1=landscape, 3=landscape 180 degrees
 
-// ----- Griduino color scheme
-// RGB 565 color code: http://www.barth-dev.de/online/rgb565-color-picker/
-#define cBACKGROUND     0x00A           // 0,   0,  10 = darker than ILI9341_NAVY, but not black
-#define cLABEL          ILI9341_GREEN
-#define cVALUE          ILI9341_YELLOW  // 255, 255, 0
-#define cINPUT          ILI9341_WHITE
-#define cBUTTONFILL     ILI9341_NAVY
-#define cBUTTONOUTLINE  ILI9341_BLUE    // 0,   0, 255 = darker than cyan
-#define cTEXTCOLOR      ILI9341_CYAN    // 0, 255, 255
-#define cTEXTFAINT      0x0514          // 0, 160, 160 = blue, between CYAN and DARKCYAN
-#define cWARN           0xF844          // brighter than ILI9341_RED but not pink
-#define cTOUCHTARGET    ILI9341_RED     // outline touch-sensitive areas
+#define gScreenWidth 320              // pixels wide, landscape orientation
 
 // ============== touchscreen helpers ==========================
 bool gTouching = false;               // keep track of previous state
@@ -206,7 +194,7 @@ void mapTouchToScreen(TSPoint touch, Point* screen) {
   //          map(value         in_min,in_max,       out_min,out_max)
   screen->x = map(touch.y,  X_MIN_OHMS,X_MAX_OHMS,    0, tft.width());
   screen->y = map(touch.x,  Y_MAX_OHMS,Y_MIN_OHMS,    0, tft.height());
-  if (SCREEN_ROTATION == 3) {
+  if (tft.getRotation() == 3) {
     // if display is flipped, then also flip both x,y touchscreen coords
     screen->x = tft.width() - screen->x;
     screen->y = tft.height() - screen->y;
@@ -214,42 +202,52 @@ void mapTouchToScreen(TSPoint touch, Point* screen) {
   return;
 }
 
-// ========== splash screen helpers ============================
-// splash screen layout
-// When using default system fonts, screen pixel coordinates will identify top left of character cell
-
-const int xLabel = 8;             // indent labels, slight margin on left edge of screen
-#define yRow1   8                 // title: "Touchscreen Demo"
-#define yRow2   yRow1 + 40        // program version
-#define yRow3   yRow2 + 20        // compiled date
-#define yRow4   yRow3 + 20        // author line 1
-#define yRow5   yRow4 + 20        // author line 2
-#define yRow6   yRow5 + 40        // "Pressure threshhold = "
-
-void startSplashScreen() {
-  tft.setTextSize(2);
-
-  tft.setCursor(xLabel, yRow1);
-  tft.setTextColor(cTEXTCOLOR);
-  tft.print(PROGRAM_TITLE);
-
-  tft.setCursor(xLabel, yRow2);
-  tft.setTextColor(cLABEL);
-  tft.print(PROGRAM_VERSION);
-
-  tft.setCursor(xLabel, yRow3);
-  tft.print(__DATE__ " " __TIME__);  // Report our compiled date
+// ----- console Serial port helper
+void waitForSerial(int howLong) {
+  // Adafruit Feather M4 Express takes awhile to restore its USB connx to the PC
+  // and the operator takes awhile to restart the console (Tools > Serial Monitor)
+  // so give them a few seconds for this to settle before sending messages to IDE
+  unsigned long targetTime = millis() + howLong*1000;
+  int x = 0;
+  int y = 0;
+  int w = gScreenWidth;
+  int h = gScreenHeight;
+  bool done = false;
   
-  tft.setCursor(xLabel, yRow4);
-  tft.println(PROGRAM_LINE1);
+  while (millis() < targetTime) {
+    if (Serial) break;
+    if (done) break;
+    delay(15);
+  }
+}
 
-  tft.setCursor(xLabel, yRow5);
-  tft.println(PROGRAM_LINE2);
+// ========== splash screen ====================================
+void startSplashScreen() {
+  const int x1 = 8;                   // indent labels, slight margin on left edge of screen
+  const int yRow1 = 20;               // title: "Touchscreen Calibrator"
+  const int yRow2 = yRow1 + 40;       // program version
+  const int yRow3 = yRow2 + 20;       // compiled date
+  const int yRow4 = yRow3 + 40;       // author line 1
+  const int yRow5 = yRow4 + 20;       // author line 2
+  
+  TextField txtSplash[] = {
+    //     text               x,y       color  
+    {PROGRAM_NAME,     x1,yRow1,  cTEXTCOLOR}, // [0] program title
+    {PROGRAM_VERSION,  x1,yRow2,  cLABEL},     // [1] program version
+    {PROGRAM_COMPILED, x1,yRow3,  cLABEL},     // [2] compiled date
+    {PROGRAM_LINE1,    x1,yRow4,  cLABEL},     // [3] credits line 1
+    {PROGRAM_LINE2,    x1,yRow5,  cLABEL},     // [4] credits line 2
+  };
+  const int numSplashFields = sizeof(txtSplash)/sizeof(TextField);
 
-  tft.setCursor(xLabel, yRow6);
-  tft.setTextColor(cTEXTCOLOR);
-  tft.print("Pressure threshhold: ");
-  tft.print(ts.pressureThreshhold);
+  clearScreen();                               // clear screen
+  txtSplash[0].setBackground(cBACKGROUND);     // set background for all TextFields
+  TextField::setTextDirty( txtSplash, numSplashFields ); // make sure all fields are updated
+
+  setFontSize(eFONTSMALLEST);
+  for (int ii=0; ii<numSplashFields; ii++) {
+    txtSplash[ii].print();
+  }
 }
 
 void clearScreen() {
@@ -260,7 +258,7 @@ void showActivityBar(int row, uint16_t foreground, uint16_t background) {
   static int addDotX = 10;                    // current screen column, 0..319 pixels
   static int rmvDotX = 0;
   static int count = 0;
-  const int SCALEF = 1024;                    // how much to slow it down so it becomes visible
+  const int SCALEF = 128;                     // how much to slow it down so it becomes visible
 
   count = (count + 1) % SCALEF;
   if (count == 0) {
@@ -271,13 +269,147 @@ void showActivityBar(int row, uint16_t foreground, uint16_t background) {
   }
 }
 
+// ========== main screen ====================================
+  const int xul = 8;                  // upper left corner of screen text
+  const int yul = 0;                  // 
+  const int ht = 20;                  // row height
+/*
+              xul
+       yul..+-:-----------------------------------------+
+            | Touch Screen Calibrator           800 max | 1
+            | Please touch screen                    :  | 2
+            | normally near edges                    :  | 3
+            |                                        :  | 4
+            | Current pressure = ...            ...  X  | 5
+            | Pressure threshhold = 200              :  | 6
+            |                                        :  | 7
+            |                                        :  | 8
+            |                                   240 min | 9
+            | 320              ...                  760 | 10
+            | min ~ ~ ~ ~ ~ ~ ~ Y ~ ~ ~ ~ ~ ~ ~ ~ ~ max | 11
+            +-------------------:--:------------:-----:-+
+                                x1 x2           x3    x4
+*/
+  const int x1 = gScreenWidth/2-10;   // = 320/2 = 160
+  const int x2 = x1 + 10;
+  const int x3 = gScreenWidth-80;
+  const int x4 = gScreenWidth-8;
+  #define cXGROUP ILI9341_MAGENTA
+  #define cYGROUP ILI9341_GREENYELLOW
+  const int row1 = yul + ht;
+  const int row2 = row1 + ht;
+  const int row3 = row2 + ht;
+  const int row4 = row3 + ht;
+  const int row5 = row4 + ht;
+  const int row6 = row5 + ht;
+  const int row7 = row6 + ht;
+  const int row8 = row7 + ht;
+  const int row9 = row8 + ht;
+  const int row10 = row9 + ht + 10;   // a little extra room for bottom two rows
+  const int row11 = row10 + ht;
+
+  TextField txtScreen[] = {
+    // row 1
+    {     PROGRAM_NAME,           xul,row1,  cTEXTCOLOR}, // [0]
+    {     X_MAX_OHMS,              x3,row1,  cXGROUP},    // [1]
+    {     "max",                   x4,row1,  cXGROUP, ALIGNRIGHT}, // [2]
+    // row 2
+    {     "Please touch screen",  xul,row2,  cLABEL},     // [3]
+    // row 3
+    {     "normally near edges",  xul,row3,  cLABEL},     // [4]
+    // row 4
+    // row 5
+    {     "Current pressure:",    xul,row5,  cLABEL},     // [5]
+    {     "ppp",                   x2,row5,  cVALUE},     // [6] current pressure value
+    {     "xxx",                   x3,row5,  cVALUE},     // [7] current X value
+    {     "X   ",                  x4,row5,  cXGROUP, ALIGNRIGHT}, // [8]
+    // row 6
+    {     "Threshhold:",          xul,row6,  cLABEL},     // [9]
+    {     TOUCHPRESSURE,           x2,row6,  cLABEL},     // [10]
+    // row 7
+    // row 8
+    // row 9
+    {     X_MIN_OHMS,              x3,row9,  cXGROUP},    // [11]
+    {     "min",                   x4,row9,  cXGROUP, ALIGNRIGHT}, // [12]
+    // row 10
+    {     Y_MIN_OHMS,             xul,row10, cYGROUP},    // [13]
+    {     "yyy",                   x1,row10, cVALUE},     // [14] current Y value
+    {     Y_MAX_OHMS,              x4,row10, cYGROUP, ALIGNRIGHT}, // [15]
+    // row 11
+    {     "min",                  xul,row11, cYGROUP},    // [16]
+    {     "Y",                     x1,row11, cYGROUP},    // [17]
+    {     "max",                   x4,row11, cYGROUP, ALIGNRIGHT}, // [18]
+  };
+  const int numScreenFields = sizeof(txtScreen)/sizeof(TextField);
+
+// ========== main screen ====================================
+void startScreen() {
+
+  clearScreen();                            // clear screen
+  txtScreen[0].setBackground(cBACKGROUND);  // set background for all TextFields
+  TextField::setTextDirty( txtScreen, numScreenFields ); // make sure all fields are updated
+
+  setFontSize(eFONTSMALLEST);
+  for (int ii=0; ii<numScreenFields; ii++) {
+    txtScreen[ii].print();
+  }
+}
+void updateScreen(TSPoint tp) {
+  if (tp.z > 0) {
+    txtScreen[6].print(tp.z);         // current pressure value
+  }
+  txtScreen[7].print(tp.x);           // current X value
+  txtScreen[14].print(tp.y);          // current Y value
+}
+
+void labelAxis() {
+  const int xV = x3-4;                // screen X coord of vertical line
+  const int yH = row9+10;             // screen Y coord of horizontal line
+
+  #define nLines 2
+  TwoPoints myLines[nLines] = {
+    // x1,y1    x2,y2
+    { xul,yH,   x4,yH,   cYGROUP},    // horiz across bottom row
+    {  xV,yul,  xV,row9+10, cXGROUP}, // vert along rhs
+  };
+
+  for (int ii=0; ii<nLines; ii++) {
+    TwoPoints item = myLines[ii];
+    if (item.x1 == item.x2) {
+      // ----- vertical dotted line -----
+      for (int yy=item.y1; yy<item.y2; yy++) {
+        if (yy % 2) {
+          tft.drawPixel(item.x1, yy, item.color);
+        }
+      }
+    } else {
+      // ----- horizontal dotted line -----
+      for (int xx=item.x1; xx<item.x2; xx++) {
+        if (xx % 2) {
+          tft.drawPixel(xx, item.y1, cYGROUP);
+        }
+      }
+    }
+  }
+}
+
 //=========== setup ============================================
 void setup() {
 
+  // ----- init TFT display
+  tft.begin();                        // initialize TFT display
+  tft.setRotation(1);                 // 1=landscape (default is 0=portrait)
+  tft.fillScreen(ILI9341_BLACK);      // note that "begin()" does not clear screen 
+
+  // ----- announce ourselves
+  startSplashScreen();
+
   // ----- init serial monitor
   Serial.begin(115200);               // init for debuggging in the Arduino IDE
+  waitForSerial(howLongToWait);       // wait for developer to connect debugging console
 
-  Serial.println(PROGRAM_TITLE " " PROGRAM_VERSION);  // Report our program name to console
+  // now that Serial is ready and connected (or we gave up)...
+  Serial.println(PROGRAM_NAME " " PROGRAM_VERSION);   // Report our program name to console
   Serial.println("Compiled " PROGRAM_COMPILED);       // Report our compiled date
   Serial.println(__FILE__);                           // Report our source code file name
 
@@ -285,16 +417,16 @@ void setup() {
   pinMode(TFT_BL, OUTPUT);
   analogWrite(TFT_BL, 255);           // start at full brightness
 
-  // ----- init TFT display
-  tft.begin();                        // initialize TFT display
-  tft.setRotation(SCREEN_ROTATION);   // landscape (default is portrait)
-  clearScreen();
-
   // ----- init touch screen
-  ts.pressureThreshhold = 200;
+  ts.pressureThreshhold = TOUCHPRESSURE;
 
-  // ----- announce ourselves
-  startSplashScreen();
+  startScreen();
+  labelAxis();
+  #ifdef SHOW_SCREEN_CENTERLINE
+    // show centerline at    x1,y1             x2,row2             color
+    tft.drawLine( tft.width()/2,0,   tft.width()/2,tft.height(), cTEXTFAINT); // debug
+    tft.drawLine( 0,tft.height()/2,  tft.width(),tft.height()/2, cTEXTFAINT); // debug
+  #endif
 
 }
 
@@ -311,17 +443,18 @@ void loop() {
      Serial.print(","); Serial.print(p.y);
      Serial.print("\tPressure = "); Serial.println(p.z);
 
-     tft.setCursor(p.x, p.y);
-     tft.print("x");
+     //tft.setCursor(p.x, p.y);
+     //tft.print("x");
   }
 
   // if there's touchscreen input, handle it
   Point touch;
   if (newScreenTap(&touch)) {
 
-    const int radius = 3;    // debug
-    tft.fillCircle(touch.x, touch.y, radius, cVALUE);  // debug
-  
+    const int radius = 1;
+    tft.fillCircle(touch.x, touch.y, radius, cTOUCHTARGET);
+    updateScreen(p);
+
   }
 
   // make a small progress bar crawl along bottom edge
