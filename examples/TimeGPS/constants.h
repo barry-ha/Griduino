@@ -2,7 +2,7 @@
 
 // ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE   "Griduino"
-#define PROGRAM_VERSION "v0.27"
+#define PROGRAM_VERSION "v0.29"
 #define PROGRAM_LINE1   "Barry K7BWH"
 #define PROGRAM_LINE2   "John KM7O"
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
@@ -17,7 +17,7 @@
 //#define SHOW_SCREEN_CENTERLINE      // use this visual aid to help layout the screen
 
 // ------- TFT screen definitions ---------
-#define SCREEN_ROTATION 1           // 1=landscape, 3=landscape 180-degrees
+#define SCREEN_ROTATION 1             // 1=landscape, 3=landscape 180-degrees
 #define gScreenWidth 320              // screen pixels wide
 #define gScreenHeight 240             // screen pixels high
                                       // we use #define here instead of reading it from "tft.width()" because this
@@ -229,13 +229,13 @@ struct FunctionButton {
   // FunctionButton is like Button, but has a larger specifiable hit target
   // It's also like TimeButton, but specifies the function by enum, rather than pointer to function
   // and this allows its usage in classes derived from "class View"
-  char text[26];
-  int x, y;
-  int w, h;
-  Rect hitTarget;
-  int radius;
-  uint16_t color;
-  int functionIndex;
+  char text[26];                      // one line of text, centered
+  int x, y;                           // fillRoundRect ul corner
+  int w, h;                           // fillRoundRect size
+  Rect hitTarget;                     // touch-sensitive area
+  int radius;                         // radio button size
+  uint16_t color;                     // text color
+  int functionIndex;                  // button identifier
 };
 
 class Location {

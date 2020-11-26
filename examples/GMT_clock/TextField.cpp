@@ -3,15 +3,16 @@
  */
 
 #include <Arduino.h>
-#include "Adafruit_GFX.h"           // Core graphics display library
-#include "Adafruit_ILI9341.h"       // TFT color display library
-#include "TextField.h"              // Optimize TFT display text for proportional fonts
+#include "Adafruit_GFX.h"             // Core graphics display library
+#include "Adafruit_ILI9341.h"         // TFT color display library
+#include "TextField.h"                // Optimize TFT display text for proportional fonts
 
 // ========== extern ==================================
-extern Adafruit_ILI9341 tft;        // Griduino.ino  TODO: eliminate this global
+extern Adafruit_ILI9341 tft;          // Griduino.ino  TODO: eliminate this global
 
-uint16_t TextField::cBackground;    // background color
+uint16_t TextField::cBackground;      // background color
 
+// ========== TextField ===============================
 void TextField::eraseOld() {
   // we remember the area to erase from the previous print()
   tft.fillRect(xPrev, yPrev, wPrev, hPrev, cBackground); // erase the requested width of old text

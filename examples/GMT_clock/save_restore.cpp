@@ -27,7 +27,7 @@ Adafruit_FlashTransport_QSPI gFlashTransport;
 Adafruit_SPIFlash gFlash(&gFlashTransport);
 FatFileSystem gFatfs;          // file system object from SdFat
 
-// ========== helpers =================================
+// ========== debug helper ============================
 static void dumpHex(const char * text, char * buff, int len) {
   // debug helper to put data on console
   #ifdef RUN_UNIT_TESTS
@@ -61,7 +61,7 @@ int SaveRestore::readConfig() {
     return 0;
   }
   
-  // You can get the current position, remaining data, and total size of the file:
+  // Echo metadata about the file:
   Serial.print(". Total file size (bytes): "); Serial.println(readFile.size(), DEC);
   //Serial.print(". Current position in file: "); Serial.println(readFile.position(), DEC);
   //Serial.print(". Available data remaining to read: "); Serial.println(readFile.available(), DEC);
@@ -69,12 +69,12 @@ int SaveRestore::readConfig() {
   // read first field (filename) from config file...
   char temp[sizeof(fqFilename)];     // buffer size is as large as our largest member variable
   int count = readFile.read(temp, sizeof(fqFilename));
-  dumpHex("fqFilename", temp, sizeof(fqFilename));
+  dumpHex("fqFilename", temp, sizeof(fqFilename));    // debug
   if (count == -1) {
     Serial.print("Error, failed to read first field from ("); Serial.print(fqFilename); Serial.println(")");
     return 0;
   }
-  // verify filename stored inside file exactly matches expected
+  // verify first field (filename) stored inside file exactly matches expected
   if (strcmp(temp, this->fqFilename) != 0) {
     Serial.print("Error, unexpected filename ("); Serial.print(temp); Serial.println(")");
     return 0;
@@ -82,12 +82,12 @@ int SaveRestore::readConfig() {
 
   // read second field (version string) from config file...
   count = readFile.read(temp, sizeof(sVersion));
-  dumpHex("sVersion", temp, sizeof(sVersion));
+  dumpHex("sVersion", temp, sizeof(sVersion));    // debug
   if (count == -1) {
     Serial.print("Error, failed to read version number from ("); Serial.print(fqFilename); Serial.println(")");
     return 0;
   }
-  // verify version stored in file exactly matches expected
+  // verify second field (version string) stored in file exactly matches expected
   if (strcmp(temp, this->sVersion) != 0) {
     Serial.print("Error, unexpected version ("); Serial.print(temp); Serial.println(")");
     return 0;
@@ -96,7 +96,7 @@ int SaveRestore::readConfig() {
   count = readFile.read(temp, sizeof(intSetting));
   dumpHex("intSetting", temp, sizeof(intSetting));
   if (count == -1) {
-    Serial.print("Error, failed to read setting value from ("); Serial.print(fqFilename); Serial.println(")");
+    Serial.print("Error, failed to read integer value from ("); Serial.print(fqFilename); Serial.println(")");
     return 0;
   }
   memcpy((void*)&intSetting, temp, sizeof(intSetting));
@@ -122,7 +122,7 @@ int SaveRestore::writeConfig() {
   if (!result) { return 0; }
 
   // replace an existing config file
-  gFatfs.remove(fqFilename);  // delete old file, or else it appends data to the end
+  gFatfs.remove(fqFilename);  // delete old file (or else it would append data to the end)
   File writeFile = gFatfs.open(fqFilename, FILE_WRITE); // 
   if (!writeFile) {
     Serial.print("Error, failed to open config file for writing ("); Serial.print(fqFilename); Serial.println(")");
@@ -155,7 +155,7 @@ int SaveRestore::writeConfig() {
   return result;
 }
 
-// ----- private helpers -----
+// ----- protected helpers -----
 int SaveRestore::openFlash() {
   // returns 1=success, 0=failure
   
@@ -183,6 +183,7 @@ int SaveRestore::verifyFolder() {
   // Check if our config data directory exists and create it if not there.
   // todo - add multilevel folder support, it currently assumes a single folder depth.
   // Note you should _not_ add a trailing slash (like '/test/') to directory names.
+  // You can use the exists() function to check for the existence of a file.
   if (!gFatfs.exists(sFoldername)) {
     Serial.println(". Configuration directory not found, creating...");
     gFatfs.mkdir(sFoldername);     // Use mkdir to create directory (note you should _not_ have a trailing slash)

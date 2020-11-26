@@ -1,5 +1,32 @@
-#ifndef _GRIDUINO_TEXTFIELD_H
-#define _GRIDUINO_TEXTFIELD_H
+//------------------------------------------------------------------------------
+//  File name: TextField.h
+//
+//  Description: Header file for Adafruit TFT display screens using proportional fonts.
+//
+//------------------------------------------------------------------------------
+//  The MIT License (MIT)
+//
+//  Copyright (c) 2020 Barry Hansen K7BWH
+//
+//  Permission is hereby granted, free of charge, to any person obtaining a copy
+//  of this software and associated documentation files (the "Software"), to deal
+//  in the Software without restriction, including without limitation the rights
+//  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+//  copies of the Software, and to permit persons to whom the Software is
+//  furnished to do so, subject to the following conditions:
+//
+//  The above copyright notice and this permission notice shall be included in
+//  all copies or substantial portions of the Software.
+//
+//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+//  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+//  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+//  THE SOFTWARE.
+//------------------------------------------------------------------------------
+#pragma once
 
 #define FLUSHLEFT 0       // align text toward left, using x=left edge of string
 #define FLUSHRIGHT 1      // align text toward right, using x=right edge of string
@@ -9,17 +36,21 @@ class TextField {
   // redrawing text in proportional fonts to reduce flickering
   //
   // Example Usage:
-  //      Declare     TextField txtItem("Hello", 64,64, ILI9341_GREEN);
-  //      Set bkg     txtItem.setBackground(ILI9341_BLACK);
-  //      Force       txtItem.setDirty();
-  //      Print       txtItem.print();
+  //      Declare         TextField txtItem("Hello", 64,64, ILI9341_GREEN);
+  //      Decl alignment  TextField txtItem("Hello", 64,84, ILI9341_GREEN, ALIGNRIGHT);
+  //      Center text     TextField txtItem("Hello", -1,94, ILI9341_GREEN, ALIGNCENTER);
+  //      Declare size    TextField txtItem("Hello", 64,84, ILI9341_GREEN, ALIGNLEFT, eFONTSMALL);
+  //      Set bkg         txtItem.setBackground(ILI9341_BLACK);
+  //      Force one       txtItem.setDirty();
+  //      Force all       TextField::setDirty(txtItem, count);
+  //      Print one       txtItem.print();
   //
   // To center text left-right, specify x = -1
   //
   // Note about proportional fonts:
-  // 1. Text origin is bottom left corner
-  // 2. Rect origin is upper left corner
-  // 2. Printing text does not clear its own background
+  //      1. Text origin is bottom left corner
+  //      2. Rect origin is upper left corner
+  //      3. Printing text in proportional font does not clear its own background
 
   private:
     static uint16_t cBackground; // background color
@@ -50,13 +81,13 @@ class TextField {
     TextField(const char vtxt[26], int vxx, int vyy, uint16_t vcc, int valign=FLUSHLEFT) {
       init(vtxt, vxx, vyy, vcc, valign);
     }
-    // ctor - static String field
+    // ctor - text field content specified by a "class String"
     TextField(const String vstr, int vxx, int vyy, uint16_t vcc, int valign=FLUSHLEFT) {
       char temp[ vstr.length()+1 ];
       vstr.toCharArray(temp, sizeof(temp));
       init(temp, vxx, vyy, vcc, valign);
     }
-    // delegating ctor for common setup code
+    // common ctor for all data field types
     void init(const char vtxt[26], int vxx, int vyy, uint16_t vcc, int valign) {
       strncpy(textPrev, vtxt, sizeof(textPrev)-1);
       strncpy(text, vtxt, sizeof(text)-1);
@@ -105,13 +136,12 @@ class TextField {
       }
     }
     void setBackground(uint16_t bkg) {
-      // Set all text fields background color
+      // Set all text field's background color
       cBackground = bkg;
     }
 
-  private:
+  protected:
     void eraseOld();
     void printNew(const char* pText);
 };
 
-#endif // _GRIDUINO_TEXTFIELD_H

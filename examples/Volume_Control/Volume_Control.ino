@@ -31,20 +31,22 @@
                 see what min/max touch values are reported.
 
   Tested with:
-         1. Arduino Feather M4 Express (120 MHz SAMD51)
-            Spec: https://www.adafruit.com/product/3857
+         1. Arduino Feather M4 Express (120 MHz SAMD51)     https://www.adafruit.com/product/3857
 
-         2. Adafruit 3.2" TFT color LCD display ILI-9341
-            Spec: http://adafru.it/1743
-            How to: https://learn.adafruit.com/adafruit-2-dot-8-color-tft-touchscreen-breakout-v2
-            SPI Wiring: https://learn.adafruit.com/adafruit-2-dot-8-color-tft-touchscreen-breakout-v2/spi-wiring-and-test
+         2. Adafruit 3.2" TFT color LCD display ILI-9341    https://www.adafruit.com/product/1743
+            How to:      https://learn.adafruit.com/adafruit-2-dot-8-color-tft-touchscreen-breakout-v2
+            SPI Wiring:  https://learn.adafruit.com/adafruit-2-dot-8-color-tft-touchscreen-breakout-v2/spi-wiring-and-test
             Touchscreen: https://learn.adafruit.com/adafruit-2-dot-8-color-tft-touchscreen-breakout-v2/resistive-touchscreen
+
 */
 
-#include "SPI.h"                    // Serial Peripheral Interface
-#include "Adafruit_GFX.h"           // Core graphics display library
-#include "Adafruit_ILI9341.h"       // TFT color display library
-#include "TouchScreen.h"            // Touchscreen built in to 3.2" Adafruit TFT display
+#include <Adafruit_ILI9341.h>         // TFT color display library
+#include "TouchScreen.h"              // Touchscreen built in to 3.2" Adafruit TFT display
+
+// ------- TFT 4-Wire Resistive Touch Screen configuration parameters
+#define TOUCHPRESSURE 200             // Minimum pressure threshhold considered an actual "press"
+#define XP_XM_OHMS    295             // Resistance in ohms between X+ and X- to calibrate pressure
+                                      // measure this with an ohmmeter while Griduino turned off
 
 // ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE   "Volume Control Demo"
@@ -53,7 +55,7 @@
 #define PROGRAM_LINE2   "John KM7O"
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
 
-#define SCREEN_ROTATION 1   // 1=landscape, 3=landscape 180-degrees
+#define SCREEN_ROTATION 1             // 1=landscape, 3=landscape 180-degrees
 
 // ---------- Hardware Wiring ----------
 /*                                Arduino       Adafruit
@@ -103,8 +105,6 @@ Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 // ---------- Touch Screen
 // For touch point precision, we need to know the resistance
 // between X+ and X- Use any multimeter to read it
-// The demo program used 300 ohms across the X plate
-// Barry's display, ILI-9341, measured 295 ohms across the X plate.
 #if defined(SAMD_SERIES)
   // Adafruit Feather M4 Express pin definitions
   #define PIN_XP  A3    // Touchscreen X+ can be a digital pin
@@ -118,7 +118,7 @@ Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
   #define PIN_YP  A2    // Touchscreen Y+ must be an analog pin, use "An" notation
   #define PIN_YM   5    // Touchscreen Y- can be a digital pin
 #endif
-TouchScreen ts = TouchScreen(PIN_XP, PIN_YP, PIN_XM, PIN_YM, 295);
+TouchScreen ts = TouchScreen(PIN_XP, PIN_YP, PIN_XM, PIN_YM, XP_XM_OHMS);
 
 // ------------ typedef's
 struct Point {
@@ -222,13 +222,13 @@ int getRectangleID(int x, int y) {
   return id;
 }
 
-bool gTouching = false;             // keep track of previous state
+bool gTouching = false;               // keep track of previous state
 bool newScreenTap(Point* pPoint) {
   // find leading edge of a screen touch
   // returns TRUE only once on initial screen press
   // if true, also return screen coordinates of the touch
 
-  bool result = false;        // assume no touch
+  bool result = false;                // assume no touch
   if (gTouching) {
     // the touch was previously processed, so ignore continued pressure until they let go
     if (!ts.isTouching()) {
@@ -277,7 +277,6 @@ uint16_t myPressure(void) {
 // Note - For Griduino, if this function takes longer than 8 msec it can cause erratic GPS readings
 // so we recommend against using https://forum.arduino.cc/index.php?topic=449719.0
 bool TouchScreen::isTouching(void) {
-  #define TOUCHPRESSURE 200       // Minimum pressure we consider true pressing
   static bool button_state = false;
   uint16_t pres_val = ::myPressure();
 
@@ -290,14 +289,6 @@ bool TouchScreen::isTouching(void) {
     Serial.print(". released, pressure = "); Serial.println(pres_val);       // debug
     button_state = false;
   }
-
-  // Clean the touchScreen settings after function is used
-  // Because LCD may use the same pins
-  // todo - is this actually necessary?
-  //pinMode(_xm, OUTPUT);     digitalWrite(_xm, LOW);
-  //pinMode(_yp, OUTPUT);     digitalWrite(_yp, HIGH);
-  //pinMode(_ym, OUTPUT);     digitalWrite(_ym, LOW);
-  //pinMode(_xp, OUTPUT);     digitalWrite(_xp, HIGH);
 
   return button_state;
 }
@@ -375,8 +366,8 @@ void showActivityBar(int row, uint16_t foreground, uint16_t background) {
 void setup() {
 
   // ----- init serial monitor
-  Serial.begin(115200);                               // init for debuggging in the Arduino IDE
-  waitForSerial(howLongToWait);                       // wait for developer to connect debugging console
+  Serial.begin(115200);               // init for debuggging in the Arduino IDE
+  waitForSerial(howLongToWait);       // wait for developer to connect debugging console
 
   // now that Serial is ready and connected (or we gave up)...
   Serial.println(PROGRAM_TITLE " " PROGRAM_VERSION);  // Report our program name to console

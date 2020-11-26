@@ -27,11 +27,11 @@
             This example program has no user interface controls or inputs.
 */
 
-#include "Adafruit_ILI9341.h"       // TFT color display library
-#include "DS1804.h"                 // DS1804 digital potentiometer library
-#include "elapsedMillis.h"          // short-interval timing functions
-#include "sample1.h"                // audio clip 1
-#include "sample2.h"                // audio clip 2
+#include <Adafruit_ILI9341.h>         // TFT color display library
+#include "DS1804.h"                   // DS1804 digital potentiometer library
+#include "elapsedMillis.h"            // short-interval timing functions
+#include "sample1.h"                  // audio clip 1
+#include "sample2.h"                  // audio clip 2
 
 // ------- Identity for console
 #define PROGRAM_TITLE   "DAC Audio in Program Mem"
@@ -44,25 +44,25 @@
 /* Same as Griduino platform
 */
 
-  #define TFT_BL   4    // TFT backlight
-  #define TFT_CS   5    // TFT chip select pin
-  #define TFT_DC  12    // TFT display/command pin
+  #define TFT_BL   4                  // TFT backlight
+  #define TFT_CS   5                  // TFT chip select pin
+  #define TFT_DC  12                  // TFT display/command pin
 
 // create an instance of the TFT Display
 Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 
 // ------------ Audio output
-#define DAC_PIN      DAC0     // onboard DAC0 == pin A0
-#define PIN_SPEAKER  DAC0     // uses DAC
+#define DAC_PIN      DAC0             // onboard DAC0 == pin A0
+#define PIN_SPEAKER  DAC0             // uses DAC
 
 // Adafruit Feather M4 Express pin definitions
-#define PIN_VCS      A1       // volume chip select
-#define PIN_VINC      6       // volume increment
-#define PIN_VUD      A2       // volume up/down
+#define PIN_VCS      A1               // volume chip select
+#define PIN_VINC      6               // volume increment
+#define PIN_VUD      A2               // volume up/down
 
 // ctor         DS1804( ChipSel pin, Incr pin,  U/D pin,  maxResistance (K) )
 DS1804 volume = DS1804( PIN_VCS,     PIN_VINC,  PIN_VUD,  DS1804_TEN );
-int gVolume = 85;             // initial digital potentiometer wiper position, 0..99
+int gVolume = 85;                     // initial digital potentiometer wiper position, 0..99
 
 // ------------ typedef's
 struct Point {
@@ -87,19 +87,19 @@ struct Point {
 #define cTOUCHTARGET    ILI9341_RED     // outline touch-sensitive areas
 
 // ------------ global scope
-const int howLongToWait = 10; // max number of seconds before using Serial port to console
+const int howLongToWait = 10;         // max number of seconds before using Serial port to console
 int gLoopCount = 0;
 
-const int gSampleRate = 8000;               // 8 kHz audio file
-const int gHoldTime = 1E6 / gSampleRate;    // microseconds to hold each output sample
+const int gSampleRate = 8000;         // 8 kHz audio file
+const int gHoldTime = 1E6 / gSampleRate;  // microseconds to hold each output sample
 
 // ========== splash screen helpers ============================
 // splash screen layout
-const int xLabel = 8;             // indent labels, slight margin to left edge of screen
-#define yRow1   20                // program title: "DAC Audio"
-#define yRow2   yRow1 + 20        // program version
-#define yRow3   yRow2 + 20        // author line 1
-#define yRow4   yRow3 + 20        // author line 2
+const int xLabel = 8;                 // indent labels, slight margin to left edge of screen
+#define yRow1   20                    // program title: "DAC Audio"
+#define yRow2   yRow1 + 20            // program version
+#define yRow3   yRow2 + 20            // author line 1
+#define yRow4   yRow3 + 20            // author line 2
 
 void startSplashScreen() {
   tft.setTextSize(2);
@@ -111,7 +111,7 @@ void startSplashScreen() {
   tft.setCursor(xLabel, yRow2);
   tft.setTextColor(cLABEL);
   tft.print(PROGRAM_VERSION);
-  
+
   tft.setCursor(xLabel, yRow3);
   tft.println(PROGRAM_LINE1);
 
@@ -139,8 +139,8 @@ void waitForSerial(int howLong) {
 void setup() {
 
   // ----- init serial monitor
-  Serial.begin(115200);                               // init for debuggging in the Arduino IDE
-  waitForSerial(howLongToWait);                       // wait for developer to connect debugging console
+  Serial.begin(115200);               // init for debuggging in the Arduino IDE
+  waitForSerial(howLongToWait);       // wait for developer to connect debugging console
 
   // now that Serial is ready and connected (or we gave up)...
   Serial.println(PROGRAM_TITLE " " PROGRAM_VERSION);  // Report our program name to console
@@ -180,14 +180,14 @@ void setup() {
 
 void playAudio(const unsigned char* audio, int audiosize) {
   for (int ii=0; ii<audiosize; ii++) {
-    int value = audio[ii] << 4;     // max sample is 2^8, max DAC output 2^12, so shift left by 4
+    int value = audio[ii] << 4;       // max sample is 2^8, max DAC output 2^12, so shift left by 4
     analogWrite(DAC0, value);
-    delayMicroseconds(gHoldTime);   // hold the sample value for the sample time
+    delayMicroseconds(gHoldTime);     // hold the sample value for the sample time
   }
 }
 
 //=========== main work loop ===================================
-const int AUDIO_CLIP_INTERVAL = 1500;    // msec between one audio clip and the next
+const int AUDIO_CLIP_INTERVAL = 1500; // msec between one audio clip and the next
 
 void loop() {
 

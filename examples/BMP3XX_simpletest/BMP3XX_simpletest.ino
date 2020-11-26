@@ -1,4 +1,4 @@
-/***************************************************************************
+/*
   This is an example program for the BMP3XX temperature & pressure sensor
 
   Designed specifically to work with the Adafruit BMP388 Breakout
@@ -16,11 +16,16 @@
   From:    https://github.com/adafruit/Adafruit_BMP3XX, see: examples/bmp3xx_simpletest
   Updated: Barry Hansen, K7BWH, barry@k7bwh.com
   Date:    March 5, 2020
-  Tested:  Arduino Feather M4 Express (120 MHz SAMD51)
-  Spec:    https://www.adafruit.com/product/3857
-  Used in: https://github.com/barry-ha/Griduino
 
- ***************************************************************************/
+  Tested with:
+         1. Arduino Feather M4 Express (120 MHz SAMD51)     https://www.adafruit.com/product/3857
+
+         2. Adafruit 3.2" TFT color LCD display ILI-9341    https://www.adafruit.com/product/1743
+            How to:      https://learn.adafruit.com/adafruit-2-dot-8-color-tft-touchscreen-breakout-v2
+            SPI Wiring:  https://learn.adafruit.com/adafruit-2-dot-8-color-tft-touchscreen-breakout-v2/spi-wiring-and-test
+            Touchscreen: https://learn.adafruit.com/adafruit-2-dot-8-color-tft-touchscreen-breakout-v2/resistive-touchscreen
+
+*/
 
 #include <Wire.h>
 #include "SPI.h"                    // Serial Peripheral Interface
@@ -29,7 +34,7 @@
 
 // ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE   "BMP388 Simple Test"
-#define PROGRAM_VERSION "v1.0"
+#define PROGRAM_VERSION "v0.29"
 #define PROGRAM_LINE1   "Barry K7BWH"
 #define PROGRAM_LINE2   "John KM7O"
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
@@ -74,6 +79,7 @@ void setup() {
 }
 
 //=========== main work loop ===================================
+
 void loop() {
   // Read all sensors in the BMP3XX in blocking mode
   if (! bmp.performReading()) {

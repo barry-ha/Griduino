@@ -31,19 +31,26 @@
 #include "Adafruit_GFX.h"           // Core graphics display library
 #include "Adafruit_ILI9341.h"       // TFT color display library
 
-#define ALIGNLEFT 0       // align text toward left, using x=left edge of string
-#define ALIGNRIGHT 1      // align text toward right, using x=right edge of string
-#define ALIGNCENTER 2     // center text left-right
+#define ALIGNLEFT 0             // align text toward left, using x=left edge of string
+#define ALIGNRIGHT 1            // align text toward right, using x=right edge of string
+#define ALIGNCENTER 2           // center text left-right
+#define UNSPECIFIEDCOLOR 0x71ce // oddball purple that's unlikely to be deliberately used
 
 class TextField {
   // Write dynamic text to the TFT display and optimize
   // redrawing text in proportional fonts to reduce flickering
   //
   // Example Usage:
-  //      Declare     TextField txtItem("Hello", 64,64, ILI9341_GREEN);
-  //      Set bkg     txtItem.setBackground(ILI9341_BLACK);
-  //      Force       TextField::setTextDirty( itemArray[0], count );
-  //      Print       txtItem.print();
+  //      Declare         TextField txtItem("Hello", 64,64, ILI9341_GREEN);
+  //      Decl alignment  TextField txtItem("Hello", 64,84, ILI9341_GREEN, ALIGNRIGHT);
+  //      Center text     TextField txtItem("Hello", -1,94, ILI9341_GREEN, ALIGNCENTER);
+  //      Declare size    TextField txtItem("Hello", 64,84, ILI9341_GREEN, ALIGNLEFT, eFONTSMALL);
+  //      Set bkg         txtItem.setBackground(ILI9341_BLACK);
+  //      Force one       txtItem.setDirty();
+  //      Force all       TextField::setDirty(txtItem, count);
+  //      Print one       txtItem.print();
+  //
+  // To center text left-right, specify x = -1
   //
   // Note about proportional fonts:
   //      1. Text origin is bottom left corner
@@ -51,7 +58,7 @@ class TextField {
   //      3. Printing text in proportional font does not clear its own background
 
   public:
-    char text[27];          // new text to draw
+    char text[32];          // new text to draw
     int x, y;               // screen coordinates
     uint16_t color;         // text color
     int align;              // ALIGNLEFT | ALIGNRIGHT | ALIGNCENTER
@@ -79,7 +86,7 @@ class TextField {
       vstr.toCharArray(temp, sizeof(temp));
       init(temp, vxx, vyy, vcc, valign);
     }
-    // delegating ctor for common setup code
+    // common ctor for all data field types
     void init(const char vtxt[26], int vxx, int vyy, uint16_t vcc, int valign) {
       strncpy(textPrev, vtxt, sizeof(textPrev)-1);
       strncpy(text, vtxt, sizeof(text)-1);
@@ -128,15 +135,15 @@ class TextField {
       }
     }
     void setBackground(uint16_t bkg) {
-      // Set all text fields background color
+      // Set all text field's background color
       cBackground = bkg;
     }
 
   protected:
-    static uint16_t cBackground;  // background color
-    int16_t xPrev, yPrev;         // remember previous text area for next erasure
+    static uint16_t cBackground;      // background color
+    int16_t xPrev, yPrev;             // remember previous text area for next erasure
     uint16_t wPrev, hPrev;
-    char textPrev[27];            // old text to be erased
+    char textPrev[32];      // old text to be erased
 
   protected:
     void eraseOld();

@@ -29,39 +29,44 @@
             +-----+---------------------+-----+
 
   Tested with:
-         1. Arduino Feather M4 Express (120 MHz SAMD51)
-            Spec: https://www.adafruit.com/product/3857
+         1. Arduino Feather M4 Express (120 MHz SAMD51)     https://www.adafruit.com/product/3857
 
-         2. Adafruit 3.2" TFT color LCD display ILI-9341
-            Spec: http://adafru.it/1743
-            How to: https://learn.adafruit.com/adafruit-2-dot-8-color-tft-touchscreen-breakout-v2
-            SPI Wiring: https://learn.adafruit.com/adafruit-2-dot-8-color-tft-touchscreen-breakout-v2/spi-wiring-and-test
+         2. Adafruit 3.2" TFT color LCD display ILI-9341    https://www.adafruit.com/product/1743
+            How to:      https://learn.adafruit.com/adafruit-2-dot-8-color-tft-touchscreen-breakout-v2
+            SPI Wiring:  https://learn.adafruit.com/adafruit-2-dot-8-color-tft-touchscreen-breakout-v2/spi-wiring-and-test
             Touchscreen: https://learn.adafruit.com/adafruit-2-dot-8-color-tft-touchscreen-breakout-v2/resistive-touchscreen
 
-         3. Adafruit Ultimate GPS
-            Spec: https://www.adafruit.com/product/746
+         3. Adafruit Ultimate GPS                           https://www.adafruit.com/product/746
 
-         4. Adafruit BMP388 - Precision Barometric Pressure and Altimeter
-            Spec: https://www.adafruit.com/product/3966
+         4. Adafruit BMP388 - Precision Barometric Pressure https://www.adafruit.com/product/3966
 
 */
 
 #include <Wire.h>
-#include "SPI.h"                    // Serial Peripheral Interface
-#include "Adafruit_GFX.h"           // Core graphics display library
-#include "Adafruit_ILI9341.h"       // TFT color display library
-#include "Adafruit_GPS.h"           // Ultimate GPS library
-#include "TouchScreen.h"            // Touchscreen built in to 3.2" Adafruit TFT display
-#include "Adafruit_BMP3XX.h"        // Precision barometric and temperature sensor
+#include "SPI.h"                      // Serial Peripheral Interface
+#include "Adafruit_GFX.h"             // Core graphics display library
+#include "Adafruit_ILI9341.h"         // TFT color display library
+#include "Adafruit_GPS.h"             // Ultimate GPS library
+#include "TouchScreen.h"              // Touchscreen built in to 3.2" Adafruit TFT display
+#include "Adafruit_BMP3XX.h"          // Precision barometric and temperature sensor
 
+// ------- TFT 4-Wire Resistive Touch Screen configuration parameters
+#define TOUCHPRESSURE 200             // Minimum pressure threshhold considered an actual "press"
+#define X_MIN_OHMS    240             // Expected range of measured X-axis readings
+#define X_MAX_OHMS    800
+#define Y_MIN_OHMS    320             // Expected range of measured Y-axis readings
+#define Y_MAX_OHMS    760
+#define XP_XM_OHMS    295             // Resistance in ohms between X+ and X- to calibrate pressure
+                                      // measure this with an ohmmeter while Griduino turned off
+                                      
 // ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE   "Griduino Altimeter"
-#define PROGRAM_VERSION "v0.27"
+#define PROGRAM_VERSION "v0.29"
 #define PROGRAM_LINE1   "Barry K7BWH"
 #define PROGRAM_LINE2   "John KM7O"
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
 
-#define SCREEN_ROTATION 1   // 1=landscape, 3=landscape 180-degrees
+#define SCREEN_ROTATION 1             // 1=landscape, 3=landscape 180-degrees
 
 // ---------- Hardware Wiring ----------
 /*                                Arduino       Adafruit
@@ -96,16 +101,16 @@ GPS:
   // To compile for Feather M0/M4, install "additional boards manager"
   // https://learn.adafruit.com/adafruit-feather-m4-express-atsamd51/setup
   
-  #define TFT_BL   4    // TFT backlight
-  #define TFT_CS   5    // TFT chip select pin
-  #define TFT_DC  12    // TFT display/command pin
-  #define BMP_CS  13    // BMP388 sensor, chip select
+  #define TFT_BL   4                  // TFT backlight
+  #define TFT_CS   5                  // TFT chip select pin
+  #define TFT_DC  12                  // TFT display/command pin
+  #define BMP_CS  13                  // BMP388 sensor, chip select
 
 #elif defined(ARDUINO_AVR_MEGA2560)
-  #define TFT_BL   6    // TFT backlight
-  #define TFT_DC   9    // TFT display/command pin
-  #define TFT_CS  10    // TFT chip select pin
-  #define BMP_CS  13    // BMP388 sensor, chip select
+  #define TFT_BL   6                  // TFT backlight
+  #define TFT_DC   9                  // TFT display/command pin
+  #define TFT_CS  10                  // TFT chip select pin
+  #define BMP_CS  13                  // BMP388 sensor, chip select
 
 #else
   #warning You need to define pins for your hardware
@@ -137,7 +142,7 @@ Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
   #warning You need to define pins for your hardware
 
 #endif
-TouchScreen ts = TouchScreen(PIN_XP, PIN_YP, PIN_XM, PIN_YM, 295);
+TouchScreen ts = TouchScreen(PIN_XP, PIN_YP, PIN_XM, PIN_YM, XP_XM_OHMS);
 
 // ---------- Barometric and Temperature Sensor
 Adafruit_BMP3XX baro(BMP_CS);         // hardware SPI
@@ -181,7 +186,7 @@ typedef struct {
 const int howLongToWait = 6;          // max number of seconds at startup waiting for Serial port to console
 #define gScreenWidth 320              // pixels wide, landscape orientation
 #define gScreenHeight 240             // pixels high
-#define SCREEN_ROTATION  1            // 1=landscape, 3=landscape 180 degrees
+#define SCREEN_ROTATION 1             // 1=landscape, 3=landscape 180 degrees
 #define FEET_PER_METER 3.28084
 
 // ----- screen layout
@@ -236,13 +241,13 @@ Button buttons[nButtons] = {
 
 // ============== touchscreen helpers ==========================
 
-bool gTouching = false;             // keep track of previous state
+bool gTouching = false;               // keep track of previous state
 bool newScreenTap(Point* pPoint) {
   // find leading edge of a screen touch
   // returns TRUE only once on initial screen press
   // if true, also return screen coordinates of the touch
 
-  bool result = false;        // assume no touch
+  bool result = false;                // assume no touch
   if (gTouching) {
     // the touch was previously processed, so ignore continued pressure until they let go
     if (!ts.isTouching()) {
@@ -291,7 +296,6 @@ uint16_t myPressure(void) {
 // Note - For Griduino, if this function takes longer than 8 msec it can cause erratic GPS readings
 // so we recommend against using https://forum.arduino.cc/index.php?topic=449719.0
 bool TouchScreen::isTouching(void) {
-  #define TOUCHPRESSURE 200       // Minimum pressure we consider true pressing
   static bool button_state = false;
   uint16_t pres_val = ::myPressure();
 
@@ -331,9 +335,9 @@ void mapTouchToScreen(TSPoint touch, Point* screen) {
   // Typical measured pressures=200..549
 
   // setRotation(1) = landscape orientation = x-,y-axis exchanged
-  //          map(value    in_min,in_max, out_min,out_max)
-  screen->x = map(touch.y,  225,825,      0, tft.width());
-  screen->y = map(touch.x,  800,300,      0, tft.height());
+  //          map(value         in_min,in_max,       out_min,out_max)
+  screen->x = map(touch.y,  X_MIN_OHMS,X_MAX_OHMS,    0, tft.width());
+  screen->y = map(touch.x,  Y_MAX_OHMS,Y_MIN_OHMS,    0, tft.height());
   if (SCREEN_ROTATION == 3) {
     // if display is flipped, then also flip both x,y touchscreen coords
     screen->x = tft.width() - screen->x;
@@ -544,8 +548,8 @@ void waitForSerial(int howLong) {
 void setup() {
 
   // ----- init serial monitor
-  Serial.begin(115200);                               // init for debuggging in the Arduino IDE
-  waitForSerial(howLongToWait);                       // wait for developer to connect debugging console
+  Serial.begin(115200);               // init for debuggging in the Arduino IDE
+  waitForSerial(howLongToWait);       // wait for developer to connect debugging console
 
   // now that Serial is ready and connected (or we gave up)...
   Serial.println(PROGRAM_TITLE " " PROGRAM_VERSION);  // Report our program name to console

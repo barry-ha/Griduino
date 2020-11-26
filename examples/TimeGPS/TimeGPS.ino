@@ -12,8 +12,8 @@
 
 */
 
-#include <Adafruit_GPS.h>           // Ultimate GPS library
-#include "constants.h"              // Griduino constants, colors, typedefs
+#include <Adafruit_GPS.h>             // Ultimate GPS library
+#include "constants.h"                // Griduino constants, colors, typedefs
 #include <TimeLib.h>
 
 // ------- Identity for splash screen and console --------
@@ -94,8 +94,8 @@ void waitForSerial(int howLong) {
 void setup() {
 
   // ----- init serial monitor
-  Serial.begin(115200);                               // init for debuggging in the Arduino IDE
-  waitForSerial(howLongToWait);                       // wait for developer to connect debugging console
+  Serial.begin(115200);               // init for debuggging in the Arduino IDE
+  waitForSerial(howLongToWait);       // wait for developer to connect debugging console
 
   // now that Serial is ready and connected (or we gave up)...
   Serial.println(TIMEGPS_TITLE " " PROGRAM_VERSION);  // Report our program name to console
@@ -117,6 +117,7 @@ void setup() {
 }
 
 //=========== main work loop ===================================
+
 void loop() {
 
   GPS.read();   // if you can, read the GPS serial port every millisecond in an interrupt

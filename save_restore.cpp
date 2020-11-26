@@ -184,6 +184,7 @@ int SaveRestore::openFlash() {
   //Serial.println(". Mounted SPI flash filesystem");
 
   // Check if our config data directory exists and create it if not there.
+  // todo - add multilevel folder support, it currently assumes a single folder depth.
   // Note you should _not_ add a trailing slash (like '/test/') to directory names.
   // You can use the exists() function to check for the existence of a file.
   if (!gFatfs.exists(CONFIG_FOLDER)) {
