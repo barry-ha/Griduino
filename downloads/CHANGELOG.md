@@ -5,6 +5,10 @@ The changelog format is based on [Keep a Changelog](https://keepachangelog.com/e
 
 Version numbers correspond to [Downloads](https://github.com/barry-ha/Griduino/tree/master/downloads) available as pre-compiled binary Griduino programs. To install them, see the [Programming](https://github.com/barry-ha/Griduino/blob/master/docs/PROGRAMMING.md) instructions.
 
+**v0.29** &nbsp; 2020-11-26
+
+Created new example program to study TFT Resistive Touchscreen behavior and calibration. See [examples/TFT Touch Calibrator](https://github.com/barry-ha/Griduino/tree/master/examples/TFT_Touch_Calibrator). The idea is to display the touchscreen configuration values along with values actually measured when you actually touch it. The screen feedback shows how where each touch is mapped into screen coordinates. There is a certain amount of manufacturing variability and it's possible that my values don't suite your own device. If your particular touchscreen looks too far off, it reports the measured values which you can use to edit your source code and compile/run again.
+
 **v0.28** &nbsp; 2020-11-12
 
 In the graphing barometer, added "number of satellites" and today's date. Also added debug output for the serial-attached console to help track down if the RTC hangs up.
@@ -30,6 +34,7 @@ Added new view for a frivolous "Groundhog Day" counter display. We feel like we'
 Also vastly updated the stadalone "Baroduino" example program.
 
 **v0.23** &nbsp; 2020-09-02
+
 
 Refactored views into base class "View" and derived classes. No visible change to usage and operation.
 
