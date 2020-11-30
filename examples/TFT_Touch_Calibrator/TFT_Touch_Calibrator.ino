@@ -1,7 +1,7 @@
 /*
   TFT Touchscreen Calibrator - Touch screen with X, Y and Z (pressure) readings
 
-  Date:
+  Version history: 
             2020-11-23 created touch calibrator
 
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
@@ -30,18 +30,9 @@
 */
 
 #include <Adafruit_ILI9341.h>         // TFT color display library
+#include <TouchScreen.h>              // Touchscreen built in to 3.2" Adafruit TFT display
 #include "constants.h"                // Griduino constants, colors, typedefs
-#include "TouchScreen.h"              // Touchscreen built in to 3.2" Adafruit TFT display
 #include "TextField.h"                // Optimize TFT display text for proportional fonts
-
-// ------- TFT 4-Wire Resistive Touch Screen configuration parameters
-#define TOUCHPRESSURE 200             // Minimum pressure threshhold considered an actual "press"
-#define X_MIN_OHMS    240             // Expected range of measured X-axis readings
-#define X_MAX_OHMS    800
-#define Y_MIN_OHMS    320             // Expected range of measured Y-axis readings
-#define Y_MAX_OHMS    760
-#define XP_XM_OHMS    295             // Resistance in ohms between X+ and X- to calibrate pressure
-                                      // measure this with an ohmmeter while Griduino turned off
 
 // ------- Identity for splash screen and console --------
 #define PROGRAM_NAME    "TFT Touch Calibrator"
@@ -76,21 +67,29 @@
 // create an instance of the TFT Display
 Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 
+// ------- TFT 4-Wire Resistive Touch Screen configuration parameters
+#define TOUCHPRESSURE 200             // Minimum pressure threshhold considered an actual "press"
+#define X_MIN_OHMS    330             // Expected range on touchscreen's X-axis readings
+#define X_MAX_OHMS    730
+#define Y_MIN_OHMS    240             // Expected range on touchscreen's Y-axis readings
+#define Y_MAX_OHMS    800
+#define XP_XM_OHMS    295             // Resistance in ohms between X+ and X- to calibrate pressure
+                                      // measure this with an ohmmeter while Griduino turned off
 // ---------- Touch Screen
 // For touch point precision, we need to know the resistance
 // between X+ and X- Use any multimeter to read it
 #if defined(SAMD_SERIES)
   // Adafruit Feather M4 Express pin definitions
-  #define PIN_XP  A3    // Touchscreen X+ can be a digital pin
-  #define PIN_XM  A4    // Touchscreen X- must be an analog pin, use "An" notation
-  #define PIN_YP  A5    // Touchscreen Y+ must be an analog pin, use "An" notation
-  #define PIN_YM   9    // Touchscreen Y- can be a digital pin
+  #define PIN_XP  A3                  // Touchscreen X+ can be a digital pin
+  #define PIN_XM  A4                  // Touchscreen X- must be an analog pin, use "An" notation
+  #define PIN_YP  A5                  // Touchscreen Y+ must be an analog pin, use "An" notation
+  #define PIN_YM   9                  // Touchscreen Y- can be a digital pin
 #elif defined(ARDUINO_AVR_MEGA2560)
   // Arduino Mega 2560 and others
-  #define PIN_XP   4    // Touchscreen X+ can be a digital pin
-  #define PIN_XM  A3    // Touchscreen X- must be an analog pin, use "An" notation
-  #define PIN_YP  A2    // Touchscreen Y+ must be an analog pin, use "An" notation
-  #define PIN_YM   5    // Touchscreen Y- can be a digital pin
+  #define PIN_XP   4                  // Touchscreen X+ can be a digital pin
+  #define PIN_XM  A3                  // Touchscreen X- must be an analog pin, use "An" notation
+  #define PIN_YP  A2                  // Touchscreen Y+ must be an analog pin, use "An" notation
+  #define PIN_YM   5                  // Touchscreen Y- can be a digital pin
 #else
   #warning You need to define pins for your hardware
 
@@ -104,6 +103,7 @@ const int howLongToWait = 5;          // max number of seconds at startup waitin
 #define gScreenWidth 320              // pixels wide, landscape orientation
 
 // ============== touchscreen helpers ==========================
+
 bool gTouching = false;               // keep track of previous state
 bool newScreenTap(Point* pPoint) {
   // find leading edge of a screen touch
@@ -192,8 +192,13 @@ void mapTouchToScreen(TSPoint touch, Point* screen) {
 
   // setRotation(1) = landscape orientation = x-,y-axis exchanged
   //          map(value         in_min,in_max,       out_min,out_max)
-  screen->x = map(touch.y,  X_MIN_OHMS,X_MAX_OHMS,    0, tft.width());
-  screen->y = map(touch.x,  Y_MAX_OHMS,Y_MIN_OHMS,    0, tft.height());
+  screen->x = map(touch.y,  Y_MIN_OHMS,Y_MAX_OHMS,    0, tft.width());
+  screen->y = map(touch.x,  X_MAX_OHMS,X_MIN_OHMS,    0, tft.height());
+
+  // keep all touches within boundaries of the screen
+  screen->x = constrain(screen->x, 0, tft.width());
+  screen->y = constrain(screen->y, 0, tft.height());
+
   if (tft.getRotation() == 3) {
     // if display is flipped, then also flip both x,y touchscreen coords
     screen->x = tft.width() - screen->x;
@@ -443,8 +448,6 @@ void loop() {
      Serial.print(","); Serial.print(p.y);
      Serial.print("\tPressure = "); Serial.println(p.z);
 
-     //tft.setCursor(p.x, p.y);
-     //tft.print("x");
   }
 
   // if there's touchscreen input, handle it
@@ -457,7 +460,7 @@ void loop() {
 
   }
 
-  // make a small progress bar crawl along bottom edge
-  // this gives a sense of how frequently the main loop is executing
+  // small activity bar crawls along bottom edge to give 
+  // a sense of how frequently the main loop is executing
   showActivityBar(tft.height()-1, ILI9341_RED, ILI9341_BLACK);
 }

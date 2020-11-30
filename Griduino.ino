@@ -68,9 +68,9 @@
          7. loop()
 */
 
-#include "Adafruit_GFX.h"             // Core graphics display library
-#include "Adafruit_ILI9341.h"         // TFT color display library
-#include "TouchScreen.h"              // Touchscreen built in to 3.2" Adafruit TFT display
+//#include "Adafruit_GFX.h"             // Core graphics display library
+#include <Adafruit_ILI9341.h>         // TFT color display library
+#include <TouchScreen.h>              // Touchscreen built in to 3.2" Adafruit TFT display
 #include "Adafruit_GPS.h"             // Ultimate GPS library
 #include "Adafruit_BMP3XX.h"          // Precision barometric and temperature sensor
 #include "Adafruit_NeoPixel.h"        // On-board color addressable LED
@@ -168,28 +168,34 @@ Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 #define NUMPIXELS 1         // Feather M4 has one NeoPixel on board
 Adafruit_NeoPixel pixel = Adafruit_NeoPixel(NUMPIXELS, PIN_NEOPIXEL, NEO_GRB + NEO_KHZ800);
 
+// ------- TFT 4-Wire Resistive Touch Screen configuration parameters
+#define TOUCHPRESSURE 200             // Minimum pressure threshhold considered an actual "press"
+#define X_MIN_OHMS    330             // Expected range on touchscreen's X-axis readings
+#define X_MAX_OHMS    730
+#define Y_MIN_OHMS    240             // Expected range on touchscreen's Y-axis readings
+#define Y_MAX_OHMS    800
+#define XP_XM_OHMS    295             // Resistance in ohms between X+ and X- to calibrate pressure
+                                      // measure this with an ohmmeter while Griduino turned off
 // ---------- Touch Screen
 // For touch point precision, we need to know the resistance
 // between X+ and X- Use any multimeter to read it
-// This sketch has only two touch areas to make it easy for operator to select
-// "top half" and "bottom half" without looking. Touch target precision is not essential.
 #if defined(SAMD_SERIES)
   // Adafruit Feather M4 Express pin definitions
-  #define PIN_XP  A3    // Touchscreen X+ can be a digital pin
-  #define PIN_XM  A4    // Touchscreen X- must be an analog pin, use "An" notation
-  #define PIN_YP  A5    // Touchscreen Y+ must be an analog pin, use "An" notation
-  #define PIN_YM   9    // Touchscreen Y- can be a digital pin
+  #define PIN_XP  A3                  // Touchscreen X+ can be a digital pin
+  #define PIN_XM  A4                  // Touchscreen X- must be an analog pin, use "An" notation
+  #define PIN_YP  A5                  // Touchscreen Y+ must be an analog pin, use "An" notation
+  #define PIN_YM   9                  // Touchscreen Y- can be a digital pin
 #elif defined(ARDUINO_AVR_MEGA2560)
   // Arduino Mega 2560 and others
-  #define PIN_XP   4    // Touchscreen X+ can be a digital pin
-  #define PIN_XM  A3    // Touchscreen X- must be an analog pin, use "An" notation
-  #define PIN_YP  A2    // Touchscreen Y+ must be an analog pin, use "An" notation
-  #define PIN_YM   5    // Touchscreen Y- can be a digital pin
+  #define PIN_XP   4                  // Touchscreen X+ can be a digital pin
+  #define PIN_XM  A3                  // Touchscreen X- must be an analog pin, use "An" notation
+  #define PIN_YP  A2                  // Touchscreen Y+ must be an analog pin, use "An" notation
+  #define PIN_YM   5                  // Touchscreen Y- can be a digital pin
 #else
   #warning You need to define pins for your hardware
 
 #endif
-TouchScreen ts = TouchScreen(PIN_XP, PIN_YP, PIN_XM, PIN_YM, 295);
+TouchScreen ts = TouchScreen(PIN_XP, PIN_YP, PIN_XM, PIN_YM, XP_XM_OHMS);
 
 // ---------- Barometric and Temperature Sensor
 Adafruit_BMP3XX baro(BMP_CS);         // hardware SPI
@@ -239,13 +245,13 @@ DACMorseSender dacMorse(DAC_PIN, gFrequency, gWordsPerMinute);
 // 2. Helper Functions
 // ============== touchscreen helpers ==========================
 
-bool gTouching = false;             // keep track of previous state
+bool gTouching = false;               // keep track of previous state
 bool newScreenTap(Point* pPoint) {
   // find leading edge of a screen touch
   // returns TRUE only once on initial screen press
   // if true, also return screen coordinates of the touch
 
-  bool result = false;        // assume no touch
+  bool result = false;                // assume no touch
   if (gTouching) {
     // the touch was previously processed, so ignore continued pressure until they let go
     if (!ts.isTouching()) {
@@ -273,9 +279,21 @@ bool newScreenTap(Point* pPoint) {
   return result;
 }
 
+Rect areaGear {                 {0,0},  {gScreenWidth * 1/3, gScreenHeight * 1/4}};
+Rect areaArrow{ {gScreenWidth *2/3,0},  {gScreenWidth * 1/3, gScreenHeight * 1/4}};
+Rect areaBrite{ {0,gScreenHeight *3/4}, {gScreenWidth,      (gScreenHeight * 1/4)-1}};
+
+void showDefaultTouchTargets() {
+  #ifdef SHOW_TOUCH_TARGETS
+    tft.drawRect(areaGear.ul.x,areaGear.ul.y,   areaGear.size.x,areaGear.size.y, ILI9341_MAGENTA);
+    tft.drawRect(areaArrow.ul.x,areaArrow.ul.y, areaArrow.size.x,areaArrow.size.y, ILI9341_MAGENTA);
+    tft.drawRect(areaBrite.ul.x,areaBrite.ul.y, areaBrite.size.x,areaBrite.size.y, ILI9341_MAGENTA);
+  #endif
+}
+
 void showWhereTouched(Point touch) {
   #ifdef SHOW_TOUCH_TARGETS
-    const int radius = 3;     // debug
+    const int radius = 1;     // debug
     tft.fillCircle(touch.x, touch.y, radius, cTOUCHTARGET);  // debug - show dot
   #endif
 }
@@ -335,7 +353,6 @@ uint16_t myPressure(void) {
 // Note - For Griduino, if this function takes longer than 8 msec it can cause erratic GPS readings
 // so we recommend against using https://forum.arduino.cc/index.php?topic=449719.0
 bool TouchScreen::isTouching(void) {
-  #define TOUCHPRESSURE 200       // Minimum pressure we consider true pressing
   static bool button_state = false;
   uint16_t pres_val = ::myPressure();
 
@@ -348,14 +365,6 @@ bool TouchScreen::isTouching(void) {
     //Serial.print(". released, pressure = "); Serial.println(pres_val);       // debug
     button_state = false;
   }
-
-  // Clean the touchScreen settings after function is used
-  // Because LCD may use the same pins
-  // todo - is this actually necessary?
-  pinMode(PIN_XM, OUTPUT);     digitalWrite(PIN_XM, LOW);
-  pinMode(PIN_YP, OUTPUT);     digitalWrite(PIN_YP, HIGH);
-  pinMode(PIN_YM, OUTPUT);     digitalWrite(PIN_YM, LOW);
-  pinMode(PIN_XP, OUTPUT);     digitalWrite(PIN_XP, HIGH);
 
   return button_state;
 }
@@ -378,9 +387,14 @@ void mapTouchToScreen(TSPoint touch, Point* screen) {
   // Typical measured pressures=200..549
 
   // setRotation(1) = landscape orientation = x-,y-axis exchanged
-  //          map(value    in_min,in_max, out_min,out_max)
-  screen->x = map(touch.y,  225,825,      0, tft.width());
-  screen->y = map(touch.x,  800,300,      0, tft.height());
+  //          map(value         in_min,in_max,       out_min,out_max)
+  screen->x = map(touch.y,  Y_MIN_OHMS,Y_MAX_OHMS,    0, tft.width());
+  screen->y = map(touch.x,  X_MAX_OHMS,X_MIN_OHMS,    0, tft.height());
+
+  // keep all touches within boundaries of the screen
+  screen->x = constrain(screen->x, 0, tft.width());
+  screen->y = constrain(screen->y, 0, tft.height());
+
   if (tft.getRotation() == 3) {
     // if display is flipped, then also flip both x,y touchscreen coords
     screen->x = tft.width() - screen->x;
@@ -767,8 +781,8 @@ void setup() {
   ts.pressureThreshhold = 200;
 
   // ----- init serial monitor
-  Serial.begin(115200);                               // init for debuggging in the Arduino IDE
-  waitForSerial(howLongToWait);                       // wait for developer to connect debugging console
+  Serial.begin(115200);               // init for debuggging in the Arduino IDE
+  waitForSerial(howLongToWait);       // wait for developer to connect debugging console
 
   // now that Serial is ready and connected (or we gave up)...
   Serial.println(PROGRAM_TITLE " " PROGRAM_VERSION);  // Report our program name to console
@@ -1023,6 +1037,7 @@ void loop() {
   }
 
   // if there's touchscreen input, handle it
+  //                                ul        size
   Point touch;
   if (newScreenTap(&touch)) {
 
@@ -1034,14 +1049,14 @@ void loop() {
 
     if (!touchHandled) {
       // not handled by one of the views, so run our default action
-      if (touch.y < gScreenHeight * 1 / 4) {
-        if (touch.x < gScreenWidth / 3) {
+      if (areaGear.contains(touch)) {
           selectNewView(GOTO_SETTINGS);   // advance to next settings view
-        } else {
+      } else if (areaArrow.contains(touch)) {
           selectNewView(GOTO_NEXT_VIEW);  // advance to next normal user view
-        }
-      } else if (touch.y > gScreenHeight *3 / 4) {
+      } else if (areaBrite.contains(touch)) {
         adjustBrightness();               // change brightness
+      } else {
+        // nothing to do
       }
     }
   }

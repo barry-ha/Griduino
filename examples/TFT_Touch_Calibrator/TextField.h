@@ -156,7 +156,7 @@ class TextField {
     static uint16_t cBackground;      // background color
     int16_t xPrev, yPrev;             // remember previous text area for next erasure
     uint16_t wPrev, hPrev;
-    char textPrev[32];      // old text to be erased
+    char textPrev[32];                // old text to be erased
 
   protected:
     void eraseOld();
