@@ -37,7 +37,7 @@
 */
 
 #include <Arduino.h>
-#include "Adafruit_ILI9341.h"         // TFT color display library
+#include <Adafruit_ILI9341.h>         // TFT color display library
 #include "constants.h"                // Griduino constants and colors
 #include "model_gps.h"                // "Model" portion of model-view-controller
 #include "Adafruit_BMP3XX.h"          // Precision barometric and temperature sensor
@@ -48,6 +48,8 @@
 // ========== extern ===========================================
 extern Model* model;                  // "model" portion of model-view-controller
 extern Adafruit_BMP3XX baro;          // Griduino.ino
+
+extern void showDefaultTouchTargets();  // Griduino.ino
 extern void getDate(char* result, int maxlen);  // model_gps.h
 
 // ========== class ViewTime ===================================
@@ -186,8 +188,8 @@ void ViewTime::updateScreen() {
 
   // Hours to add/subtract from GMT for local time
   char sign[2] = { 0, 0 };            // prepend a plus-sign when >=0
-  sign[0] = (model->gTimeZone >= 0) ? '+' : 0; // (don't need to add a minus-sign bc the print stmt does that for us)
-  char sTimeZone[6];      // strlen("-10h") = 4
+  sign[0] = (model->gTimeZone >= 0) ? '+' : 0;   // (don't need to add a minus-sign bc the print stmt does that for us)
+  char sTimeZone[6];                  // strlen("-10h") = 4
   snprintf(sTimeZone, sizeof(sTimeZone), "%s%dh", sign, model->gTimeZone);
   txtClock[TIMEZONE].print(sTimeZone);
 
@@ -212,6 +214,7 @@ void ViewTime::startScreen() {
   TextField::setTextDirty( txtClock, numClockFields );  // make sure all fields get re-printed on screen change
 
   drawAllIcons();                     // draw gear (settings) and arrow (next screen)
+  showDefaultTouchTargets();          // optionally draw boxes around button-touch area
   showScreenBorder();                 // optionally outline visible area
 
   // ----- draw page title

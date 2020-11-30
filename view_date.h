@@ -52,7 +52,7 @@
 */
 
 #include <Arduino.h>
-#include "Adafruit_ILI9341.h"         // TFT color display library
+#include <Adafruit_ILI9341.h>         // TFT color display library
 #include "constants.h"                // Griduino constants and colors
 #include "model_gps.h"                // "Model" portion of model-view-controller
 #include "Adafruit_BMP3XX.h"          // Precision barometric and temperature sensor
@@ -85,6 +85,8 @@ TimeElements targetGMT  { 0,0,7+18,  1,  31,10,2020-1970}; // 6pm Halloween in P
 // ========== extern ===========================================
 extern Model* model;                  // "model" portion of model-view-controller
 extern Adafruit_BMP3XX baro;          // Griduino.ino
+
+extern void showDefaultTouchTargets();// Griduino.ino
 
 // ========== class ViewDate ===================================
 class ViewDate : public View {
@@ -203,9 +205,9 @@ void ViewDate::updateScreen() {
   txtDate[LOCALDATE].print(sDate);
 
   // Hours to add/subtract from GMT for local time
-  char sign[2] = { 0, 0 };              // prepend a plus-sign when >=0
+  char sign[2] = { 0, 0 };            // prepend a plus-sign when >=0
   sign[0] = (model->gTimeZone >= 0) ? '+' : 0;   // (don't need to add a minus-sign bc the print stmt does that for us)
-  char sTimeZone[6];                    // strlen("-10h") = 4
+  char sTimeZone[6];                  // strlen("-10h") = 4
   snprintf(sTimeZone, sizeof(sTimeZone), "%s%dh", sign, model->gTimeZone);
   txtDate[TIMEZONE].print(sTimeZone);
 
@@ -214,7 +216,7 @@ void ViewDate::updateScreen() {
   txtDate[LOCALTIME].print(sTime);
 
   // Satellite Count
-  char sBirds[4];         // strlen("5#") = 2
+  char sBirds[4];                     // strlen("5#") = 2
   snprintf(sBirds, sizeof(sBirds), "%d#", model->gSatellites);
   // change colors by number of birds
   txtDate[NUMSATS].color = (model->gSatellites<1) ? cWARN : cTEXTFAINT;
@@ -229,6 +231,7 @@ void ViewDate::startScreen() {
   TextField::setTextDirty( txtDate, numDateFields );   // make sure all fields get re-printed on screen change
 
   drawAllIcons();                     // draw gear (settings) and arrow (next screen)
+  showDefaultTouchTargets();          // optionally draw boxes around button-touch area
   showScreenBorder();                 // optionally outline visible area
 
   // ----- draw page title

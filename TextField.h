@@ -43,12 +43,16 @@ class TextField {
   // redrawing text in proportional fonts to reduce flickering
   //
   // Example Usage:
-  //      Declare       TextField txtItem("Hello", 64,64, ILI9341_GREEN);
-  //      Declare size  TextField txtItem("Hello", 64,84, ILI9341_GREEN, eFONTSMALL);
-  //      Set bkg       txtItem.setBackground(ILI9341_BLACK);
-  //      Force one     txtItem.setDirty();
-  //      Force all     TextField::setDirty(txtItem, count);
-  //      Print one     txtItem.print();
+  //      Declare         TextField txtItem("Hello", 64,64, ILI9341_GREEN);
+  //      Decl alignment  TextField txtItem("Hello", 64,84, ILI9341_GREEN, ALIGNRIGHT);
+  //      Center text     TextField txtItem("Hello", -1,94, ILI9341_GREEN, ALIGNCENTER);
+  //      Declare size    TextField txtItem("Hello", 64,84, ILI9341_GREEN, ALIGNLEFT, eFONTSMALL);
+  //      Set bkg         txtItem.setBackground(ILI9341_BLACK);
+  //      Force one       txtItem.setDirty();
+  //      Force all       TextField::setDirty(txtItem, count);
+  //      Print one       txtItem.print();
+  //
+  // To center text left-right, specify x = -1
   //
   // Note about proportional fonts:
   //      1. Text origin is bottom left corner
@@ -85,7 +89,7 @@ class TextField {
       vstr.toCharArray(temp, sizeof(temp));
       init(temp, vxx, vyy, vcc, valign, vsize);
     }
-    // delegating ctor for common setup code
+    // common ctor for all data field types
     void init(const char vtxt[26], int vxx, int vyy, uint16_t vcc, int valign, int vsize) {
       strncpy(textPrev, vtxt, sizeof(textPrev)-1);
       strncpy(text, vtxt, sizeof(text)-1);
@@ -143,10 +147,10 @@ class TextField {
     }
 
   protected:
-    static uint16_t cBackground; // background color
-    int16_t xPrev, yPrev;   // remember previous text area for next erasure
+    static uint16_t cBackground;      // background color
+    int16_t xPrev, yPrev;             // remember previous text area for next erasure
     uint16_t wPrev, hPrev;
-    char textPrev[32];      // old text to be erased
+    char textPrev[32];                // old text to be erased
 
   protected:
     void eraseOld();

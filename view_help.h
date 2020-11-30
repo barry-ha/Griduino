@@ -21,10 +21,13 @@
 */
 
 #include <Arduino.h>
-#include "Adafruit_ILI9341.h"         // TFT color display library
+#include <Adafruit_ILI9341.h>         // TFT color display library
 #include "constants.h"                // Griduino constants and colors
 #include "TextField.h"                // Optimize TFT display text for proportional fonts
 #include "view.h"                     // Base class for all views
+
+// ========== extern ===========================================
+extern void showDefaultTouchTargets();  // Griduino.ino
 
 // ========== class ViewHelp ===================================
 class ViewHelp : public View {
@@ -95,6 +98,7 @@ void ViewHelp::startScreen() {
                   cTOUCHTARGET);
     #endif
   }
+  showDefaultTouchTargets();          // optionally draw boxes around button-touch area
 
   updateScreen();                     // fill in values immediately, don't wait for the main loop to eventually get around to it
 

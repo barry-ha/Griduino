@@ -23,7 +23,7 @@
 */
 
 #include <Arduino.h>
-#include "Adafruit_ILI9341.h"         // TFT color display library
+#include <Adafruit_ILI9341.h>         // TFT color display library
 #include "constants.h"                // Griduino constants and colors
 #include "model_gps.h"                // "Model" portion of model-view-controller
 #include "TextField.h"                // Optimize TFT display text for proportional fonts
@@ -32,6 +32,7 @@
 // ========== extern ===========================================
 extern Model* model;                  // "model" portion of model-view-controller
 
+extern void showDefaultTouchTargets();// Griduino.ino
 extern void fSetReceiver();           // Griduino.ino
 extern void fSetSimulated();          // Griduino.ino
 extern int fGetDataSource();          // Griduino.ino
@@ -57,7 +58,7 @@ class ViewSettings2 : public View {
     const int yRow2 = yRow1 + 20;     // "%d of %d"
     const int yRow3 = yRow2 + 56;     // "Route",            "GPS Receiver"
     const int yRow4 = yRow3 + 48;     //                     "Simulator"
-    const int yRow9 = gScreenHeight - 12; // "v0.27, Oct 31 2020"
+    const int yRow9 = gScreenHeight - 12; // "v0.27, Nov 03 2020"
 
     #define col1 10                   // left-adjusted column of text
     #define xButton 160               // indented column of buttons
@@ -152,6 +153,7 @@ void ViewSettings2::startScreen() {
   setFontSize(eFONTSMALLEST);
 
   drawAllIcons();                     // draw gear (settings) and arrow (next screen)
+  showDefaultTouchTargets();          // optionally draw boxes around button-touch area
   showScreenBorder();                 // optionally outline visible area
 
   // ----- draw text fields
@@ -169,7 +171,7 @@ void ViewSettings2::startScreen() {
     // ----- label on top of button
     int xx = getOffsetToCenterTextOnButton(item.text, item.x, item.w);
 
-    tft->setCursor(xx, item.y+item.h/2+5);
+    tft->setCursor(xx, item.y+item.h/2+5);  // place text centered inside button
     tft->setTextColor(item.color);
     tft->print(item.text);
 
@@ -180,7 +182,7 @@ void ViewSettings2::startScreen() {
     #endif
   }
 
-  // ----- show outlines of radio buttons
+  // ----- draw outlines of radio buttons
   for (int ii=eRECEIVER; ii<=eSIMULATOR; ii++) {
     FunctionButton item = settings2Buttons[ii];
     int xCenter = item.x - 16;

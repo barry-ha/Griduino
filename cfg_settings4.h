@@ -30,6 +30,8 @@
 
 // ========== extern ===========================================
 extern Model* model;                  // "model" portion of model-view-controller
+
+extern void showDefaultTouchTargets();// Griduino.ino
 extern void sendMorseGrid4(String gridName);  // Griduino.ino
 extern void sendMorseGrid6(String gridName);  // Griduino.ino
 
@@ -137,7 +139,6 @@ void ViewSettings4::updateScreen() {
   }
 }
 
-
 void ViewSettings4::startScreen() {
   // called once each time this view becomes active
   this->clearScreen(cBACKGROUND);     // clear screen
@@ -145,6 +146,7 @@ void ViewSettings4::startScreen() {
   TextField::setTextDirty( txtSettings4, nTextCrossing );  // make sure all fields get re-printed on screen change
 
   drawAllIcons();                     // draw gear (settings) and arrow (next screen)
+  showDefaultTouchTargets();          // optionally draw boxes around button-touch area
   showScreenBorder();                 // optionally outline visible area
 
   // ----- draw buttons

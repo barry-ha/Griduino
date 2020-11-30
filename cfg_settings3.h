@@ -23,7 +23,7 @@
 */
 
 #include <Arduino.h>
-#include "Adafruit_ILI9341.h"         // TFT color display library
+#include <Adafruit_ILI9341.h>         // TFT color display library
 #include "constants.h"                // Griduino constants and colors
 #include "model_gps.h"                // "Model" portion of model-view-controller
 #include "TextField.h"                // Optimize TFT display text for proportional fonts
@@ -32,6 +32,7 @@
 // ========== extern ===========================================
 extern Model* model;                  // "model" portion of model-view-controller
 
+extern void showDefaultTouchTargets();// Griduino.ino
 // ========== class ViewSettings3 ==============================
 class ViewSettings3 : public View {
   public:
@@ -124,6 +125,7 @@ void ViewSettings3::startScreen() {
   setFontSize(eFONTSMALLEST);
 
   drawAllIcons();                     // draw gear (settings) and arrow (next screen)
+  showDefaultTouchTargets();          // optionally draw boxes around button-touch area
   showScreenBorder();                 // optionally outline visible area
 
   // ----- draw text fields

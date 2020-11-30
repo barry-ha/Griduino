@@ -22,7 +22,7 @@
 */
 
 #include <Arduino.h>
-#include "Adafruit_ILI9341.h"         // TFT color display library
+#include <Adafruit_ILI9341.h>         // TFT color display library
 #include "constants.h"                // Griduino constants and colors
 #include "model_gps.h"                // "Model" portion of model-view-controller
 #include "TextField.h"                // Optimize TFT display text for proportional fonts
@@ -31,6 +31,7 @@
 // ========== extern ===========================================
 extern Model* model;                  // "model" portion of model-view-controller
 
+extern void showDefaultTouchTargets();// Griduino.ino
 // ========== class ViewSettings5 ==============================
 class ViewSettings5 : public View {
   public:
@@ -142,6 +143,7 @@ void ViewSettings5::startScreen() {
   TextField::setTextDirty( txtSettings5, nFields );  // make sure all fields get re-printed on screen change
 
   drawAllIcons();                     // draw gear (settings) and arrow (next screen)
+  showDefaultTouchTargets();          // optionally draw boxes around button-touch area
   showScreenBorder();                 // optionally outline visible area
 
   // ----- draw text fields
@@ -159,7 +161,7 @@ void ViewSettings5::startScreen() {
     // ----- label on top of button
     int xx = getOffsetToCenterTextOnButton(item.text, item.x, item.w);
 
-    tft->setCursor(xx, item.y+item.h/2+5);
+    tft->setCursor(xx, item.y+item.h/2+5);  // place text centered inside button
     tft->setTextColor(item.color);
     tft->print(item.text);
 
@@ -176,7 +178,7 @@ void ViewSettings5::startScreen() {
     tft->drawLine(m.x1, m.y1, m.x2, m.y2, m.color);
   }
 
-  // ----- show outlines of radio buttons
+  // ----- draw outlines of radio buttons
   for (int ii=0; ii<nButtons; ii++) {
     FunctionButton item = myButtons[ii];
     int xCenter = item.x - 16;
