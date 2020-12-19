@@ -17,8 +17,8 @@
             | Route         (o)[ GPS Receiver ] |
             |                  [  Simulator   ] |
             |                                   |
-            | Version 0.27                      |
-            |     Compiled Oct 31 2020  06:56   |
+            |                                   |
+            | v0.28, Dec 19 2020  07:56         |
             +-----------------------------------+
 */
 
@@ -44,7 +44,9 @@ class ViewSettings2 : public View {
     // This derived class must implement the public interface:
     ViewSettings2(Adafruit_ILI9341* vtft, int vid)  // ctor 
       : View{ vtft, vid }
-    { }
+    {
+      background = cBACKGROUND;       // every view can have its own background color
+    }
     void updateScreen();
     void startScreen();
     bool onTouch(Point touch);
@@ -145,11 +147,12 @@ void ViewSettings2::updateScreen() {
   }
 }
 
+
 void ViewSettings2::startScreen() {
   // called once each time this view becomes active
-  this->clearScreen(cBACKGROUND);     // clear screen
-  txtSettings2[0].setBackground(cBACKGROUND);                  // set background for all TextFields in this view
-  TextField::setTextDirty( txtSettings2, nTextGPS );  // make sure all fields get re-printed on screen change
+  this->clearScreen(this->background);                  // clear screen
+  txtSettings2[0].setBackground(this->background);      // set background for all TextFields in this view
+  TextField::setTextDirty( txtSettings2, nTextGPS );    // make sure all fields get re-printed on screen change
   setFontSize(eFONTSMALLEST);
 
   drawAllIcons();                     // draw gear (settings) and arrow (next screen)
@@ -200,6 +203,7 @@ void ViewSettings2::startScreen() {
     tft->drawLine( tft->width()/2,0,  tft->width()/2,tft->height(), cWARN); // debug
   #endif
 }
+
 
 bool ViewSettings2::onTouch(Point touch) {
   Serial.println("->->-> Touched settings screen.");

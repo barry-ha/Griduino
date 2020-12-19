@@ -63,13 +63,13 @@
 // ======= customize this for any count up/down display ========
 // Example 1: Number of "Groundhog Days"
 //      Encode "Sunday, Feb 2, 2020" as a time_t
-//      But use the day before Feb 2, so that our counter will show "Groundhog Day #1" on 2/2/2020
-/* */
+//      But use the day before Feb 2, so the counter includes "Groundhog Day #1" on 2/2/2020
+/* 
 #define HIDE_ELAPSED_HMS
 #define DISPLAY_LINE_1  "Total days including"
 #define DISPLAY_LINE_2  "Sunday, Feb 2, 2020"
 #define DISPLAY_LINE_3  "Groundhog Day"
-//                       s,m,h, dow, d,m,y
+//                        s,m,h, dow, d,m,y
 TimeElements targetGMT  { 0,0,7,  1,  1,2,2020-1970};    // GMT Groundhog Day (add 7 hours for when Pacific time starts their new day)
 /* */
 
@@ -78,8 +78,17 @@ TimeElements targetGMT  { 0,0,7,  1,  1,2,2020-1970};    // GMT Groundhog Day (a
 #define DISPLAY_LINE_1  "Countdown to"
 #define DISPLAY_LINE_2  "Halloween 6pm"
 #define DISPLAY_LINE_3  "Days til Trick'n Treaters"
-//                       s,m,h,   dow, d,m,y
+//                        s,m,h,   dow,   d, m, y
 TimeElements targetGMT  { 0,0,7+18,  1,  31,10,2020-1970}; // 6pm Halloween in Pacific time (encoded in GMT by adding 7 hours)
+/* */
+
+// Example 3: Time until Christmas Eve
+/* */
+#define DISPLAY_LINE_1  "Countdown to"
+#define DISPLAY_LINE_2  "Santa's Arrival"
+#define DISPLAY_LINE_3  "Christmas Eve"
+//                        s,m,h,   dow,   d, m, y
+TimeElements targetGMT  { 0,0,7+0,  1,  25,12,2020-1970}; // Midnight in Pacific time (encoded in GMT by adding 7 hours)
 /* */
 
 // ========== extern ===========================================
@@ -95,7 +104,9 @@ class ViewDate : public View {
     // This derived class must implement the public interface:
     ViewDate(Adafruit_ILI9341* vtft, int vid)  // ctor 
       : View{ vtft, vid }
-    { }
+    {
+      background = cBACKGROUND;       // every view can have its own background color
+    }
     void updateScreen();
     void startScreen();
     bool onTouch(Point touch);
@@ -226,9 +237,9 @@ void ViewDate::updateScreen() {
 
 void ViewDate::startScreen() {
   // called once each time this view becomes active
-  this->clearScreen(cBACKGROUND);     // clear screen
-  txtDate[0].setBackground(cBACKGROUND);               // set background for all TextFields in this view
-  TextField::setTextDirty( txtDate, numDateFields );   // make sure all fields get re-printed on screen change
+  this->clearScreen(this->background);                  // clear screen
+  txtDate[0].setBackground(this->background);           // set background for all TextFields in this view
+  TextField::setTextDirty( txtDate, numDateFields );    // make sure all fields get re-printed on screen change
 
   drawAllIcons();                     // draw gear (settings) and arrow (next screen)
   showDefaultTouchTargets();          // optionally draw boxes around button-touch area

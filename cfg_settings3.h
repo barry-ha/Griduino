@@ -17,8 +17,7 @@
             |                                   |
             |                                   |
             |                                   |
-            | Version 0.27                      |
-            |     Compiled Oct 31 2020  06:56   |
+            | v0.28, Dec 19 2020  07:56         |
             +-----------------------------------+
 */
 
@@ -33,6 +32,7 @@
 extern Model* model;                  // "model" portion of model-view-controller
 
 extern void showDefaultTouchTargets();// Griduino.ino
+
 // ========== class ViewSettings3 ==============================
 class ViewSettings3 : public View {
   public:
@@ -40,7 +40,9 @@ class ViewSettings3 : public View {
     // This derived class must implement the public interface:
     ViewSettings3(Adafruit_ILI9341* vtft, int vid)  // ctor 
       : View{ vtft, vid }
-    { }
+    {
+      background = cBACKGROUND;       // every view can have its own background color
+    }
     void updateScreen();
     void startScreen();
     bool onTouch(Point touch);
@@ -119,8 +121,8 @@ void ViewSettings3::updateScreen() {
 
 void ViewSettings3::startScreen() {
   // called once each time this view becomes active
-  this->clearScreen(cBACKGROUND);     // clear screen
-  txtSettings3[0].setBackground(cBACKGROUND);           // set background for all TextFields in this view
+  this->clearScreen(this->background);                  // clear screen
+  txtSettings3[0].setBackground(this->background);      // set background for all TextFields in this view
   TextField::setTextDirty( txtSettings3, nTextUnits );  // make sure all fields get re-printed on screen change
   setFontSize(eFONTSMALLEST);
 
@@ -172,6 +174,7 @@ void ViewSettings3::startScreen() {
     tft->drawLine( tft->width()/2,0,  tft->width()/2,tft->height(), cWARN); // debug
   #endif
 }
+
 
 bool ViewSettings3::onTouch(Point touch) {
   Serial.println("->->-> Touched settings screen.");

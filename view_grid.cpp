@@ -24,15 +24,15 @@
 */
 
 #include <Arduino.h>
-#include "Adafruit_ILI9341.h"         // TFT color display library
+#include <Adafruit_ILI9341.h>         // TFT color display library
 #include "constants.h"                // Griduino constants and colors
 #include "model_gps.h"                // "Model" portion of model-view-controller
 #include "TextField.h"                // Optimize TFT display text for proportional fonts
 #include "view.h"                     // Base class for all views
 
 // ========== extern ===========================================
-extern Adafruit_ILI9341 tft;        // Griduino.ino
-extern Model* model;                // "model" portion of model-view-controller
+extern Adafruit_ILI9341 tft;          // Griduino.ino
+extern Model* model;                  // "model" portion of model-view-controller
 
 extern void showDefaultTouchTargets();  // Griduino.ino
 extern void setFontSize(int font);      // TextField.cpp
@@ -41,8 +41,8 @@ extern float nextGridLineWest(float longitudeDegrees);       // Griduino.ino
 extern void floatToCharArray(char* result, int maxlen, double fValue, int decimalPlaces);  // Griduino.ino
 
 // ============== constants ====================================
-const int gMarginX = 70;            // define space for grid outline on screen
-const int gMarginY = 26;            // and position text relative to this outline
+const int gMarginX = 70;              // define space for grid outline on screen
+const int gMarginY = 26;              // and position text relative to this outline
 
 // ========== helpers ==========================================
 const double minLong = gridWidthDegrees / gBoxWidth;  // longitude degrees from one pixel to the next (minimum visible movement)
@@ -73,6 +73,7 @@ enum txtIndex {
   N_BOX_LAT,  S_BOX_LAT,  E_BOX_LONG, W_BOX_LONG,
 };
 
+    // ----- dynamic screen text
 TextField txtGrid[] = {
   //         text      x,y     color
   TextField("CN77",  101,101,  cGRIDNAME),      // GRID4: center of screen
@@ -413,8 +414,8 @@ void ViewGrid::updateScreen() {
 
 void ViewGrid::startScreen() {
   // called once each time this view becomes active
-  this->clearScreen(ILI9341_BLACK);      // clear screen
-  txtGrid[0].setBackground(ILI9341_BLACK);          // set background for all TextFields in this view
+  this->clearScreen(this->background);                  // clear screen
+  txtGrid[0].setBackground(this->background);           // set background for all TextFields in this view
   TextField::setTextDirty( txtGrid, numTextGrid );
 
   double lngMiles = model->calcDistanceLong(model->gLatitude, 0.0, minLong);

@@ -2,6 +2,7 @@
   Baroduino -- demonstrate BMP388 barometric sensor
 
   Version history: 
+            2020-12-19 v0.30 published to the GitHub downloads folder (no functional change)
             2020-10-02 v0.24 published to the GitHub downloads folder
             2020-09-18 this is really two independent functions: (1)data logger, (2)visualizer
             2020-08-27 save unit setting (english/metric) in nonvolatile RAM

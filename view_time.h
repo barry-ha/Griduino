@@ -26,7 +26,7 @@
             |  HHHHH HHHH  :  MMMM MMMM  : SSSS SSSS  |
             |  HHHHH HHHH  :  MMMM MMMM  : SSSS SSSS  |
             |                                         |
-            |         GMT Date: Apr 29, 2020          |
+            |         GMT Date: Dec 19, 2020          |
             |                                         |
             |         Internal Temp:  101.7 F         |
             |                                         |
@@ -59,7 +59,9 @@ class ViewTime : public View {
     // This derived class must implement the public interface:
     ViewTime(Adafruit_ILI9341* vtft, int vid)  // ctor 
       : View{ vtft, vid }
-    { }
+    {
+      background = cBACKGROUND;       // every view can have its own background color
+    }
     void updateScreen();
     void startScreen();
     bool onTouch(Point touch);
@@ -209,8 +211,8 @@ void ViewTime::updateScreen() {
 
 void ViewTime::startScreen() {
   // called once each time this view becomes active
-  this->clearScreen(cBACKGROUND);     // clear screen
-  txtClock[0].setBackground(cBACKGROUND);               // set background for all TextFields in this view
+  this->clearScreen(this->background);                  // clear screen
+  txtClock[0].setBackground(this->background);          // set background for all TextFields in this view
   TextField::setTextDirty( txtClock, numClockFields );  // make sure all fields get re-printed on screen change
 
   drawAllIcons();                     // draw gear (settings) and arrow (next screen)

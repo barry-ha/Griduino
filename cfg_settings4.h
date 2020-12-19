@@ -17,13 +17,12 @@
             |                                   |
             |                                   |
             |                                   |
-            | Version 0.27                      |
-            |     Compiled Oct 31 2020  06:56   |
+            | v0.28, Dec 19 2020  07:56         |
             +-----------------------------------+
 */
 
 #include <Arduino.h>
-#include "Adafruit_ILI9341.h"         // TFT color display library
+#include <Adafruit_ILI9341.h>         // TFT color display library
 #include "constants.h"                // Griduino constants and colors
 #include "TextField.h"                // Optimize TFT display text for proportional fonts
 #include "view.h"                     // Base class for all views
@@ -42,7 +41,9 @@ class ViewSettings4 : public View {
     // This derived class must implement the public interface:
     ViewSettings4(Adafruit_ILI9341* vtft, int vid)  // ctor 
       : View{ vtft, vid }
-    { }
+    {
+      background = cBACKGROUND;       // every view can have its own background color
+    }
     void updateScreen();
     void startScreen();
     bool onTouch(Point touch);
@@ -139,10 +140,11 @@ void ViewSettings4::updateScreen() {
   }
 }
 
+
 void ViewSettings4::startScreen() {
   // called once each time this view becomes active
-  this->clearScreen(cBACKGROUND);     // clear screen
-  txtSettings4[0].setBackground(cBACKGROUND);           // set background for all TextFields in this view
+  this->clearScreen(this->background);                  // clear screen
+  txtSettings4[0].setBackground(this->background);      // set background for all TextFields in this view
   TextField::setTextDirty( txtSettings4, nTextCrossing );  // make sure all fields get re-printed on screen change
 
   drawAllIcons();                     // draw gear (settings) and arrow (next screen)

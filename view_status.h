@@ -33,7 +33,7 @@
 // ========== extern ===========================================
 extern Model* model;                  // "model" portion of model-view-controller
 
-extern void showDefaultTouchTargets();  // Griduino.ino
+extern void showDefaultTouchTargets();// Griduino.ino
 
 // ========== class ViewStatus =================================
 class ViewStatus : public View {
@@ -42,7 +42,9 @@ class ViewStatus : public View {
     // This derived class must implement the public interface:
     ViewStatus(Adafruit_ILI9341* vtft, int vid)  // ctor 
       : View{ vtft, vid }
-    { }
+    {
+      background = cBACKGROUND;       // every view can have its own background color
+    }
     void updateScreen();
     void startScreen();
     bool onTouch(Point touch);
@@ -135,8 +137,8 @@ void ViewStatus::updateScreen() {
 
 void ViewStatus::startScreen() {
   // called once each time this view becomes active
-  this->clearScreen(cBACKGROUND);     // clear screen
-  txtValues[0].setBackground(cBACKGROUND);              // set background for all TextFields in this view
+  this->clearScreen(this->background);                  // clear screen
+  txtValues[0].setBackground(this->background);         // set background for all TextFields in this view
   TextField::setTextDirty( txtLabels, nStatusLabels );
   TextField::setTextDirty( txtValues, nStatusValues );  // make sure all fields get re-printed on screen change
   setFontSize(eFONTSMALL);

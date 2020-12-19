@@ -11,7 +11,7 @@
 #pragma once
 
 #include <Arduino.h>
-#include "Adafruit_ILI9341.h"         // TFT color display library
+#include <Adafruit_ILI9341.h>         // TFT color display library
 #include "constants.h"                // Griduino constants and colors
 #include "icons.h"                    // bitmaps for icons
 
@@ -21,6 +21,7 @@ class View {
     Adafruit_ILI9341* tft;            // an instance of the TFT Display
     const int screenID;               // unique identifier of which screen this is
     int screenRotation;               // 1=landscape, 3=landscape 180-degrees
+    uint16_t background;              // screen background color
 
   public:
     /**
@@ -28,7 +29,7 @@ class View {
      */
     //View() { }                      // no default ctor (must be told 'tft')
     View(Adafruit_ILI9341* vtft, int vid) 
-      : tft( vtft ), screenID( vid )
+      : tft( vtft ), screenID( vid ), background(0x000) // default black background
     {
     }
 
@@ -112,10 +113,14 @@ class View {
 // Derived classes
 class ViewGrid : public View {
   public:
+    // ---------- public interface ----------
+    // This derived class must implement the public interface:
     ViewGrid(Adafruit_ILI9341* vtft, int vid)  // ctor 
       : View{ vtft, vid }
-    { }
+    {
+      background = 0;                 // every view can have its own background color; this screen is black
+    }
     void updateScreen();
     void startScreen();
     bool onTouch(Point touch);
-};
+};  // end class ViewGrid

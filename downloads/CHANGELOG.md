@@ -1,9 +1,15 @@
 # Changelog
+To install a firmware update, see the [Programming](https://github.com/barry-ha/Griduino/blob/master/docs/PROGRAMMING.md#2-how-to-install-the-griduino-program) instructions.
+
 All notable changes to this project are documented in this file.
+
+Version numbers correspond to [Downloads](https://github.com/barry-ha/Griduino/tree/master/downloads) available as pre-compiled binary Griduino programs. 
 
 The changelog format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and the Griduino project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-Version numbers correspond to [Downloads](https://github.com/barry-ha/Griduino/tree/master/downloads) available as pre-compiled binary Griduino programs. To install them, see the [Programming](https://github.com/barry-ha/Griduino/blob/master/docs/PROGRAMMING.md) instructions.
+**v0.30** &nbsp; 2020-12-19
+
+Fixed the background color of the activity indicator on the bottom line. The code change was to extend the base class in view.h so that every screen is allowed to have its own background color independent of other screens. 
 
 **v0.29** &nbsp; 2020-11-26
 
@@ -98,6 +104,7 @@ Made the Morse Code actually work, and replaces view-stat-screen
 **v09.2** &nbsp; 2019-12-30  
 
 Added Morse Code announcements via generated audio waveform on DAC.
+
 
 **v09.0** &nbsp; 2019-12-20  
 

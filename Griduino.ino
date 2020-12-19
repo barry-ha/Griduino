@@ -1063,5 +1063,5 @@ void loop() {
 
   // small activity bar crawls along bottom edge to give 
   // a sense of how frequently the main loop is executing
-  showActivityBar(tft.height()-1, ILI9341_RED, cBACKGROUND);
+  showActivityBar(tft.height()-1, ILI9341_RED, pView->background);
 }

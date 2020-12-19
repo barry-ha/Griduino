@@ -17,7 +17,7 @@
             |                           |       |
             |                           |       |
             |                           |       |
-            | v0.27, Oct 31 2020       \|/      |
+            | v0.28, Dec 19 2020       \|/      |
             +-----------------------------------+
 */
 
@@ -32,6 +32,7 @@
 extern Model* model;                  // "model" portion of model-view-controller
 
 extern void showDefaultTouchTargets();// Griduino.ino
+
 // ========== class ViewSettings5 ==============================
 class ViewSettings5 : public View {
   public:
@@ -138,9 +139,9 @@ void ViewSettings5::updateScreen() {
 
 void ViewSettings5::startScreen() {
   // called once each time this view becomes active
-  this->clearScreen(cBACKGROUND);     // clear screen
-  txtSettings5[0].setBackground(cBACKGROUND);        // set background for all TextFields in this view
-  TextField::setTextDirty( txtSettings5, nFields );  // make sure all fields get re-printed on screen change
+  this->clearScreen(this->background);                  // clear screen
+  txtSettings5[0].setBackground(this->background);      // set background for all TextFields in this view
+  TextField::setTextDirty( txtSettings5, nFields );     // make sure all fields get re-printed on screen change
 
   drawAllIcons();                     // draw gear (settings) and arrow (next screen)
   showDefaultTouchTargets();          // optionally draw boxes around button-touch area
