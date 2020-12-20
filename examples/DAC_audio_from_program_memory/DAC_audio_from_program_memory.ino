@@ -28,14 +28,14 @@
 */
 
 #include <Adafruit_ILI9341.h>         // TFT color display library
-#include "DS1804.h"                   // DS1804 digital potentiometer library
+#include <DS1804.h>                   // DS1804 digital potentiometer library
 #include "elapsedMillis.h"            // short-interval timing functions
 #include "sample1.h"                  // audio clip 1
 #include "sample2.h"                  // audio clip 2
 
 // ------- Identity for console
 #define PROGRAM_TITLE   "DAC Audio in Program Mem"
-#define PROGRAM_VERSION "v1.0"
+#define PROGRAM_VERSION "v0.30"
 #define PROGRAM_LINE1   "Barry K7BWH"
 #define PROGRAM_LINE2   "John KM7O"
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
@@ -62,7 +62,7 @@ Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 
 // ctor         DS1804( ChipSel pin, Incr pin,  U/D pin,  maxResistance (K) )
 DS1804 volume = DS1804( PIN_VCS,     PIN_VINC,  PIN_VUD,  DS1804_TEN );
-int gVolume = 85;                     // initial digital potentiometer wiper position, 0..99
+int gVolume = 10;                     // initial digital potentiometer wiper position, 0..99
 
 // ------------ typedef's
 struct Point {
@@ -100,6 +100,8 @@ const int xLabel = 8;                 // indent labels, slight margin to left ed
 #define yRow2   yRow1 + 20            // program version
 #define yRow3   yRow2 + 20            // author line 1
 #define yRow4   yRow3 + 20            // author line 2
+#define yRow5   yRow4 + 40            // volume wiper setting
+#define yRow6   yRow5 + 40            // loop counter
 
 void startSplashScreen() {
   tft.setTextSize(2);
@@ -160,7 +162,10 @@ void setup() {
   startSplashScreen();
 
   // ----- init digital potentiometer
-  volume.setWiperPosition(gVolume);
+  volume.unlock();                    // unlock digipot (in case someone else, like an example pgm, has locked it)
+  volume.setToZero();                 // set digipot hardware to match its ctor (wiper=0) because the chip cannot be read
+                                      // and all "setWiper" commands are really incr/decr pulses. This gets it sync.
+  volume.setWiperPosition( gVolume );
   Serial.print("Set wiper position = "); Serial.println(gVolume);
 
   // ----- init onboard DAC
@@ -186,21 +191,71 @@ void playAudio(const unsigned char* audio, int audiosize) {
   }
 }
 
+int volSequence[] = {                 // lookup table of wiper positions
+  // Experimental table using 1.5 dB steps
+  // Ratio(1.5 dB) = 10^(1.5 / 10) = 1.412538
+  // which yields 14 (!) volume levels from zero to maximum
+    0,    // [ 0] mute, lowest allowed wiper position
+    1,    // [ 1] lowest possible position with non-zero output
+    2,    // [ 2] next lowest possible
+    3,    // [ 3]  2.00 * 1.4125 =  2.83
+    4,    // [ 4]  2.83 * 1.4125 =  3.99
+    6,    // [ 5]  3.99 * 1.4125 =  5.64
+    8,    // [ 6]  5.64 * 1.4125 =  7.96
+    11,   // [ 7]  7.96 * 1.4125 = 11.25
+    16,   // [ 8] 11.25 * 1.4125 = 15.88
+    22,   // [ 9] 15.88 * 1.4125 = 22.44
+    32,   // [10] 22.44 * 1.4125 = 31.69
+    45,   // [11] 31.69 * 1.4125 = 44.77 (distortion begins at wiper position 41 on USB power)
+    65,   // [12] 44.77 * 1.4125 = 63.24
+    89,   // [13] 63.24 * 1.4125 = 89.33 (sounds clean on 13.8v power)
+};
+int numVols = sizeof(volSequence)/sizeof(int);
+/*
+ * For sake of comparison to Griduino.ino:  
+   #define numLevels 11
+   const int volLevel[numLevels] = {
+      // Digital potentiometer settings, 
+      // about  2  dB steps = ratio 1.585
+      // about 1.5 dB steps = ratio 1.41253
+      0,    // [0] mute, lowest allowed wiper position
+      1,    // [1] lowest possible position with non-zero output
+      2,    // [2] next lowest poss
+      4,    // [3]  2.000 * 1.585 =  4.755
+      7,    // [4]  4.755 * 1.585 =  7.513
+      12,   // [5]  7.513 * 1.585 = 11.908
+      19,   // [6] 11.908 * 1.585 = 18.874
+      29,   // [7] 18.874 * 1.585 = 29.916
+      47,   // [8] 29.916 * 1.585 = 47.417
+      75,   // [9] 47.417 * 1.585 = 75.155
+    };
+ */
+
 //=========== main work loop ===================================
-const int AUDIO_CLIP_INTERVAL = 1500; // msec between one audio clip and the next
+const int AUDIO_CLIP_INTERVAL = 2000; // msec between one audio clip and the next
 
 void loop() {
 
   // ----- play audio clip 1 several times
-  for (int ii=0; ii<8; ii++) {
+  for (int ii=0; ii<numVols; ii++) {
     Serial.print("Starting playback "); Serial.print(gLoopCount); Serial.print(","); Serial.println(ii);
-    playAudio(sample1, sizeof(sample1));
+    
+    gVolume = volSequence[ ii % numVols ];  // get next volume
+    tft.setCursor(xLabel, yRow5);
+    tft.setTextColor(cTEXTCOLOR, cBACKGROUND);
+    tft.print("Set wiper "); tft.print(gVolume); tft.print(" "); // show volume
+    volume.setWiperPosition(gVolume); // set volume
+
+    tft.setCursor(xLabel, yRow6);
+    tft.print("Starting playback "); tft.print(gLoopCount); tft.print(","); tft.print(ii);
+    
+    playAudio(sample1, sizeof(sample1));  // play sample
     delay(AUDIO_CLIP_INTERVAL);       // insert pause between clips
   }
 
   // ----- play audio clip 2 once
   Serial.println("Starting playback of different audio sample");
-  playAudio(sample2, sizeof(sample2));
+  //playAudio(sample2, sizeof(sample2));
   delay(AUDIO_CLIP_INTERVAL);
 
   gLoopCount++;
