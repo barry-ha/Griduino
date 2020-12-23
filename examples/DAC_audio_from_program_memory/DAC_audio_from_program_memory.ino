@@ -20,11 +20,11 @@
                Paste from the clipboard into an array of bytes
 
   Mono Audio: The DAC on the SAMD51 is a 12-bit output, from 0 - 3.3v.
-            The largest 12-bit number is  4,096:
+            The largest 12-bit number is 4,096:
             * Writing 0 will set the DAC to minimum (0.0 v) output.
-            * Writing  4096 sets the DAC to maximum (3.3 v) output.
+            * Writing 4096 sets the DAC to maximum (3.3 v) output.
 
-            This example program has no user interface controls or inputs.
+            This example program has no user inputs.
 */
 
 #include <Adafruit_ILI9341.h>         // TFT color display library
@@ -33,7 +33,7 @@
 #include "sample1.h"                  // audio clip 1
 #include "sample2.h"                  // audio clip 2
 
-// ------- Identity for console
+// ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE   "DAC Audio in Program Mem"
 #define PROGRAM_VERSION "v0.30"
 #define PROGRAM_LINE1   "Barry K7BWH"
@@ -44,6 +44,7 @@
 /* Same as Griduino platform
 */
 
+// ---------- Touch Screen
   #define TFT_BL   4                  // TFT backlight
   #define TFT_CS   5                  // TFT chip select pin
   #define TFT_DC  12                  // TFT display/command pin
@@ -69,9 +70,6 @@ struct Point {
   int x, y;
 };
 
-// ----- screen layout
-// screen pixel coordinates for top left of character cell
-
 // ----- Griduino color scheme
 // RGB 565 color code: http://www.barth-dev.de/online/rgb565-color-picker/
 #define cBACKGROUND     0x00A           // 0,   0,  10 = darker than ILI9341_NAVY, but not black
@@ -87,27 +85,26 @@ struct Point {
 #define cTOUCHTARGET    ILI9341_RED     // outline touch-sensitive areas
 
 // ------------ global scope
-const int howLongToWait = 10;         // max number of seconds before using Serial port to console
+const int howLongToWait = 5;          // max number of seconds before using Serial port to console
 int gLoopCount = 0;
 
 const int gSampleRate = 8000;         // 8 kHz audio file
 const int gHoldTime = 1E6 / gSampleRate;  // microseconds to hold each output sample
 
-// ========== splash screen helpers ============================
-// splash screen layout
-const int xLabel = 8;                 // indent labels, slight margin to left edge of screen
-#define yRow1   20                    // program title: "DAC Audio"
-#define yRow2   yRow1 + 20            // program version
-#define yRow3   yRow2 + 20            // author line 1
-#define yRow4   yRow3 + 20            // author line 2
-#define yRow5   yRow4 + 40            // volume wiper setting
-#define yRow6   yRow5 + 40            // loop counter
+// ========== splash screen ====================================
+const int xLabel = 8;                 // indent labels, slight margin on left edge of screen
+const int yRow1 = 20;                 // title
+const int yRow2 = yRow1 + 20;         // program version
+const int yRow3 = yRow2 + 20;         // compiled date
+const int yRow4 = yRow3 + 40;         // 
+const int yRow5 = yRow4 + 40;         // volume wiper setting
+const int yRow6 = yRow5 + 40;         // loop counter
 
 void startSplashScreen() {
   tft.setTextSize(2);
 
   tft.setCursor(xLabel, yRow1);
-  tft.setTextColor(cTEXTCOLOR);
+  tft.setTextColor(cTEXTCOLOR, cBACKGROUND);
   tft.print(PROGRAM_TITLE);
 
   tft.setCursor(xLabel, yRow2);
@@ -115,10 +112,7 @@ void startSplashScreen() {
   tft.print(PROGRAM_VERSION);
 
   tft.setCursor(xLabel, yRow3);
-  tft.println(PROGRAM_LINE1);
-
-  tft.setCursor(xLabel, yRow4);
-  tft.println(PROGRAM_LINE2);
+  tft.println(PROGRAM_COMPILED);
 }
 
 // ========== screen helpers ===================================
@@ -140,6 +134,18 @@ void waitForSerial(int howLong) {
 //=========== setup ============================================
 void setup() {
 
+  // ----- init TFT display
+  tft.begin();                        // initialize TFT display
+  tft.setRotation(1);                 // 1=landscape (default is 0=portrait)
+  clearScreen();                      // note that "begin()" does not clear screen 
+
+  // ----- init TFT backlight
+  pinMode(TFT_BL, OUTPUT);
+  analogWrite(TFT_BL, 255);           // start at full brightness
+
+  // ----- announce ourselves
+  startSplashScreen();
+
   // ----- init serial monitor
   Serial.begin(115200);               // init for debuggging in the Arduino IDE
   waitForSerial(howLongToWait);       // wait for developer to connect debugging console
@@ -148,18 +154,6 @@ void setup() {
   Serial.println(PROGRAM_TITLE " " PROGRAM_VERSION);  // Report our program name to console
   Serial.println("Compiled " PROGRAM_COMPILED);       // Report our compiled date
   Serial.println(__FILE__);                           // Report our source code file name
-
-  // ----- init TFT backlight
-  pinMode(TFT_BL, OUTPUT);
-  analogWrite(TFT_BL, 255);           // start at full brightness
-
-  // ----- init TFT display
-  tft.begin();                        // initialize TFT display
-  tft.setRotation(1);                 // 1=landscape (default is 0=portrait)
-  clearScreen();
-
-  // ----- announce ourselves
-  startSplashScreen();
 
   // ----- init digital potentiometer
   volume.unlock();                    // unlock digipot (in case someone else, like an example pgm, has locked it)
@@ -195,10 +189,12 @@ int volSequence[] = {                 // lookup table of wiper positions
   // Experimental table using 1.5 dB steps
   // Ratio(1.5 dB) = 10^(1.5 / 10) = 1.412538
   // which yields 14 (!) volume levels from zero to maximum
+  /* ***
     0,    // [ 0] mute, lowest allowed wiper position
     1,    // [ 1] lowest possible position with non-zero output
     2,    // [ 2] next lowest possible
     3,    // [ 3]  2.00 * 1.4125 =  2.83
+  *** */
     4,    // [ 4]  2.83 * 1.4125 =  3.99
     6,    // [ 5]  3.99 * 1.4125 =  5.64
     8,    // [ 6]  5.64 * 1.4125 =  7.96
@@ -231,6 +227,33 @@ int numVols = sizeof(volSequence)/sizeof(int);
     };
  */
 
+void showWiperPosition(int row, int wiper) {
+    tft.setCursor(xLabel, row);
+    tft.setTextColor(cTEXTCOLOR, cBACKGROUND);
+    tft.print("Set wiper "); 
+    tft.setTextColor(cVALUE, cBACKGROUND);
+    tft.print(wiper); 
+    tft.print(" ");
+}
+void showLoopCount( int row, int loopCount, int ii) {
+    tft.setCursor(xLabel, row);
+    tft.setTextColor(cTEXTCOLOR, cBACKGROUND);
+    tft.print("Starting playback "); 
+    tft.setTextColor(cVALUE, cBACKGROUND);
+    tft.print(loopCount); 
+    tft.print(","); 
+    tft.print(ii);
+    tft.print(" ");
+}
+void showSampleSize( int row, int len ) {
+    tft.setCursor(xLabel, row);
+    tft.setTextColor(cTEXTCOLOR, cBACKGROUND);
+    tft.print("WAV buffer size ");
+    tft.setTextColor(cVALUE, cBACKGROUND);
+    tft.print( len );
+    tft.print(" ");
+}
+
 //=========== main work loop ===================================
 const int AUDIO_CLIP_INTERVAL = 2000; // msec between one audio clip and the next
 
@@ -241,13 +264,11 @@ void loop() {
     Serial.print("Starting playback "); Serial.print(gLoopCount); Serial.print(","); Serial.println(ii);
     
     gVolume = volSequence[ ii % numVols ];  // get next volume
-    tft.setCursor(xLabel, yRow5);
-    tft.setTextColor(cTEXTCOLOR, cBACKGROUND);
-    tft.print("Set wiper "); tft.print(gVolume); tft.print(" "); // show volume
     volume.setWiperPosition(gVolume); // set volume
 
-    tft.setCursor(xLabel, yRow6);
-    tft.print("Starting playback "); tft.print(gLoopCount); tft.print(","); tft.print(ii);
+    showWiperPosition(yRow4, gVolume);
+    showLoopCount( yRow5, gLoopCount, ii);
+    showSampleSize( yRow6, sizeof(sample1) );
     
     playAudio(sample1, sizeof(sample1));  // play sample
     delay(AUDIO_CLIP_INTERVAL);       // insert pause between clips
@@ -255,7 +276,13 @@ void loop() {
 
   // ----- play audio clip 2 once
   Serial.println("Starting playback of different audio sample");
-  //playAudio(sample2, sizeof(sample2));
+  showWiperPosition(yRow4, 22);
+  showLoopCount(yRow5, gLoopCount, 0);
+  showSampleSize(yRow6, sizeof(sample2));
+  
+  volume.setWiperPosition(22);        // set volume to midpoint (instead of maximum, at end of loop above)
+  playAudio(sample2, sizeof(sample2));
+  
   delay(AUDIO_CLIP_INTERVAL);
 
   gLoopCount++;
