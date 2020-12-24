@@ -140,21 +140,21 @@ On-board lights:
   // To compile for Feather M0/M4, install "additional boards manager"
   // https://learn.adafruit.com/adafruit-feather-m4-express-atsamd51/setup
   
-  #define TFT_BL   4    // TFT backlight
-  #define TFT_CS   5    // TFT chip select pin
-  #define TFT_DC  12    // TFT display/command pin
-  #define BMP_CS  13    // BMP388 sensor, chip select
+  #define TFT_BL   4                  // TFT backlight
+  #define TFT_CS   5                  // TFT chip select pin
+  #define TFT_DC  12                  // TFT display/command pin
+  #define BMP_CS  13                  // BMP388 sensor, chip select
 
-  #define SD_CD   10    // SD card detect pin - Feather
-  #define SD_CCS  11    // SD card select pin - Feather
+  #define SD_CD   10                  // SD card detect pin - Feather
+  #define SD_CCS  11                  // SD card select pin - Feather
 
 #elif defined(ARDUINO_AVR_MEGA2560)
-  #define TFT_BL   6    // TFT backlight
-  #define SD_CCS   7    // SD card select pin - Mega
-  #define SD_CD    8    // SD card detect pin - Mega
-  #define TFT_DC   9    // TFT display/command pin
-  #define TFT_CS  10    // TFT chip select pin
-  #define BMP_CS  13    // BMP388 sensor, chip select
+  #define TFT_BL   6                  // TFT backlight
+  #define SD_CCS   7                  // SD card select pin - Mega
+  #define SD_CD    8                  // SD card detect pin - Mega
+  #define TFT_DC   9                  // TFT display/command pin
+  #define TFT_CS  10                  // TFT chip select pin
+  #define BMP_CS  13                  // BMP388 sensor, chip select
 
 #else
   #warning You need to define pins for your hardware
@@ -217,30 +217,30 @@ Adafruit_BMP3XX baro(BMP_CS);         // hardware SPI
 Adafruit_GPS GPS(&Serial1);
 
 // ------------ Audio output
-#define DAC_PIN      DAC0     // onboard DAC0 == pin A0
-#define PIN_SPEAKER  DAC0     // uses DAC
+#define DAC_PIN      DAC0             // onboard DAC0 == pin A0
+#define PIN_SPEAKER  DAC0             // uses DAC
 
 // Adafruit Feather M4 Express pin definitions
-#define PIN_VCS      A1       // volume chip select
-#define PIN_VINC      6       // volume increment
-#define PIN_VUD      A2       // volume up/down
+#define PIN_VCS      A1               // volume chip select
+#define PIN_VINC      6               // volume increment
+#define PIN_VUD      A2               // volume up/down
 
 // ctor         DS1804( ChipSel pin, Incr pin,  U/D pin,  maxResistance (K) )
 DS1804 volume = DS1804( PIN_VCS,     PIN_VINC,  PIN_VUD,  DS1804_TEN );
-int gWiper = 15;              // initial digital potentiometer wiper position, 0..99
-int gFrequency = 1100;        // initial Morse code sidetone pitch
-int gWordsPerMinute = 18;     // initial Morse code sending speed
+int gWiper = 15;                      // initial digital potentiometer wiper position, 0..99
+int gFrequency = 1100;                // initial Morse code sidetone pitch
+int gWordsPerMinute = 18;             // initial Morse code sending speed
 
 // ------------ definitions
-const int howLongToWait = 5;  // max number of seconds at startup waiting for Serial port to console
+const int howLongToWait = 5;          // max number of seconds at startup waiting for Serial port to console
 
 // ---------- Morse Code ----------
-#include "morse_dac.h"      // Morse Code using digital-audio converter DAC0
+#include "morse_dac.h"                // Morse Code using digital-audio converter DAC0
 DACMorseSender dacMorse(DAC_PIN, gFrequency, gWordsPerMinute);
 
 // "morse_dac.cpp"  replaced  "morse.h"
-//#include "morse.h"         // Morse Code Library for Arduino with Non-Blocking Sending
-//                           // https://github.com/markfickett/arduinomorse
+//#include "morse.h"                  // Morse Code Library for Arduino with Non-Blocking Sending
+//                                    // https://github.com/markfickett/arduinomorse
 
 // 2. Helper Functions
 // ============== touchscreen helpers ==========================
@@ -764,7 +764,6 @@ void setup() {
   tft.begin();                        // initialize TFT display
   tft.setRotation(1);                 // 1=landscape (default is 0=portrait)
   tft.fillScreen(ILI9341_BLACK);      // note that "begin()" does not clear screen 
-  //settings4View.loadConfig();       // let the settings object initialize itself
 
   // ----- init TFT backlight
   pinMode(TFT_BL, OUTPUT);
