@@ -27,7 +27,7 @@ This kit is almost entirely "through hole" construction. Only two components, th
 
 <h3>It will be nice to have:</h3>
 
-* **Hobbyist bench vise.** You'll need a way to hold the PCB at a convenient height and angle for soldering parts. A small adjustable bench vise, such as a <a href="https://www.panavise.com/">Panavise Model 366</a>, will make your task easier. Use a holder wide enough to grip the Griduino PCB of 4-1/2" width.<br/>
+* **Hobbyist bench vise.** You'll want a way to hold the PCB at a convenient height and angle for soldering parts. A small adjustable bench vise, such as a <a href="https://www.panavise.com/">Panavise Model 366</a>, will make your task easier. Use a holder wide enough to grip the Griduino PCB of 4-1/2" width.<br/>
  ![](img/panavise-366.png)
  
 * **Craft knife.** The plastic case will need small cutouts for power and speaker wires to reach the connectors. A very careful application of a sharp small knife can trim out the holes you need. A craft detail knife such as Fiskars 165110-1002 has better safety and precision than Exacto knives.<br/>
@@ -40,7 +40,7 @@ This kit is almost entirely "through hole" construction. Only two components, th
 
 * **Ohmmeter.** Use an ohmmeter or VOM (volt-ohm-milliameter) to measure resistors before installation to help ensure you have the right one in the right place.
 
-* **Scosche Magnetic Mount.** You'll want a way to mount this in your vehicle within easy view. The Griduino case can most likely be adapted to almost any popular cellphone mounting system. A particularly convenient and interchangeable system is the **Scosche Magic Mount** product line. It has a magnetic base mounted to the dashboard, and a ferrous plate stuck on the back of a Griduino or cellphone. https://www.scosche.com/
+* **Scosche Magnetic Mount.** Eventually you'll want a way to mount this in your vehicle within easy view. The Griduino case can most likely be adapted to almost any popular cellphone mounting system. A particularly convenient and interchangeable system is the **Scosche Magic Mount** product line. It has a magnetic base mounted to the dashboard, and a ferrous plate stuck on the back of a Griduino or cellphone. https://www.scosche.com/
  
 <h2>3. Identifying the Components</h2>
 
@@ -63,6 +63,7 @@ The larger zener diode, D4, is a TVS protection diode (transient voltage suppres
 Electrolytic capacitors are marked with an arrow or "-" to indicate the negative polarity terminal. Also note the "minus" lead is shorter than the other lead. The PCB locations are marked with a filled semicircle (minus) and a small "+" symbol on the other side. When you install electrolytics, mount them flush on the PCB; the image below has extra lead length to show the board markings.
 
 ![](img/electrolytics-img7041.jpg)
+
 
 
 
@@ -178,7 +179,7 @@ It's a good idea to test the Feather once again with the Blinky program.
 
 The "Ultimate GPS" package shipped from Adafruit comes with a header strip and a battery holder.
 
-* Count the pins on the supplied header strip. The GPS requires a 9-pin header and sometimes Adafruit may ship an 8-pin header. Add an extra pin from some extra strip, such as the one leftover from the Feather.
+* Count the pins on the supplied header strip. The GPS requires a 9-pin header and sometimes Adafruit may ship an 8-pin header. If needed, add an extra pin from some extra strip, such as the one leftover from the Feather.
 * Do not solder a battery holder onto the back of the GPS. It won't hurt anything to have this holder, but it will go unused. Its slot will be unreachable after all the parts are installed. Instead, our Griduino board is designed with a separate coin battery holder, BT1, to replace this one on the back of the Ultimate GPS board.
 
 Insert a 9-pin header pin strip onto the Griduino PCB. Break off two single pins from a leftover strip and insert them into the other two corners. Do not solder them yet. Also shown below are the two battery holders and which one goes on the board in the next step.
@@ -249,9 +250,9 @@ Turn it right side up and gently unplug the display from the sockets for safekee
 
 <h3>Step 13: Test Points</h3>
 
-Griduino has 6 optional test points. Three grounding points are together near the voltage regulator and the other three are in the audio chain for checking sound levels and linearity. See the schematic for details. Test points are intended to attach an oscilloscope for software developers and are not normally used.
+Griduino has 6 optional test points. Three grounding points are together near the voltage regulator and the other three are in the audio chain for checking sound levels and linearity. See the schematic for details. Test points are intended to attach an oscilloscope during software development and are not normally used.
 
-The test points are sized to wedge into their holes up to their shoulders, holding them in place while you turn the board upside down and solder them.
+The test points are sized to wedge into their holes up to their shoulders, holding themselves in place while you turn the board upside down and solder them.
 
 Some people say the test points are easier to solder from the top side if you have a good fine-tip soldering iron.
 
@@ -289,23 +290,27 @@ There is just enough room for a few thin wires to fit between the PCB and the ca
 There are several choices for the top cover. Choose one of these according to your desires and what you have available.
 
 <h3>16.a No cover</h3>
-This is how I use my Griduino. This is the easiest way to reach the Reset button for testing and for 
+This is how I use my Griduino. This is the easiest way to reach the Reset button during software development. Also, we need to double-click the Reset button to apply pre-compiled software updates. 
 
 <h3>16.b Polycase standard cover</h3>
-If you have the unmodified [Polycase QS50](https://www.polycase.com/qs-50), carefully cut an opening to fit the display. A cutting template is available that can be printed and taped on for guidance.  Cutting the top cover's opening by hand is actually rather difficult to do accurately and neatly. 
+If you have the unmodified [Polycase QS50](https://www.polycase.com/qs-50), carefully cut an opening to fit the display. A [manual cutting template](https://github.com/barry-ha/Griduino/tree/master/hardware) is available that can be printed and taped on for guidance.  Cutting the top cover's opening by hand is actually rather difficult to do accurately and neatly.
 
-Carefully cut openings for the connectors with a sharp craft knife.
+Carefully cut openings for the connectors and display with a sharp craft knife.
+
+![](img/cutting-template-img7488.jpg)
 
 <h3>16.c Polycase custom-milled cover</h3>
-This is the easiest approach to a professional-looking cover. 
+This is the easiest approach to a professional-looking cover.
+
+![](img/custom-polycase-qs50-img7452a.jpg)
 
 During final assembly, check the alignment and clearance as you lower the top case onto the bottom cover.
 
-If the display is not quite centered in the opening, loosen the PCB screws and adjust its location slightly to line up correctly. 
+Examine the audio jack's opening. You will probably need to clean up a little extra plastic from the top cover for the round jack.
+
+If the display is not quite centered in the opening, loosen the PCB screws and adjust its location slightly to line up correctly.
 
 If there's a gap between the display and the top cover, use nylon #6 washers under the PCB to raise the interior assembly and close the gap. 
-
-You will probably need to clean up a little extra plastic from the top cover around the audio jack.
 
 <h3>16.d 3D printed cover</h3>
 
@@ -316,21 +321,29 @@ We recommend 3D printing with PETG or ABS (instead of PLA) for improved durabili
 
 <h3>Step 17: Speaker</h3>
 
-You can connect a small 8-ohm or 4-ohm speaker to the stereo plugin jack or to the screw terminal strip.
+You can connect a small 8-ohm or 4-ohm speaker either to the stereo plugin jack or to the screw terminal strip.
 
 Note the speaker *plug* must be a standard stereo connector. The correct plug is included in the kit. Do not use a mono plug: it will result in muted or very low volume. This kit only generates a single audio channel which is connected to both sides of the stereo jack.
 
-If you insert a speaker plug into the jack, it will automatically disconnect a speaker, if any, connected to the internal 4-terminal strip. Actually, it can be handy to jam in a plug to quickly silence an internal speaker during testing.
+If you insert a speaker plug into the jack, it will automatically disconnect the speaker, if any, connected to the 4-terminal strip. Actually, it can be handy to jam in a plug to quickly silence the wired speaker during testing.
 
-A good audio quality speaker is the Adafruit [part number 3351](https://www.adafruit.com/product/3351). This has sufficient volume to fill a car and overcome road noise. It speaker can be glued to the back of the Griduino case, although it's relatively large so you might try alternatives. 
+A good audio quality speaker is the Adafruit [part number 3351](https://www.adafruit.com/product/3351). This has sufficient volume to fill a car and overcome road noise. 
 
-Note that additional audio volume is available when powering the Griduino from a car’s electrical system with 10-15 vdc, compared to powering it from the 5v USB connector.
+This speaker can be glued to the back of the Griduino case. Gluing this with the "paper cone out" offers extra volume for noisy vehicles.
+
+![](img/speaker-img7713.jpg)
+
+Gluing or screwing this with the paper cone *in* toward the case will protect it from damage. The speaker has a small port vent and one end to let sound out. It's not as loud in this orientation but has proven to be sufficiently clear and audible. 
+
+![](img/speaker-img7714.jpg)
+
+Note that additional audio volume is available when powering the Griduino from a car’s electrical system with 10-15 vdc, compared to powering it from the 5v USB connector. The higher voltage source will reduce distortion at higher volume levels.
 
 <h2>5. Before You Use It</h2>
 
 Snap a coin cell battery (3-volt CR1220 lithium) into the battery holder. Flat side is positive (+) and faces up.
 
-Plug in the display board, checking the pin alignment on all four corners.
+Plug in the display board, checking the pin alignment on all four corners. **Important:** The display's ribbon connector must go to the right. Connecting it in the wrong orientation will damage the display or the on-board power supply.
 
 You should now have a completed Griduino GPS kit. <span style="green">**Congratulations!**</style>
 
@@ -360,13 +373,13 @@ The [docs/PROGRAMMING.md](https://github.com/barry-ha/Griduino/blob/master/docs/
 
 The Griduino hardware platform offers a great deal of capability with a bright colorful display, powerful cpu, GPS receiver, barometric sensor, and a digital audio channel. We hope you invent fun and useful new things for it to do.
 
-You may find the "examples" folder useful. It contains a variety of smaller programs that were used to develop certain concepts and check out features. For example, the barograph display can be a handy desktop application, showing a few days of barometric pressure history.
+You may find the [examples](https://github.com/barry-ha/Griduino/tree/master/examples) folder interesting and useful. It contains a variety of smaller programs that were used to develop certain concepts and check out features. For example, the barograph display can be a handy desktop application, showing a few days of barometric pressure history.
 
 <h2>8. Using the Griduino GPS</h2>
 
 The [docs/USERS_GUIDE.md](https://github.com/barry-ha/Griduino/blob/master/docs/USERS_GUIDE.md) file has complete information about using and configuring your Griduino.
 
-![](img/view-grid-img7046.jpg)
+![](img/griduino-key-img7648.jpg)
 
 When you cross a grid line, the new grid is announced in Morse Code on the speaker.
 
@@ -388,8 +401,10 @@ Sometimes, you may find it interesting to switch over to the graphing barometer 
 
 <h2>9. Disclaimer</h2>
 
-The information provided is for general education and entertainment. We hope you learn from this and enjoy your hobbies in a safe manner with this new GPS information available at a glance. We take no responsibility for your assembly and construction, nor for how you use these devices. 
+The information provided is for general education and entertainment. We hope you learn from this and enjoy your hobbies in a safe manner with this new GPS information available at a glance. We take no responsibility for your assembly and construction, nor for how you use this device and information.
 
-**Do not adjust Griduino while driving**. Keep your full attention on the road and the traffic around you. We can not be held responsible for any property or medical damages caused by these projects. You are advised to check your local laws and consult professionals for any project involving electricity, assembly or mounting accessories in your vehicle. Many areas restrict where and how you are allowed to mount items around your dashboard. You are advised to drive in a safe and legal manner, consistent with all local laws, safety rules and good common sense.
+**Do not adjust Griduino while driving**. Keep your full attention on the road and the traffic around you. We can not be held responsible for any damage of any sort associated with these projects. You are advised to check your local laws and consult professionals for any project involving electricity, assembly or mounting accessories in your vehicle. 
 
-You must accept that you and you alone are responsible for your safety and safety of others in all aspects of driving with and using a Griduino.
+Many areas restrict where and how you are allowed to mount items around your dashboard. You are advised to drive in a safe and legal manner, consistent with all local laws, safety rules and good common sense.
+
+You must accept that you and you alone are responsible for the safety of yourself and others in all aspects of driving with and using a Griduino.
