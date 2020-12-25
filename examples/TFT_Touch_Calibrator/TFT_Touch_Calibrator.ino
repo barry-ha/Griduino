@@ -406,6 +406,10 @@ void setup() {
   tft.setRotation(1);                 // 1=landscape (default is 0=portrait)
   tft.fillScreen(ILI9341_BLACK);      // note that "begin()" does not clear screen 
 
+  // ----- init TFT backlight
+  pinMode(TFT_BL, OUTPUT);
+  analogWrite(TFT_BL, 255);           // start at full brightness
+
   // ----- announce ourselves
   startSplashScreen();
 
@@ -417,10 +421,6 @@ void setup() {
   Serial.println(PROGRAM_NAME " " PROGRAM_VERSION);   // Report our program name to console
   Serial.println("Compiled " PROGRAM_COMPILED);       // Report our compiled date
   Serial.println(__FILE__);                           // Report our source code file name
-
-  // ----- init TFT backlight
-  pinMode(TFT_BL, OUTPUT);
-  analogWrite(TFT_BL, 255);           // start at full brightness
 
   // ----- init touch screen
   ts.pressureThreshhold = TOUCHPRESSURE;
