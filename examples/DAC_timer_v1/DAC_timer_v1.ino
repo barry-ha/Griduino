@@ -50,8 +50,6 @@ Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 
 // ------------ definitions
 const int howLongToWait = 4;          // max number of seconds at startup waiting for Serial port to console
-#define gScreenWidth 320              // pixels wide, landscape orientation
-#define gScreenHeight 240             // pixels high
 #define SCREEN_ROTATION 1             // 1=landscape, 3=landscape 180 degrees
 
 // ----- Griduino color scheme
@@ -74,24 +72,10 @@ const int yRow5 = yRow4 + 20;         //
 
 void startSplashScreen() {
   tft.setTextSize(2);
-
-  tft.setCursor(xLabel, yRow1);
-  tft.setTextColor(cTEXTCOLOR, cBACKGROUND);
-  tft.print(PROGRAM_TITLE);
-
-  tft.setCursor(xLabel, yRow2);
-  tft.setTextColor(cLABEL);
-  tft.print(PROGRAM_VERSION);
-  
-  tft.setCursor(xLabel, yRow2 + 140);
-  tft.println("Compiled");
-
-  tft.setCursor(xLabel, yRow2 + 160);
-  tft.println(PROGRAM_COMPILED);
-
-  tft.setCursor(xLabel, yRow1);
-  tft.setTextColor(cTEXTCOLOR);
-  tft.print(PROGRAM_TITLE);
+  tft.setCursor(xLabel, yRow1); tft.setTextColor(cTEXTCOLOR, cBACKGROUND); tft.print(PROGRAM_TITLE);
+  tft.setCursor(xLabel, yRow2); tft.setTextColor(cLABEL, cBACKGROUND);     tft.print(PROGRAM_VERSION);
+  tft.setCursor(xLabel, yRow2 + 140);                                      tft.println("Compiled");
+  tft.setCursor(xLabel, yRow2 + 160);                                      tft.println(PROGRAM_COMPILED);
 }
 
 // ========== screen helpers ===================================
@@ -111,11 +95,10 @@ void waitForSerial(int howLong) {
 }
 
 void showActivityBar(int row, uint16_t foreground, uint16_t background) {
-  
-  static int addDotX = 10;                    // current screen column, 0..319 pixels
+  static int addDotX = 10;            // current screen column, 0..319 pixels
   static int rmvDotX = 0;
   static int count = 0;
-  const int SCALEF = 1024;                    // how much to slow it down so it becomes visible
+  const int SCALEF = 8192;            // how much to slow it down so it becomes visible
 
   count = (count + 1) % SCALEF;
   if (count == 0) {
@@ -139,6 +122,7 @@ void myISR() {
   prev_tick = now;
   updated = true;
 
+  // Output: red LED
   digitalWrite(PIN_LED, toggle);
   toggle = not(toggle);
 }
@@ -151,14 +135,14 @@ void setup() {
   tft.setRotation(1);                 // 1=landscape (default is 0=portrait)
   clearScreen();                      // note that "begin()" does not clear screen 
 
-  // ----- init TFT backlight
-  pinMode(TFT_BL, OUTPUT);            
-  //analogWrite(TFT_BL, 255);           // <------ THIS CAUSES PROGRAM CRASH 
-                                      // Symptom: screen is dark, LED stops flashing, USB port non-responsive
-                                      // To recover, double-click Feather's "Reset" button and load another pgm
-
   // ----- announce ourselves
   startSplashScreen();
+
+  // ----- init TFT backlight
+  //pinMode(TFT_BL, OUTPUT);          // <------ THIS CAUSES PROGRAM CRASH 
+  //analogWrite(TFT_BL, 255);         // <------ THIS CAUSES PROGRAM CRASH 
+                                      // Symptom: screen is dark, LED stops flashing, USB port non-responsive
+                                      // To recover, double-click Feather's "Reset" button and load another pgm
 
   // ----- init serial monitor
   Serial.begin(115200);               // init for debuggging in the Arduino IDE
@@ -169,6 +153,7 @@ void setup() {
   Serial.println("Compiled " PROGRAM_COMPILED);       // Report our compiled date
   Serial.println(__FILE__);                           // Report our source code file name
 
+  // configure pin in output mode
   pinMode(PIN_LED, OUTPUT);
 
   TC.startTimer(250000, myISR); // 250,000 usec
@@ -176,7 +161,7 @@ void setup() {
 
 //=========== main work loop ===================================
 void loop() {
-  
+
   if (updated) {
     Serial.println(dT);
     
@@ -187,5 +172,5 @@ void loop() {
 
   // small activity bar crawls along bottom edge to give 
   // a sense of how frequently the main loop is executing
-  //showActivityBar(tft.height()-1, ILI9341_RED, cBACKGROUND);
+  showActivityBar(tft.height()-1, ILI9341_RED, cBACKGROUND);
 }
