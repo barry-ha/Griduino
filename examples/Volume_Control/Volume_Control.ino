@@ -91,8 +91,9 @@ TFT No connection:
   // To compile for Feather M0/M4, install "additional boards manager"
   // https://learn.adafruit.com/adafruit-feather-m4-express-atsamd51/setup
   
-  #define TFT_CS   5    // TFT select pin
-  #define TFT_DC  12    // TFT display/command pin
+  #define TFT_BL   4                  // TFT backlight
+  #define TFT_CS   5                  // TFT chip select pin
+  #define TFT_DC  12                  // TFT display/command pin
 
 #else
   #warning You need to define pins for your hardware
@@ -166,7 +167,7 @@ int gVolume = maxVolume/2;  // speaker volume, 0..99, in units that will be sent
 void waitForSerial(int howLong) {
   // Adafruit Feather M4 Express takes awhile to restore its USB connx to the PC
   // and the operator takes awhile to restart the console (Tools > Serial Monitor)
-  // so give them a few seconds for all this to settle before sending debug info
+  // so give them a few seconds for this to settle before sending messages to IDE
   unsigned long targetTime = millis() + howLong*1000;
   while (millis() < targetTime) {
     if (Serial) break;
@@ -365,6 +366,11 @@ void showActivityBar(int row, uint16_t foreground, uint16_t background) {
 //=========== setup ============================================
 void setup() {
 
+  // ----- init TFT display
+  tft.begin();                        // initialize TFT display
+  tft.setRotation(gRotation);         // 1=landscape (default is 0=portrait)
+  clearScreen();
+
   // ----- init serial monitor
   Serial.begin(115200);               // init for debuggging in the Arduino IDE
   waitForSerial(howLongToWait);       // wait for developer to connect debugging console
@@ -374,14 +380,9 @@ void setup() {
   Serial.println("Compiled " PROGRAM_COMPILED);       // Report our compiled date
   Serial.println(__FILE__);                           // Report our source code file name
 
-  // ----- init TFT display
-  tft.begin();                        // initialize TFT display
-  tft.setRotation(gRotation);         // 1=landscape (default is 0=portrait)
-  clearScreen();
-
-  tft.setTextSize(3);
 
   // ----- init screen appearance
+  tft.setTextSize(3);
   tft.setTextColor(cLABEL, cBACKGROUND);
   tft.setCursor( 8, 24);
   tft.print("Volume");
@@ -392,6 +393,7 @@ void setup() {
 }
 
 //=========== main work loop ===================================
+
 void loop() {
 
   // if there's touchscreen input, handle it
