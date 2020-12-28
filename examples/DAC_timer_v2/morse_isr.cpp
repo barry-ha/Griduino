@@ -166,13 +166,13 @@ char *dtostrf (double val, signed char width, unsigned char prec, char *sout) {
   return sout;
 }
 
-void DACMorseSenderISR::setup(int iFreq, float fWPM) {
+void DACMorseSenderISR::setup(int toneFrequency) {
   //Serial.print("start DACMorseSenderISR::setup() "); Serial.println(__LINE__);
 
   noInterrupts();
-  audioFreq = iFreq;
-  wpm = fWPM;
-  nSamples = isrFreq / audioFreq;                // number of waveform table entries needed
+  toneFreq = toneFrequency;
+  wpm = 15;                                 // default 15 wpm
+  nSamples = isrFreq / toneFreq;                 // number of waveform table entries needed
   if (pSamples) {
     free(pSamples);
   }
@@ -180,9 +180,9 @@ void DACMorseSenderISR::setup(int iFreq, float fWPM) {
   interrupts();
   
   // ----- DAC settings
-  //dacSampleTime = 1E6 / audioFreq / nSamples;  // microseconds for DAC to hold each sample (provided in ctor)
+  //dacSampleTime = 1E6 / toneFreq / nSamples;  // microseconds for DAC to hold each sample (provided in ctor)
   //double gStep = (2.0 * PI) / nSamples;           // radians to advance after each sample
-  float waveDuration = 1.0 / audioFreq;          // 
+  float waveDuration = 1.0 / toneFreq;          // 
 
   // multiplier, slightly less than half of 2^12, to prevent overflowing DAC from rounding errors
   const int dacAmplitude = 2040;     
@@ -203,7 +203,7 @@ void DACMorseSenderISR::setup(int iFreq, float fWPM) {
   // ----- build DAC waveform lookup table
   float twopi = 2.0 * PI;
   double phase = 0.0;
-  float deltaPhase = twopi/(isrFreq/audioFreq);
+  float deltaPhase = twopi/(isrFreq/toneFreq);
   int ii = 0;                         // index into waveform lookup table
   
   for (double phase=0.0; phase<twopi; phase=phase + deltaPhase) {
@@ -352,8 +352,8 @@ void DACMorseSenderISR::dump() {
   snprintf(msg, 256, ". DAC dacPin(%d)", dacPin);                 Serial.println(msg);
   snprintf(msg, 256, ". DAC dacAmplitude(%d)", dacAmplitude);     Serial.println(msg);
   snprintf(msg, 256, ". DAC dacOffset(%d)", dacOffset);           Serial.println(msg);
-  dtostrf(audioFreq, 12, 1, sFloat);
-  snprintf(msg, 256, ". DAC audioFreq(%s Hz)", sFloat);          Serial.println(msg);
+  dtostrf(toneFreq, 12, 1, sFloat);
+  snprintf(msg, 256, ". DAC toneFreq(%s Hz)", sFloat);          Serial.println(msg);
   snprintf(msg, 256, ". DAC nSamples(%d samples)", nSamples); Serial.println(msg);
   dtostrf(dacSampleTime, 12, 1, sFloat);
   snprintf(msg, 256, ". DAC dacSampleTime(%s usec)", sFloat);     Serial.println(msg);

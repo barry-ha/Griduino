@@ -16,9 +16,9 @@
 #define PROSIGN_KN  'K'               // slash
 #define PROSIGN_BT  'B'               // dash
 #define PROSIGN_AS  'A'               // wait
-#define PROSIGN_IMI 'Q'               // question
+#define PROSIGN_IMI 'Q'               // '?' question
 #define PROSIGN_MIM 'C'               // comma
-#define PROSIGN_AAA '.'               // period
+#define PROSIGN_AAA '.'               // '.' period
 
 class DACMorseSenderISR {
   private:
@@ -31,7 +31,7 @@ class DACMorseSenderISR {
     unsigned int nSamples;            // number of entries in waveform lookup table
     unsigned int* pSamples;           // ptr to waveform lookup table
 
-    float audioFreq = 800;           // audio frequency, Hz (default 800 Hz)
+    float toneFreq = 800;             // audio frequency, Hz (default 800 Hz)
     const int dacAmplitude = 2040;    // = slightly less than half of 2^12, to prevent overflow from rounding errors
     const int dacOffset = 2048;       // = exactly half of 2^12
                                       // Requirement is: dacOffset +/- dacAmplitude = voltage range of DAC
@@ -55,7 +55,7 @@ class DACMorseSenderISR {
       dacPin = outputPin;
       isrFreq = isrFrequency;
       dacSampleTime = 1E6 / isrFreq;  // usec between interrupts
-      nSamples = isrFreq / audioFreq;// number of waveform table entries needed
+      nSamples = isrFreq / toneFreq;  // number of waveform table entries needed
       pSamples = (unsigned int*) malloc(nSamples * sizeof(unsigned int));
     }
 
@@ -66,9 +66,14 @@ class DACMorseSenderISR {
     /**
      * To be called during the Arduino setup().
      * Create the waveform lookup table.
-     * iFreq = min(100 Hz), max(1200 Hz), if you exceed this the output is undefined 
+     * toneFrequency = min(100 Hz), max(1200 Hz), if you exceed this the output is undefined 
      */
-    void setup(int iFreq, float fWPM);
+    void setup(int toneFrequency = 800);
+
+    /**
+     * Set the words per minute (based on PARIS timing).
+     */
+    void setWPM(float wpm);
 
     /**
      * Set the message to be sent.

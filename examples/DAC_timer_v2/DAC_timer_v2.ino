@@ -13,16 +13,9 @@
 
   Guess'n check table size:
             * 800 Hz = each complete cycle takes 1/800 = 1,250 usec
-            * 20 steps/wave = 1250/20 = 63 usec per interrupt = 16 kHz
+            * 10 steps/wave = 1250/10 = 125 usec per interrupt = 8 kHz
 
-            But I want an 8 kHz interrupt rate (not 16 kHz) to match the 
-            sample rate of WAV files. So:
-            * 800 Hz @ 10 steps/wave = 1/800/10 = 125 usec per interrupt
-            * Resulting in a waveform lookup table 10 steps/wave
-
-            Note the lookup table size varies for the desired audio frequency.
-            If you want to generate, say, 1100 Hz audio tone:
-            * 1100 Hz = each complete cycle takes 1/1100 = 909 usec
+            Note the waveform lookup table size varies for the desired audio frequency.
             * For 1600 Hz: table size = (8000 Hz)/(1600 Hz) =  5.00 entries
             * For 1200 Hz: table size = (8000 Hz)/(1200 Hz) =  6.67 entries
             * For 1100 Hz: table size = (8000 Hz)/(1100 Hz) =  7.27 entries
@@ -32,9 +25,11 @@
             * For  400 Hz: table size = (8000 Hz)/( 400 Hz) = 20.00 entries
 
   Note:     Does not control the backlight.
-            Does not use the TFT display at all.
-            Remove the TFT display and attach an oscilloscope to the test points.
-            Open serial console for status messages.
+            Does not initialize or use the TFT display at all.
+
+  Setup:
+            Unplug the display screen and set it aside. Attach an oscilloscope to test points.
+            Open serial console to read status messages.
 
   Conclusion: 
             For a fixed interrupt rate of 8 kHz, the small number of audio 
@@ -43,12 +38,18 @@
 
             For a fixed number of samples/waveform (variable interrupt rate), 
             the best audio quality should have 10 steps per sine wave.
-            Processor seems to run fine at higher frequencies, tested up to 
-            1,600 Hz audio = 16 kHz interrupt rate.
+            Programs seem to run fine at higher ISR frequencies, tested up 
+            to 1,600 Hz audio = 16 kHz interrupt rate.
+
+            Going forward from here, based on results heard, I plan to choose 
+            a single non-adjustable Griduino sidetone frequency of 800 Hz
+            and a lookup table of 10 steps/waveform at an ISR rate of 8 kHz.
+            This is also convenient for playing WAV samples at 8 kHz.
 
   Inspired by:
             Mark Fickett, KB3JCY, morse package.
             https://github.com/markfickett/arduinomorse
+
   Requires: 
             Dennis-van-Gils/SAMD51_InterruptTimer
             https://github.com/Dennis-van-Gils/SAMD51_InterruptTimer 
@@ -147,10 +148,10 @@ void setup() {
     const unsigned int isrFrequency = 8000;  // 8 kHz interrupt rate to play WAV files
     DACMorseSenderISR dacTone(DAC_PIN, isrFrequency);
 
-    unsigned int audioFreq = 8000 / kk;
+    unsigned int toneFreq = 8000 / kk;
 
-    Serial.print("----- Tone "); Serial.print(kk); Serial.print(". "); Serial.print(audioFreq); Serial.println(" Hz -----");
-    dacTone.setup(audioFreq, gWordsPerMinute);
+    Serial.print("----- "); Serial.print(kk); Serial.print("samples/cycle, "); Serial.print(toneFreq); Serial.println(" Hz -----");
+    dacTone.setup(toneFreq);
     //dacTone.dump();
     dacTone.start_tone();
     delay(nPause);
@@ -165,7 +166,7 @@ void setup() {
   //       4 samples/wave is too crude and sounds very raspy
   //       6 samples/wave is crude, sounds raspy, has an overtone below 650 Hz
   //       8 samples/wave is better, has an overtone below 480 Hz
-  //      10 samples/wave sounds quite nice, has no overtone
+  //      10 samples/wave sounds fairly pure, has no overtone
   //      This speaker does not respond <400 Hz no matter how smooth the waveform.
 
   Serial.println("\n***** Testing Fixed Number of Samples/Waveform (variable interrupt rate) *****\n");
@@ -177,7 +178,7 @@ void setup() {
       int interruptFreq = 4 * audioFreq;
       Serial.print("----- Tone "); Serial.print(audioFreq); Serial.println(" Hz -----");
       DACMorseSenderISR dacTone(DAC_PIN, interruptFreq);
-      dacTone.setup(audioFreq, gWordsPerMinute);
+      dacTone.setup(audioFreq);
       dacTone.start_tone();
       delay(nPause);
       dacTone.stop_tone();
