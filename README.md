@@ -81,8 +81,6 @@ Griduino project hardware and software is open source and available on Github: [
 
 To work with Griduino's source code, see the [Griduino Programming](./docs/PROGRAMMING.md) document.
 
-Griduino will have its own website at www.Griduino.com. (Not written yet, as of October 2020.)
-
 # Parts List
 Griduino's main building blocks are:
 1. Arduino Feather M4 Express - https://www.adafruit.com/product/3857 
@@ -92,6 +90,14 @@ Griduino's main building blocks are:
 1. Speaker for voice or CW grid-crossings. The audio chain produces line-level output to a digital potentiometer DS1804 for volume control, and an LM386 audio amplifier to a built-in speaker.
 
 For a detailed list of parts, see the [Bill of Materials](./hardware/bill_of_materials.md).
+
+Griduino kits are available from www.Griduino.com. Contact us directly to inquire about a pre-built and fully finished assembly.
+
+# Support
+
+Please browse our public group forum at [groups.io/g/Griduino/](https://groups.io/g/Griduino/)
+
+Join our group to hear about upgrades, new software, ask questions, share your experience and suggest features.
 
 # Disclaimer
 

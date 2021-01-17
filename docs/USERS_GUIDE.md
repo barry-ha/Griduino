@@ -127,6 +127,12 @@ https://github.com/barry-ha/Griduino
 
 For hobbyists interested in a deep dive, [docs/PROGRAMMING.md](https://github.com/barry-ha/Griduino/blob/master/docs/PROGRAMMING.md) has complete Arduino IDE setup and programming instructions. 
 
+# Support
+
+Please browse our public group forum at [groups.io/g/Griduino/](https://groups.io/g/Griduino/)
+
+Join our group to hear about upgrades, new software, ask questions, share your experience and suggest features.
+
 # 6. Disclaimer
 
 The information provided is for general education and entertainment. We hope you learn from this and enjoy your hobbies in a safe manner with all this new and interesting GPS information available at a glance. We take no responsibility for your assembly and construction, nor for how you use these devices. 
