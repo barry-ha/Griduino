@@ -17,8 +17,11 @@ This kit is almost entirely "through hole" construction. Only two components, th
 <h3>You must have:</h3>
 
 * **Printed BOM and schematic diagram.** The component values are found on the bill of materials and the schematic. For example, to learn that R1 is a 22-ohm 2-watt resistor, you must find it in the BOM or schematic. These assembly instructions generally *don't* include part values in an attempt, possibly futile, to avoid multiple documents getting out of sync. The schematic is your ultimate golden master reference for all Griduino design. This is an open-source project and the latest documents are available on https://github.com/barry-ha/Griduino.
+
 * **Fine-tipped soldering iron.** A standard fine-tipped iron suitable for use with conventional 0.1” pitch through-hole components.  It is recommended that you use a temperature controlled iron at a suitable temperature for your solder, if you have one. It is assumed that you will already have the necessary skills to solder this kit. If however you are not comfortable with through-hole electronic soldering, there are plenty of soldering tutorials available online.
-* **Decent quality solder, with a flux core.**  Any decent quality, thin, flux cored solder designed for electronic use should be suitable for assembling this kit. Solder size 0.50 mm is ideal. Do not use solder intended for plumbing.
+
+* **Solder with a flux core.**  Any decent quality, thin, flux-cored solder for electronics will work. Solder diameter of 0.031" is good and 0.020" (0.50 mm) is better. Do not use solder intended for plumbing. <br/>Some people like to use "no clean" solder but personally I've not had good luck it. We recommend something like Kester 245 63% Tin 37% Lead, part number [24-6337-0010](https://www.amazon.com/dp/B00068IJWC/ref=cm_sw_em_r_mt_dp_dfmcGb5707H9N). If the look of flux residue is bothersome, clean it with 91% isopropyl alcohol. Don't clean the front of the PCB because it can remove the silkscreen lettering.<br/>![](img/kester-solder-020-img1555.jpg)
+
 * **Needle nose pliers.** The component's leads must be bent with small pliers for a good fit into holes. Small pliers are also good for picking up the smallest parts from a tray.
 * **Side cutters.** After you solder discrete components to the board, you will need to clip off the protruding wires. Wear eye protection and aim the bits away from you in a safe direction. 
 * **Philips-head screwdriver.** Four small screws attach the PCB into the case. Four more screws attach the top cover to the bottom case.
@@ -227,18 +230,22 @@ Note the orientation of the 3.2" TFT display board is important:
 * The two **GND pins** must go nearest to the USB connector. 
 * The corner with **CD and CCS pins must go nearest to the GPS**; this is the SPI interface that Griduino uses. The other side with pins D0-D7 is the parallel port which is unused.
 
-**Warning:** Always insert the display in this orientation. The circuit *will* be damaged if you reverse it. Don't ask us how we know.
+**Warning:** Always insert the display in this orientation. The circuit will be damaged if you reverse it. Don't ask us how we know.
 
 Since both sides have a 20-pin connector, it's easy to plug in backwards. Please mark your display board somehow to recognize which way is up. 
+
+The following steps are designed to put the fragile pins onto the PCB, and the sturdier sockets onto the display board. This makes it easier to set the display aside without bending pins or stabbing defenseless fingers.
 
 Assemble the display parts on the main board, which will hold everything in correct alignment before soldering:
 
 1. Start with Griduino main board
-2. Insert two 20-pin sockets
-3. Insert one 20-pin header in the socket nearest GPS
-4. Break off two 1-pin headers and insert them in the socket aligned with the outer holes on the opposite side of the display; these will physically support the display.<br/>![](img/display-pins-img7103.jpg)
-4. Lower the display board onto the pins, spanning all the parts underneath. 
-5. Check pin alignment and orientation of the display. The two GND pins go along the USB connector side.<br/>![](img/display-pins-img7106.jpg)
+1. Insert one 20-pin socket on the PCB to the right of the Feather
+1. Insert two 2-pin sockets on the PCB, one near the battery holder and one near the 22-ohm power resistor 
+1. Insert one 20-pin header on the display on the side with X+ X- Y+ Y- labels.
+1. Insert two 2-pin headers on the display on the side with D0..D7 labels into the corners.
+1. Break off two 1-pin headers and insert them in the socket aligned with the outer holes on the opposite side of the display; these will physically support the display.<br/>(todo: picture)
+1. Lower the display board onto the pins, spanning all the parts underneath. 
+1. Check pin alignment and orientation of the display. The two GND pins go along the USB connector side.<br/>(todo: picture)
 
 From the top, solder the header pins on the display board.
 
@@ -329,7 +336,7 @@ If you insert a speaker plug into the jack, it will automatically disconnect the
 
 A good audio quality speaker is the Adafruit [part number 3351](https://www.adafruit.com/product/3351). This has sufficient volume to fill a car and overcome road noise. 
 
-This speaker can be glued to the back of the Griduino case. Gluing this with the "paper cone out" offers extra volume for noisy vehicles.
+This speaker can be glued to the back of the Griduino case. Gluing this with the "paper cone out" offers the most volume for noisy vehicles but puts the fragile speaker cone at risk.
 
 ![](img/speaker-img7713.jpg)
 
@@ -337,7 +344,7 @@ Gluing or screwing this with the paper cone *in* toward the case will protect it
 
 ![](img/speaker-img7714.jpg)
 
-Note that additional audio volume is available when powering the Griduino from a car’s electrical system with 10-15 vdc, compared to powering it from the 5v USB connector. The higher voltage source will reduce distortion at higher volume levels.
+Note that additional clarity (less distortion) at high audio volume is available when powering the Griduino from a car’s electrical system with 10-15 vdc, compared to powering it from the 5v USB connector. The higher voltage source reduces clipping at higher volume levels. At lower volume levels, the speaker sounds the same regardless of power source.
 
 <h2>5. Before You Use It</h2>
 
