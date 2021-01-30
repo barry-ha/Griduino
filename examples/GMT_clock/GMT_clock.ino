@@ -1,7 +1,9 @@
 /*
   GMT_clock - bright colorful Greenwich Mean Time based on GPS
 
-  Date:     2020-06-03 merged this clock into the main Griduino program as another view
+  Version history: 
+            2021-01-30 added support for BMP390 and latest Adafruit_BMP3XX library
+            2020-06-03 merged this clock into the main Griduino program as another view
             2020-05-13 proportional fonts
             2020-05-12 updated TouchScreen code
             2020-05-01 added save/restore to nonvolatile RAM
@@ -19,32 +21,32 @@
          1. Arduino Feather M4 Express (120 MHz SAMD51)     https://www.adafruit.com/product/3857
 
          2. Adafruit 3.2" TFT color LCD display ILI-9341    https://www.adafruit.com/product/1743
-            How to:      https://learn.adafruit.com/adafruit-2-dot-8-color-tft-touchscreen-breakout-v2
-            SPI Wiring:  https://learn.adafruit.com/adafruit-2-dot-8-color-tft-touchscreen-breakout-v2/spi-wiring-and-test
-            Touchscreen: https://learn.adafruit.com/adafruit-2-dot-8-color-tft-touchscreen-breakout-v2/resistive-touchscreen
 
-         3. Adafruit Ultimate GPS
-            Spec: https://www.adafruit.com/product/746
+         3. Adafruit BMP388 - Precision Barometric Pressure https://www.adafruit.com/product/3966
+            Adafruit BMP390                                 https://www.adafruit.com/product/4816
+
+         4. Adafruit Ultimate GPS                           https://www.adafruit.com/product/746
 
 */
 
-#include "SPI.h"                      // Serial Peripheral Interface
-#include "Adafruit_GFX.h"             // Core graphics display library
+#include <SPI.h>                      // Serial Peripheral Interface
+#include <Adafruit_GFX.h>             // Core graphics display library
 #include <Adafruit_ILI9341.h>         // TFT color display library
+#include "TouchScreen.h"              // Touchscreen built in to 3.2" Adafruit TFT display
 #include "Adafruit_GPS.h"             // Ultimate GPS library
 #include "Adafruit_BMP3XX.h"          // Precision barometric and temperature sensor
 #include "Adafruit_NeoPixel.h"        // On-board color addressable LED
-#include "TouchScreen.h"              // Touchscreen built in to 3.2" Adafruit TFT display
 #include "save_restore.h"             // Save configuration in non-volatile RAM
 #include "TextField.h"                // Optimize TFT display text for proportional fonts
 
 // ------- TFT 4-Wire Resistive Touch Screen configuration parameters
 #define TOUCHPRESSURE 200             // Minimum pressure threshhold considered an actual "press"
 #define XP_XM_OHMS    295             // Resistance in ohms between X+ and X- to calibrate pressure
-
+                                      // measure this with an ohmmeter while Griduino turned off
+                                      
 // ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE   "Griduino GMT Clock"
-#define PROGRAM_VERSION "v0.29"
+#define PROGRAM_VERSION "v0.30"
 #define PROGRAM_LINE1   "Barry K7BWH"
 #define PROGRAM_LINE2   "John KM7O"
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
@@ -62,26 +64,14 @@ void timeZoneMinus();
 
 // TFT display and SD card share the hardware SPI interface, and have
 // separate 'select' pins to identify the active device on the bus.
-#if defined(SAMD_SERIES)
-  // Adafruit Feather M4 Express pin definitions
-  // To compile for Feather M0/M4, install "additional boards manager"
-  // https://learn.adafruit.com/adafruit-feather-m4-express-atsamd51/setup
-  
-  #define TFT_BL   4                  // TFT backlight
-  #define TFT_CS   5                  // TFT chip select pin
-  #define TFT_DC  12                  // TFT display/command pin
-  #define BMP_CS  13                  // BMP388 sensor, chip select
+// Adafruit Feather M4 Express pin definitions
+// To compile for Feather M0/M4, install "additional boards manager"
+// https://learn.adafruit.com/adafruit-feather-m4-express-atsamd51/setup
 
-#elif defined(ARDUINO_AVR_MEGA2560)
-  #define TFT_BL   6                  // TFT backlight
-  #define TFT_DC   9                  // TFT display/command pin
-  #define TFT_CS  10                  // TFT chip select pin
-  #define BMP_CS  13                  // BMP388 sensor, chip select
-
-#else
-  #warning You need to define pins for your hardware
-
-#endif
+#define TFT_BL   4                    // TFT backlight
+#define TFT_CS   5                    // TFT chip select pin
+#define TFT_DC  12                    // TFT display/command pin
+#define BMP_CS  13                    // BMP388 sensor, chip select
 
 // create an instance of the TFT Display
 Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
@@ -91,26 +81,17 @@ Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 // between X+ and X- Use any multimeter to read it
 // This sketch has only two touch areas to make it easy for operator to select
 // "left half" and "right half" without looking. Touch target precision is not essential.
-#if defined(SAMD_SERIES)
-  // Adafruit Feather M4 Express pin definitions
-  #define PIN_XP  A3    // Touchscreen X+ can be a digital pin
-  #define PIN_XM  A4    // Touchscreen X- must be an analog pin, use "An" notation
-  #define PIN_YP  A5    // Touchscreen Y+ must be an analog pin, use "An" notation
-  #define PIN_YM   9    // Touchscreen Y- can be a digital pin
-#elif defined(ARDUINO_AVR_MEGA2560)
-  // Arduino Mega 2560 and others
-  #define PIN_XP   4    // Touchscreen X+ can be a digital pin
-  #define PIN_XM  A3    // Touchscreen X- must be an analog pin, use "An" notation
-  #define PIN_YP  A2    // Touchscreen Y+ must be an analog pin, use "An" notation
-  #define PIN_YM   5    // Touchscreen Y- can be a digital pin
-#else
-  #warning You need to define pins for your hardware
 
-#endif
+// Adafruit Feather M4 Express pin definitions
+#define PIN_XP  A3                    // Touchscreen X+ can be a digital pin
+#define PIN_XM  A4                    // Touchscreen X- must be an analog pin, use "An" notation
+#define PIN_YP  A5                    // Touchscreen Y+ must be an analog pin, use "An" notation
+#define PIN_YM   9                    // Touchscreen Y- can be a digital pin
+
 TouchScreen ts = TouchScreen(PIN_XP, PIN_YP, PIN_XM, PIN_YM, XP_XM_OHMS);
 
 // ---------- Barometric and Temperature Sensor
-Adafruit_BMP3XX baro(BMP_CS);         // hardware SPI
+Adafruit_BMP3XX baro;                 // hardware SPI
 
 // ---------- Feather's onboard lights
 //efine PIN_NEOPIXEL 8                // already defined in Feather's board variant.h
@@ -652,6 +633,15 @@ void showActivityBar(int row, uint16_t foreground, uint16_t background) {
 //=========== setup ============================================
 void setup() {
 
+  // ----- init TFT display
+  tft.begin();                        // initialize TFT display
+  tft.setRotation(SCREEN_ROTATION);   // 1=landscape (default is 0=portrait)
+  clearScreen();
+
+  // ----- init TFT backlight
+  pinMode(TFT_BL, OUTPUT);
+  analogWrite(TFT_BL, 255);           // start at full brightness
+
   // ----- init serial monitor
   Serial.begin(115200);               // init for debuggging in the Arduino IDE
   waitForSerial(howLongToWait);       // wait for developer to connect debugging console
@@ -663,9 +653,9 @@ void setup() {
 
   // ----- init GPS
   GPS.begin(9600);                              // 9600 NMEA is the default baud rate for Adafruit MTK GPS's
-  delay(200);                                   // is delay really needed?
+  delay(50);                                    // is delay really needed?
   GPS.sendCommand(PMTK_SET_BAUD_57600);         // set baud rate to 57600
-  delay(200);
+  delay(50);
   GPS.begin(57600);
   GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA); // turn on RMC (recommended minimum) and GGA (fix data) including altitude
 
@@ -682,15 +672,6 @@ void setup() {
   pinMode(RED_LED, OUTPUT);           // diagnostics RED LED
   digitalWrite(RED_LED, LOW);         // this led defaults to "on" so turn it off
   
-  // ----- init TFT backlight
-  pinMode(TFT_BL, OUTPUT);
-  analogWrite(TFT_BL, 255);           // start at full brightness
-
-  // ----- init TFT display
-  tft.begin();                        // initialize TFT display
-  tft.setRotation(SCREEN_ROTATION);   // 1=landscape (default is 0=portrait)
-  clearScreen();
-
   // ----- init Feather M4 onboard lights (in case previous state or program left the lights on)
   pixel.begin();
   pixel.clear();                      // turn off NeoPixel
@@ -703,7 +684,7 @@ void setup() {
   delay(4000);         // milliseconds
 
   // ----- init barometer/thermometer
-  if (!baro.begin()) {
+  if (!baro.begin_SPI(BMP_CS)) {
     Serial.println("Error, unable to initialize BMP388, check your wiring");
 
     #define RETRYLIMIT 10
@@ -726,7 +707,7 @@ void setup() {
 
     for (int ii=1; ii<=RETRYLIMIT; ii++) {
       txtError[4].print(ii);
-      if (baro.begin()) {
+      if (baro.begin_SPI(BMP_CS)) {
         break;  // success, baro sensor finally initialized
       }
       delay(1000);

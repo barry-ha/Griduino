@@ -1,7 +1,8 @@
 /*
-  Baroduino -- demonstrate BMP388 barometric sensor
+  Baroduino -- demonstrate BMP388 or BMP390 barometric sensor
 
   Version history: 
+            2021-01-30 added support for BMP390 and latest Adafruit_BMP3XX library
             2020-12-19 v0.30 published to the GitHub downloads folder (no functional change)
             2020-10-02 v0.24 published to the GitHub downloads folder
             2020-09-18 this is really two independent functions: (1)data logger, (2)visualizer
@@ -77,9 +78,11 @@
 
          2. Adafruit 3.2" TFT color LCD display ILI-9341    https://www.adafruit.com/product/1743
 
-         3. Adafruit Ultimate GPS                           https://www.adafruit.com/product/746
+         3. Adafruit BMP388 - Precision Barometric Pressure https://www.adafruit.com/product/3966
+            Adafruit BMP390                                 https://www.adafruit.com/product/4816
 
-         4. Adafruit BMP388 Barometric Pressure             https://www.adafruit.com/product/3966
+         4. Adafruit Ultimate GPS                           https://www.adafruit.com/product/746
+
 */
 
 #include "Adafruit_GFX.h"             // Core graphics display library
@@ -139,7 +142,7 @@ const uint32_t colorBlue   = pixel.Color(OFF,    OFF,    BRIGHT);
 const uint32_t colorPurple = pixel.Color(HALFBR, OFF,    HALFBR);
 
 // ---------- Barometric and Temperature Sensor
-Adafruit_BMP3XX baro(BMP_CS);         // hardware SPI
+Adafruit_BMP3XX baro;                 // hardware SPI
 
 // ---------- GPS ----------
 // Hardware serial port for GPS
@@ -157,9 +160,8 @@ const int howLongToWait = 10;         // max number of seconds at startup waitin
 #define cSCALECOLOR     ILI9341_DARKGREEN // tried yellow but it's too bright
 #define cGRAPHCOLOR     ILI9341_WHITE     // graphed line of baro pressure
 #define cICON           ILI9341_CYAN
-#define cTITLE          ILI9341_GREEN     
+#define cTITLE          ILI9341_GREEN
 #define cWARN           0xF844        // brighter than ILI9341_RED but not pink
-//efine cSINKING        0xF882        // highlight rapidly sinking barometric pressure
 
 // ======== date time helpers =================================
 char* dateToString(char* msg, int len, time_t datetime) {
@@ -222,7 +224,7 @@ bool redrawGraph = true;              // true=request graph be drawn
 bool waitingForRTC = true;            // true=waiting for GPS hardware to give us the first valid date/time
 
 #include "model_baro.h"
-BarometerModel baroModel( &baro );    // create instance of the model, giving it ptr to hardware
+BarometerModel baroModel( &baro, BMP_CS ); // create instance of the model, giving it ptr to hardware and SPI chip select
 
 // ======== unit tests =========================================
 #ifdef RUN_UNIT_TESTS
@@ -843,7 +845,7 @@ void setup() {
     tft.setCursor(0, yText1);
     tft.setTextColor(cWARN);
     setFontSize(12);
-    tft.println("Error!\n Unable to init\n  BMP388 sensor\n   check wiring");
+    tft.println("Error!\n Unable to init\n  BMP388/390 sensor\n   check wiring");
     delay(4000);
   }
 
