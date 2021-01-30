@@ -1,10 +1,12 @@
 /*
   Barograph -- demonstrate BMP388 barometric sensor
 
-  Date:     2019-20-18 created from example by John KM7O
-            2020-03-05 replaced physical button design with touchscreen
-            2020-05-12 updated TouchScreen code
+  Version history: 
+            2021-01-30 added support for BMP390 and latest Adafruit_BMP3XX library
             2020-05-18 added NeoPixel control to illustrate technique
+            2020-05-12 updated TouchScreen code
+            2020-03-05 replaced physical button design with touchscreen
+            2019-20-18 created from example by John KM7O
 
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
@@ -16,75 +18,60 @@
             The RTC (realtime clock) is updated from the GPS satellite network.
 
   Tested with:
-         1. Arduino Feather M4 Express (120 MHz SAMD51)
-            Spec: https://www.adafruit.com/product/3857
+         1. Arduino Feather M4 Express (120 MHz SAMD51)     https://www.adafruit.com/product/3857
 
-         2. Adafruit 3.2" TFT color LCD display ILI-9341
-            Spec: http://adafru.it/1743
+         2. Adafruit 3.2" TFT color LCD display ILI-9341    https://www.adafruit.com/product/1743
 
-         3. Adafruit Ultimate GPS
-            Spec: https://www.adafruit.com/product/746
+         3. Adafruit BMP388 - Precision Barometric Pressure https://www.adafruit.com/product/3966
+            Adafruit BMP390                                 https://www.adafruit.com/product/4816
 
-         4. Adafruit BMP388 - Precision Barometric Pressure and Altimeter
-            Spec: https://www.adafruit.com/product/3966
+         4. Adafruit Ultimate GPS                           https://www.adafruit.com/product/746
 
 */
 
-#include "Adafruit_GFX.h"           // Core graphics display library
-#include "Adafruit_ILI9341.h"       // TFT color display library
-#include "Adafruit_GPS.h"           // Ultimate GPS library
-#include "Adafruit_BMP3XX.h"        // Precision barometric and temperature sensor
-#include "Adafruit_NeoPixel.h"      // On-board color addressable LED
-#include "TouchScreen.h"            // Touchscreen built in to 3.2" Adafruit TFT display
-#include "TextField.h"              // Optimize TFT display text for proportional fonts
-#include "bitmaps.h"                // our definition of graphics displayed
+#include "Adafruit_GFX.h"             // Core graphics display library
+#include "Adafruit_ILI9341.h"         // TFT color display library
+#include "TouchScreen.h"              // Touchscreen built in to 3.2" Adafruit TFT display
+#include "TextField.h"                // Optimize TFT display text for proportional fonts
+#include "Adafruit_GPS.h"             // Ultimate GPS library
+#include "Adafruit_BMP3XX.h"          // Precision barometric and temperature sensor
+#include "Adafruit_NeoPixel.h"        // On-board color addressable LED
+#include "bitmaps.h"                  // our definition of graphics displayed
 
 // ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE   "Barograph Demo"
-#define PROGRAM_VERSION "v0.29"
+#define PROGRAM_VERSION "v0.30"
 #define PROGRAM_LINE1   "Barry K7BWH"
 #define PROGRAM_LINE2   "John KM7O"
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
 
-#define SCREEN_ROTATION 1   // 1=landscape, 3=landscape 180-degrees
+#define SCREEN_ROTATION 1             // 1=landscape, 3=landscape 180-degrees
 
 //--------------CONFIG--------------
-//float elevCorr = 4241;  // elevation correction in Pa, 
+//float elevCorr = 4241;              // elevation correction in Pa, 
 // use difference between altimeter setting and station pressure: https://www.weather.gov/epz/wxcalc_altimetersetting
 
 float elevCorr = 0;
-float maxP = 104000;          // in Pa
-float minP = 98000;           // in Pa
-const int yShift = 9;         // in pixels
-const int xIndent = 12;       // in pixels, text on main screen
+float maxP = 104000;                  // in Pa
+float minP = 98000;                   // in Pa
+const int yShift = 9;                 // in pixels
+const int xIndent = 12;               // in pixels, text on main screen
 
 enum units { eMetric, eEnglish };
-int units = eMetric;         // units on startup: 0=english=inches mercury, 1=metric=millibars
+int units = eMetric;                  // units on startup: 0=english=inches mercury, 1=metric=millibars
 
 // ---------- Hardware Wiring ----------
 /* Same as Griduino platform
 */
 
-#if defined(SAMD_SERIES)
-  // Adafruit Feather M4 Express pin definitions
-  // To compile for Feather M0/M4, install "additional boards manager"
-  // https://learn.adafruit.com/adafruit-feather-m4-express-atsamd51/setup
-  
-  #define TFT_BL   4    // TFT backlight
-  #define TFT_CS   5    // TFT chip select pin
-  #define TFT_DC  12    // TFT display/command pin
-  #define BMP_CS  13    // BMP388 sensor, chip select
+// Adafruit Feather M4 Express pin definitions
+// To compile for Feather M0/M4, install "additional boards manager"
+// https://learn.adafruit.com/adafruit-feather-m4-express-atsamd51/setup
 
-#elif defined(ARDUINO_AVR_MEGA2560)
-  #define TFT_BL   6    // TFT backlight
-  #define TFT_DC   9    // TFT display/command pin
-  #define TFT_CS  10    // TFT chip select pin
-  #define BMP_CS  13    // BMP388 sensor, chip select
-
-#else
-  #warning You need to define pins for your hardware
-
-#endif
+#define TFT_BL   4                  // TFT backlight
+#define TFT_CS   5                  // TFT chip select pin
+#define TFT_DC  12                  // TFT display/command pin
+#define BMP_CS  13                  // BMP388 sensor, chip select
 
 // create an instance of the TFT Display
 Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
@@ -93,26 +80,17 @@ Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 // For touch point precision, we need to know the resistance
 // between X+ and X- Use any multimeter to read it
 // This sketch has just one touch area that covers the entire screen
-#if defined(SAMD_SERIES)
-  // Adafruit Feather M4 Express pin definitions
-  #define PIN_XP  A3    // Touchscreen X+ can be a digital pin
-  #define PIN_XM  A4    // Touchscreen X- must be an analog pin, use "An" notation
-  #define PIN_YP  A5    // Touchscreen Y+ must be an analog pin, use "An" notation
-  #define PIN_YM   9    // Touchscreen Y- can be a digital pin
-#elif defined(ARDUINO_AVR_MEGA2560)
-  // Arduino Mega 2560 and others
-  #define PIN_XP   4    // Touchscreen X+ can be a digital pin
-  #define PIN_XM  A3    // Touchscreen X- must be an analog pin, use "An" notation
-  #define PIN_YP  A2    // Touchscreen Y+ must be an analog pin, use "An" notation
-  #define PIN_YM   5    // Touchscreen Y- can be a digital pin
-#else
-  #warning You need to define pins for your hardware
 
-#endif
+// Adafruit Feather M4 Express pin definitions
+#define PIN_XP  A3                    // Touchscreen X+ can be a digital pin
+#define PIN_XM  A4                    // Touchscreen X- must be an analog pin, use "An" notation
+#define PIN_YP  A5                    // Touchscreen Y+ must be an analog pin, use "An" notation
+#define PIN_YM   9                    // Touchscreen Y- can be a digital pin
+
 TouchScreen ts = TouchScreen(PIN_XP, PIN_YP, PIN_XM, PIN_YM, 295);
 
 // ---------- Barometric and Temperature Sensor
-Adafruit_BMP3XX baro(BMP_CS);         // hardware SPI
+Adafruit_BMP3XX baro;                 // hardware SPI
 
 // ---------- Feather's onboard lights
 //efine PIN_NEOPIXEL 8                // already defined in Feather's board variant.h
@@ -154,7 +132,7 @@ struct Reading {
 
 // ------------ definitions
 const int howLongToWait = 4;  // max number of seconds at startup waiting for Serial port to console
-#define SCREEN_ROTATION 1     // 1=landscape, 3=landscape 180 degrees
+#define SCREEN_ROTATION 1             // 1=landscape, 3=landscape 180 degrees
 
 #define FEET_PER_METER 3.28084
 #define SEA_LEVEL_PRESSURE_HPA (1013.25)
@@ -200,7 +178,6 @@ float deltaPressure3h = 5000;
 const int maxReadings = 144;
 Reading pressureStack[maxReadings] = {};    // array to hold pressure data, fill with zeros
 const int lastIndex = maxReadings - 1;      // index to the last element in pressure array
-
 
 // ============== touchscreen helpers ==========================
 
@@ -259,7 +236,7 @@ uint16_t myPressure(void) {
 // Note - For Griduino, if this function takes longer than 8 msec it can cause erratic GPS readings
 // so we recommend against using https://forum.arduino.cc/index.php?topic=449719.0
 bool TouchScreen::isTouching(void) {
-  #define TOUCHPRESSURE 200       // Minimum pressure we consider true pressing
+  #define TOUCHPRESSURE 200           // Minimum pressure we consider true pressing
   static bool button_state = false;
   uint16_t pres_val = ::myPressure();
 
@@ -700,8 +677,8 @@ void showActivityBar(int row, uint16_t foreground, uint16_t background) {
 void setup() {
 
   // ----- init serial monitor
-  Serial.begin(115200);                               // init for debuggging in the Arduino IDE
-  waitForSerial(howLongToWait);                       // wait for developer to connect debugging console
+  Serial.begin(115200);               // init for debuggging in the Arduino IDE
+  waitForSerial(howLongToWait);       // wait for developer to connect debugging console
 
   // now that Serial is ready and connected (or we gave up)...
   Serial.println(PROGRAM_TITLE " " PROGRAM_VERSION);  // Report our program name to console
@@ -710,9 +687,9 @@ void setup() {
 
   // ----- init GPS
   GPS.begin(9600);                              // 9600 NMEA is the default baud rate for Adafruit MTK GPS's
-  delay(200);                                   // is delay really needed?
+  delay(50);                                    // is delay really needed?
   GPS.sendCommand(PMTK_SET_BAUD_57600);         // set baud rate to 57600
-  delay(200);
+  delay(50);
   GPS.begin(57600);
   GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA); // turn on RMC (recommended minimum) and GGA (fix data) including altitude
 
@@ -775,8 +752,11 @@ void setup() {
   delay(4000);         // milliseconds
   clearScreen();
 
-  // ----- init barometer
-  if (!baro.begin()) {
+  // ----- init BMP388 or BMP390 barometer
+  if (baro.begin_SPI(BMP_CS)) {
+    // success
+  } else {
+    // failed to initialize hardware
     Serial.println("Error, unable to initialize BMP388, check your wiring");
     tft.setCursor(0, yLine1);
     tft.setTextColor(cWARN);
@@ -786,6 +766,8 @@ void setup() {
   }
 
   // Set up BMP388 oversampling and filter initialization
+  // https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bmp388-ds001.pdf
+  // Section 3.5 Filter Selection, page 17
   baro.setTemperatureOversampling(BMP3_OVERSAMPLING_2X);
   baro.setPressureOversampling(BMP3_OVERSAMPLING_32X);
   baro.setIIRFilterCoeff(BMP3_IIR_FILTER_COEFF_127);
@@ -814,7 +796,7 @@ const int CHECK_CRASH_INTERVAL = 10*1000;       // Timer 3
 
 void loop() {
 
-  // if our timer or system millis() wrapped around, reset it
+  // if a timer or system millis() wrapped around, reset it
   if (prevTimer1 > millis()) { prevTimer1 = millis(); }
   if (prevTimer2 > millis()) { prevTimer2 = millis(); }
   if (prevTimer3 > millis()) { prevTimer3 = millis(); }
@@ -862,8 +844,10 @@ void loop() {
   Point touch;
   if (newScreenTap(&touch)) {
 
-    //const int radius = 3;     // debug
-    //tft.fillCircle(touch.x, touch.y, radius, cWARN);  // debug - show dot
+    #ifdef SHOW_TOUCH_TARGETS
+      const int radius = 3;           // debug
+      tft.fillCircle(touch.x, touch.y, radius, cWARN);  // debug - show dot
+    #endif
     //touchHandled = true;      // debug - true=stay on same screen
 
     adjustUnits();              // change between "inches mercury" and "millibars" units

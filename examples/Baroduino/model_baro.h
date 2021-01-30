@@ -12,11 +12,12 @@
          4. Save history to NVR                       baro.saveHistory();
          5. A few random functions as needed for unit testing
 
-         Data logger reads BMP388 hardware for pressure, and gets time-of-day
+         Data logger reads BMP388 or BMP390 hardware for pressure, and gets time-of-day
          from the caller. We don't read the realtime clock in here.
 
   Barometric Sensor:
          Adafruit BMP388 Barometric Pressure             https://www.adafruit.com/product/3966
+         Adafruit BMP390                                 https://www.adafruit.com/product/4816
 
   Pressure History:
          This class is basically a data logger for barometric pressure.
@@ -71,7 +72,8 @@ extern char* dateToString(char* msg, int len, time_t datetime);  // Griduino/Bar
 class BarometerModel {
   public:
     // Class member variables
-    Adafruit_BMP3XX* baro;            // pointer to the hardware-managing class 
+    Adafruit_BMP3XX* baro;            // pointer to the hardware-managing class
+    int bmp_cs;                       // Chip Select for BMP388 / BMP390 hardware
     float inchesHg;
     float gPressure;
     float hPa;
@@ -86,14 +88,15 @@ class BarometerModel {
     float elevCorr = 0;               // todo: unused for now, review and change if needed
 
     // Constructor - create and initialize member variables
-    BarometerModel(Adafruit_BMP3XX* vbaro) {
+    BarometerModel(Adafruit_BMP3XX* vbaro, int vcs) {
       baro = vbaro;
+      bmp_cs = vcs;
     }
 
-    // init BMP388 hardware 
+    // init BMP388 or BMP390 barometer
     int begin(void) {
       int rc = 1;                     // assume success
-      if (baro->begin()) {
+      if (baro->begin_SPI(bmp_cs)) {
         // Bosch BMP388 datasheet:
         //      https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bmp388-ds001.pdf
         // IIR: 
@@ -140,7 +143,7 @@ class BarometerModel {
         }
 
       } else {
-        Serial.println("Error, unable to initialize BMP388, check the wiring");
+        Serial.println("Error, unable to initialize BMP388 / BMP390, check the wiring");
         rc = 0;                       // return failure
       }
       return rc;

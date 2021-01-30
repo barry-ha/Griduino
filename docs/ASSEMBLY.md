@@ -167,9 +167,9 @@ Put the Feather board onto the header strips.
 
 ![](img/feather-headers-img7851.jpg)
 
-Solder the top pins only. 
+Solder the top pins only.
 
-Make sure the pins are completely inserted and the Feather is held off the PCB by only the small black part of the header strip. 
+Make sure the pins are completely inserted and the Feather is held off the PCB by only the small black part of the header strip.
 
 <h3 style="color:darkred">Wrong:</h3>
 
@@ -243,18 +243,18 @@ Turn the display-side up. Note the orientation of the 3.2" TFT display board is 
 
 **Warning:** Always insert the display in this orientation. The circuit will be damaged if you reverse it. Don't ask me how I know.
 
-To help make the proper orientation obvious, we will mount different connectors on each side. 
+To help make the proper orientation obvious, we will mount different connectors on each side.
 
-These steps will solder the fragile pins onto the PCB, and the sturdier sockets onto the display board. This makes it easier to set the display aside without bending pins or stabbing defenseless fingers. 
+These steps will solder the fragile pins onto the PCB, and the sturdier sockets onto the display board. This makes it easier to set the display aside without bending pins or stabbing defenseless fingers.
 
 Assemble the display parts on the main board, which will hold everything in correct alignment before soldering:
 
 1. Start with main Griduino PCB
 1. Insert one 20-pin header on the PCB to the right of the Feather, long pins facing up.
-1. Insert two 2-pin headers on the PCB along the left edge, one at each end of the row of 20 holes, long pins facing up. These will physically support the display.<br/>(todo: picture) 
+1. Insert two 2-pin headers on the PCB along the left edge, one at each end of the row of 20 holes, long pins facing up. These will physically support the display.<br/>(todo: picture)
 1. Insert one 20-pin socket on the display, matching the 20-pin header.
 1. Insert two 2-pin sockets on the display, matching the 2-pin headers on the PCB.
-1. Lower the display board onto the pins, spanning all the parts underneath. 
+1. Lower the display board onto the pins, spanning all the parts underneath.
 1. Check pin alignment and orientation of the display.<br/>![](img/display-img7860.jpg)
 
 Before you solder, gently wiggle the display to feel where the assembly is centered with the least stress and tension. This is the exact spot that will ultimately center the display into the cutout window of the plastic case. It will save work later to center the display onto the PCB as well as possible.
@@ -289,7 +289,7 @@ Lastly, insert and solder the power connector, speaker jack and 4-pin terminal s
 
 The Griduino kit comes with  a plastic enclosure from <a href="https://www.polycase.com/">Polycase</a> in their QS-50 Series that exactly matches the PCB mounting holes. Other enclosures could probably be used. If you choose something else, avoid metallic cases since they would block the microwave GPS signal and would need an external antenna.
 
-Temporarily position the PCB in bottom half of the Polycase enclosure. Check for interference and, if needed, use a craft detail knife to notch out holes for each of the three connectors (speaker, power, USB connector). The exact size depends on your particular cable that you choose to use.  For sake of sizing the USB hole, find a USB cable that has the largest connector available. 
+Temporarily position the PCB in bottom half of the Polycase enclosure. Check for interference and, if needed, use a craft detail knife to notch out holes for each of the three connectors (speaker, power, USB connector). The exact size depends on your particular cable that you choose to use.  For sake of sizing the USB hole, find a USB cable that has the largest connector available.
 
 Screw the PCB onto the case's mounting posts, watching the speaker and power jacks clearance. You may need to carve a little extra room in the cutouts, even with the custom-milled case, depending on how the jacks were soldered onto the board.
 
@@ -425,7 +425,7 @@ Sometimes, you may find it interesting to switch over to the graphing barometer 
 
 The information provided is for general education and entertainment. We hope you learn from this and enjoy your hobbies in a safe manner with this new GPS information available at a glance. We take no responsibility for your assembly and construction, nor for how you use this device and information.
 
-**Do not adjust Griduino while driving**. Keep your full attention on the road and the traffic around you. We can not be held responsible for any damage of any sort associated with these projects. You are advised to check your local laws and consult professionals for any project involving electricity, assembly or mounting accessories in your vehicle. 
+**Do not adjust Griduino while driving**. Keep your full attention on the road and the traffic around you. We can not be held responsible for any damage of any sort associated with these projects. You are advised to check your local laws and consult professionals for any project involving electricity, assembly or mounting accessories in your vehicle.
 
 Many areas restrict where and how you are allowed to mount items around your dashboard. You are advised to drive in a safe and legal manner, consistent with all local laws, safety rules and good common sense.
 

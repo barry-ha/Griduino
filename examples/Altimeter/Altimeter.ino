@@ -1,8 +1,10 @@
 /*
   Altimeter -- a functional altimeter with comparison to GPS altitudes
 
-  Date:     2020-03-06 created 0.9
+  Version history: 
+            2021-01-30 added support for BMP390 and latest Adafruit_BMP3XX library
             2020-05-12 updated TouchScreen code
+            2020-03-06 created 0.9
 
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
@@ -32,22 +34,20 @@
          1. Arduino Feather M4 Express (120 MHz SAMD51)     https://www.adafruit.com/product/3857
 
          2. Adafruit 3.2" TFT color LCD display ILI-9341    https://www.adafruit.com/product/1743
-            How to:      https://learn.adafruit.com/adafruit-2-dot-8-color-tft-touchscreen-breakout-v2
-            SPI Wiring:  https://learn.adafruit.com/adafruit-2-dot-8-color-tft-touchscreen-breakout-v2/spi-wiring-and-test
-            Touchscreen: https://learn.adafruit.com/adafruit-2-dot-8-color-tft-touchscreen-breakout-v2/resistive-touchscreen
 
-         3. Adafruit Ultimate GPS                           https://www.adafruit.com/product/746
+         3. Adafruit BMP388 - Precision Barometric Pressure https://www.adafruit.com/product/3966
+            Adafruit BMP390                                 https://www.adafruit.com/product/4816
 
-         4. Adafruit BMP388 - Precision Barometric Pressure https://www.adafruit.com/product/3966
+         4. Adafruit Ultimate GPS                           https://www.adafruit.com/product/746
 
 */
 
 #include <Wire.h>
-#include "SPI.h"                      // Serial Peripheral Interface
-#include "Adafruit_GFX.h"             // Core graphics display library
-#include "Adafruit_ILI9341.h"         // TFT color display library
-#include "Adafruit_GPS.h"             // Ultimate GPS library
+#include <SPI.h>                      // Serial Peripheral Interface
+#include <Adafruit_GFX.h>             // Core graphics display library
+#include <Adafruit_ILI9341.h>         // TFT color display library
 #include "TouchScreen.h"              // Touchscreen built in to 3.2" Adafruit TFT display
+#include "Adafruit_GPS.h"             // Ultimate GPS library
 #include "Adafruit_BMP3XX.h"          // Precision barometric and temperature sensor
 
 // ------- TFT 4-Wire Resistive Touch Screen configuration parameters
@@ -61,7 +61,7 @@
                                       
 // ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE   "Griduino Altimeter"
-#define PROGRAM_VERSION "v0.29"
+#define PROGRAM_VERSION "v0.30"
 #define PROGRAM_LINE1   "Barry K7BWH"
 #define PROGRAM_LINE2   "John KM7O"
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
@@ -69,53 +69,19 @@
 #define SCREEN_ROTATION 1             // 1=landscape, 3=landscape 180-degrees
 
 // ---------- Hardware Wiring ----------
-/*                                Arduino       Adafruit
-  ___Label__Description______________Mega_______Feather M4__________Resource____
-TFT Power:
-   GND  - Ground                  - ground      - J2 Pin 13
-   VIN  - VCC                     - 5v          - Pin 10 J5 Vusb
-TFT SPI: 
-   SCK  - SPI Serial Clock        - Digital 52  - SCK (J2 Pin 6)  - uses hardw SPI
-   MISO - SPI Master In Slave Out - Digital 50  - MI  (J2 Pin 4)  - uses hardw SPI
-   MOSI - SPI Master Out Slave In - Digital 51  - MO  (J2 Pin 5)  - uses hardw SPI
-   CS   - SPI Chip Select         - Digital 10  - D5  (Pin 3 J5)
-   D/C  - SPI Data/Command        - Digital  9  - D12 (Pin 8 J5)
-TFT Resistive touch:
-   X+   - Touch Horizontal axis   - Digital  4  - A3  (Pin 4 J5)
-   X-   - Touch Horizontal        - Analog  A3  - A4  (J2 Pin 8)  - uses analog A/D
-   Y+   - Touch Vertical axis     - Analog  A2  - A5  (J2 Pin 7)  - uses analog A/D
-   Y-   - Touch Vertical          - Digital  5  - D9  (Pin 5 J5)
-TFT No connection:
-   3.3  - 3.3v output             - n/c         - n/c
-   RST  - Reset                   - n/c         - n/c
-   IM0/3- Interface Control Pins  - n/c         - n/c
-GPS:
-   VIN  - VCC                     - 5v          - Vin
-   GND  - Ground                  - ground      - ground
-   >RX  - data into GPS           - TX1 pin 18  - TX  (J2 Pin 2)  - uses hardware UART
-   <TX  - data out of GPS         - RX1 pin 19  - RX  (J2 Pin 3)  - uses hardware UART
+/* Same as Griduino platform
 */
 
-#if defined(SAMD_SERIES)
-  // Adafruit Feather M4 Express pin definitions
-  // To compile for Feather M0/M4, install "additional boards manager"
-  // https://learn.adafruit.com/adafruit-feather-m4-express-atsamd51/setup
-  
-  #define TFT_BL   4                  // TFT backlight
-  #define TFT_CS   5                  // TFT chip select pin
-  #define TFT_DC  12                  // TFT display/command pin
-  #define BMP_CS  13                  // BMP388 sensor, chip select
+// TFT display and SD card share the hardware SPI interface, and have
+// separate 'select' pins to identify the active device on the bus.
+// Adafruit Feather M4 Express pin definitions
+// To compile for Feather M0/M4, install "additional boards manager"
+// https://learn.adafruit.com/adafruit-feather-m4-express-atsamd51/setup
 
-#elif defined(ARDUINO_AVR_MEGA2560)
-  #define TFT_BL   6                  // TFT backlight
-  #define TFT_DC   9                  // TFT display/command pin
-  #define TFT_CS  10                  // TFT chip select pin
-  #define BMP_CS  13                  // BMP388 sensor, chip select
-
-#else
-  #warning You need to define pins for your hardware
-
-#endif
+#define TFT_BL   4                    // TFT backlight
+#define TFT_CS   5                    // TFT chip select pin
+#define TFT_DC  12                    // TFT display/command pin
+#define BMP_CS  13                    // BMP388 sensor, chip select
 
 // create an instance of the TFT Display
 Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
@@ -126,26 +92,17 @@ Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 // This sketch has only two touch areas to make it easy for operator to select
 // "top half" and "bottom half" without looking. Touch target precision is not essential.
 // "up" on the left, and "down" on the right. Touch target precision is not essential.
-#if defined(SAMD_SERIES)
-  // Adafruit Feather M4 Express pin definitions
-  #define PIN_XP  A3    // Touchscreen X+ can be a digital pin
-  #define PIN_XM  A4    // Touchscreen X- must be an analog pin, use "An" notation
-  #define PIN_YP  A5    // Touchscreen Y+ must be an analog pin, use "An" notation
-  #define PIN_YM   9    // Touchscreen Y- can be a digital pin
-#elif defined(ARDUINO_AVR_MEGA2560)
-  // Arduino Mega 2560 and others
-  #define PIN_XP   4    // Touchscreen X+ can be a digital pin
-  #define PIN_XM  A3    // Touchscreen X- must be an analog pin, use "An" notation
-  #define PIN_YP  A2    // Touchscreen Y+ must be an analog pin, use "An" notation
-  #define PIN_YM   5    // Touchscreen Y- can be a digital pin
-#else
-  #warning You need to define pins for your hardware
 
-#endif
+// Adafruit Feather M4 Express pin definitions
+#define PIN_XP  A3                    // Touchscreen X+ can be a digital pin
+#define PIN_XM  A4                    // Touchscreen X- must be an analog pin, use "An" notation
+#define PIN_YP  A5                    // Touchscreen Y+ must be an analog pin, use "An" notation
+#define PIN_YM   9                    // Touchscreen Y- can be a digital pin
+
 TouchScreen ts = TouchScreen(PIN_XP, PIN_YP, PIN_XM, PIN_YM, XP_XM_OHMS);
 
 // ---------- Barometric and Temperature Sensor
-Adafruit_BMP3XX baro(BMP_CS);         // hardware SPI
+Adafruit_BMP3XX baro;                 // hardware SPI
 
 // ---------- Feather's onboard lights
 #define RED_LED 13                    // diagnostics RED LED
@@ -187,6 +144,7 @@ const int howLongToWait = 6;          // max number of seconds at startup waitin
 #define gScreenWidth 320              // pixels wide, landscape orientation
 #define gScreenHeight 240             // pixels high
 #define SCREEN_ROTATION 1             // 1=landscape, 3=landscape 180 degrees
+
 #define FEET_PER_METER 3.28084
 
 // ----- screen layout
@@ -201,17 +159,17 @@ const int xLabel = 8;                 // indent labels, slight margin on left ed
 
 // ----- Griduino color scheme
 // RGB 565 color code: http://www.barth-dev.de/online/rgb565-color-picker/
-#define cBACKGROUND     0x00A           // 0,   0,  10 = darker than ILI9341_NAVY, but not black
-#define cSCALECOLOR      0xF844         // color picker: http://www.barth-dev.de/online/rgb565-color-picker/
-#define cTEXTCOLOR       ILI9341_CYAN   // 0, 255, 255
-#define cLABEL           ILI9341_GREEN
-#define cVALUE           ILI9341_YELLOW
-#define cINPUT           ILI9341_WHITE
-//#define cHIGHLIGHT     ILI9341_WHITE
-#define cBUTTONFILL      ILI9341_NAVY
-#define cBUTTONOUTLINE   ILI9341_CYAN
-#define cBUTTONLABEL     ILI9341_YELLOW
-#define cWARN            0xF844            // brighter than ILI9341_RED but not pink
+#define cBACKGROUND     0x00A         // 0,   0,  10 = darker than ILI9341_NAVY, but not black
+#define cSCALECOLOR     0xF844        // color picker: http://www.barth-dev.de/online/rgb565-color-picker/
+#define cTEXTCOLOR      ILI9341_CYAN  // 0, 255, 255
+#define cLABEL          ILI9341_GREEN
+#define cVALUE          ILI9341_YELLOW
+#define cINPUT          ILI9341_WHITE
+//#define cHIGHLIGHT    ILI9341_WHITE
+#define cBUTTONFILL     ILI9341_NAVY
+#define cBUTTONOUTLINE  ILI9341_CYAN
+#define cBUTTONLABEL    ILI9341_YELLOW
+#define cWARN           0xF844        // brighter than ILI9341_RED but not pink
 
 // ------------ global GPS data
 double gLatitude = 0;               // GPS position, floating point, decimal degrees
@@ -547,6 +505,15 @@ void waitForSerial(int howLong) {
 //=========== setup ============================================
 void setup() {
 
+  // ----- init TFT display
+  tft.begin();                        // initialize TFT display
+  tft.setRotation(SCREEN_ROTATION);   // 1=landscape (default is 0=portrait)
+  clearScreen();
+
+  // ----- init TFT backlight
+  pinMode(TFT_BL, OUTPUT);
+  analogWrite(TFT_BL, 255);           // start at full brightness
+
   // ----- init serial monitor
   Serial.begin(115200);               // init for debuggging in the Arduino IDE
   waitForSerial(howLongToWait);       // wait for developer to connect debugging console
@@ -558,24 +525,15 @@ void setup() {
 
   // ----- init GPS
   GPS.begin(9600);                              // 9600 NMEA is the default baud rate for Adafruit MTK GPS's
-  delay(200);                                   // is delay really needed?
+  delay(50);                                    // is delay really needed?
   GPS.sendCommand(PMTK_SET_BAUD_57600);         // set baud rate to 57600
-  delay(200);
+  delay(50);
   GPS.begin(57600);
   GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA); // turn on RMC (recommended minimum) and GGA (fix data) including altitude
 
   GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);    // 1 Hz update rate
   //GPS.sendCommand(PMTK_SET_NMEA_UPDATE_200_MILLIHERTZ); // Once every 5 seconds update
   //GPS.sendCommand(PGCMD_ANTENNA);             // Request updates on whether antenna is connected or not (comment out to keep quiet)
-
-  // ----- init TFT backlight
-  pinMode(TFT_BL, OUTPUT);
-  analogWrite(TFT_BL, 255);           // start at full brightness
-
-  // ----- init TFT display
-  tft.begin();                        // initialize TFT display
-  tft.setRotation(SCREEN_ROTATION);   // landscape (default is portrait)
-  clearScreen();
 
   // ----- announce ourselves
   tft.setTextSize(2);
@@ -617,21 +575,26 @@ void setup() {
 #define BMP3_W_INVALID_FIFO_REQ_FRAME_CNT UINT8_C(2)
 */
 
-  // ----- init barometer
-  if (!baro.begin()) {
+  // ----- init BMP388 or BMP390 barometer
+  if (baro.begin_SPI(BMP_CS)) {
+    // success
+  } else {
+    // failed to initialize hardware
     Serial.println("Error, unable to initialize BMP388, check your wiring");
     tft.setCursor(0, 80);
     tft.setTextColor(cWARN);
     tft.setTextSize(3);
-    tft.println("Error!\n Unable to init\n  BMP388 sensor\n   check wiring");
+    tft.println("Error!\n Unable to init\n  BMP388/390 sensor\n   check wiring");
     delay(4000);
   }
 
-  // Set up BMP388 oversampling and filter initialization
-  baro.setTemperatureOversampling(BMP3_OVERSAMPLING_8X);
+  // ----- Settings recommended by Bosch based on use case for "handheld device dynamic"
+  // https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bmp388-ds001.pdf
+  // Section 3.5 Filter Selection, page 17
+  baro.setTemperatureOversampling(BMP3_NO_OVERSAMPLING);
   baro.setPressureOversampling(BMP3_OVERSAMPLING_4X);
-  baro.setIIRFilterCoeff(BMP3_IIR_FILTER_COEFF_7);
-  // baro.setOutputDataRate(BMP3_ODR_50_HZ);
+  baro.setIIRFilterCoeff(BMP3_IIR_FILTER_COEFF_7);     // was 3, too busy
+  baro.setOutputDataRate(BMP3_ODR_50_HZ);
 
   // Get first data point (done twice because first reading is always bad)
   getBaroData();
@@ -653,7 +616,7 @@ const int CHECK_CRASH_INTERVAL = 10*1000;       // Timer 3
 
 void loop() {
 
-  // if our timer or system millis() wrapped around, reset it
+  // if a timer or system millis() wrapped around, reset it
   if (prevTimer1 > millis()) { prevTimer1 = millis(); }
   // (prevTimer2 > millis()) { prevTimer2 = millis(); }
   // (prevTimer3 > millis()) { prevTimer3 = millis(); }
@@ -689,8 +652,10 @@ void loop() {
   Point touch;
   if (newScreenTap(&touch)) {
 
-    //const int radius = 3;     // debug
-    //tft.fillCircle(touch.x, touch.y, radius, cWARN);  // debug - show dot
+    #ifdef SHOW_TOUCH_TARGETS
+      const int radius = 3;           // debug
+      tft.fillCircle(touch.x, touch.y, radius, cWARN);  // debug - show dot
+    #endif
     //touchHandled = true;      // debug - true=stay on same screen
 
     if (touch.x < gScreenWidth / 2) {
