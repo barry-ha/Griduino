@@ -64,7 +64,7 @@
 // Example 1: Number of "Groundhog Days"
 //      Encode "Sunday, Feb 2, 2020" as a time_t
 //      But use the day before Feb 2, so the counter includes "Groundhog Day #1" on 2/2/2020
-/* */
+/* 
 #define HIDE_ELAPSED_HMS
 #define DISPLAY_LINE_1  "Total days including"
 #define DISPLAY_LINE_2  "Sunday, Feb 2, 2020"
@@ -89,6 +89,15 @@ TimeElements targetGMT  { 0,0,7+18,  1,  31,10,2020-1970}; // 6pm Halloween in P
 #define DISPLAY_LINE_3  "Christmas Eve"
 //                        s,m,h,   dow,   d, m, y
 TimeElements targetGMT  { 0,0,7+0,  1,  25,12,2020-1970}; // Midnight in Pacific time (encoded in GMT by adding 7 hours)
+/* */
+
+// Example 4: Time until Valentines Day
+/* */
+#define DISPLAY_LINE_1  "Countdown to"
+#define DISPLAY_LINE_2  "Sunday, Feb 14, 2021"
+#define DISPLAY_LINE_3  "Valentines's Day"
+//                        s,m,h,   dow,  d, m, y
+TimeElements targetGMT  { 0,0,8+0,  1,  14,02,2021-1970}; // Midnight in Pacific time (encoded in GMT by adding 8 hours DST)
 /* */
 
 // ========== extern ===========================================
