@@ -1,4 +1,7 @@
 //------------------------------------------------------------------------------
+//  File: sm.c
+//  Purpose: generalized state machine
+//
 //	COPYRIGHT 2018 TRILINEAR TECHNOLOGIES, INC.
 //	CONFIDENTIAL AND PROPRIETARY
 //

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 //  File name: sm_button.c
 //
-//  Description: Button processing implementation file.
+//  Description: Button processing on resistive touch screen using a state machine
 //
 //------------------------------------------------------------------------------
 //  The MIT License (MIT)
@@ -27,9 +27,9 @@
 //  THE SOFTWARE.
 //------------------------------------------------------------------------------
 #include <stdio.h>
-#include <stdint.h>                                                             //  Standard int types
-#include <stdbool.h>                                                            //  Standard bool type
-#include <string.h>                                                            	//  memcpy
+#include <stdint.h>                   // Standard int types
+#include <stdbool.h>                  // Standard bool type
+#include <string.h>                   // memcpy
 
 #include "sm.h"
 #include "sm_button.h"
@@ -42,13 +42,15 @@
 //------------------------------------------------------------------------------
 // Defines
 //------------------------------------------------------------------------------
-#define	SAMPLE_TIME_MS						50									//	50ms (20Hz)
+//efine	SAMPLE_TIME_MS   50                       // 50ms (20Hz)
+#define	SAMPLE_TIME_MS   25                       // 25ms (40Hz)
 
-#define	IDLE_TIMEOUT					(1000 / SAMPLE_TIME_MS)					//	1 second
-#define	CLICK_TIME						( 250 / SAMPLE_TIME_MS)					//	250ms
-#define	LONG_PRESS_TIME					(1200 / SAMPLE_TIME_MS)					//	1.2s
+#define	IDLE_TIMEOUT     (1000 / SAMPLE_TIME_MS)  // 1 second
+//efine	CLICK_TIME       ( 250 / SAMPLE_TIME_MS)  // 250ms
+#define	CLICK_TIME       ( 100 / SAMPLE_TIME_MS)  // 100ms
+#define	LONG_PRESS_TIME  (1200 / SAMPLE_TIME_MS)  // 1.2s
 
-#define	DCLICK_TIME						(400 / SAMPLE_TIME_MS)					//	400ms
+#define	DCLICK_TIME      ( 400 / SAMPLE_TIME_MS)  // 400ms
 
 //------------------------------------------------------------------------------
 // Local enum
@@ -104,10 +106,10 @@ static btn_status_t	btn_status;
 //------------------------------------------------------------------------------
 void btn_init(void)
 {
-	memset(&sm, 0, sizeof(sm));													//	clear state machine
-	sm.init_fn = sm_button_init;												//	set init function
-    sm_init(&sm, states, sm_state_ct);											//	init
-    btn_status = btn_idle;
+  memset(&sm, 0, sizeof(sm));         // clear state machine
+  sm.init_fn = sm_button_init;        // set init function
+  sm_init(&sm, states, sm_state_ct);  // init
+  btn_status = btn_idle;
 }
 
 //------------------------------------------------------------------------------
@@ -123,7 +125,7 @@ void btn_init(void)
 //------------------------------------------------------------------------------
 void btn_process(btn_event_t ev)
 {
-    sm_process(&sm, states, (sm_event_t)ev);                                    //  Process current state
+  sm_process(&sm, states, (sm_event_t)ev);  //  Process current state
 }
 
 //------------------------------------------------------------------------------
@@ -180,25 +182,25 @@ static sm_state_t sm_button_init(sm_t* sm)
 //------------------------------------------------------------------------------
 static sm_status_t idle_enter(sm_t* sm, sm_event_t ev)
 {
-    return SM_OK;                                                               //  Status is OK
+    return SM_OK;                       //  Status is OK
 }
 static sm_status_t idle_process(sm_t* sm, sm_event_t ev)
 {
-    switch(ev)                                                                  //  process button events
-    {
-    case EVENT_TIMER:                                                           //  100ms timer event
-        break;
-    case EVENT_BUTTON_DN:                                                       //  button down
-    	sm_state_change(sm, ST_SCLICK_TST);                                     //  Change to click test
-        break;
-    case EVENT_BUTTON_UP:                                                       //  button up
-        break;
-    }
-    return SM_OK;                                                               //  Status is OK
+  switch(ev)                            //  process button events
+  {
+  case EVENT_TIMER:                     //  100ms timer event
+    break;
+  case EVENT_BUTTON_DN:                 //  button down
+    sm_state_change(sm, ST_SCLICK_TST); //  Change to click test
+    break;
+  case EVENT_BUTTON_UP:                 //  button up
+    break;
+  }
+  return SM_OK;                         //  Status is OK
 }
 static sm_status_t idle_exit(sm_t* sm, sm_event_t ev)
 {
-    return SM_OK;                                                               //  Status is OK
+  return SM_OK;                         //  Status is OK
 }
 
 //------------------------------------------------------------------------------
