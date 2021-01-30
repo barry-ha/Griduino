@@ -20,7 +20,7 @@ This kit is almost entirely "through hole" construction. Only two components, th
 
 * **Fine-tipped soldering iron.** A standard fine-tipped iron suitable for use with conventional 0.1” pitch through-hole components.  It is recommended that you use a temperature controlled iron at a suitable temperature for your solder, if you have one. It is assumed that you will already have the necessary skills to solder this kit. If however you are not comfortable with through-hole electronic soldering, there are plenty of soldering tutorials available online.
 
-* **Solder with a flux core.**  Any decent quality, thin, flux-cored solder for electronics will work. Solder diameter of 0.031" is good and 0.020" (0.50 mm) is better. Do not use solder intended for plumbing. <br/>Some people like to use "no clean" solder but personally I've not had good luck it. We recommend something like Kester 245 63% Tin 37% Lead, part number [24-6337-0010](https://www.amazon.com/dp/B00068IJWC/ref=cm_sw_em_r_mt_dp_dfmcGb5707H9N). If the look of flux residue is bothersome, clean it with 91% isopropyl alcohol. Don't clean the front of the PCB because it can remove the silkscreen lettering.<br/>![](img/kester-solder-020-img1555.jpg)
+* **Solder with a flux core.**  Any decent quality, thin, flux-cored solder for electronics will work. Solder diameter of 0.031" is good and 0.020" (0.50 mm) is better. Do not use solder intended for plumbing. <br/>Some people like to use "no clean" solder but personally I've not had good luck it. We recommend something like Kester 245 63% Tin 37% Lead, part number [24-6337-0010](https://www.amazon.com/dp/B00068IJWC/ref=cm_sw_em_r_mt_dp_dfmcGb5707H9N). If the look of flux residue is bothersome, clean it with 91% isopropyl alcohol. Don't clean the _front_ of the PCB because alcohol can remove the silkscreen lettering.<br/>![](img/kester-solder-020-img1555.jpg)
 
 * **Needle nose pliers.** The component's leads must be bent with small pliers for a good fit into holes. Small pliers are also good for picking up the smallest parts from a tray.
 * **Side cutters.** After you solder discrete components to the board, you will need to clip off the protruding wires. Wear eye protection and aim the bits away from you in a safe direction. 
@@ -33,10 +33,10 @@ This kit is almost entirely "through hole" construction. Only two components, th
 * **Hobbyist bench vise.** You'll want a way to hold the PCB at a convenient height and angle for soldering parts. A small adjustable bench vise, such as a <a href="https://www.panavise.com/">Panavise Model 366</a>, will make your task easier. Use a holder wide enough to grip the Griduino PCB of 4-1/2" width.<br/>
  ![](img/panavise-366.png)
  
-* **Craft knife.** The plastic case will need small cutouts for power and speaker wires to reach the connectors. A very careful application of a sharp small knife can trim out the holes you need. A craft detail knife such as Fiskars 165110-1002 has better safety and precision than Exacto knives.<br/>
+* **Craft knife.** The plastic case might need optional small cutouts to bring wires into the case, depending on how you choose to connect power and speakers. A careful application of a sharp knife can trim out notches or holes. A craft detail knife such as Fiskars 165110-1002 has better safety and precision than Exacto knives.<br/>
 ![](img/craft-knife-fiskars-165110.jpg)
 
-* **Blue painters tape.** While soldering things upside down, an easy-to-remove tape can temporarily hold parts onto the PCB. When you do this, solder only one pin, then double-check the parts are still tight on the PCB. If not, reheat the one pin and press on the part to re-seat it. Then solder the remaining leads.<br/>
+* **Blue painters tape.** While soldering things upside down, an easy-to-remove tape is one way temporarily hold parts onto the PCB. When you do this, solder only one pin, then double-check the parts are still tight on the PCB. If not, reheat the one pin and press on the part to re-seat it. Then solder the remaining leads.<br/>
 ![](img/painters-tape-img3026.jpg)
 
 * **Tiny flat head screwdriver.** If you use the 4-terminal strip after assembly (optional), it needs an unusually narrow-bladed screwdriver to reach the recessed screw heads. A "jeweler's screwdriver" will work well here.
@@ -51,7 +51,7 @@ Some of Griduino's hardware, such as the connectors and PCB, should be easy to i
 
 ![](img/connectors-img7056.jpg)
 
-There are two 8-pin DIPs (dual inline package) chips. Inspect the silkscreen label to identify which is which. Then look closely for a notch at one end -- this helps locate Pin 1. The notch must be oriented the same direction as the semicircle on the PCB.
+To identify the two 8-pin DIPs (dual inline package), inspect the silkscreen label to identify which is which. Then look closely for a notch at one end -- this helps locate Pin 1. The chip's notch must be oriented the same direction as the PCB's semicircle.
 
 ![](img/dip-chips-img7038.jpg)
 
@@ -67,16 +67,13 @@ Electrolytic capacitors are marked with an arrow or "-" to indicate the negative
 
 ![](img/electrolytics-img7041.jpg)
 
-
-
-
 Header pins can join a small PCB onto the main board. They are designed to let you break off the number you need. Use needle nose pliers to hold steady the pins you'll keep and use your fingers to snap off the rest.
 
 ![](img/header-pins-img7080.jpg)
 
 <h2>4. Construction Step-By-Step</h2>
 
-You should now be ready to build your Griduino. Here is a step-by-step progression through the assembly process in a recommended order. This order is not compulsory, however it has been chosen to ensure that smaller components are fitted before larger components that may make them difficult to reach for soldering. It is **strongly recommended** that you only unpack one component at a time: that which you are currently installing.
+You should now be ready to build your Griduino. We recommend this step-by-step progression through the assembly process, chosen to install the smaller components before the larger components which makes them easier to solder into place. We recommend that you only unpack one component at a time: that which you are currently installing.
 
 <h3>Step 1: U3 Voltage Regulator</h3>
 
@@ -104,7 +101,7 @@ Automobiles are "the power supply from hell." The TVS diode protects the Griduin
 
 <h3>Step 3: Resistors</h3>
 
-This kit uses five resistors, R1 - R5, each of a different value. Refer to the schematic or bill-of-materials for the values.
+This kit uses five resistors, R1 - R5, each of a different value. Refer to the [bill-of-materials](https://github.com/barry-ha/Griduino/blob/master/hardware/bill_of_materials.md#passive-components "BOM") or schematic for the values.
 
 Measure the resistance of each item with your ohmmeter before installation. These resistors are very small and it's easy to mistake the color coded bands.
 
@@ -128,15 +125,19 @@ This kit has five identical 47 uF electrolytic capacitors. Be careful of polarit
 
 Don't substitute taller capacitors - although they would be electrically equivalent, they won't fit under the display board above them.
 
+If your electrolytic capacitors are taped onto a strip, as in for automatic insertion machines, then clip the leads off the strip. This is the easiest way to free the capacitor. Otherwise the tape's residue may stick to the wires and interfere with assembly.
+
+![](img/electrolytics-img7848.jpg)
+
 Solder only one lead of each electrolytic. Then check that the capacitor is flush with the board. If not, reheat the wire while pushing it down. Then solder the other lead. Snip off excess wire.
 
-![](img/electrolytics-img7063.jpg)
+![](img/electrolytics-img7063.jpg) 
 
 <h3>Step 6: U1 Volume DS1804 and U4 Audio LM386, 8-pin DIPS</h3>
 
 The two 8-pin DIPs (dual inline package) are soldered directly to the board. It is recommended to *not* use a socket so that vibration cannot cause them work loose over time. The notch on the chip must be aligned with the matching semicircle printed on the PCB.
 
-Note: pins on the DIP are slightly wider than the PCB hole spacing. They are designed this way for pick-and-place machines that squeeze DIPS during assembly. You may find it helpful to manually compress the pins together ever so slightly before inserting into the board. Be gentle; if you press too hard the chip flips over and inserts its pins into your thumb.
+Note: pins on the DIP are slightly wider than the PCB hole spacing. They are designed this way for pick-and-place machines that squeeze DIPS during assembly. You may find it helpful to manually compress the pins together ever so slightly before inserting into the board. Be gentle; if you press too hard the chip flips over and gently inserts its pins deep into your thumb. 
 
 ![](img/compress-pins-img7069.jpg)
 
@@ -156,15 +157,19 @@ To test a Feather, plug a standard micro-USB cable into the onboard connector; t
 
 <h3>Step 8: Installing Feather M4 Express</h3>
 
-The Feather comes with two 16-pin header strips loose in the package. Take one 16-pin strip and break off 4 pins so it exactly matches the Feather's pinout: one 12-pin strip, and one 16-pin strip. Temporarily put the strips into a solderless breadboard to hold them in precise alignment. The long end of the pins go down into the breadboard; the short end goes into the Feather's PCB. (Actually the long pins can go up *or* down, it doesn't matter. We like them down for a more tidy appearance from the top.) Solder the Feather board to both header pin strips.
+The Feather comes with two 16-pin header strips loose in the package. Take one 16-pin strip and break off 4 pins so it exactly matches the Feather's pinout: one 12-pin strip, and one 16-pin strip. 
 
-![](img/feather-headers-img7072.jpg)
+Put the header strips into the PCB; this ensures precise alignment. The long end of the pins go down into the breadboard; the short end goes into the Feather's PCB. (Actually the long pins can go up *or* down, it doesn't matter. We like them down for a more tidy appearance from the top.)
 
-To remove the Feather from the breadboard, carefully work it upward gently from both ends. It can be helpful to lever it *gently* upwards with a small screwdriver from underneath. It's a good idea to test the Feather again with the Blinky program.
+![](img/feather-headers-img7849.jpg)
 
-![](img/feather-removal-img7073.jpg)
+Put the Feather board onto the header strips. 
 
-Insert the Feather board into the PCB. Make sure the pins are completely inserted and the Feather is held off the PCB by only the small black part of the header strip. 
+![](img/feather-headers-img7851.jpg)
+
+Solder the top pins only. 
+
+Make sure the pins are completely inserted and the Feather is held off the PCB by only the small black part of the header strip. 
 
 <h3 style="color:darkred">Wrong:</h3>
 
@@ -174,7 +179,9 @@ Insert the Feather board into the PCB. Make sure the pins are completely inserte
 
 ![](img/feather-correct-img7075.jpg)
 
-Solder the pins to the Griduino board. You don't need to clip off the long ends; there is ample room inside the case.
+Solder one bottom pin to the PCB. Check again the header strips remained flush against the board. Solder the remaining pins.
+
+You don't need to clip off the long ends; there is ample room inside the case.
 
 It's a good idea to test the Feather once again with the Blinky program.
 
@@ -183,7 +190,7 @@ It's a good idea to test the Feather once again with the Blinky program.
 The "Ultimate GPS" package shipped from Adafruit comes with a header strip and a battery holder.
 
 * Count the pins on the supplied header strip. The GPS requires a 9-pin header and sometimes Adafruit may ship an 8-pin header. If needed, add an extra pin from some extra strip, such as the one leftover from the Feather.
-* Do not solder a battery holder onto the back of the GPS. It won't hurt anything to have this holder, but it will go unused. Its slot will be unreachable after all the parts are installed. Instead, our Griduino board is designed with a separate coin battery holder, BT1, to replace this one on the back of the Ultimate GPS board.
+* Do not solder a battery holder onto the back of the GPS. It won't hurt anything to have this holder, but it will go unused. Its slot will be unreachable after all the parts are installed. Instead, our Griduino board is designed with a separate coin battery holder, BT1, to replace the one on the Ultimate GPS board.
 
 Insert a 9-pin header pin strip onto the Griduino PCB. Break off two single pins from a leftover strip and insert them into the other two corners. Do not solder them yet. Also shown below are the two battery holders and which one goes on the board in the next step.
 
@@ -201,13 +208,15 @@ Solder the battery holder onto the PCB. This is a surface-mount device; note tha
 
 ![](img/battery-holder-img7096.jpg)
 
-**Do not** insert a battery yet. Put the battery aside until the end to avoid any chance of shorts during construction. In fact, the battery is optional. Its only purpose is to maintain the RTC (real time clock) while Griduino is turned off.
+**Do not** insert a battery yet. Put the battery aside until the end to avoid any chance of shorts during construction. In fact, the battery is optional. Its only purpose is to maintain the RTC (real time clock) while Griduino is turned off, thereby reducing the wait-time for GPS synch.
 
 <h3>Step 11: Barometric Pressure Sensor</h3>
 
 The barometric sensor comes with a matching 8-pin header strip. Insert this header strip into the main board, long pins first and short pins extending upward. (Okay, it doesn't really matter but we think this looks better.)
 
-Break off two single pins from a leftover strip and insert them into the other two corners. The two single pins in the corners are for physical support and have no other functional purpose. Do not solder them yet.
+If you have a **BMP-388**, break off two single pins from a leftover strip and insert them into the other two corners. The two single pins in the corners are for physical support and have no other functional purpose. Do not solder them yet.
+
+If you have a **BMP-390**, do not insert two single-pin supports. The BMP-390 breakout board is pin-compatible but a different size and the support holes don't line up.
 
 ![](img/pressure-img7098.jpg)
 
@@ -225,31 +234,36 @@ First, solder jumpers IM1/IM2/IM3 on the back of the board. Melt a solder bridge
 
 ![](img/display-jumpers-img7102.jpg)
 
-Note the orientation of the 3.2" TFT display board is important:
+Turn the display-side up. Note the orientation of the 3.2" TFT display board is important:
 
 * The two **GND pins** must go nearest to the USB connector. 
 * The corner with **CD and CCS pins must go nearest to the GPS**; this is the SPI interface that Griduino uses. The other side with pins D0-D7 is the parallel port which is unused.
 
-**Warning:** Always insert the display in this orientation. The circuit will be damaged if you reverse it. Don't ask us how we know.
+![](img/display-orientation-img03910.jpg)
 
-Since both sides have a 20-pin connector, it's easy to plug in backwards. Please mark your display board somehow to recognize which way is up. 
+**Warning:** Always insert the display in this orientation. The circuit will be damaged if you reverse it. Don't ask me how I know.
 
-The following steps are designed to put the fragile pins onto the PCB, and the sturdier sockets onto the display board. This makes it easier to set the display aside without bending pins or stabbing defenseless fingers.
+To help make the proper orientation obvious, we will mount different connectors on each side. 
+
+These steps will solder the fragile pins onto the PCB, and the sturdier sockets onto the display board. This makes it easier to set the display aside without bending pins or stabbing defenseless fingers. 
 
 Assemble the display parts on the main board, which will hold everything in correct alignment before soldering:
 
-1. Start with Griduino main board
-1. Insert one 20-pin socket on the PCB to the right of the Feather
-1. Insert two 2-pin sockets on the PCB, one near the battery holder and one near the 22-ohm power resistor 
-1. Insert one 20-pin header on the display on the side with X+ X- Y+ Y- labels.
-1. Insert two 2-pin headers on the display on the side with D0..D7 labels into the corners.
-1. Break off two 1-pin headers and insert them in the socket aligned with the outer holes on the opposite side of the display; these will physically support the display.<br/>(todo: picture)
+1. Start with main Griduino PCB
+1. Insert one 20-pin header on the PCB to the right of the Feather, long pins facing up.
+1. Insert two 2-pin headers on the PCB along the left edge, one at each end of the row of 20 holes, long pins facing up. These will physically support the display.<br/>(todo: picture) 
+1. Insert one 20-pin socket on the display, matching the 20-pin header.
+1. Insert two 2-pin sockets on the display, matching the 2-pin headers on the PCB.
 1. Lower the display board onto the pins, spanning all the parts underneath. 
-1. Check pin alignment and orientation of the display. The two GND pins go along the USB connector side.<br/>(todo: picture)
+1. Check pin alignment and orientation of the display.<br/>![](img/display-img7860.jpg)
 
-From the top, solder the header pins on the display board.
+Before you solder, gently wiggle the display to feel where the assembly is centered with the least stress and tension. This is the exact spot that will ultimately center the display into the cutout window of the plastic case. It will save work later to center the display onto the PCB as well as possible.
 
-Turn it over, holding the display assembly together, and rest the display on a soft surface. Solder the socket pins on the bottom of the main board.
+From the top, solder one pin on the display. It will start to feel more firmly mounted and you can check the alignment. When you like the position, solder one more pin and check again.
+
+From the top, solder all pins on the display board.
+
+Turn it over, holding the assembly together, and rest the display on a soft surface. Solder all socket pins on the bottom of the main board.
 
 Hey, want to check your work? At this point of assembly, you can plug in USB power: The Blinky program will flash the red LED and the backlight will turn on. You can even load the Griduino program and it will basically work fine except it lacks all other connectors.
 
@@ -275,7 +289,7 @@ Lastly, insert and solder the power connector, speaker jack and 4-pin terminal s
 
 The Griduino kit comes with  a plastic enclosure from <a href="https://www.polycase.com/">Polycase</a> in their QS-50 Series that exactly matches the PCB mounting holes. Other enclosures could probably be used. If you choose something else, avoid metallic cases since they would block the microwave GPS signal and would need an external antenna.
 
-Temporarily position the PCB in bottom half of the Polycase enclosure. Check for interference and use a craft detail knife to notch out holes for each of the three connectors (speaker, power, USB connector). The exact size depends on your particular cable that you choose to use.  For sake of sizing the USB hole, find a USB cable that has the largest connector available. 
+Temporarily position the PCB in bottom half of the Polycase enclosure. Check for interference and, if needed, use a craft detail knife to notch out holes for each of the three connectors (speaker, power, USB connector). The exact size depends on your particular cable that you choose to use.  For sake of sizing the USB hole, find a USB cable that has the largest connector available. 
 
 Screw the PCB onto the case's mounting posts, watching the speaker and power jacks clearance. You may need to carve a little extra room in the cutouts, even with the custom-milled case, depending on how the jacks were soldered onto the board.
 
@@ -289,6 +303,7 @@ Don't overtighten the PCB screws. These are short, small screws and can be easil
 
 There is just enough room for a few thin wires to fit between the PCB and the case, allowing them to exit through your drilled hole. Here's an example of power wires escaping out the back for an Anderson Powerpole connector to the shack's power supply.
 
+
 ![](img/feedthru-power-img7468.jpg)
 
 **Optional:** The Griduino kit includes four optional nylon #6 washers that can go under the mounting posts as a standoff. Put these aside for later. They can help close a possible gap between the display and top cover surface.
@@ -297,7 +312,7 @@ There is just enough room for a few thin wires to fit between the PCB and the ca
 There are several choices for the top cover. Choose one of these according to your desires and what you have available.
 
 <h3>16.a No cover</h3>
-This is how I use my Griduino. This is the easiest way to reach the Reset button during software development. Also, we need to double-click the Reset button to apply pre-compiled software updates. 
+This is how I use my Griduino. This is the easiest way to reach the Reset button during software development or to double-click the Reset button to apply pre-compiled software updates. 
 
 <h3>16.b Polycase standard cover</h3>
 If you have the unmodified [Polycase QS50](https://www.polycase.com/qs-50), carefully cut an opening to fit the display. A [manual cutting template](https://github.com/barry-ha/Griduino/tree/master/hardware) is available that can be printed and taped on for guidance.  Cutting the top cover's opening by hand is actually rather difficult to do accurately and neatly.
