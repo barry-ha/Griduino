@@ -17,19 +17,20 @@ Follow these steps to obtain the Griduino binary file and update the hardware.
 
 1. **Download Griduino Binary**<br/>
    - Visit https://github.com/barry-ha/Griduino
-   - Click on **downloads/griduino_v018.uf2** or later version. This will open a new web page for the binary UF2 file.
+   - Click on **downloads/griduino_v031.uf2** or later version. This will open a new web page for the binary UF2 file.
    - Click on the **Download** link. Save this file where you can easily find it for the next step.
 
 1. **Plug in Griduino**<br/>
-   - Remove the cover from Griduino to expose the Feather's "reset" button. 
-   - Use a standard USB cable to connect your Griduino hardware to your computer. 
-   - Depending on your computer, you should see some message about "setting up device" and possibly "device Feather M4 is ready". 
+   - Use a standard USB cable to connect your Griduino hardware to your computer.
+   - Depending on your computer, you should see a message about "setting up device" and possibly "device Feather M4 is ready". 
+   - Get a wooden (must not be metal or conductive) toothpick that can fit in the hole in the front cover. Or remove the cover to expose the "reset" button.
 
 1. **Open Feather as a Drive**<br/>
-   - Press the Feather's "reset" button twice, about a half second apart.
+   - Press the Feather's "reset" button **twice**, about a half second apart.
    - The Griduino screen will blank out, and most Windows computers will sound an audible "drive ready" chime.
-   - In Windows, open the File Explorer.
+   - In Windows, open the **File Explorer**.
    - Find the new drive, e.g. "**FEATHERBOOT (F:)**"
+
 
 1. **Install Griduino Software on Feather M4 Express**<br/>
    - Drag the .UF2 file that you downloaded and drop it on the new drive. Or you can copy/paste it on the new drive.
