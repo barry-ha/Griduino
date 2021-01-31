@@ -40,14 +40,14 @@
 #include <Adafruit_ILI9341.h>         // TFT color display library
 #include "constants.h"                // Griduino constants and colors
 #include "model_gps.h"                // "Model" portion of model-view-controller
-#include "Adafruit_BMP3XX.h"          // Precision barometric and temperature sensor
+//#include "Adafruit_BMP3XX.h"          // Precision barometric and temperature sensor (removed temperature reading)
 #include "save_restore.h"             // Save configuration in non-volatile RAM
 #include "TextField.h"                // Optimize TFT display text for proportional fonts
 #include "view.h"                     // Base class for all views
 
 // ========== extern ===========================================
 extern Model* model;                  // "model" portion of model-view-controller
-extern Adafruit_BMP3XX baro;          // Griduino.ino
+//extern Adafruit_BMP3XX baro;          // Griduino.ino (no, remove temperature reading)
 
 extern void showDefaultTouchTargets();  // Griduino.ino
 extern void getDate(char* result, int maxlen);  // model_gps.h
@@ -70,18 +70,17 @@ class ViewTime : public View {
     // ---------- local data for this derived class ----------
     // color scheme: see constants.h
 
-    // ----- barometer and temperature helpers
-    float getTemperature() {
-      // returns temperature in Farenheight
-      if (!baro.performReading()) {
-        Serial.println("Error, failed to read temperature sensor, re-initializing");
-
-        baro.begin();   // attempt to initialize
-      }
-      // continue anyway
-      float tempF = baro.temperature * 9 / 5 + 32;
-      return tempF;
-    }
+    // ----- barometer and temperature helpers (no, removed temperature reading)
+    //float getTemperature() {
+    //  // returns temperature in Farenheight
+    //  if (!baro.performReading()) {
+    //    Serial.println("Error, failed to read temperature sensor, re-initializing");
+    //    delay(25);
+    //  }
+    //  // continue anyway
+    //  float tempF = baro.temperature * 9 / 5 + 32;
+    //  return tempF;
+    //}
 
 
     // ----- screen text
@@ -96,13 +95,13 @@ class ViewTime : public View {
     TextField txtClock[numClockFields] = {
       // text            x,y    color             index
       {"Griduino GMT",  -1, 10, cTEXTCOLOR, ALIGNCENTER,eFONTSYSTEM}, // [TITLE] program title, centered
-      {"hh",            12, 90, cVALUE,     ALIGNLEFT, eFONTGIANT},   // [HOURS]     giant clock hours
-      {":",             94, 90, cVALUE,     ALIGNLEFT, eFONTGIANT},   // [COLON1]    :
-      {"mm",           120, 90, cVALUE,     ALIGNLEFT, eFONTGIANT},   // [MINUTES]   giant clock minutes
-      {":",            204, 90, cVALUE,     ALIGNLEFT, eFONTGIANT},   // [COLON2]    :
-      {"ss",           230, 90, cVALUE,     ALIGNLEFT, eFONTGIANT},   // [SECONDS]   giant clock seconds
-      {"MMM dd, yyyy",  -1,130, cVALUE,     ALIGNCENTER, eFONTSMALL}, // [GMTDATE]   GMT date
-      {"12.3 F",        -1,164, cVALUE,     ALIGNCENTER, eFONTSMALL}, // [DEGREES]   Temperature
+      {"hh",            12, 94, cVALUE,     ALIGNLEFT, eFONTGIANT},   // [HOURS]     giant clock hours
+      {":",             94, 94, cVALUE,     ALIGNLEFT, eFONTGIANT},   // [COLON1]    :
+      {"mm",           120, 94, cVALUE,     ALIGNLEFT, eFONTGIANT},   // [MINUTES]   giant clock minutes
+      {":",            204, 94, cVALUE,     ALIGNLEFT, eFONTGIANT},   // [COLON2]    :
+      {"ss",           230, 94, cVALUE,     ALIGNLEFT, eFONTGIANT},   // [SECONDS]   giant clock seconds
+      {"MMM dd, yyyy",  -1,140, cVALUE,     ALIGNCENTER, eFONTSMALL}, // [GMTDATE]   GMT date
+      {"",              -1,174, cVALUE,     ALIGNCENTER, eFONTSMALL}, // [DEGREES]   Temperature e.g. "12.3 F"
       {"hh:mm:ss",     118,226, cTEXTCOLOR, ALIGNLEFT, eFONTSMALL},   // [LOCALTIME] Local time
       {"-7h",            8,226, cTEXTFAINT, ALIGNLEFT, eFONTSMALLEST},// [TIMEZONE]  addHours time zone
       {"6#",           308,226, cTEXTFAINT, ALIGNRIGHT,eFONTSMALLEST},// [NUMSATS]   numSats
@@ -177,16 +176,16 @@ void ViewTime::updateScreen() {
   txtClock[GMTDATE].print(sDate);
 
   // Temperature
-  float t = getTemperature();
-  double intpart;
-  double fractpart= modf(t, &intpart);
+  //float t = getTemperature();       // (no, removed this, doesn't make sense to report internal temperature on this view)
+  //double intpart;
+  //double fractpart= modf(t, &intpart);
 
-  int degr = (int) intpart;
-  int frac = (int) fractpart*10;
+  //int degr = (int) intpart;
+  //int frac = (int) fractpart*10;
   
-  char sTemp[9];         // strlen("123.4 F") = 7
-  snprintf(sTemp, sizeof(sTemp), "%d.%d F", degr, frac);
-  txtClock[DEGREES].print(sTemp);
+  //char sTemp[9];         // strlen("123.4 F") = 7
+  //snprintf(sTemp, sizeof(sTemp), "%d.%d F", degr, frac);
+  //txtClock[DEGREES].print(sTemp);
 
   // Hours to add/subtract from GMT for local time
   char sign[2] = { 0, 0 };            // prepend a plus-sign when >=0

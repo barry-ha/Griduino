@@ -3,13 +3,23 @@ To install a firmware update, see the [Programming](https://github.com/barry-ha/
 
 All notable changes to this project are documented in this file.
 
-Version numbers correspond to [Downloads](https://github.com/barry-ha/Griduino/tree/master/downloads) available as pre-compiled binary Griduino programs. 
+Version numbers correspond to [Downloads](https://github.com/barry-ha/Griduino/tree/master/downloads) available as pre-compiled binary Griduino programs.
 
 The changelog format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and the Griduino project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+**v0.31** &nbsp; 2020-01-30
+
+Updated the pressure sensor code to use the latest BMP3XX library. Please update to the v2 library from Adafruit or you’ll get a compile error:
+1	Run the Arduino workbench
+1	Tools > Manage Libraries … > Type: Updateable
+1	Find “Adafruit BMP3XX Library” in the list and update to the latest version
+1	It’s okay to get all the latest library dependencies, too. The list has been updated and tested for v0.31.
+
+When we started the Griduino project in early 2020, Adafruit offered only one barometric sensor: BMP388. In October 2020, Bosch introduced a more sensitive device, BMP390, and Adafruit followed suit to sell it on a pin-compatible breakout board. However, it’s not quite software-compatible. I bought and tested the new BMP390 to make sure it works successfully and today I checked in the code changes. Griduino software will now work with either barometric sensor and is a little more future-proof.
+
 **v0.30** &nbsp; 2020-12-19
 
-Fixed the background color of the activity indicator on the bottom line. The code change was to extend the base class in view.h so that every screen is allowed to have its own background color independent of other screens. 
+Fixed the background color of the activity indicator on the bottom line. The code change was to extend the base class in view.h so that every screen is allowed to have its own background color independent of other screens.
 
 **v0.29** &nbsp; 2020-11-26
 
@@ -40,7 +50,6 @@ Added new view for a frivolous "Groundhog Day" counter display. We feel like we'
 Also vastly updated the stadalone "Baroduino" example program.
 
 **v0.23** &nbsp; 2020-09-02
-
 
 Refactored views into base class "View" and derived classes. No visible change to usage and operation.
 

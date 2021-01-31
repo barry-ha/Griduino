@@ -102,8 +102,6 @@ TimeElements targetGMT  { 0,0,8+0,  1,  14,02,2021-1970}; // Midnight in Pacific
 
 // ========== extern ===========================================
 extern Model* model;                  // "model" portion of model-view-controller
-extern Adafruit_BMP3XX baro;          // Griduino.ino
-
 extern void showDefaultTouchTargets();// Griduino.ino
 
 // ========== class ViewDate ===================================

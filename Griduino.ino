@@ -72,7 +72,6 @@
 #include <Adafruit_ILI9341.h>         // TFT color display library
 #include <TouchScreen.h>              // Touchscreen built in to 3.2" Adafruit TFT display
 #include "Adafruit_GPS.h"             // Ultimate GPS library
-#include "Adafruit_BMP3XX.h"          // Precision barometric and temperature sensor
 #include "Adafruit_NeoPixel.h"        // On-board color addressable LED
 #include "DS1804.h"                   // DS1804 digital potentiometer library
 #include "save_restore.h"             // save/restore configuration data to SDRAM
@@ -197,12 +196,9 @@ Adafruit_NeoPixel pixel = Adafruit_NeoPixel(NUMPIXELS, PIN_NEOPIXEL, NEO_GRB + N
 #endif
 TouchScreen ts = TouchScreen(PIN_XP, PIN_YP, PIN_XM, PIN_YM, XP_XM_OHMS);
 
-// ---------- Barometric and Temperature Sensor
-Adafruit_BMP3XX baro(BMP_CS);         // hardware SPI
-
 // ---------- Feather's onboard lights
-#define RED_LED 13          // diagnostics RED LED
-//efine PIN_LED 13          // already defined in Feather's board variant.h
+#define RED_LED 13                    // diagnostics RED LED
+//efine PIN_LED 13                    // already defined in Feather's board variant.h
 
 // ---------- GPS ----------
 /* "Ultimate GPS" pin wiring is connected to a dedicated hardware serial port
@@ -474,7 +470,7 @@ void waitForSerial(int howLong) {
   while (millis() < targetTime) {
     if (Serial) break;
     if (done) break;
-    tft.drawRect(x, y, w, h, cLABEL);   // look busy
+    tft.drawRect(x, y, w, h, cLABEL); // look busy
     x += 2;
     y += 2;
     w -= 4;
@@ -483,7 +479,7 @@ void waitForSerial(int howLong) {
       x = y = 0;
       w = gScreenWidth;
       h = gScreenHeight;
-      tft.fillScreen(ILI9341_BLACK);    // (cBACKGROUND)
+      tft.fillScreen(ILI9341_BLACK);  // (cBACKGROUND)
       done = true;
     }
     delay(15);
@@ -511,18 +507,18 @@ void waitForSerial(int howLong) {
 #include "model_gps.h"
 
 // create an instance of the model
-Model modelGPS;             // normal: use real GPS hardware
-MockModel modelSimulator;   // test: simulated travel (see model_gps.h)
+Model modelGPS;                       // normal: use real GPS hardware
+MockModel modelSimulator;             // test: simulated travel (see model_gps.h)
 
 // at power-on, we choose to always start with real GPS receiver hardware 
 // because I don't want to bother saving/restoring this selection right now
 Model* model = &modelGPS;
 
 void fSetReceiver() {
-  model = &modelGPS;        // use "class Model" for GPS receiver hardware
+  model = &modelGPS;                  // use "class Model" for GPS receiver hardware
 }
 void fSetSimulated() {
-  model = &modelSimulator;  // use "class MockModel" for simulated track
+  model = &modelSimulator;            // use "class MockModel" for simulated track
 }
 int fGetDataSource() {
   // this function allows the user interface to display which one is active
@@ -591,11 +587,13 @@ time_t nextFifteenMinuteMark(time_t timestamp) {
 //
 //==============================================================
 
-//bool redrawGraph = true;              // true=request graph be drawn
 bool waitingForRTC = true;            // true=waiting for GPS hardware to give us the first valid date/time
 
-#include "model_baro.h"
-BarometerModel baroModel( &baro );    // create instance of the model, giving it ptr to hardware
+#include "Adafruit_BMP3XX.h"          // Precision barometric and temperature sensor
+Adafruit_BMP3XX baro;                 // singleton instance to manage hardware
+
+#include "model_baro.h"               // barometer that also stores history
+BarometerModel baroModel( &baro, BMP_CS );    // create instance of the model, giving it ptr to hardware
 
 //==============================================================
 //
@@ -610,23 +608,23 @@ BarometerModel baroModel( &baro );    // create instance of the model, giving it
 enum {
   GRID_VIEW = 0,
   HELP_VIEW,
-  SETTING2_VIEW,          // gps/simulator 
-  SETTING3_VIEW,          // english/metric
-  SETTING4_VIEW,          // announce grid crossing 4/6 digit boundaries 
-  SETTING5_VIEW,          // screen rotation
+  SETTING2_VIEW,                      // gps/simulator 
+  SETTING3_VIEW,                      // english/metric
+  SETTING4_VIEW,                      // announce grid crossing 4/6 digit boundaries 
+  SETTING5_VIEW,                      // screen rotation
   SPLASH_VIEW,
   STATUS_VIEW,
   TIME_VIEW,
-  DATE_VIEW,              // Groundhog Day, Halloween, or other day-counting screen
+  DATE_VIEW,                          // Groundhog Day, Halloween, or other day-counting screen
   VOLUME_VIEW,
   //VOLUME2_VIEW,
-  GOTO_SETTINGS,          // command the state machine to show control panel
-  GOTO_NEXT_VIEW,         // command the state machine to show next screen
+  GOTO_SETTINGS,                      // command the state machine to show control panel
+  GOTO_NEXT_VIEW,                     // command the state machine to show next screen
 };
 // list of objects derived from "class View", in alphabetical order
-View* pView;                           // pointer to a derived class
+View* pView;                          // pointer to a derived class
 
-ViewDate   dateView(&tft, DATE_VIEW);  // instantiate derived classes
+ViewDate   dateView(&tft, DATE_VIEW); // instantiate derived classes
 ViewGrid   gridView(&tft, GRID_VIEW);
 ViewHelp   helpView(&tft, HELP_VIEW);
 ViewSettings2 settings2View(&tft, SETTING2_VIEW);
@@ -700,7 +698,7 @@ void selectNewView(int cmd) {
 // ----- adjust screen brightness
 const int gNumLevels = 3;
 const int gaBrightness[gNumLevels] = { 255, 80, 20 }; // global array of preselected brightness
-int gCurrentBrightnessIndex = 0;    // current brightness
+int gCurrentBrightnessIndex = 0;      // current brightness
 void adjustBrightness() {
   // increment display brightness
   gCurrentBrightnessIndex = (gCurrentBrightnessIndex + 1) % gNumLevels;
@@ -712,9 +710,9 @@ void sendMorseLostSignal() {
   // commented out -- this occurs too frequently and is distracting
   return;
 
-  String msg(PROSIGN_AS);   // "wait" symbol
+  String msg(PROSIGN_AS);             // "wait" symbol
   dacMorse.setMessage(msg);
-  dacMorse.sendBlocking();  // TODO - use non-blocking
+  dacMorse.sendBlocking();            // TODO - use non-blocking
 }
 
 void sendMorseGrid4(String gridName) {
@@ -771,9 +769,9 @@ void setup() {
 
   // ----- init Feather M4 onboard lights
   pixel.begin();
-  pixel.clear();                        // turn off NeoPixel
-  pinMode(RED_LED, OUTPUT);             // diagnostics RED LED
-  digitalWrite(PIN_LED, LOW);           // turn off little red LED
+  pixel.clear();                      // turn off NeoPixel
+  pinMode(RED_LED, OUTPUT);           // diagnostics RED LED
+  digitalWrite(PIN_LED, LOW);         // turn off little red LED
   Serial.println("NeoPixel initialized and turned off");
 
   // ----- init touch screen
@@ -862,8 +860,8 @@ void setup() {
   delay(2000);
 
   // ----- restore GPS driving track breadcrumb history
-  model->restore();                     // this takes noticeable time (~0.2 sec) 
-  model->gHaveGPSfix = false;           // assume no satellite signal yet
+  model->restore();                   // this takes noticeable time (~0.2 sec) 
+  model->gHaveGPSfix = false;         // assume no satellite signal yet
   model->gSatellites = 0;
 
   // ----- restore barometric pressure history
@@ -889,14 +887,14 @@ void setup() {
 
   // ----- run unit tests, if allowed by "#define RUN_UNIT_TESTS"
   #ifdef RUN_UNIT_TESTS
-    void runUnitTest();                 // extern declaration
-    runUnitTest();                      // see "unit_test.cpp"
+    void runUnitTest();               // extern declaration
+    runUnitTest();                    // see "unit_test.cpp"
   #endif
 
   // ----- all done with setup, show opening view screen
   pView = &gridView;
-  pView->startScreen();                 // start current view
-  pView->updateScreen();                // update current view
+  pView->startScreen();               // start current view
+  pView->updateScreen();              // update current view
 }
 
 //=========== main work loop ===================================
