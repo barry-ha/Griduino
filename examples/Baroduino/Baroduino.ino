@@ -106,11 +106,18 @@
 
 float elevCorr = 0;
 
-float fMaxPa = 102000;                // upper bound of graph, Pa
-float fMinPa = 98000;                 // lower bound of graph, Pa
+float fMaxPa = 102000;                // top bar of graph: highest pressure rounded UP to nearest multiple of 2000 Pa
+float fMinPa = 98000;                 // bot bar of graph: lowest pressure rounded DOWN to nearest multiple of 2000 Pa
 
-float fMaxHg = 30.6;                  // upper bound of graph, inHg
-float fMinHg = 29.4;                  // lower bound of graph, inHg
+float fMaxHg = 30.6;                  // top axis of graph: upper bound of graph, inHg
+float fMinHg = 29.4;                  // bot axis of graph: bound of graph, inHg
+
+// Use the following to control how much the initial graph fills the display.
+// Smaller numbers give bigger, more dynamic graph.
+// Larger numbers make the first graph look smaller and smoother. 
+// Over time the graph 
+const float PA_RES = 400.0;           // metric y-axis resolution, ie, nearest 2000 Pa (20 hPa)
+const float HG_RES = 0.2;             // english y-axis resolution, ie, nearest 0.2 inHg
 
 enum units { eMetric, eEnglish };
 int gUnits = eEnglish;                // units on startup: 0=english=inches mercury, 1=metric=millibars
@@ -150,10 +157,6 @@ Adafruit_GPS GPS(&Serial1);
 
 // ------------ definitions
 const int howLongToWait = 10;         // max number of seconds at startup waiting for Serial port to console
-
-#define MILLIBARS_PER_INCHES_MERCURY (0.02953)
-#define BARS_PER_INCHES_MERCURY      (0.0338639)
-#define PASCALS_PER_INCHES_MERCURY   (3386.39)
 
 // ----- Griduino color scheme
 // RGB 565 color code: http://www.barth-dev.de/online/rgb565-color-picker/
@@ -382,11 +385,15 @@ void showReadings() {
 
   float pascals = baroModel.getBaroData();
   printPressure( pascals );
-  tickMarks(3, 5);      // draw 8 short ticks every day (24hr/8ticks = 3-hour intervals, 5 px high)
-  tickMarks(12, 10);    // draw 2 long ticks every day (24hr/2ticks = 12-hour intervals, 10 px high)
-  autoScaleGraph();     // update fMinPa/fMaxPa limits on vertical scale
-  scaleMarks(500, 5);   // args: (pressure in Pa, length in pixels)
-  scaleMarks(1000, 10);
+  tickMarks(3, 5);                    // draw 8 short ticks every day (24hr/8ticks = 3-hour intervals, 5 px high)
+  tickMarks(12, 10);                  // draw 2 long ticks every day (24hr/2ticks = 12-hour intervals, 10 px high)
+  autoScaleGraph();                   // update fMinPa/fMaxPa limits on vertical scale
+  
+  // minor scale marks: we think 8 marks looks good along the vertical scale
+  int interval = (int)( (fMaxPa - fMinPa)/8 );
+  scaleMarks(interval, 6);            // args: (pressure in Pa, length in pixels)
+  // major scale marks: we think 4 marks looks good
+  scaleMarks(interval*2, 10);
   drawScale();
 
   if (timeStatus() == timeSet) {
@@ -471,48 +478,46 @@ void autoScaleGraph() {
   // find min/max limits of vertical scale on graph
   // * find lowest and highest values of pressure stored in array
   // * Metric display:
-  //   - set 'fMinPa' to lowest pressure rounded DOWN to nearest multiple of 2000 Pa
-  //   - set 'fMaxPa' to highest pressure rounded UP to nearest multiple of 2000 Pa
+  //   - set 'fMinPa' to lowest recorded pressure rounded DOWN to nearest multiple of 2000 Pa
+  //   - set 'fMaxPa' to highest recorded pressure rounded UP to nearest multiple of 2000 Pa
   // * English display:
   //   - set 'fMinHg' to lowest pressure rounded DOWN to nearest multiple of 0.2 inHg
   //   - set 'fMaxHg' to highest pressure rounded UP to nearest multiple of 0.2 inHg
 
-  float lowestPa = 999999.9;
-  float highestPa = 0.0;
-  bool isEmpty = true;
+  float lowestPa = 1E30;              // start at larger than real pressures, to find minimum
+  float highestPa = 0.0;              // start at smaller than real pressures, to find maximum
+  bool bEmpty = true;                 // assume stored pressure array is full of zeros
   for (int ii = 0; ii <= lastIndex ; ii++) {
     // if element has zero pressure, then it is empty
     if (baroModel.pressureStack[ii].pressure > 0) {
       lowestPa = min(baroModel.pressureStack[ii].pressure, lowestPa);
       highestPa = max(baroModel.pressureStack[ii].pressure, highestPa);
+      bEmpty = false;
     }
   }
-  if (isEmpty) {
+  if (bEmpty) {
     // no data in array, set default range so program doesn't divide-by-zero
     lowestPa  =  95000.0 + 0.1;
     highestPa = 105000.0 - 0.1;
   }
  
-  const float PA_RES = 2000.0;        // metric y-axis resolution
-  const float HG_RES = 0.2;           // english y-axis resolution
-
-  // metric: calculate graph limits in Pa
+  // metric: round up/down the extremes to calculate graph limits in Pa
   fMinPa = (int)(lowestPa/PA_RES) * PA_RES;
   fMaxPa = (int)((highestPa/PA_RES) + 1) * PA_RES;
 
   // english: calculate graph limits in inHg
-  float lowestHg = lowestPa / 3386.39;
-  float highestHg = highestPa / 3386.39;
+  float lowestHg = lowestPa * INCHES_MERCURY_PER_PASCAL;
+  float highestHg = highestPa * INCHES_MERCURY_PER_PASCAL;
   
   fMinHg = (int)(lowestHg/HG_RES) * HG_RES;
   fMaxHg = (int)((highestHg/HG_RES) + 1) * HG_RES;
 
-  /*
-  Serial.print("Minimum and maximum reported pressure = "); printTwoFloats(lowestPa, highestPa); Serial.println(" Pa");   // debug
-  Serial.print("Minimum and maximum vertical scale = "); printTwoFloats(fMinPa, fMaxPa); Serial.println(" Pa");           // debug
-  Serial.print("Minimum and maximum reported pressure = "); printTwoFloats(lowestHg, highestHg); Serial.println(" inHg"); // debug
-  Serial.print("Minimum and maximum vertical scale = "); printTwoFloats(fMinHg, fMaxHg); Serial.println(" inHg");         // debug
-  */
+  /* */
+  Serial.print(": Minimum and maximum reported pressure = "); printTwoFloats(lowestPa, highestPa); Serial.println(" Pa");   // debug
+  Serial.print(": Minimum and maximum vertical scale = "); printTwoFloats(fMinPa, fMaxPa); Serial.println(" Pa");           // debug
+  Serial.print(": Minimum and maximum reported pressure = "); printTwoFloats(lowestHg, highestHg); Serial.println(" inHg"); // debug
+  Serial.print(": Minimum and maximum vertical scale = "); printTwoFloats(fMinHg, fMaxHg); Serial.println(" inHg");         // debug
+  /* */
 }
 
 void scaleMarks(int p, int len) {
@@ -581,7 +586,8 @@ void drawScale() {
     superimposeLabel( MARGIN, yBot - TEXTHEIGHT/3,                 fMinHg, 1);
     superimposeLabel( MARGIN, yBot - graphHeight + TEXTHEIGHT/3,   fMaxHg, 1);
     superimposeLabel( MARGIN, yBot - graphHeight/2 + TEXTHEIGHT/3, (fMinHg + (fMaxHg - fMinHg)/2), 1);
-  } else {    // metric: hecto-Pascal (hPa)
+  } else {
+    // metric: hecto-Pascal (hPa)
     superimposeLabel( MARGIN, yBot + TEXTHEIGHT/3,                 (fMinPa/100), 0);
     superimposeLabel( MARGIN, yBot - graphHeight + TEXTHEIGHT/3,   (fMaxPa/100), 0);
     superimposeLabel( MARGIN, yBot - graphHeight/2 + TEXTHEIGHT/3, (fMinPa + (fMaxPa - fMinPa)/2)/100, 0);
@@ -603,7 +609,7 @@ void drawScale() {
   TextField::setTextDirty(txtDate, numDates);
   txtDate[eTODAY].print();
 
-  char sDate[12];      // strlen("12/34") = 5
+  char sDate[12];                     // strlen("12/34") = 5
   snprintf(sDate, sizeof(sDate), "%d/%d", month(today), day(today));
   txtDate[eDATETODAY].print(sDate);   // "8/25"
 
@@ -754,10 +760,10 @@ void waitForSerial(int howLong) {
 }
 
 void showActivityBar(int row, uint16_t foreground, uint16_t background) {
-  static int addDotX = 10;                    // current screen column, 0..319 pixels
+  static int addDotX = 10;            // current screen column, 0..319 pixels
   static int rmvDotX = 0;
   static int count = 0;
-  const int SCALEF = 64;                      // how much to slow it down so it becomes visible
+  const int SCALEF = 64;              // how much to slow it down so it becomes visible
 
   count = (count + 1) % SCALEF;
   if (count == 0) {
@@ -937,7 +943,7 @@ void loop() {
     nextShowPressure = nextOneSecondMark( rightnow );
   
     float pascals = baroModel.getBaroData();
-    //redrawGraph = true;               // request draw graph
+    //redrawGraph = true;             // request draw graph
     printPressure( pascals );
   }
 
