@@ -161,7 +161,7 @@ class BarometerModel {
       gPressure = baro->pressure + elevCorr;   // Pressure is returned in SI units of Pascals. 100 Pascals = 1 hPa = 1 millibar
       hPa = gPressure / 100;
       inchesHg = 0.0002953 * gPressure;
-      Serial.print("Pressure "); Serial.print(gPressure); Serial.println(" Pa");
+      Serial.print("Barometer "); Serial.print(gPressure); Serial.print(" Pa ["); Serial.print(__LINE__); Serial.println("]");
       return gPressure;
     }
 

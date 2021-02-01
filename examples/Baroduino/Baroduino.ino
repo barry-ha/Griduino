@@ -91,7 +91,8 @@
 #include "Adafruit_GPS.h"             // Ultimate GPS library
 #include "Adafruit_BMP3XX.h"          // Precision barometric and temperature sensor
 #include "Adafruit_NeoPixel.h"        // On-board color addressable LED
-#include "save_restore.h"             // save/restore configuration data to SDRAM
+#include "model_baro.h"               // Model of a barometer that stores 3-day history
+#include "save_restore.h"             // Save configuration in non-volatile RAM
 #include "hardware.h"                 // Griduino pin definitions 
 #include "constants.h"                // Griduino constants, colors, typedefs
 #include "TextField.h"                // Optimize TFT display text for proportional fonts
@@ -160,8 +161,6 @@ const int howLongToWait = 10;         // max number of seconds at startup waitin
 
 // ----- Griduino color scheme
 // RGB 565 color code: http://www.barth-dev.de/online/rgb565-color-picker/
-#define cSCALECOLOR     ILI9341_DARKGREEN // tried yellow but it's too bright
-#define cGRAPHCOLOR     ILI9341_WHITE     // graphed line of baro pressure
 #define cICON           ILI9341_CYAN
 #define cTITLE          ILI9341_GREEN
 #define cWARN           0xF844        // brighter than ILI9341_RED but not pink
@@ -226,7 +225,6 @@ time_t nextFifteenMinuteMark(time_t timestamp) {
 bool redrawGraph = true;              // true=request graph be drawn
 bool waitingForRTC = true;            // true=waiting for GPS hardware to give us the first valid date/time
 
-#include "model_baro.h"
 BarometerModel baroModel( &baro, BMP_CS ); // create instance of the model, giving it ptr to hardware and SPI chip select
 
 // ======== unit tests =========================================

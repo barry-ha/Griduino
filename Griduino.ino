@@ -78,6 +78,7 @@
 #include "constants.h"                // Griduino constants, colors, typedefs
 
 #include "view.h"                     // Griduino screens
+#include "view_baro.h"                // barometric pressure graph
 #include "view_date.h"                // counting days to/from special event 
 #include "view_help.h"                // help screen
 #include "view_splash.h"              // splash screen
@@ -589,7 +590,7 @@ time_t nextFifteenMinuteMark(time_t timestamp) {
 
 bool waitingForRTC = true;            // true=waiting for GPS hardware to give us the first valid date/time
 
-#include "Adafruit_BMP3XX.h"          // Precision barometric and temperature sensor
+#include <Adafruit_BMP3XX.h>          // Precision barometric and temperature sensor
 Adafruit_BMP3XX baro;                 // singleton instance to manage hardware
 
 #include "model_baro.h"               // barometer that also stores history
@@ -607,6 +608,7 @@ BarometerModel baroModel( &baro, BMP_CS );    // create instance of the model, g
 // alias names for the views - must be in same alphabetical order as array below
 enum {
   GRID_VIEW = 0,
+  BARO_VIEW,                          // barometer graph
   HELP_VIEW,
   SETTING2_VIEW,                      // gps/simulator 
   SETTING3_VIEW,                      // english/metric
@@ -624,7 +626,8 @@ enum {
 // list of objects derived from "class View", in alphabetical order
 View* pView;                          // pointer to a derived class
 
-ViewDate   dateView(&tft, DATE_VIEW); // instantiate derived classes
+ViewBaro   baroView(&tft, BARO_VIEW); // instantiate derived classes
+ViewDate   dateView(&tft, DATE_VIEW);
 ViewGrid   gridView(&tft, GRID_VIEW);
 ViewHelp   helpView(&tft, HELP_VIEW);
 ViewSettings2 settings2View(&tft, SETTING2_VIEW);
@@ -640,6 +643,7 @@ void selectNewView(int cmd) {
   // this is a state machine to select next view, given current view and type of command
   View* viewTable[] = {
         &gridView,         // [GRID_VIEW]
+        &baroView,         // [BARO_VIEW]
         &helpView,         // [HELP_VIEW]
         &settings2View,    // [SETTING2_VIEW]
         &settings3View,    // [SETTING3_VIEW]
@@ -653,11 +657,12 @@ void selectNewView(int cmd) {
   };
 
   int currentView = pView->screenID;
-  int nextView = GRID_VIEW;       // default
+  int nextView = BARO_VIEW; // GRID_VIEW;       // default
   if (cmd == GOTO_NEXT_VIEW) {
     // operator requested the next NORMAL user view
     switch (currentView) {
-      case GRID_VIEW:   nextView = STATUS_VIEW; break;
+      case GRID_VIEW:   nextView = BARO_VIEW; break;
+      case BARO_VIEW:   nextView = STATUS_VIEW; break;
       case STATUS_VIEW: nextView = TIME_VIEW; break;
       case TIME_VIEW:   nextView = DATE_VIEW; break;
       case DATE_VIEW:   nextView = GRID_VIEW; break;

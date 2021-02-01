@@ -84,14 +84,18 @@ const int OFF = 0;                    // = turned off
 #define cBUTTONFILL     ILI9341_NAVY
 #define cBUTTONOUTLINE  ILI9341_CYAN
 #define cBREADCRUMB     ILI9341_CYAN
+#define cTITLE          ILI9341_GREEN
 #define cTEXTCOLOR      ILI9341_CYAN    // 0, 255, 255
 #define cTEXTFAINT      0x0514          // 0, 160, 160 = blue, between CYAN and DARKCYAN
-//define cBOXDEGREES    0x0514          // 0, 160, 160 = blue, between CYAN and DARKCYAN
 #define cBOXDEGREES     0x0410          // 0, 128, 128 = blue, between CYAN and DARKCYAN
 #define cBUTTONLABEL    ILI9341_YELLOW
 #define cCOMPASS        ILI9341_BLUE    // a little darker than cBUTTONOUTLINE
 #define cWARN           0xF844          // brighter than ILI9341_RED but not pink
 #define cTOUCHTARGET    ILI9341_RED     // outline touch-sensitive areas
+
+// barometric pressure graph
+#define cSCALECOLOR     ILI9341_DARKGREEN // tried yellow but it's too bright
+#define cGRAPHCOLOR     ILI9341_WHITE     // graphed line of baro pressure
 
 // ------------ typedef's
 struct Point {

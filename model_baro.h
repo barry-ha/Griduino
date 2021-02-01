@@ -57,6 +57,7 @@
 */
 
 #include <Arduino.h>
+#include <Adafruit_BMP3XX.h>          // Precision barometric and temperature sensor
 #include "constants.h"                // Griduino constants, colors, typedefs
 
 // ========== extern ===========================================
