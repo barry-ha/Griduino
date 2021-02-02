@@ -60,7 +60,7 @@
          So if you take the Pascal value of say 100734 and divide by 3386.39 you'll get 29.72 inHg.
          
          The BMP388 sensor has a relative accuracy of 8 Pascals, which translates to 
-         about ± 0.5 meter of altitude. 
+         about +/- 0.5 meter of altitude.
          
   Real Time Clock:
          The real time clock in the Adafruit Ultimate GPS is not directly readable or 
@@ -84,7 +84,6 @@
 
 // ========== extern ===========================================
 extern Model* model;                  // "model" portion of model-view-controller
-extern Adafruit_BMP3XX baro;          // singleton instance to manage barometer hardware
 extern BarometerModel baroModel;      // singleton instance of the barometer model
 
 extern void showDefaultTouchTargets();  // Griduino.ino
@@ -111,6 +110,18 @@ class ViewBaro : public View {
 
   protected:
     // ---------- local data for this derived class ----------
+    float fMaxPa = 102000;            // top bar of graph: highest pressure rounded UP to nearest multiple of 2000 Pa
+    float fMinPa = 98000;             // bot bar of graph: lowest pressure rounded DOWN to nearest multiple of 2000 Pa
+
+    float fMaxHg = 30.6;              // top axis of graph: upper bound of graph, inHg
+    float fMinHg = 29.4;              // bot axis of graph: bound of graph, inHg
+
+    // Use the following to control how much the initial graph fills the display.
+    // Smaller numbers give bigger, more dynamic graph.
+    // Larger numbers make the first graph look smaller and smoother. 
+    const float PA_RES = 400.0;       // metric y-axis resolution, ie, nearest 2000 Pa (20 hPa)
+    const float HG_RES = 0.2;         // english y-axis resolution, ie, nearest 0.2 inHg
+
     bool redrawGraph = true;          // true=request graph be drawn
     bool waitingForRTC = true;        // true=waiting for GPS hardware to give us the first valid date/time
 
@@ -120,7 +131,7 @@ class ViewBaro : public View {
     enum eUnits { eMetric, eEnglish };
     int gUnits = eEnglish;            // units on startup: 0=english=inches mercury, 1=metric=millibars
 
-    // ----- graph screen layout
+    // ========== graph screen layout ==============================
     // todo: are these single-use? can they be moved inside a function?
     const int graphHeight = 160;          // in pixels
     const int pixelsPerHour = 4;          // 4 px/hr graph
@@ -143,7 +154,7 @@ class ViewBaro : public View {
     const int yBot = gScreenHeight - MARGIN - DESCENDERS - TEXTHEIGHT;
     const int yTop = yBot - graphHeight;
 
-    // ----- text screen layout
+    // ========== text screen layout ===================================
     // these are names for the array indexes, must be named in same order as array below
     enum txtIndex {
       eTitle=0, 
@@ -151,15 +162,9 @@ class ViewBaro : public View {
       valPressure, unitPressure,
     };
 
-    /*
-    const int MARGIN = 6;             // reserve an outer blank margin on all sides
-    const int xIndent = 12;           // in pixels, text on main screen
-    const int yText1 = MARGIN+12;     // in pixels, top row, main screen
-    const int yText2 = yText1 + 28;
-    */
     #define numBaroFields 7
     TextField txtBaro[numBaroFields] = {
-      // text            x,y    color             index
+      // text            x,y    color       align       font
       {"Baroduino",     -1, 18, cTITLE,     ALIGNCENTER,eFONTSMALLEST}, // [eTitle] program title, centered
       {"01-02",         48, 18, cWARN,      ALIGNLEFT,  eFONTSMALLEST}, // [eDate]
       {"0#",            48, 36, cWARN,      ALIGNLEFT,  eFONTSMALLEST}, // [eNumSat]
@@ -170,6 +175,27 @@ class ViewBaro : public View {
     };
 
     void showReadings() {
+      clearScreen(yTop, graphHeight);     // erase only the graph area, not the whole screen, to reduce blinking
+
+      float pascals = baroModel.getBaroData();
+      printPressure( pascals );
+      tickMarks(3, 5);                    // draw 8 short ticks every day (24hr/8ticks = 3-hour intervals, 5 px high)
+      tickMarks(12, 10);                  // draw 2 long ticks every day (24hr/2ticks = 12-hour intervals, 10 px high)
+      autoScaleGraph();                   // update fMinPa/fMaxPa limits on vertical scale
+  
+      // minor scale marks: we think 8 marks looks good along the vertical scale
+      int interval = (int)( (fMaxPa - fMinPa)/8 );
+      scaleMarks(interval, 6);            // args: (pressure in Pa, length in pixels)
+      // major scale marks: we think 4 marks looks good
+      scaleMarks(interval*2, 10);
+      drawScale();
+
+      if (timeStatus() == timeSet) {
+        drawGraph();
+      } else {
+        TextField wait = TextField{ "Waiting for real-time clock", 12,100, cTITLE, ALIGNCENTER };
+        wait.print();
+      }
     }
 
     void showTimeOfDay() {
@@ -235,6 +261,239 @@ class ViewBaro : public View {
       }
     }
 
+    void printTwoFloats(float one, float two) {
+      Serial.print("(");
+      Serial.print(one, 2);
+      Serial.print(",");
+      Serial.print(two, 2);
+      Serial.print(")");
+    }
+
+    void autoScaleGraph() {
+      // find min/max limits of vertical scale on graph
+      // * find lowest and highest values of pressure stored in array
+      // * Metric display:
+      //   - set 'fMinPa' to lowest recorded pressure rounded DOWN to nearest multiple of 2000 Pa
+      //   - set 'fMaxPa' to highest recorded pressure rounded UP to nearest multiple of 2000 Pa
+      // * English display:
+      //   - set 'fMinHg' to lowest pressure rounded DOWN to nearest multiple of 0.2 inHg
+      //   - set 'fMaxHg' to highest pressure rounded UP to nearest multiple of 0.2 inHg
+    
+      float lowestPa = 1E30;              // start at larger than real pressures, to find minimum
+      float highestPa = 0.0;              // start at smaller than real pressures, to find maximum
+      bool bEmpty = true;                 // assume stored pressure array is full of zeros
+      for (int ii = 0; ii <= lastIndex ; ii++) {
+        // if element has zero pressure, then it is empty
+        if (baroModel.pressureStack[ii].pressure > 0) {
+          lowestPa = min(baroModel.pressureStack[ii].pressure, lowestPa);
+          highestPa = max(baroModel.pressureStack[ii].pressure, highestPa);
+          bEmpty = false;
+        }
+      }
+      if (bEmpty) {
+        // no data in array, set default range so program doesn't divide-by-zero
+        lowestPa  =  95000.0 + 0.1;
+        highestPa = 105000.0 - 0.1;
+      }
+     
+      // metric: round up/down the extremes to calculate graph limits in Pa
+      fMinPa = (int)(lowestPa/PA_RES) * PA_RES;
+      fMaxPa = (int)((highestPa/PA_RES) + 1) * PA_RES;
+    
+      // english: calculate graph limits in inHg
+      float lowestHg = lowestPa * INCHES_MERCURY_PER_PASCAL;
+      float highestHg = highestPa * INCHES_MERCURY_PER_PASCAL;
+      
+      fMinHg = (int)(lowestHg/HG_RES) * HG_RES;
+      fMaxHg = (int)((highestHg/HG_RES) + 1) * HG_RES;
+    
+      /* */
+      Serial.print(": Minimum and maximum reported pressure = "); printTwoFloats(lowestPa, highestPa); Serial.println(" Pa");   // debug
+      Serial.print(": Minimum and maximum vertical scale = ");    printTwoFloats(fMinPa, fMaxPa);      Serial.println(" Pa");   // debug
+      Serial.print(": Minimum and maximum reported pressure = "); printTwoFloats(lowestHg, highestHg); Serial.println(" inHg"); // debug
+      Serial.print(": Minimum and maximum vertical scale = ");    printTwoFloats(fMinHg, fMaxHg);      Serial.println(" inHg"); // debug
+      /* */
+    }
+
+    void scaleMarks(int p, int len) {
+      // draw scale marks for the vertical axis
+      // input: p = pascal intervals
+      //        len = length of mark, pixels
+      int y = yBot;
+      //           map(val, fromLow,fromHigh,   toLow,toHigh )
+      int deltay = map(p,   0,fMaxPa - fMinPa,  0,graphHeight);
+      for (y = yBot; y > yBot - graphHeight + 5; y = y - deltay) {
+        tft->drawLine(xDay1, y,  xDay1 + len,  y, cSCALECOLOR);  // mark left edge
+        tft->drawLine(xRight,y,  xRight - len, y, cSCALECOLOR);  // mark right edge
+      }
+    }
+
+    void superimposeLabel(int x, int y, double value, int precision) {
+      // to save screen space, the scale numbers are written right on top of the vertical axis
+      // x,y = lower left corner of text (baseline) to write
+      Point ll = { x, y };
+
+      // measure size of text that will be written
+      int16_t x1, y1;
+      uint16_t w, h;
+      tft->getTextBounds("1234",  ll.x,ll.y,  &x1,&y1,  &w,&h);
+
+      // erase area for text, plus a few extra pixels for border
+      tft->fillRect(x1-2,y1-1,  w+4,h+2,  cBACKGROUND);
+      //tft->drawRect(x1-2,y1-1,  w+4,h+2,  ILI9341_RED);  // debug
+
+      tft->setCursor(ll.x, ll.y);
+      tft->print(value, precision);
+    }
+
+    enum { eTODAY, eDATETODAY, eYESTERDAY, eDAYBEFORE };
+    #define numDates 4
+    TextField txtDate[numDates] = {
+      TextField{"Today", xDay3+20,yBot-TEXTHEIGHT+2,  ILI9341_CYAN, 9}, // [eTODAY]
+      TextField{"8/25",  xDay3+34,yBot+TEXTHEIGHT+1,  ILI9341_CYAN, 9}, // [eDATETODAY]
+      TextField{"8/24",  xDay2+34,yBot+TEXTHEIGHT+1,  ILI9341_CYAN, 9}, // [eYESTERDAY]
+      TextField{"8/23",  xDay1+20,yBot+TEXTHEIGHT+1,  ILI9341_CYAN, 9}, // [eDAYBEFORE]
+    };
+
+    void drawScale() {
+      // draw horizontal lines
+      const int yLine1 = yBot - graphHeight;
+      const int yLine2 = yBot;
+      const int yMid   = (yLine1 + yLine2)/2;
+      tft->drawLine(xDay1, yLine1, xRight, yLine1, cSCALECOLOR);
+      tft->drawLine(xDay1, yLine2, xRight, yLine2, cSCALECOLOR);
+      for (int ii=xDay1; ii<xRight; ii+=10) {   // dotted line
+        tft->drawPixel(ii, yMid, cSCALECOLOR);
+        tft->drawPixel(ii+1, yMid, cSCALECOLOR);
+      }
+    
+      // draw vertical lines
+      tft->drawLine( xDay1,yBot - graphHeight,   xDay1,yBot, cSCALECOLOR);
+      tft->drawLine( xDay2,yBot - graphHeight,   xDay2,yBot, cSCALECOLOR);
+      tft->drawLine( xDay3,yBot - graphHeight,   xDay3,yBot, cSCALECOLOR);
+      tft->drawLine(xRight,yBot - graphHeight,  xRight,yBot, cSCALECOLOR);
+    
+      // write limits of pressure scale in consistent units
+      setFontSize(9);
+      tft->setTextColor(ILI9341_CYAN);
+      if (gUnits == eEnglish) {
+        // english: inches mercury (inHg)
+        superimposeLabel( MARGIN, yBot - TEXTHEIGHT/3,                 fMinHg, 1);
+        superimposeLabel( MARGIN, yBot - graphHeight + TEXTHEIGHT/3,   fMaxHg, 1);
+        superimposeLabel( MARGIN, yBot - graphHeight/2 + TEXTHEIGHT/3, (fMinHg + (fMaxHg - fMinHg)/2), 1);
+      } else {
+        // metric: hecto-Pascal (hPa)
+        superimposeLabel( MARGIN, yBot + TEXTHEIGHT/3,                 (fMinPa/100), 0);
+        superimposeLabel( MARGIN, yBot - graphHeight + TEXTHEIGHT/3,   (fMaxPa/100), 0);
+        superimposeLabel( MARGIN, yBot - graphHeight/2 + TEXTHEIGHT/3, (fMinPa + (fMaxPa - fMinPa)/2)/100, 0);
+      }
+    
+      // labels along horizontal axis
+    
+      // get today's date from the RTC (real time clock)
+      time_t today = now();
+      time_t yesterday = today - SECS_PER_DAY;
+      time_t dayBefore = yesterday - SECS_PER_DAY;
+
+      char msg[128];
+      snprintf(msg, sizeof(msg), "RTC time %d-%d-%d at %02d:%02d:%02d",
+                                           year(today),month(today),day(today), 
+                                           hour(today),minute(today),second(today));
+      Serial.println(msg);                // debug
+    
+      TextField::setTextDirty(txtDate, numDates);
+      txtDate[eTODAY].print();
+    
+      char sDate[12];                     // strlen("12/34") = 5
+      snprintf(sDate, sizeof(sDate), "%d/%d", month(today), day(today));
+      txtDate[eDATETODAY].print(sDate);   // "8/25"
+    
+      snprintf(sDate, sizeof(sDate), "%d/%d", month(yesterday), day(yesterday));
+      txtDate[eYESTERDAY].print(sDate);
+    
+      snprintf(sDate, sizeof(sDate), "%d/%d", month(dayBefore), day(dayBefore));
+      txtDate[eDAYBEFORE].print(sDate);
+}
+
+    void drawGraph() {
+      // check that RTC has been initialized, otherwise we cannot display a sensible graph
+      if (timeStatus() == timeNotSet) {
+        Serial.println("!! No graph, real-time clock has not been set.");
+        return;
+      }
+    
+      // get today's date from the RTC (real time clock)
+      time_t today = now();
+      time_t maxTime = nextMidnight(today);
+      time_t minTime = maxTime - SECS_PER_DAY*3;
+    
+      char msg[100], sDate[24];
+      dateToString(sDate, sizeof(sDate), today);
+    
+      snprintf(msg, sizeof(msg), ". Right now is %d-%d-%d at %02d:%02d:%02d",
+                                        year(today),month(today),day(today), 
+                                        hour(today),minute(today),second(today));
+      Serial.println(msg);                // debug
+      snprintf(msg, sizeof(msg), ". Leftmost graph minTime = %d-%02d-%02d at %02d:%02d:%02d (x=%d)",
+                                        year(minTime),month(minTime),day(minTime),
+                                        hour(minTime),minute(minTime),second(minTime),
+                                        xDay1);
+      Serial.println(msg);                // debug
+      snprintf(msg, sizeof(msg), ". Rightmost graph maxTime = %d-%02d-%02d at %02d:%02d:%02d (x=%d)",
+                                        year(maxTime),month(maxTime),day(maxTime),
+                                        hour(maxTime),minute(maxTime),second(maxTime),
+                                        xRight);
+      Serial.println(msg);                // debug
+    
+      float yTopPa = (gUnits == eMetric) ? fMaxPa : (fMaxHg*PASCALS_PER_INCHES_MERCURY);
+      float yBotPa = (gUnits == eMetric) ? fMinPa : (fMinHg*PASCALS_PER_INCHES_MERCURY);
+    
+      Serial.print(". Top graph pressure = "); Serial.print(yTopPa,1); Serial.println(" Pa");     // debug
+      Serial.print(". Bottom graph pressure = "); Serial.print(yBotPa,1); Serial.println(" Pa");  // debug
+      Serial.print(". Saving "); Serial.print(sizeof(baroModel.pressureStack)); Serial.print(" bytes, ");  // debug
+      Serial.print(sizeof(baroModel.pressureStack)/sizeof(baroModel.pressureStack[0])); Serial.println(" readings");  // debug
+
+      // loop through entire saved array of pressure readings
+      // each reading is one point, i.e., one pixel (we don't draw lines connecting the dots)
+      for (int ii = lastIndex; ii >= 0 ; ii--) {
+        if (baroModel.pressureStack[ii].pressure != 0) {
+          // Y-axis:
+          //    The data to plot is always 'float Pascals' 
+          //    but the graph's y-axis is either Pascals or inches-Hg, each with different scale
+          //    so scale the data into the appropriate units on the y-axis
+          if (gUnits == eMetric) {
+            // todo
+          }
+          int y1 = map(baroModel.pressureStack[ii].pressure,  yBotPa,yTopPa,  yBot,yTop);
+      
+          // X-axis:
+          //    Scale from timestamps onto x-axis
+          time_t t1 = baroModel.pressureStack[ii].time;
+          //       map(value, fromLow,fromHigh, toLow,toHigh)
+          int x1 = map( t1,   minTime,maxTime,  xDay1,xRight);
+    
+          if (x1 < xDay1) {
+            dateToString(sDate, sizeof(sDate), t1);
+            snprintf(msg, sizeof(msg), "%d. Ignored: Date x1 (%s = %d) is off left edge of (%d).", 
+                                        ii,                  sDate,x1,                   xDay1); 
+            Serial.println(msg);          // debug
+            continue;
+          }
+          if (x1 > xRight) {
+            dateToString(sDate, sizeof(sDate), t1);
+            snprintf(msg, sizeof(msg), "%d. Ignored: Date x1 (%s = %d) is off right edge of (%d).", 
+                                        ii,                 sDate, x1,                   xRight); 
+            Serial.println(msg);          // debug
+            continue;
+          }
+    
+          tft->drawPixel(x1,y1, cGRAPHCOLOR);
+          int approxPa = (int)baroModel.pressureStack[ii].pressure;
+          //snprintf(msg, sizeof(msg), "%d. Plot %d at pixel (%d,%d)", ii, approxPa, x1,y1);
+          //Serial.println(msg);          // debug
+        }
+      }
+    }
 
 };  // end class ViewBaro
 
@@ -270,11 +529,28 @@ void ViewBaro::updateScreen() {
   if ( rightnow >= nextShowPressure) {
     //nextShowPressure = nextFiveMinuteMark( rightnow );
     //nextShowPressure = nextOneMinuteMark( rightnow );
-    nextShowPressure = nextOneSecondMark( rightnow );
+    nextShowPressure = nextOneSecondMark( rightnow );  // debug
   
     float pascals = baroModel.getBaroData();
     //redrawGraph = true;             // request draw graph
     printPressure( pascals );
+  }
+
+  // every 15 minutes read barometric pressure and save it in nonvolatile RAM
+  if (rightnow >= nextSavePressure) {
+    
+    // log this pressure reading only if the time-of-day is correct and initialized 
+    if (timeStatus() == timeSet) {
+      baroModel.logPressure( rightnow );
+      redrawGraph = true;             // request draw graph
+      nextSavePressure = nextFifteenMinuteMark( rightnow );
+    }
+  }
+
+  // if the barometric pressure graph should be refreshed
+  if (redrawGraph) {
+    showReadings();
+    redrawGraph = false;
   }
 }
 
@@ -288,19 +564,19 @@ void ViewBaro::startScreen() {
   showDefaultTouchTargets();          // optionally draw boxes around button-touch area
   showScreenBorder();                 // optionally outline visible area
 
-  // ----- draw page title
-  txtBaro[eTitle].print();
-
-  updateScreen();                     // fill in values immediately, don't wait for the main loop to eventually get around to it
-
   #ifdef SHOW_SCREEN_CENTERLINE
     // show centerline at      x1,y1              x2,y2             color
     tft->drawLine( tft->width()/2,0,  tft->width()/2,tft->height(), cWARN); // debug
   #endif
+
+  // ----- draw page title
+  txtBaro[eTitle].print();
+
+  updateScreen();                     // fill in values immediately, don't wait for the main loop to eventually get around to it
 }
 
 bool ViewBaro::onTouch(Point touch) {
-  Serial.println("->->-> Touched time screen.");
+  Serial.println("->->-> Touched baro screen.");
   bool handled = false;               // assume a touch target was not hit
   return handled;                     // true=handled, false=controller uses default action
 }
