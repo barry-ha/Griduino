@@ -10,8 +10,8 @@
 
 class SaveRestore {
   public:
-    char fqFilename[64];      // fully qualified filename, e.g. "/Settings/volume.cfg" (strictly 8.3 names)
-    char sVersion[32];        // ID string, detects if settings are actually written
+    char fqFilename[64];              // fully qualified filename, e.g. "/Settings/volume.cfg" (strictly 8.3 names)
+    char sVersion[32];                // ID string, detects if settings are actually written
 
   public:
     /**
