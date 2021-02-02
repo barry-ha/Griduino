@@ -28,6 +28,13 @@
          . Assume we want a 3-day display, which means 288/3 = 96 pixels (samples) per day
          . Then 24 hours / 96 pixels = 4 samples/hour = 15 minutes per sample
 
+
+  Units of Time:
+         This relies on "TimeLib.h" which uses "time_t" to represent time.
+         The basic unit of time (time_t) is the number of seconds since Jan 1, 1970, 
+         a compact 4-byte integer.
+         https://github.com/PaulStoffregen/Time
+
   Units of Pressure:
          hPa is the abbreviated name for hectopascal (100 x 1 pascal) pressure 
          units which are exactly equal to millibar pressure unit (mb or mbar):
@@ -48,12 +55,6 @@
          
          The BMP388 sensor has a relative accuracy of 8 Pascals, which translates to 
          about +/- 0.5 meter of altitude.
-
-  Units of Time:
-         This relies on "TimeLib.h" which uses "time_t" to represent time.
-         The basic unit of time (time_t) is the number of seconds since Jan 1, 1970, 
-         a compact 4-byte integer.
-         https://github.com/PaulStoffregen/Time
 */
 
 #include <Arduino.h>
