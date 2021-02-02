@@ -52,8 +52,8 @@ class ViewSettings3 : public View {
     // color scheme: see constants.h
 
     // vertical placement of text rows   ---label---         ---button---
-    const int yRow1 = 70;             // "Distance",         "Miles"
-    const int yRow2 = yRow1 + 50;     //                     "Kilometers"
+    const int yRow1 = 70;             // "English",          "Miles, inHg"
+    const int yRow2 = yRow1 + 50;     // "Metric",           "Kilometers, hPa"
     const int yRow9 = gScreenHeight - 12; // "v0.27, Oct 31 2020"
 
     #define col1 10                   // left-adjusted column of text
@@ -61,38 +61,40 @@ class ViewSettings3 : public View {
 
     enum txtSettings3 {
       SETTINGS=0, 
-      DISTANCE,
+      ENGLISH,
+      METRIC,
       COMPILED,
     };
-    #define nTextUnits 3
+    #define nTextUnits 4
     TextField txtSettings3[nTextUnits] = {
       //        text                  x, y     color
       TextField("Settings 3",      col1, 20,   cHIGHLIGHT, ALIGNCENTER),// [SETTINGS]
-      TextField("Distance",        col1,yRow1, cVALUE),                 // [DISTANCE]
+      TextField("English",         col1,yRow1, cVALUE),                 // [ENGLISH]
+      TextField("Metric",          col1,yRow2, cVALUE),                 // [METRIC]
       TextField(PROGRAM_VERSION ", " PROGRAM_COMPILED, 
                                    col1,yRow9, cLABEL, ALIGNCENTER),    // [COMPILED]
     };
 
     // ----- helpers -----
     void fMiles() {
-      Serial.println("->->-> Clicked DISTANCE MILES button.");
+      Serial.println("->->-> Clicked ENGLISH UNITS button.");
       model->setMiles();
     }
     void fKilometers() {
-      Serial.println("->->-> Clicked DISTANCE KILOMETERS button.");
+      Serial.println("->->-> Clicked METRIC UNITS button.");
       model->setKilometers();
     }
 
     enum buttonID {
-      eMILES = 0,
-      eKILOMETERS,
+      eENGLISH = 0,
+      eMETRIC,
     };
     #define nButtonsUnits 2
     FunctionButton settings3Buttons[nButtonsUnits] = {
-      // label             origin         size      touch-target     
-      // text                x,y           w,h      x,y      w,h  radius  color   function
-      {"Miles",        xButton,yRow1-26, 130,40, {130, 30, 180,60},  4,  cVALUE,  eMILES      },   // [eMILES] set units English
-      {"Kilometers",   xButton,yRow2-26, 130,40, {130, 90, 180,60},  4,  cVALUE,  eKILOMETERS },   // [eKILOMETERS] set units Metric
+      // label                origin         size      touch-target     
+      // text                   x,y           w,h      x,y      w,h  radius  color   function
+      {"Miles, inHg",     xButton,yRow1-26, 150,40, {130, 30, 180,60},  4,  cVALUE,  eENGLISH },  // [eENGLISH] set units Miles/inHg
+      {"Kilometers, hPa", xButton,yRow2-26, 150,40, {130, 90, 180,60},  4,  cVALUE,  eMETRIC  },  // [eMETRIC] set units Metric
     };
 
 };  // end class ViewSettings3
@@ -102,16 +104,16 @@ void ViewSettings3::updateScreen() {
   // called on every pass through main()
 
   // ----- show selected radio buttons by filling in the circle
-  for (int ii=eMILES; ii<=eKILOMETERS; ii++) {
+  for (int ii=eENGLISH; ii<=eMETRIC; ii++) {
     FunctionButton item = settings3Buttons[ii];
     int xCenter = item.x - 16;
     int yCenter = item.y + (item.h/2);
     int buttonFillColor = cBACKGROUND;
 
-    if (ii==eMILES && !model->gMetric) {
+    if (ii==eENGLISH && !model->gMetric) {
       buttonFillColor = cLABEL;
     } 
-    if (ii==eKILOMETERS && model->gMetric) {
+    if (ii==eMETRIC && model->gMetric) {
       buttonFillColor = cLABEL;
     }
     tft->fillCircle(xCenter, yCenter, 4, buttonFillColor);
@@ -157,7 +159,7 @@ void ViewSettings3::startScreen() {
   }
 
   // ----- draw outlines of radio buttons
-  for (int ii=eMILES; ii<=eKILOMETERS; ii++) {
+  for (int ii=eENGLISH; ii<=eMETRIC; ii++) {
     FunctionButton item = settings3Buttons[ii];
     int xCenter = item.x - 16;
     int yCenter = item.y + (item.h/2);
@@ -185,10 +187,10 @@ bool ViewSettings3::onTouch(Point touch) {
         handled = true;               // hit!
         switch (item.functionIndex)   // do the thing
         {
-          case eMILES:
+          case eENGLISH:
               fMiles();
               break;
-          case eKILOMETERS:
+          case eMETRIC:
               fKilometers();
               break;
           default:
