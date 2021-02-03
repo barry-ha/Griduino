@@ -69,7 +69,7 @@ class ViewSettings5 : public View {
     #define nFields 4
     TextField txtSettings5[nFields] = {
       //        text                x, y        color
-      TextField("Settings 5",    col1, 20,      cHIGHLIGHT, ALIGNCENTER),// [SETTINGS]
+      TextField("5. Rotation",   col1, 20,      cHIGHLIGHT, ALIGNCENTER),// [SETTINGS]
       TextField("Screen",        col1,yRow1,    cVALUE),                 // [SCREEN]
       TextField("Orientation",   col1,yRow1+20, cVALUE),                 // [ORIENTATION]
       TextField(PROGRAM_VERSION ", " __DATE__, 
