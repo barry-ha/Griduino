@@ -351,9 +351,9 @@ class ViewBaro : public View {
     #define numDates 4
     TextField txtDate[numDates] = {
       TextField{"Today", xDay3+20,yBot-TEXTHEIGHT+2,  ILI9341_CYAN, 9}, // [eTODAY]
-      TextField{"8/25",  xDay3+34,yBot+TEXTHEIGHT+1,  ILI9341_CYAN, 9}, // [eDATETODAY]
-      TextField{"8/24",  xDay2+34,yBot+TEXTHEIGHT+1,  ILI9341_CYAN, 9}, // [eYESTERDAY]
-      TextField{"8/23",  xDay1+20,yBot+TEXTHEIGHT+1,  ILI9341_CYAN, 9}, // [eDAYBEFORE]
+      TextField{"8/25",  xDay3+34,yBot+TEXTHEIGHT+2,  ILI9341_CYAN, 9}, // [eDATETODAY]
+      TextField{"8/24",  xDay2+34,yBot+TEXTHEIGHT+2,  ILI9341_CYAN, 9}, // [eYESTERDAY]
+      TextField{"8/23",  xDay1+34,yBot+TEXTHEIGHT+2,  ILI9341_CYAN, 9}, // [eDAYBEFORE]
     };
 
     void drawScale() {
