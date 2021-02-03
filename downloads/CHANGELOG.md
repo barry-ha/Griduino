@@ -7,7 +7,13 @@ Version numbers correspond to [Downloads](https://github.com/barry-ha/Griduino/t
 
 The changelog format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and the Griduino project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-**v0.31** &nbsp; 2020-01-30
+**v0.32** &nbsp; 2021-02-03
+
+Added 3-day graph of barometric pressure, a "Baroduino" if you'll excuse the amalgam. Please report any bugs or usability glitches. 
+
+This is a major update that merges code from [examples/Baroduino](https://github.com/barry-ha/Griduino/tree/master/examples/Baroduino) into the main Griduino program which becomes an additional view in the screens as you cycle through views. The standalone example program is no longer needed. We also fixed a few bugs and changed titles of the configuration screens to be more descriptive, such as "1. Speaker" instead of "Settings 1".
+
+**v0.31** &nbsp; 2021-01-30
 
 Updated the pressure sensor code to use the latest BMP3XX library. Please update to the v2 library from Adafruit or you’ll get a compile error:
 1	Run the Arduino workbench
