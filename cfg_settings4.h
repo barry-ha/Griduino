@@ -74,7 +74,7 @@ class ViewSettings4 : public View {
     #define nTextCrossing 6
     TextField txtSettings4[nTextCrossing] = {
       //        text                  x, y        color
-      TextField("Settings 4",      col1, 20,      cHIGHLIGHT, ALIGNCENTER),// [SETTINGS]
+      TextField("4. Announcements",col1, 20,      cHIGHLIGHT, ALIGNCENTER),// [SETTINGS]
       TextField("Announce at",     col1,yRow1,    cVALUE),                 // [ANNOUNCE1]
       TextField("grid crossing",   col1,yRow2,    cVALUE),                 // [ANNOUNCE2]
       TextField("70 - 100 mi",  xButton+24,yRow1+22,cVALUE),               // [DISTANCE4]

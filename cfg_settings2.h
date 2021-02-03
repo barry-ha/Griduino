@@ -8,24 +8,24 @@
             Since it's not intended for a driver in motion, we can use 
             a smaller font and cram more stuff onto the screen.
 
-            +-----------------------------------+
-            |            Settings 2             |
-            |                                   |
-            | Breadcrumb trail    [ Clear ]     |
-            | 123 of 6000                       |
-            |                                   |
-            | Route         (o)[ GPS Receiver ] |
-            |                  [  Simulator   ] |
-            |                                   |
-            |                                   |
-            | v0.28, Dec 19 2020  07:56         |
-            +-----------------------------------+
+            +-----------------------------------------+
+            |              Settings 2                 |
+            |                                         |
+            | Breadcrumb trail    [ Clear ]           |
+            | 123 of 6000                             |
+            |                                         |
+            | Route            (o)[ GPS Receiver ]    |
+            |                  ( )[  Simulator   ]    |
+            |                                         |
+            |                                         |
+            | v0.32, Feb 2 2021  08:16                |
+            +-----------------------------------------+
 */
 
 #include <Arduino.h>
 #include <Adafruit_ILI9341.h>         // TFT color display library
 #include "constants.h"                // Griduino constants and colors
-#include "model_gps.h"                // "Model" portion of model-view-controller
+#include "model_gps.h"                // Model of a GPS for model-view-controller
 #include "TextField.h"                // Optimize TFT display text for proportional fonts
 #include "view.h"                     // Base class for all views
 
@@ -60,7 +60,7 @@ class ViewSettings2 : public View {
     const int yRow2 = yRow1 + 20;     // "%d of %d"
     const int yRow3 = yRow2 + 56;     // "Route",            "GPS Receiver"
     const int yRow4 = yRow3 + 48;     //                     "Simulator"
-    const int yRow9 = gScreenHeight - 12; // "v0.27, Nov 03 2020"
+    const int yRow9 = gScreenHeight - 12; // "v0.32, Feb  2 2021"
 
     #define col1 10                   // left-adjusted column of text
     #define xButton 160               // indented column of buttons
@@ -74,7 +74,7 @@ class ViewSettings2 : public View {
     #define nTextGPS 5
     TextField txtSettings2[nTextGPS] = {
       //        text                  x, y     color
-      TextField("Settings 2",      col1, 20,   cHIGHLIGHT, ALIGNCENTER),// [SETTINGS]
+      TextField("2. GPS",          col1, 20,   cHIGHLIGHT, ALIGNCENTER),// [SETTINGS]
       TextField("Breadcrumb trail",col1,yRow1, cVALUE),                 // [TRAIL]
       TextField(   "%d crumbs",    col1,yRow2, cLABEL),                 // [TRAILCOUNT]
       TextField("Route",           col1,yRow3, cVALUE),                 // [GPSTYPE]
@@ -90,12 +90,12 @@ class ViewSettings2 : public View {
     };
     #define nButtonsGPS 3
     FunctionButton settings2Buttons[nButtonsGPS] = {
-      // label             origin         size      touch-target     
-      // text                x,y           w,h      x,y      w,h  radius  color   functionID
-      {"Clear",        xButton,yRow1-20, 130,40, {130, 40, 180,60},  4,  cVALUE,  eCLEAR    },   // [eCLEAR] Clear track history
-      {"GPS Receiver", xButton,yRow3-26, 130,40, {128,112, 180,50},  4,  cVALUE,  eRECEIVER },   // [eRECEIVER] Satellite receiver
-      {"Simulator",    xButton,yRow4-26, 130,40, {130,164, 180,60},  4,  cVALUE,  eSIMULATOR},   // [eSIMULATOR] Simulated track
-      //{"Factory Reset",xButton,180,    130,30, {138,174, 180,50},  4,  cVALUE,  fFactoryReset},// [eFACTORYRESET] Factory Reset
+      // label                origin         size      touch-target     
+      // text                   x,y           w,h      x,y      w,h  radius  color   functionID
+      {"Clear",           xButton,yRow1-20, 130,40, {130, 40, 180,60},  4,  cVALUE,  eCLEAR    },   // [eCLEAR] Clear track history
+      {"GPS Receiver",    xButton,yRow3-26, 130,40, {128,112, 180,50},  4,  cVALUE,  eRECEIVER },   // [eRECEIVER] Satellite receiver
+      {"Simulator",       xButton,yRow4-26, 130,40, {130,164, 180,60},  4,  cVALUE,  eSIMULATOR},   // [eSIMULATOR] Simulated track
+      //{"Factory Reset", xButton,180,      130,30, {138,174, 180,50},  4,  cVALUE,  fFactoryReset},// [eFACTORYRESET] Factory Reset
     };
 
     // ----- helpers -----

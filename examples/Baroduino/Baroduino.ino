@@ -1,5 +1,6 @@
 /*
-  Baroduino -- demonstrate BMP388 or BMP390 barometric sensor
+  Baroduino - a graphing 3-day barometer
+            A standalone example program to demonstrate BMP388 or BMP390 barometric sensor
 
   Version history: 
             2021-01-30 added support for BMP390 and latest Adafruit_BMP3XX library, v0.31
@@ -63,7 +64,7 @@
          So if you take the Pascal value of say 100734 and divide by 3386.39 you'll get 29.72 inHg.
          
          The BMP388 sensor has a relative accuracy of 8 Pascals, which translates to 
-         about ± 0.5 meter of altitude. 
+         about +/- 0.5 meter of altitude.
          
   Real Time Clock:
          The real time clock in the Adafruit Ultimate GPS is not directly readable or 
@@ -91,7 +92,8 @@
 #include "Adafruit_GPS.h"             // Ultimate GPS library
 #include "Adafruit_BMP3XX.h"          // Precision barometric and temperature sensor
 #include "Adafruit_NeoPixel.h"        // On-board color addressable LED
-#include "save_restore.h"             // save/restore configuration data to SDRAM
+#include "model_baro.h"               // Model of a barometer that stores 3-day history
+#include "save_restore.h"             // Save configuration in non-volatile RAM
 #include "hardware.h"                 // Griduino pin definitions 
 #include "constants.h"                // Griduino constants, colors, typedefs
 #include "TextField.h"                // Optimize TFT display text for proportional fonts
@@ -115,7 +117,6 @@ float fMinHg = 29.4;                  // bot axis of graph: bound of graph, inHg
 // Use the following to control how much the initial graph fills the display.
 // Smaller numbers give bigger, more dynamic graph.
 // Larger numbers make the first graph look smaller and smoother. 
-// Over time the graph 
 const float PA_RES = 400.0;           // metric y-axis resolution, ie, nearest 2000 Pa (20 hPa)
 const float HG_RES = 0.2;             // english y-axis resolution, ie, nearest 0.2 inHg
 
@@ -160,8 +161,6 @@ const int howLongToWait = 10;         // max number of seconds at startup waitin
 
 // ----- Griduino color scheme
 // RGB 565 color code: http://www.barth-dev.de/online/rgb565-color-picker/
-#define cSCALECOLOR     ILI9341_DARKGREEN // tried yellow but it's too bright
-#define cGRAPHCOLOR     ILI9341_WHITE     // graphed line of baro pressure
 #define cICON           ILI9341_CYAN
 #define cTITLE          ILI9341_GREEN
 #define cWARN           0xF844        // brighter than ILI9341_RED but not pink
@@ -226,7 +225,6 @@ time_t nextFifteenMinuteMark(time_t timestamp) {
 bool redrawGraph = true;              // true=request graph be drawn
 bool waitingForRTC = true;            // true=waiting for GPS hardware to give us the first valid date/time
 
-#include "model_baro.h"
 BarometerModel baroModel( &baro, BMP_CS ); // create instance of the model, giving it ptr to hardware and SPI chip select
 
 // ======== unit tests =========================================
@@ -358,16 +356,17 @@ const int DESCENDERS = 6;             // proportional font descenders may go 6 p
 const int yBot = gScreenHeight - MARGIN - DESCENDERS - TEXTHEIGHT;
 const int yTop = yBot - graphHeight;
 
-// ========== screen helpers ===================================
+// ========== text screen layout ===================================
 void clearScreen() {
   tft.fillScreen(cBACKGROUND);
 }
 
 enum { eTitle, eDate, eNumSat, eTimeHHMM, eTimeSS, valPressure, unitPressure };
-const int xIndent = 12;               // in pixels, text on main screen
-const int yText1 = MARGIN+12;         // in pixels, top row, main screen
+const int xIndent = 12;               // in pixels, for text on top rows
+const int yText1 = MARGIN+12;         // in pixels, for text on top row
 const int yText2 = yText1 + 28;
 TextField txtReading[] = {
+  //          text                  x,y       color        align        font
   TextField{ BAROGRAPH_TITLE, xIndent,yText1, cTITLE,      ALIGNCENTER, 9 }, // [eTitle]
   TextField{ "09-22",    xIndent+2,yText1,    cWARN,       ALIGNLEFT,   9 }, // [eDate]
   TextField{ "0#",       xIndent+2,yText2-10, cWARN,       ALIGNLEFT,   9 }, // [eNumSat]
@@ -948,7 +947,7 @@ void loop() {
   }
 
   // every 15 minutes read barometric pressure and save it in nonvolatile RAM
-  if ( rightnow >= nextSavePressure) {
+  if (rightnow >= nextSavePressure) {
     
     // log this pressure reading only if the time-of-day is correct and initialized 
     if (timeStatus() == timeSet) {

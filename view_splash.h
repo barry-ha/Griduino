@@ -19,7 +19,7 @@
 */
 
 #include <Arduino.h>
-#include "Adafruit_ILI9341.h"         // TFT color display library
+#include <Adafruit_ILI9341.h>         // TFT color display library
 #include "constants.h"                // Griduino constants and colors
 #include "TextField.h"                // Optimize TFT display text for proportional fonts
 #include "view.h"                     // Base class for all views

@@ -76,7 +76,7 @@ class ViewVolume : public View {
     #define numVolFields 4
     TextField txtVolume[numVolFields] = {
       //  text             x, y    color       alignment    size
-      {"Settings 1",    col1, 20,  cHIGHLIGHT, ALIGNCENTER, eFONTSMALLEST}, // [SETTINGS]
+      {"1. Speaker",    col1, 20,  cHIGHLIGHT, ALIGNCENTER, eFONTSMALLEST}, // [SETTINGS]
       {"0",             82,yRow2,  cVALUE,     ALIGNRIGHT,  eFONTBIG     }, // [BIGVOLUME] giant audio volume display
       {"Audio Volume",  98,yRow1,  cLABEL,     ALIGNLEFT,   eFONTSMALL   }, // [LINE1] normal size text labels
       {"of 10",         98,yRow2,  cLABEL,     ALIGNLEFT,   eFONTSMALL   }, // [LINE2]

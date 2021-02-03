@@ -2,7 +2,7 @@
 
 // ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE   "Griduino"
-#define PROGRAM_VERSION "v0.31"
+#define PROGRAM_VERSION "v0.32"
 #define PROGRAM_LINE1   "Barry K7BWH"
 #define PROGRAM_LINE2   "John KM7O"
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
@@ -83,6 +83,7 @@ const int OFF = 0;                    // = turned off
 #define cBUTTONFILL     ILI9341_NAVY
 #define cBUTTONOUTLINE  ILI9341_CYAN
 #define cBREADCRUMB     ILI9341_CYAN
+#define cTITLE          ILI9341_GREEN
 #define cTEXTCOLOR      ILI9341_CYAN    // 0, 255, 255
 #define cTEXTFAINT      0x0514          // 0, 160, 160 = blue, between CYAN and DARKCYAN
 #define cBOXDEGREES     0x0410          // 0, 128, 128 = blue, between CYAN and DARKCYAN
@@ -90,6 +91,10 @@ const int OFF = 0;                    // = turned off
 #define cCOMPASS        ILI9341_BLUE    // a little darker than cBUTTONOUTLINE
 #define cWARN           0xF844          // brighter than ILI9341_RED but not pink
 #define cTOUCHTARGET    ILI9341_RED     // outline touch-sensitive areas
+
+// barometric pressure graph
+#define cSCALECOLOR     ILI9341_DARKGREEN // tried yellow but it's too bright
+#define cGRAPHCOLOR     ILI9341_WHITE     // graphed line of baro pressure
 
 #define cDARKPURPLE     0x2809          // debug: 2809 = very dark purple
 #define cDARKRED        0x4000          // debug: 4000 = very dark red

@@ -68,8 +68,12 @@ class View {
   /**
    *  The One and Only True Clear Screen (TOOTCS) function 
    */
-    void clearScreen(uint16_t color=cBACKGROUND) { // clear the screen
+    void clearScreen(uint16_t color=cBACKGROUND) { // clear entire screen
       tft->fillScreen(color);
+    }
+
+    void clearScreen(int startRow, int numRows, uint16_t color=cBACKGROUND) { // clear selected rows
+      tft->fillRect(0,startRow,  tft->width(),numRows,  color);
     }
 
     void drawAllIcons() {
