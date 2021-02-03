@@ -39,15 +39,13 @@
 #include <Arduino.h>
 #include <Adafruit_ILI9341.h>         // TFT color display library
 #include "constants.h"                // Griduino constants and colors
-#include "model_gps.h"                // "Model" portion of model-view-controller
-//#include "Adafruit_BMP3XX.h"          // Precision barometric and temperature sensor (removed temperature reading)
+#include "model_gps.h"                // Model of a GPS for model-view-controller
 #include "save_restore.h"             // Save configuration in non-volatile RAM
 #include "TextField.h"                // Optimize TFT display text for proportional fonts
 #include "view.h"                     // Base class for all views
 
 // ========== extern ===========================================
 extern Model* model;                  // "model" portion of model-view-controller
-//extern Adafruit_BMP3XX baro;          // Griduino.ino (no, remove temperature reading)
 
 extern void showDefaultTouchTargets();  // Griduino.ino
 extern void getDate(char* result, int maxlen);  // model_gps.h
@@ -70,20 +68,8 @@ class ViewTime : public View {
     // ---------- local data for this derived class ----------
     // color scheme: see constants.h
 
-    // ----- barometer and temperature helpers (no, removed temperature reading)
-    //float getTemperature() {
-    //  // returns temperature in Farenheight
-    //  if (!baro.performReading()) {
-    //    Serial.println("Error, failed to read temperature sensor, re-initializing");
-    //    delay(25);
-    //  }
-    //  // continue anyway
-    //  float tempF = baro.temperature * 9 / 5 + 32;
-    //  return tempF;
-    //}
 
-
-    // ----- screen text
+    // ========== text screen layout ===================================
     // these are names for the array indexes, must be named in same order as array below
     enum txtIndex {
       TITLE=0, 
@@ -94,7 +80,7 @@ class ViewTime : public View {
     #define numClockFields 11
     TextField txtClock[numClockFields] = {
       // text            x,y    color             index
-      {"Griduino GMT",  -1, 10, cTEXTCOLOR, ALIGNCENTER,eFONTSYSTEM}, // [TITLE] program title, centered
+      {"Griduino GMT",  -1, 18, cTITLE,     ALIGNCENTER,eFONTSMALLEST}, // [TITLE]   program title, centered
       {"hh",            12, 94, cVALUE,     ALIGNLEFT, eFONTGIANT},   // [HOURS]     giant clock hours
       {":",             94, 94, cVALUE,     ALIGNLEFT, eFONTGIANT},   // [COLON1]    :
       {"mm",           120, 94, cVALUE,     ALIGNLEFT, eFONTGIANT},   // [MINUTES]   giant clock minutes

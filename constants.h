@@ -14,7 +14,7 @@
 //#define ECHO_GPS_SENTENCE           // use this to see once-per-second GPS sentences
 //#define SHOW_TOUCH_TARGETS          // use this to outline touchscreen sensitive buttons
 //#define SHOW_SCREEN_BORDER          // use this to outline the screen's displayable area
-#define SHOW_SCREEN_CENTERLINE      // use this visual aid to help layout the screen
+//#define SHOW_SCREEN_CENTERLINE      // use this visual aid to help layout the screen
 
 // ------- TFT screen definitions ---------
 #define gScreenWidth 320              // screen pixels wide

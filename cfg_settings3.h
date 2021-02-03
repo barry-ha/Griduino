@@ -8,23 +8,23 @@
             Since it's not intended for a driver in motion, we can use 
             a smaller font and cram more stuff onto the screen.
 
-            +-----------------------------------+
-            |            Settings 3             |
-            |                                   |
-            | Distance      (o)[ Miles        ] |
-            |               ( )[ Kilometers   ] |
-            |                                   |
-            |                                   |
-            |                                   |
-            |                                   |
-            | v0.28, Dec 19 2020  07:56         |
-            +-----------------------------------+
+            +-----------------------------------------+
+            |              Settings 3                 |
+            |                                         |
+            | Distance        (o)[ Miles, inHg     ]  |
+            |                 ( )[ Kilometers, hPa ]  |
+            |                                         |
+            |                                         |
+            |                                         |
+            |                                         |
+            | v0.32, Feb 2 2021  08:16                |
+            +-----------------------------------------+
 */
 
 #include <Arduino.h>
 #include <Adafruit_ILI9341.h>         // TFT color display library
 #include "constants.h"                // Griduino constants and colors
-#include "model_gps.h"                // "Model" portion of model-view-controller
+#include "model_gps.h"                // Model of a GPS for model-view-controller
 #include "TextField.h"                // Optimize TFT display text for proportional fonts
 #include "view.h"                     // Base class for all views
 
@@ -52,9 +52,9 @@ class ViewSettings3 : public View {
     // color scheme: see constants.h
 
     // vertical placement of text rows   ---label---         ---button---
-    const int yRow1 = 70;             // "English",          "Miles, inHg"
+    const int yRow1 = 84;             // "English",          "Miles, inHg"
     const int yRow2 = yRow1 + 50;     // "Metric",           "Kilometers, hPa"
-    const int yRow9 = gScreenHeight - 12; // "v0.27, Oct 31 2020"
+    const int yRow9 = gScreenHeight - 12; // "v0.32, Feb  2 2021"
 
     #define col1 10                   // left-adjusted column of text
     #define xButton 160               // indented column of buttons
@@ -68,22 +68,12 @@ class ViewSettings3 : public View {
     #define nTextUnits 4
     TextField txtSettings3[nTextUnits] = {
       //        text                  x, y     color
-      TextField("Settings 3",      col1, 20,   cHIGHLIGHT, ALIGNCENTER),// [SETTINGS]
+      TextField("3. Units",        col1, 20,   cHIGHLIGHT, ALIGNCENTER),// [SETTINGS]
       TextField("English",         col1,yRow1, cVALUE),                 // [ENGLISH]
       TextField("Metric",          col1,yRow2, cVALUE),                 // [METRIC]
       TextField(PROGRAM_VERSION ", " PROGRAM_COMPILED, 
                                    col1,yRow9, cLABEL, ALIGNCENTER),    // [COMPILED]
     };
-
-    // ----- helpers -----
-    void fMiles() {
-      Serial.println("->->-> Clicked ENGLISH UNITS button.");
-      model->setMiles();
-    }
-    void fKilometers() {
-      Serial.println("->->-> Clicked METRIC UNITS button.");
-      model->setKilometers();
-    }
 
     enum buttonID {
       eENGLISH = 0,
@@ -92,10 +82,20 @@ class ViewSettings3 : public View {
     #define nButtonsUnits 2
     FunctionButton settings3Buttons[nButtonsUnits] = {
       // label                origin         size      touch-target     
-      // text                   x,y           w,h      x,y      w,h  radius  color   function
-      {"Miles, inHg",     xButton,yRow1-26, 150,40, {130, 30, 180,60},  4,  cVALUE,  eENGLISH },  // [eENGLISH] set units Miles/inHg
-      {"Kilometers, hPa", xButton,yRow2-26, 150,40, {130, 90, 180,60},  4,  cVALUE,  eMETRIC  },  // [eMETRIC] set units Metric
+      // text                   x,y           w,h      x,y           w,h  radius  color   functionID
+      {"Miles, inHg",     xButton,yRow1-26, 150,40, {112,yRow1-36, 204,56},  4,  cVALUE,  eENGLISH },  // [eENGLISH] set units Miles/inHg
+      {"Kilometers, hPa", xButton,yRow2-26, 150,40, {112,yRow2-31, 204,64},  4,  cVALUE,  eMETRIC  },  // [eMETRIC] set units Metric
     };
+
+    // ----- helpers -----
+    void setEnglish() {
+      Serial.println("->->-> Clicked ENGLISH UNITS button.");
+      model->setEnglish();
+    }
+    void setMetric() {
+      Serial.println("->->-> Clicked METRIC UNITS button.");
+      model->setMetric();
+    }
 
 };  // end class ViewSettings3
 
@@ -188,10 +188,10 @@ bool ViewSettings3::onTouch(Point touch) {
         switch (item.functionIndex)   // do the thing
         {
           case eENGLISH:
-              fMiles();
+              setEnglish();
               break;
           case eMETRIC:
-              fKilometers();
+              setMetric();
               break;
           default:
               Serial.print("Error, unknown function "); Serial.println(item.functionIndex);

@@ -85,7 +85,7 @@ class BarometerModel {
     #define lastIndex (maxReadings - 1)  // index to the last element in pressure array
     BaroReading pressureStack[maxReadings] = {};  // array to hold pressure data, init filled with zeros
 
-    //float elevCorr = 4241;          // elevation correction in Pa, 
+    //float elevCorr = 4241;          // elevation correction in Pascals
     // use difference between altimeter setting and station pressure: https://www.weather.gov/epz/wxcalc_altimetersetting
     float elevCorr = 0;               // todo: unused for now, review and change if needed
 

@@ -19,21 +19,21 @@
             It saves the readings in non-volatile memory and re-displays them on power-up.
             Its RTC (realtime clock) is updated from the GPS satellite network.
 
-            +-----------------------------------+
-            | date        Baroduino       hh:mm |
-            | #sat       29.97 inHg          ss |
-            | 30.5 +--------------------------+ | <- yTop
-            |      |        |        |        | |
-            |      |        |        |        | |
-            |      |        |        |        | |
-            | 30.0 +  -  -  -  -  -  -  -  -  + | <- yMid
-            |      |        |        |        | |
-            |      |        |        |        | |
-            |      |        |        |  Today | |
-            | 29.5 +--------------------------+ | <- yBot
-            |        10/18    10/19    10/20    |
-            +------:--------:--------:--------:-+
-                   xDay1    xDay2    xDay3    xRight
+            +-----------------------------------------+
+            | *  date        Baroduino          hh:mm |
+            |    #sat       29.97 inHg            ss  |
+            | 30.5 +--------------------------------+ | <- yTop
+            |      |          |          |          | |
+            |      |          |          |          | |
+            |      |          |          |          | |
+            | 30.0 +  -  -  - - - -  -  -  -  -  -  + | <- yMid
+            |      |          |          |          | |
+            |      |          |          |          | |
+            |      |          |          |   Today  | |
+            | 29.5 +--------------------------------+ | <- yBot
+            |         10/18       10/19      10/20    |
+            +------:----------:----------:----------:-+
+                   xDay1      xDay2      xDay3      xRight
 
   Units of Time:
          This relies on "TimeLib.h" which uses "time_t" to represent time.
@@ -107,6 +107,7 @@ class ViewBaro : public View {
     void updateScreen();
     void startScreen();
     bool onTouch(Point touch);
+    void setMetric(bool metric);
 
   protected:
     // ---------- local data for this derived class ----------
@@ -128,8 +129,8 @@ class ViewBaro : public View {
     time_t nextShowPressure = 0;      // timer to update displayed value (5 min), init to take a reading soon after startup
     time_t nextSavePressure = 0;      // timer to log pressure reading (15 min)
 
-    enum eUnits { eMetric, eEnglish };
-    int gUnits = eEnglish;            // units on startup: 0=english=inches mercury, 1=metric=millibars
+    //enum eUnits { eMetric, eEnglish };
+    //int gUnits = eEnglish;            // units on startup: 0=english=inches mercury, 1=metric=millibars
 
     // ========== graph screen layout ==============================
     // todo: are these single-use? can they be moved inside a function?
@@ -235,14 +236,14 @@ class ViewBaro : public View {
       char hPa[] = "hPa";
       float fPressure;
       int decimals = 1;
-      if (gUnits == eEnglish) {
-        fPressure = pascals / PASCALS_PER_INCHES_MERCURY;
-        sUnits = inHg;
-        decimals = 2;
-      } else {
+      if (model->gMetric) {
         fPressure = pascals / 100;
         sUnits = hPa;
         decimals = 1;
+      } else {
+        fPressure = pascals / PASCALS_PER_INCHES_MERCURY;
+        sUnits = inHg;
+        decimals = 2;
       }
     
       txtBaro[eTitle].print();
@@ -376,16 +377,16 @@ class ViewBaro : public View {
       // write limits of pressure scale in consistent units
       setFontSize(9);
       tft->setTextColor(ILI9341_CYAN);
-      if (gUnits == eEnglish) {
-        // english: inches mercury (inHg)
-        superimposeLabel( MARGIN, yBot - TEXTHEIGHT/3,                 fMinHg, 1);
-        superimposeLabel( MARGIN, yBot - graphHeight + TEXTHEIGHT/3,   fMaxHg, 1);
-        superimposeLabel( MARGIN, yBot - graphHeight/2 + TEXTHEIGHT/3, (fMinHg + (fMaxHg - fMinHg)/2), 1);
-      } else {
+      if (model->gMetric) {
         // metric: hecto-Pascal (hPa)
         superimposeLabel( MARGIN, yBot + TEXTHEIGHT/3,                 (fMinPa/100), 0);
         superimposeLabel( MARGIN, yBot - graphHeight + TEXTHEIGHT/3,   (fMaxPa/100), 0);
         superimposeLabel( MARGIN, yBot - graphHeight/2 + TEXTHEIGHT/3, (fMinPa + (fMaxPa - fMinPa)/2)/100, 0);
+      } else {
+        // english: inches mercury (inHg)
+        superimposeLabel( MARGIN, yBot - TEXTHEIGHT/3,                 fMinHg, 1);
+        superimposeLabel( MARGIN, yBot - graphHeight + TEXTHEIGHT/3,   fMaxHg, 1);
+        superimposeLabel( MARGIN, yBot - graphHeight/2 + TEXTHEIGHT/3, (fMinHg + (fMaxHg - fMinHg)/2), 1);
       }
     
       // labels along horizontal axis
@@ -445,8 +446,8 @@ class ViewBaro : public View {
                                         xRight);
       Serial.println(msg);                // debug
     
-      float yTopPa = (gUnits == eMetric) ? fMaxPa : (fMaxHg*PASCALS_PER_INCHES_MERCURY);
-      float yBotPa = (gUnits == eMetric) ? fMinPa : (fMinHg*PASCALS_PER_INCHES_MERCURY);
+      float yTopPa = (model->gMetric) ? fMaxPa : (fMaxHg*PASCALS_PER_INCHES_MERCURY);
+      float yBotPa = (model->gMetric) ? fMinPa : (fMinHg*PASCALS_PER_INCHES_MERCURY);
     
       Serial.print(". Top graph pressure = "); Serial.print(yTopPa,1); Serial.println(" Pa");     // debug
       Serial.print(". Bottom graph pressure = "); Serial.print(yBotPa,1); Serial.println(" Pa");  // debug
@@ -461,7 +462,7 @@ class ViewBaro : public View {
           //    The data to plot is always 'float Pascals' 
           //    but the graph's y-axis is either Pascals or inches-Hg, each with different scale
           //    so scale the data into the appropriate units on the y-axis
-          if (gUnits == eMetric) {
+          if (model->gMetric) {
             // todo
           }
           int y1 = map(baroModel.pressureStack[ii].pressure,  yBotPa,yTopPa,  yBot,yTop);
@@ -528,12 +529,11 @@ void ViewBaro::updateScreen() {
   time_t rightnow = now();
   if ( rightnow >= nextShowPressure) {
     //nextShowPressure = nextFiveMinuteMark( rightnow );
-    //nextShowPressure = nextOneMinuteMark( rightnow );
-    nextShowPressure = nextOneSecondMark( rightnow );  // debug
+    nextShowPressure = nextOneMinuteMark( rightnow );
+    //nextShowPressure = nextOneSecondMark( rightnow );  // debug
   
-    float pascals = baroModel.getBaroData();
-    //redrawGraph = true;             // request draw graph
-    printPressure( pascals );
+    float pascals = baroModel.getBaroData();  // get pressure
+    printPressure( pascals );         // redraw text pressure reading
   }
 
   // every 15 minutes read barometric pressure and save it in nonvolatile RAM
@@ -572,6 +572,7 @@ void ViewBaro::startScreen() {
   // ----- draw page title
   txtBaro[eTitle].print();
 
+  redrawGraph = true;                 // make sure graph is drawn on entry
   updateScreen();                     // fill in values immediately, don't wait for the main loop to eventually get around to it
 }
 

@@ -59,11 +59,13 @@ class Model {
     Model() { }
 
     // Setters
-    void setMiles() {
+    void setEnglish() {
       gMetric = false;
+      save();
     }
-    void setKilometers() {
+    void setMetric() {
       gMetric = true;
+      save();
     }
 
     // save current GPS state to non-volatile memory
