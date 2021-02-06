@@ -9,7 +9,7 @@
             a smaller font and cram more stuff onto the screen.
 
             +-----------------------------------------+
-            |              Settings 2                 |
+            |              2. Settings                |
             |                                         |
             | Breadcrumb trail    [ Clear ]           |
             | 123 of 6000                             |
@@ -71,6 +71,7 @@ class ViewSettings2 : public View {
       GPSTYPE,
       COMPILED,
     };
+
     #define nTextGPS 5
     TextField txtSettings2[nTextGPS] = {
       //        text                  x, y     color

@@ -8,23 +8,23 @@
             Since it's NOT intended for a driver in motion, we use a
             smaller font to cram more stuff onto the screen.
 
-            +-----------------------------------+
-            |            Settings 5    /|\      |
-            | Screen                    |       |
-            | Orientation   (o)[ This edge up ] |
-            |                                   |
-            |               ( )[ That edge up ] |
-            |                           |       |
-            |                           |       |
-            |                           |       |
-            | v0.28, Dec 19 2020       \|/      |
-            +-----------------------------------+
+            +-----------------------------------------+
+            |             5. Rotation       /|\       |
+            | Screen                         |        |
+            | Orientation        (o)[ This edge up ]  |
+            |                                         |
+            |                    ( )[ That edge up ]  |
+            |                                |        |
+            |                                |        |
+            |                                |        |
+            | v0.32, Feb 2 2021             \|/       |
+            +-----------------------------------------+
 */
 
 #include <Arduino.h>
 #include <Adafruit_ILI9341.h>         // TFT color display library
 #include "constants.h"                // Griduino constants and colors
-#include "model_gps.h"                // "Model" portion of model-view-controller
+#include "model_gps.h"                // Model of a GPS for model-view-controller
 #include "TextField.h"                // Optimize TFT display text for proportional fonts
 #include "view.h"                     // Base class for all views
 
@@ -40,7 +40,9 @@ class ViewSettings5 : public View {
     // This derived class must implement the public interface:
     ViewSettings5(Adafruit_ILI9341* vtft, int vid)  // ctor 
       : View{ vtft, vid }
-    { }
+    {
+      background = cBACKGROUND;       // every view can have its own background color
+    }
     void updateScreen();
     void startScreen();
     bool onTouch(Point touch);
@@ -54,7 +56,7 @@ class ViewSettings5 : public View {
     // vertical placement of text rows   ---label---           ---button---
     const int yRow1 = 70;             // "Screen Orientation", "This edge up"
     const int yRow2 = yRow1 + 70;     //                       "That edge up"
-    const int yRow9 = gScreenHeight - 12; // "v0.25, Oct 12 2020"
+    const int yRow9 = gScreenHeight - 12; // "v0.32, Feb  2 2021"
 
     #define col1 10                   // left-adjusted column of text
     #define xButton 160               // indented column of buttons
