@@ -8,17 +8,17 @@
             Since it's not intended for a driver in motion, we can use 
             a smaller font and cram more stuff onto the screen.
 
-            +-----------------------------------+
-            |            Settings 4             |
-            |                                   |
-            | Announce at   (o)[ 4-digit      ] |
-            | grid crossing ( )[ 6-digit      ] |
-            |                                   |
-            |                                   |
-            |                                   |
-            |                                   |
-            | v0.28, Dec 19 2020  07:56         |
-            +-----------------------------------+
+            +-----------------------------------------+
+            |            4. Announcements             |
+            |                                         |
+            | Announce at       (o)[ 4-digit      ]   |
+            | grid crossing     ( )[ 6-digit      ]   |
+            |                                         |
+            |                                         |
+            |                                         |
+            |                                         |
+            | v0.32, Feb 2 2021  08:16                |
+            +-----------------------------------------+
 */
 
 #include <Arduino.h>
@@ -145,6 +145,8 @@ void ViewSettings4::startScreen() {
   // called once each time this view becomes active
   this->clearScreen(this->background);                  // clear screen
   txtSettings4[0].setBackground(this->background);      // set background for all TextFields in this view
+  txtSettings4[DISTANCE4].setBackground(cBUTTONFILL);   // change background for text on top of buttons
+  txtSettings4[DISTANCE6].setBackground(cBUTTONFILL);   // change background for text on top of buttons
   TextField::setTextDirty( txtSettings4, nTextCrossing );  // make sure all fields get re-printed on screen change
 
   drawAllIcons();                     // draw gear (settings) and arrow (next screen)
