@@ -27,7 +27,7 @@
 #include <Arduino.h>
 #include "Adafruit_ILI9341.h"         // TFT color display library
 #include "constants.h"                // Griduino constants and colors
-#include "model_gps.h"                // "Model" portion of model-view-controller
+#include "model_gps.h"                // Model of a GPS for model-view-controller
 #include "morse_dac.h"                // morse code
 #include "DS1804.h"                   // DS1804 digital potentiometer library
 #include "TextField.h"                // Optimize TFT display text for proportional fonts
@@ -160,7 +160,9 @@ void ViewVolume::startScreen() {
   TextField::setTextDirty( txtVolume, numVolFields );     // make sure all fields get re-printed on screen change
 
   drawAllIcons();                     // draw gear (settings) and arrow (next screen)
+  showDefaultTouchTargets();          // optionally draw boxes around button-touch area
   showScreenBorder();                 // optionally outline visible area
+  showScreenCenterline();             // optionally draw alignment bar
 
   // ----- draw text fields
   for (int ii=0; ii<numVolFields; ii++) {
@@ -198,13 +200,13 @@ void ViewVolume::startScreen() {
   tft->fillTriangle(xx-ww,yy-nn,  xx+ww,yy-nn,  xx,yy+ht-nn, cVALUE);  // arrow DOWN
 
   gPrevVolIndex = -1;
-  updateScreen();                     // fill in values immediately, don't wait for the main loop to eventually get around to it
+  updateScreen();                     // update UI immediately, don't wait for laggy mainline loop
 
   #ifdef SHOW_SCREEN_CENTERLINE
     // show centerline at      x1,y1              x2,y2             color
     tft->drawLine( tft->width()/2,0,  tft->width()/2,tft->height(), cWARN); // debug
   #endif
-}
+} // end startScreen()
 
 
 bool ViewVolume::onTouch(Point touch) {
@@ -230,7 +232,7 @@ bool ViewVolume::onTouch(Point touch) {
      }
   }
   return handled;                     // true=handled, false=controller uses default action
-}
+} // end onTouch()
 
 // ========== load/save config setting =========================
 #define VOLUME_CONFIG_FILE    CONFIG_FOLDER "/volume.cfg"

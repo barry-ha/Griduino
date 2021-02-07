@@ -133,7 +133,7 @@ void ViewStatus::updateScreen() {
   snprintf(sLatLong, 22, "%.4f, %.4f",
                 model->gLatitude, model->gLongitude);
   txtValues[5].print(sLatLong);
-}
+} // end updateScreen
 
 void ViewStatus::startScreen() {
   // called once each time this view becomes active
@@ -146,6 +146,7 @@ void ViewStatus::startScreen() {
   drawAllIcons();                     // draw gear (settings) and arrow (next screen)
   showDefaultTouchTargets();          // optionally draw boxes around button-touch area
   showScreenBorder();                 // optionally outline visible area
+  showScreenCenterline();             // optionally draw visual alignment bar
 
   // ----- draw text fields
   for (int ii=0; ii<nStatusLabels; ii++) {
@@ -160,7 +161,8 @@ void ViewStatus::startScreen() {
   #endif
 }
 
+
 bool ViewStatus::onTouch(Point touch) {
   Serial.println("->->-> Touched status screen.");
   return false;                       // true=handled, false=controller uses default action
-}
+} // end onTouch()

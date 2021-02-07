@@ -3,7 +3,8 @@
 
   GMT_clock - bright colorful Greenwich Mean Time based on GPS
 
-  Date:     2020-10-15 refactored from .cpp to .h
+  Version history: 
+            2020-10-15 refactored from .cpp to .h
             2020-04-22 created
             2020-04-29 added touch adjustment of local time zone
             2020-05-01 added save/restore to nonvolatile RAM
@@ -47,7 +48,7 @@
 // ========== extern ===========================================
 extern Model* model;                  // "model" portion of model-view-controller
 
-extern void showDefaultTouchTargets();  // Griduino.ino
+extern void showDefaultTouchTargets();// Griduino.ino
 extern void getDate(char* result, int maxlen);  // model_gps.h
 
 // ========== class ViewTime ===================================
@@ -192,7 +193,8 @@ void ViewTime::updateScreen() {
   txtClock[NUMSATS].color = (model->gSatellites<1) ? cWARN : cTEXTFAINT;
   txtClock[NUMSATS].print(sBirds);
   //txtClock[NUMSATS].dump();         // debug
-}
+} // end updateScreen
+
 
 void ViewTime::startScreen() {
   // called once each time this view becomes active
@@ -202,7 +204,9 @@ void ViewTime::startScreen() {
 
   drawAllIcons();                     // draw gear (settings) and arrow (next screen)
   showDefaultTouchTargets();          // optionally draw boxes around button-touch area
+  showMyTouchTargets(timeButtons, nTimeButtons);
   showScreenBorder();                 // optionally outline visible area
+  showScreenCenterline();             // optionally draw visual alignment bar
 
   // ----- draw page title
   txtClock[TITLE].print();
@@ -233,20 +237,16 @@ void ViewTime::startScreen() {
     tft->setTextColor(item.color);
     tft->print(item.text);
 
-    #ifdef SHOW_TOUCH_TARGETS
-    tft->drawRect(item.hitTarget.ul.x, item.hitTarget.ul.y,  // debug: draw outline around hit target
-                  item.hitTarget.size.x, item.hitTarget.size.y, 
-                  cTOUCHTARGET);
-    #endif
+    //#ifdef SHOW_TOUCH_TARGETS
+    //tft->drawRect(item.hitTarget.ul.x, item.hitTarget.ul.y,  // debug: draw outline around hit target
+    //              item.hitTarget.size.x, item.hitTarget.size.y, 
+    //              cTOUCHTARGET);
+    //#endif
   }
 
-  updateScreen();                     // fill in values immediately, don't wait for the main loop to eventually get around to it
+  updateScreen();                     // update UI immediately, don't wait for laggy mainline loop
+} // end startScreen()
 
-  #ifdef SHOW_SCREEN_CENTERLINE
-    // show centerline at      x1,y1              x2,y2             color
-    tft->drawLine( tft->width()/2,0,  tft->width()/2,tft->height(), cWARN); // debug
-  #endif
-}
 
 bool ViewTime::onTouch(Point touch) {
   Serial.println("->->-> Touched time screen.");
@@ -271,4 +271,4 @@ bool ViewTime::onTouch(Point touch) {
      }
   }
   return handled;                     // true=handled, false=controller uses default action
-}
+} // end onTouch()

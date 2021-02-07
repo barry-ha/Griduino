@@ -199,6 +199,7 @@ void ViewSettings2::startScreen() {
 
   updateScreen();                     // fill in values immediately, don't wait for the main loop to eventually get around to it
 
+  showScreenCenterline();
   #ifdef SHOW_SCREEN_CENTERLINE
     // show centerline at      x1,y1              x2,y2             color
     tft->drawLine( tft->width()/2,0,  tft->width()/2,tft->height(), cWARN); // debug

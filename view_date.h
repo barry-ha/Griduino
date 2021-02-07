@@ -54,7 +54,7 @@
 #include <Arduino.h>
 #include <Adafruit_ILI9341.h>         // TFT color display library
 #include "constants.h"                // Griduino constants and colors
-#include "model_gps.h"                // "Model" portion of model-view-controller
+#include "model_gps.h"                // Model of a GPS for model-view-controller
 #include "Adafruit_BMP3XX.h"          // Precision barometric and temperature sensor
 #include "TextField.h"                // Optimize TFT display text for proportional fonts
 #include "view.h"                     // Base class for all views
@@ -251,6 +251,7 @@ void ViewDate::startScreen() {
   drawAllIcons();                     // draw gear (settings) and arrow (next screen)
   showDefaultTouchTargets();          // optionally draw boxes around button-touch area
   showScreenBorder();                 // optionally outline visible area
+  showScreenCenterline();             // optionally draw visual alignment bar
 
   // ----- draw page title
   txtDate[TITLE1].print();
@@ -274,10 +275,11 @@ void ViewDate::startScreen() {
     // show centerline at      x1,y1              x2,y2             color
     tft->drawLine( tft->width()/2,0,  tft->width()/2,tft->height(), cWARN); // debug
   #endif
-}
+} // end startScreen()
 
 bool ViewDate::onTouch(Point touch) {
   Serial.println("->->-> Touched date screen.");
+
   bool handled = false;               // assume a touch target was not hit
   return handled;                     // true=handled, false=controller uses default action
-}
+} // end onTouch()

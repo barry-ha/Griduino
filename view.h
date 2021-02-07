@@ -86,7 +86,13 @@ class View {
       #ifdef SHOW_SCREEN_BORDER
         tft->drawRect(0, 0, gScreenWidth, gScreenHeight, ILI9341_BLUE);  // debug: border around screen
       #endif
-    };
+    }
+    void showScreenCenterline() {
+      #ifdef SHOW_SCREEN_CENTERLINE
+        // show centerline at      x1,y1              x2,y2             color
+        tft->drawLine( tft->width()/2,0,  tft->width()/2,tft->height(), cWARN); // debug
+      #endif
+    }
     void showNameOfView(String sName, uint16_t fgd, uint16_t bkg) {
       // Some of the "view" modules want to label themselves in the upper left corner
       // Caution: this function changes font. The caller needs to change it back, if needed.
@@ -109,6 +115,20 @@ class View {
       clearScreen();                  // todo - necessary?
       startScreen();                  // todo - necessary?
       updateScreen();                 // todo - necessary?
+    }
+
+    /**
+     * Some views include function-specific buttons
+     */
+    void showMyTouchTargets(FunctionButton buttons[], int numButtons) {
+      #ifdef SHOW_TOUCH_TARGETS
+        for (int ii=0; ii<numButtons; ii++) {
+          FunctionButton item = buttons[ii];
+          tft->drawRect(item.hitTarget.ul.x, item.hitTarget.ul.y,  // debug: draw outline around hit target
+                        item.hitTarget.size.x, item.hitTarget.size.y, 
+                        cTOUCHTARGET);
+        }
+      #endif
     }
 
 };  // end class View

@@ -131,6 +131,7 @@ void ViewSettings3::startScreen() {
   drawAllIcons();                     // draw gear (settings) and arrow (next screen)
   showDefaultTouchTargets();          // optionally draw boxes around button-touch area
   showScreenBorder();                 // optionally outline visible area
+  showScreenCenterline();             // optionally draw visual alignment bar
 
   // ----- draw text fields
   for (int ii=0; ii<nTextUnits; ii++) {
@@ -169,13 +170,9 @@ void ViewSettings3::startScreen() {
     tft->drawCircle(xCenter, yCenter, 7, cVALUE);
   }
 
-  updateScreen();                     // fill in values immediately, don't wait for the main loop to eventually get around to it
+  updateScreen();                     // update UI immediately, don't wait for laggy mainline loop
 
-  #ifdef SHOW_SCREEN_CENTERLINE
-    // show centerline at      x1,y1              x2,y2             color
-    tft->drawLine( tft->width()/2,0,  tft->width()/2,tft->height(), cWARN); // debug
-  #endif
-}
+} // end startScreen()
 
 
 bool ViewSettings3::onTouch(Point touch) {
@@ -197,6 +194,10 @@ bool ViewSettings3::onTouch(Point touch) {
               Serial.print("Error, unknown function "); Serial.println(item.functionIndex);
               break;
         }
+
+        showScreenBorder();           // optionally outline visible area
+        showScreenCenterline();       // optionally draw alignment bar
+
         updateScreen();               // update UI immediately, don't wait for laggy mainline loop
         this->saveConfig();           // after UI is updated, save setting to nvr
      }

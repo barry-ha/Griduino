@@ -192,7 +192,10 @@ void ViewSettings4::startScreen() {
       txtSettings4[ii].print();
   }
 
-  updateScreen();                     // fill in values immediately, don't wait for the main loop to eventually get around to it
+  showScreenBorder();                 // optionally outline visible area
+  showScreenCenterline();             // optionally draw alignment bar
+
+  updateScreen();                     // update UI immediately, don't wait for laggy mainline loop
 
   #ifdef SHOW_SCREEN_CENTERLINE
     // show centerline at      x1,y1              x2,y2             color

@@ -104,11 +104,11 @@ void ViewHelp::startScreen() {
 
   // ----- label this view in upper left corner
   showNameOfView("Hint: ", cWARN, cBACKGROUND);
-}
+} // end startScreen()
 
 
 bool ViewHelp::onTouch(Point touch) {
   // do nothing - this screen does not respond to buttons 
   Serial.println("->->-> Touched help screen.");
   return false;                       // true=handled, false=controller uses default action
-}
+} // end onTouch()

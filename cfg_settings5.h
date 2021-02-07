@@ -148,6 +148,7 @@ void ViewSettings5::startScreen() {
   drawAllIcons();                     // draw gear (settings) and arrow (next screen)
   showDefaultTouchTargets();          // optionally draw boxes around button-touch area
   showScreenBorder();                 // optionally outline visible area
+  showScreenCenterline();             // optionally draw alignment bar
 
   // ----- draw text fields
   for (int ii=0; ii<nFields; ii++) {
@@ -192,13 +193,13 @@ void ViewSettings5::startScreen() {
     tft->drawCircle(xCenter, yCenter, 7, cVALUE);
   }
 
-  updateScreen();                     // fill in values immediately, don't wait for the main loop to eventually get around to it
+  updateScreen();                     // update UI immediately, don't wait for laggy mainline loop
 
   #ifdef SHOW_SCREEN_CENTERLINE
     // show centerline at      x1,y1              x2,y2             color
     tft->drawLine( tft->width()/2,0,  tft->width()/2,tft->height(), cWARN); // debug
   #endif
-}
+} // end startScreen()
 
 
 bool ViewSettings5::onTouch(Point touch) {
