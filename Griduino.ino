@@ -77,7 +77,8 @@
 #include "save_restore.h"             // save/restore configuration data to SDRAM
 #include "constants.h"                // Griduino constants, colors, typedefs
 
-#include "view.h"                     // Griduino screens
+#include "view.h"                     // Griduino screens base class, followed by derived classes in alphabetical order
+#include "view_altimeter.h"           // altimeter
 #include "view_baro.h"                // barometric pressure graph
 #include "view_date.h"                // counting days to/from special event 
 #include "view_help.h"                // help screen
@@ -608,6 +609,7 @@ BarometerModel baroModel( &baro, BMP_CS );    // create instance of the model, g
 // alias names for the views - must be in same alphabetical order as array below
 enum {
   GRID_VIEW = 0,
+  ALTIMETER_VIEW,                     // altimeter
   BARO_VIEW,                          // barometer graph
   HELP_VIEW,
   SETTING2_VIEW,                      // gps/simulator 
@@ -626,23 +628,25 @@ enum {
 // list of objects derived from "class View", in alphabetical order
 View* pView;                          // pointer to a derived class
 
-ViewBaro   baroView(&tft, BARO_VIEW); // instantiate derived classes
-ViewDate   dateView(&tft, DATE_VIEW);
-ViewGrid   gridView(&tft, GRID_VIEW);
-ViewHelp   helpView(&tft, HELP_VIEW);
+ViewAltimeter altimeterView(&tft, ALTIMETER_VIEW);  // alphabetical order
+ViewBaro      baroView(&tft, BARO_VIEW); // instantiate derived classes
+ViewDate      dateView(&tft, DATE_VIEW);
+ViewGrid      gridView(&tft, GRID_VIEW);
+ViewHelp      helpView(&tft, HELP_VIEW);
 ViewSettings2 settings2View(&tft, SETTING2_VIEW);
 ViewSettings3 settings3View(&tft, SETTING3_VIEW);
 ViewSettings4 settings4View(&tft, SETTING4_VIEW);
 ViewSettings5 settings5View(&tft, SETTING5_VIEW);
-ViewSplash splashView(&tft, SPLASH_VIEW);
-ViewStatus statusView(&tft, STATUS_VIEW);
-ViewTime   timeView(&tft, TIME_VIEW);
-ViewVolume volumeView(&tft, VOLUME_VIEW);
+ViewSplash    splashView(&tft, SPLASH_VIEW);
+ViewStatus    statusView(&tft, STATUS_VIEW);
+ViewTime      timeView(&tft, TIME_VIEW);
+ViewVolume    volumeView(&tft, VOLUME_VIEW);
 
 void selectNewView(int cmd) {
   // this is a state machine to select next view, given current view and type of command
-  View* viewTable[] = {
+  View* viewTable[] = {    // vvv same order as enum vvv
         &gridView,         // [GRID_VIEW]
+        &altimeterView,    // [ALTIMETER_VIEW]
         &baroView,         // [BARO_VIEW]
         &helpView,         // [HELP_VIEW]
         &settings2View,    // [SETTING2_VIEW]
@@ -662,7 +666,8 @@ void selectNewView(int cmd) {
     // operator requested the next NORMAL user view
     switch (currentView) {
       case GRID_VIEW:   nextView = BARO_VIEW; break;
-      case BARO_VIEW:   nextView = STATUS_VIEW; break;
+      case BARO_VIEW:   nextView = ALTIMETER_VIEW; break;
+      case ALTIMETER_VIEW: nextView = STATUS_VIEW; break;
       case STATUS_VIEW: nextView = TIME_VIEW; break;
       case TIME_VIEW:   nextView = DATE_VIEW; break;
       case DATE_VIEW:   nextView = GRID_VIEW; break;
