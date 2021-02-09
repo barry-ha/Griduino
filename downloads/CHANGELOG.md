@@ -7,6 +7,15 @@ Version numbers correspond to [Downloads](https://github.com/barry-ha/Griduino/t
 
 The changelog format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and the Griduino project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+**v0.33** &nbsp; 2021-02-09
+
+Added Altimeter view which compares altitude from the barometer to altitude from the GPS. This is an interesting way to cross-check and decide for yourself the accuracy of reports.
+
+The problem is that both of them can be off:
+
+* An accurate reading from the barometer depends on knowing your current pressure at sea level at your location. The altimeter screen therefore offers + and - buttons to calibrate it. You can get the correct pressure by searching the web for a local weather report, or by adjusting it to a known altitude. 
+* An accurate reading from the GPS depends on the number and position of satellites overhead. You would need a good satellite right overhead for best results. Further, signal reflections from nearby objects can throw it off. Unfortunately the consumer GPS service was designed to be more accurate positionally than for altitude. For example, at my home, the GPS reports will vary by 300 feet or so.
+
 **v0.32** &nbsp; 2021-02-03
 
 Added 3-day graph of barometric pressure, a "Baroduino" if you'll excuse the amalgam. Please report any bugs or usability glitches. 
