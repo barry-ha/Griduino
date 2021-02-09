@@ -60,7 +60,7 @@ class TextField {
   //      3. Printing text in proportional font does not clear its own background
 
   public:
-    char text[32];          // new text to draw
+    char text[42];          // new text to draw (max 40 chars on screen, at size eFONTSMALL
     int x, y;               // screen coordinates
     uint16_t color;         // text color
     int align;              // ALIGNLEFT | ALIGNRIGHT | ALIGNCENTER
