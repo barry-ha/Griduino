@@ -53,12 +53,12 @@
 
 #include <Arduino.h>
 #include <Adafruit_ILI9341.h>         // TFT color display library
+#include <TimeLib.h>                  // BorisNeubert / Time (who forked it from PaulStoffregen / Time)
 #include "constants.h"                // Griduino constants and colors
 #include "model_gps.h"                // Model of a GPS for model-view-controller
 #include "Adafruit_BMP3XX.h"          // Precision barometric and temperature sensor
 #include "TextField.h"                // Optimize TFT display text for proportional fonts
 #include "view.h"                     // Base class for all views
-#include "TimeLib.h"                  // BorisNeubert / Time (who forked it from PaulStoffregen / Time)
 
 // ======= customize this for any count up/down display ========
 // Example 1: Number of "Groundhog Days"
@@ -250,6 +250,7 @@ void ViewDate::startScreen() {
 
   drawAllIcons();                     // draw gear (settings) and arrow (next screen)
   showDefaultTouchTargets();          // optionally draw boxes around button-touch area
+  //showMyTouchTargets(timeButtons, nTimeButtons);
   showScreenBorder();                 // optionally outline visible area
   showScreenCenterline();             // optionally draw visual alignment bar
 
@@ -269,13 +270,9 @@ void ViewDate::startScreen() {
     txtDate[ii].print();
   }
 
-  updateScreen();                     // fill in values immediately, don't wait for the main loop to eventually get around to it
-
-  #ifdef SHOW_SCREEN_CENTERLINE
-    // show centerline at      x1,y1              x2,y2             color
-    tft->drawLine( tft->width()/2,0,  tft->width()/2,tft->height(), cWARN); // debug
-  #endif
+  updateScreen();                     // update UI immediately, don't wait for laggy mainline loop
 } // end startScreen()
+
 
 bool ViewDate::onTouch(Point touch) {
   Serial.println("->->-> Touched date screen.");

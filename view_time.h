@@ -113,7 +113,7 @@ class ViewTime : public View {
     };
 
     // ----- time helpers
-    /* 2020-10-15 bwh - moved this into model_gps.h
+    /* 2020-10-15 bwh - moved this into model_gps.h since it's used by multiple views
     #define TIME_FOLDER  "/GMTclock"     // 8.3 names
     #define TIME_FILE    TIME_FOLDER "/AddHours.cfg"
     #define TIME_VERSION "v01"
@@ -224,7 +224,7 @@ void ViewTime::startScreen() {
   }
 
   // ----- draw buttons
-  setFontSize(12);
+  setFontSize(eFONTSMALL);
   for (int ii=0; ii<nTimeButtons; ii++) {
     FunctionButton item = timeButtons[ii];
     tft->fillRoundRect(item.x, item.y, item.w, item.h, item.radius, cBUTTONFILL);
@@ -237,11 +237,6 @@ void ViewTime::startScreen() {
     tft->setTextColor(item.color);
     tft->print(item.text);
 
-    //#ifdef SHOW_TOUCH_TARGETS
-    //tft->drawRect(item.hitTarget.ul.x, item.hitTarget.ul.y,  // debug: draw outline around hit target
-    //              item.hitTarget.size.x, item.hitTarget.size.y, 
-    //              cTOUCHTARGET);
-    //#endif
   }
 
   updateScreen();                     // update UI immediately, don't wait for laggy mainline loop
@@ -250,6 +245,7 @@ void ViewTime::startScreen() {
 
 bool ViewTime::onTouch(Point touch) {
   Serial.println("->->-> Touched time screen.");
+
   bool handled = false;               // assume a touch target was not hit
   for (int ii=0; ii<nTimeButtons; ii++) {
     FunctionButton item = timeButtons[ii];

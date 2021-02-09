@@ -136,7 +136,8 @@ void ViewSettings5::updateScreen() {
     }
     tft->fillCircle(xCenter, yCenter, 4, buttonFillColor);
   }
-}
+
+} // end updateScreen
 
 
 void ViewSettings5::startScreen() {
@@ -146,9 +147,9 @@ void ViewSettings5::startScreen() {
   TextField::setTextDirty( txtSettings5, nFields );     // make sure all fields get re-printed on screen change
 
   drawAllIcons();                     // draw gear (settings) and arrow (next screen)
-  showDefaultTouchTargets();          // optionally draw boxes around button-touch area
+  showDefaultTouchTargets();          // optionally draw box around default button-touch areas
   showScreenBorder();                 // optionally outline visible area
-  showScreenCenterline();             // optionally draw alignment bar
+  showScreenCenterline();             // optionally draw visual alignment bar
 
   // ----- draw text fields
   for (int ii=0; ii<nFields; ii++) {
@@ -168,12 +169,6 @@ void ViewSettings5::startScreen() {
     tft->setCursor(xx, item.y+item.h/2+5);  // place text centered inside button
     tft->setTextColor(item.color);
     tft->print(item.text);
-
-    #ifdef SHOW_TOUCH_TARGETS
-    tft->drawRect(item.hitTarget.ul.x, item.hitTarget.ul.y,  // debug: draw outline around hit target
-                  item.hitTarget.size.x, item.hitTarget.size.y, 
-                  cTOUCHTARGET);
-    #endif
   }
 
   // ----- draw arrows from buttons to top/bottom edges
@@ -194,11 +189,6 @@ void ViewSettings5::startScreen() {
   }
 
   updateScreen();                     // update UI immediately, don't wait for laggy mainline loop
-
-  #ifdef SHOW_SCREEN_CENTERLINE
-    // show centerline at      x1,y1              x2,y2             color
-    tft->drawLine( tft->width()/2,0,  tft->width()/2,tft->height(), cWARN); // debug
-  #endif
 } // end startScreen()
 
 
@@ -227,7 +217,7 @@ bool ViewSettings5::onTouch(Point touch) {
      }
   }
   return handled;                     // true=handled, false=controller uses default action
-}
+} // end onTouch()
 
 // ========== load/save config setting =========================
 #define SCREEN_CONFIG_FILE    CONFIG_FOLDER "/screen.cfg"

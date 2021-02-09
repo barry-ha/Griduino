@@ -86,7 +86,7 @@
 extern Model* model;                  // "model" portion of model-view-controller
 extern BarometerModel baroModel;      // singleton instance of the barometer model
 
-extern void showDefaultTouchTargets();  // Griduino.ino
+extern void showDefaultTouchTargets();// Griduino.ino
 extern void getDate(char* result, int maxlen);  // model_gps.h
 extern bool isDateValid(int yy, int mm, int dd);  // Griduino.ino
 extern time_t nextOneSecondMark(time_t timestamp);      // Griduino.ino
@@ -129,14 +129,9 @@ class ViewBaro : public View {
     time_t nextShowPressure = 0;      // timer to update displayed value (5 min), init to take a reading soon after startup
     time_t nextSavePressure = 0;      // timer to log pressure reading (15 min)
 
-    //enum eUnits { eMetric, eEnglish };
-    //int gUnits = eEnglish;            // units on startup: 0=english=inches mercury, 1=metric=millibars
-
     // ========== graph screen layout ==============================
-    // todo: are these single-use? can they be moved inside a function?
     const int graphHeight = 160;          // in pixels
     const int pixelsPerHour = 4;          // 4 px/hr graph
-    //nst int pixelsPerDay = 72;          // 3 px/hr * 24 hr/day = 72 px/day
     const int pixelsPerDay = pixelsPerHour * 24;  // 4 px/hr * 24 hr/day = 96 px/day
 
     const int MARGIN = 6;                 // reserve an outer blank margin on all sides
@@ -158,7 +153,7 @@ class ViewBaro : public View {
     // ========== text screen layout ===================================
     // these are names for the array indexes, must be named in same order as array below
     enum txtIndex {
-      eTitle=0, 
+      eTitle=0,
       eDate, eNumSat, eTimeHHMM, eTimeSS,
       valPressure, unitPressure,
     };
@@ -166,19 +161,19 @@ class ViewBaro : public View {
     #define numBaroFields 7
     TextField txtBaro[numBaroFields] = {
       // text            x,y    color       align       font
-      {"Baroduino",     -1, 18, cTITLE,     ALIGNCENTER,eFONTSMALLEST}, // [eTitle] program title, centered
+      {"Baroduino",     -1, 18, cTITLE,     ALIGNCENTER,eFONTSMALLEST}, // [eTitle] screen title, centered
       {"01-02",         48, 18, cWARN,      ALIGNLEFT,  eFONTSMALLEST}, // [eDate]
       {"0#",            48, 36, cWARN,      ALIGNLEFT,  eFONTSMALLEST}, // [eNumSat]
       {"12:34",        276, 18, cWARN,      ALIGNRIGHT, eFONTSMALLEST}, // [eTimeHHMM]
       {"56",           276, 36, cWARN,      ALIGNRIGHT, eFONTSMALLEST}, // [eTimeSS]
-      {"30.00",        162, 46, ILI9341_WHITE, ALIGNRIGHT,eFONTSMALL},  // [valPressure]
+      {"30.000",       162, 46, ILI9341_WHITE, ALIGNRIGHT,eFONTSMALL},  // [valPressure]
       {"inHg",         180, 46, ILI9341_WHITE, ALIGNLEFT, eFONTSMALL},  // [unitPressure]
     };
 
     void showReadings() {
       clearScreen(yTop, graphHeight);     // erase only the graph area, not the whole screen, to reduce blinking
 
-      float pascals = baroModel.getBaroData();
+      float pascals = baroModel.getBaroPressure();
       printPressure( pascals );
       tickMarks(3, 5);                    // draw 8 short ticks every day (24hr/8ticks = 3-hour intervals, 5 px high)
       tickMarks(12, 10);                  // draw 2 long ticks every day (24hr/2ticks = 12-hour intervals, 10 px high)
@@ -215,13 +210,13 @@ class ViewBaro : public View {
       }
     
       snprintf(msg, sizeof(msg), "%d-%02d", mo, dd);
-      txtBaro[eDate].print(msg);       // 2020-11-12 do show date, help identify when RTC stops
+      txtBaro[eDate].print(msg);
     
       snprintf(msg, sizeof(msg), "%d#", GPS.satellites);
-      txtBaro[eNumSat].print(msg);     // 2020-11-12 do show date, help identify when RTC stops
+      txtBaro[eNumSat].print(msg);    // show number of satellites, help give sense of positional accuracy
     
       snprintf(msg, sizeof(msg), "%02d:%02d", hh,mm);
-      txtBaro[eTimeHHMM].print(msg);
+      txtBaro[eTimeHHMM].print(msg);  // show time, help identify when RTC stops
     
       snprintf(msg, sizeof(msg), "%02d", ss);
       txtBaro[eTimeSS].print(msg);
@@ -243,7 +238,7 @@ class ViewBaro : public View {
       } else {
         fPressure = pascals / PASCALS_PER_INCHES_MERCURY;
         sUnits = inHg;
-        decimals = 2;
+        decimals = 3;
       }
     
       txtBaro[eTitle].print();
@@ -532,7 +527,7 @@ void ViewBaro::updateScreen() {
     nextShowPressure = nextOneMinuteMark( rightnow );
     //nextShowPressure = nextOneSecondMark( rightnow );  // debug
   
-    float pascals = baroModel.getBaroData();  // get pressure
+    float pascals = baroModel.getBaroPressure();  // get pressure
     printPressure( pascals );         // redraw text pressure reading
   }
 
@@ -552,7 +547,9 @@ void ViewBaro::updateScreen() {
     showReadings();
     redrawGraph = false;
   }
-} // end updateScreem
+
+} // end updateScreen
+
 
 void ViewBaro::startScreen() {
   // called once each time this view becomes active
@@ -563,7 +560,7 @@ void ViewBaro::startScreen() {
   drawAllIcons();                     // draw gear (settings) and arrow (next screen)
   showDefaultTouchTargets();          // optionally draw boxes around button-touch area
   showScreenBorder();                 // optionally outline visible area
-  showScreenCenterline();             // optionally draw alignment bar
+  showScreenCenterline();             // optionally draw visual alignment bar
 
   // ----- draw page title
   txtBaro[eTitle].print();
@@ -571,6 +568,7 @@ void ViewBaro::startScreen() {
   redrawGraph = true;                 // make sure graph is drawn on entry
   updateScreen();                     // update UI immediately, don't wait for laggy mainline loop
 } // end startScreen()
+
 
 bool ViewBaro::onTouch(Point touch) {
   Serial.println("->->-> Touched baro screen.");
