@@ -230,7 +230,7 @@ bool ViewSettings4::onTouch(Point touch) {
 }
 
 // ========== load/save config setting =========================
-// the user's choice of 4- or 6-digit grid announcments is saved in the model, not here
+// the user's choice of 4- or 6-digit grid announcements is saved in the model, not here
 // so all we have to do is tell the model to save itself (a lengthy operation)
 
 // ----- load from SDRAM -----
