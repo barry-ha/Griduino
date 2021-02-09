@@ -41,6 +41,7 @@ class Model {
     bool   gMetric = false;           // distance reported in miles(false), kilometers(true)
     int    gTimeZone = -7;            // default local time Pacific (-7 hours)
     bool   compare4digits = true;     // true=4 digit, false=6 digit comparisons
+    float  gSeaLevelPressure = 1017.4;// default starting value, hPa; adjustable by touch in view_altimeter.h
 
     Location history[600];            // remember a list of GPS coordinates
     int nextHistoryItem = 0;          // index of next item to write
@@ -61,16 +62,16 @@ class Model {
     // Setters
     void setEnglish() {
       gMetric = false;
-      save();
+      save();                         // warning: saving entire model is slow, ~1 second
     }
     void setMetric() {
       gMetric = true;
-      save();
+      save();                         // warning: saving entire model is slow, ~1 second
     }
 
     // save current GPS state to non-volatile memory
-    const char MODEL_FILE[25] = "/Griduino/gpsmodel.cfg";  // CONFIG_FOLDER
-    const char MODEL_VERS[15] = "GPS Model v07";
+    const char MODEL_FILE[25] = "/Griduino/gpsmodel.cfg"; // CONFIG_FOLDER
+    const char MODEL_VERS[15] = "GPS Model v08";          // <-- always change version when changing model data
     int save() {
       SaveRestore sdram(MODEL_FILE, MODEL_VERS);
       if (sdram.writeConfig( (byte*) this, sizeof(Model))) {
@@ -113,6 +114,7 @@ class Model {
       gAngle = 0.0;                   // assume direction of travel unknown
       gMetric = from.gMetric;         // distance report in miles/kilometers
       compare4digits = from.compare4digits;
+      gSeaLevelPressure = from.gSeaLevelPressure; // hPa
 
       for (int ii=0; ii<numHistory; ii++) {
         history[ii] = from.history[ii];

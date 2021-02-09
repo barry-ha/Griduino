@@ -25,12 +25,12 @@
             | Enter your current local                |. . .yRow3
             | pressure at sea level:                  |. . .yRow4
             +-------+                         +-------+
-            |   ^   |     1016.7 hPa          |   v   |. . .yRow5
+            |   ^   |     1016.7 hPa          |   v   |. . .yRow9
             +-------+-------------------------+-------+
 */
 
 #include <Adafruit_ILI9341.h>         // TFT color display library
-//#include "TouchScreen.h"              // Touchscreen built in to 3.2" Adafruit TFT display
+#include <TimeLib.h>                  // BorisNeubert / Time (who forked it from PaulStoffregen / Time)
 #include "constants.h"                // Griduino constants and colors
 #include "model_gps.h"                // Model of a GPS for model-view-controller
 #include "model_baro.h"               // Model of a barometer that stores 3-day history
@@ -56,23 +56,18 @@ class ViewAltimeter : public View {
     void updateScreen();
     void startScreen();
     bool onTouch(Point touch);
+    void loadConfig();
+    void saveConfig();
 
   protected:
     // ---------- local data for this derived class ----------
     // color scheme: see constants.h
 
-    float gSeaLevelPressure = 1017.4;   // default starting value; adjustable by touchscreen
-    float inchesHg;
-    float Pa;
-    float hPa;
-    float feet;
-    float tempF;
-    float tempC;
-    float altMeters;
-    float altFeet;
+    // "Sea Level Pressure" is stored here instead of model_gps.h, because model->save() is slow
+    float gSealevelPressure = 1017.4; // default starting value, hPa; adjustable by touchscreen
 
-    void showReadings();
-    void drawButtons();
+    //void showReadings();
+    //void drawButtons();
 
     // ========== text screen layout ===================================
 
@@ -86,29 +81,35 @@ class ViewAltimeter : public View {
     const int col1 = 10;              // left-adjusted column of text
     const int col2 = 200;             // right-adjusted numbers
     const int col3 = col2 + 10;
-    const int colCenter = 160;        // half of screen width
+    const int colPressure = 156;
 	
     // these are names for the array indexes, must be named in same order as array below
     enum txtIndex {
       eTitle=0,
-      BARO_LABEL, BARO_VALUE, BARO_UNITS,
-      GPS_LABEL,  GPS_VALUE,  GPS_UNITS,
-	  PROMPT1, PROMPT2,
-	  SEA_LEVEL,
+      eDate, eNumSat, eTimeHHMM, eTimeSS,
+      eBaroLabel, eBaroValue, eBaroUnits,
+      eGpsLabel,  eGpsValue,  eGpsUnits,
+      ePrompt1, /*ePrompt2,*/
+      eSealevel,
     };
-    #define nTextAltimeter 10
+
+    #define nTextAltimeter 13
     TextField txtAltimeter[nTextAltimeter] = {
-      //        text                  x, y     color
-      TextField("Altitude",        col1, 20,   cTITLE, ALIGNCENTER, eFONTSMALLEST),// [eTitle]
-      TextField("Barometer:",      col1,yRow1, cLABEL, ALIGNLEFT, eFONTSMALL),  // [BARO_LABEL]
-      TextField("12.3",            col2,yRow1, cVALUE, ALIGNRIGHT,eFONTSMALL),  // [BARO_VALUE]
-      TextField("feet",            col3,yRow1, cLABEL, ALIGNLEFT, eFONTSMALL),  // [BARO_UNITS]
-      TextField("GPS (4#):",       col1,yRow2, cLABEL, ALIGNLEFT, eFONTSMALL),  // [GPS_LABEL]
-      TextField("4567.8",          col2,yRow2, cVALUE, ALIGNRIGHT,eFONTSMALL),  // [GPS_VALUE]
-      TextField("feet",            col3,yRow2, cLABEL, ALIGNLEFT, eFONTSMALL),  // GPS_UNITS]
-      TextField("Enter your current local", col1,yRow3, cLABEL, ALIGNLEFT, eFONTSMALLEST),// [PROMPT1]
-      TextField("pressure at sea level:",   col1,yRow4, cLABEL, ALIGNLEFT, eFONTSMALLEST),// [PROMPT2]
-      TextField("1016.7 hPa", colCenter,yRow9, cVALUE, ALIGNCENTER, eFONTSMALLEST),       // [SEA_LEVEL]
+      // text            x,y    color       align       font
+      {"Altitude",      -1, 18, cTITLE,     ALIGNCENTER,eFONTSMALLEST}, // [eTitle] screen title, centered
+      {"mm-dd",         48, 18, cWARN,      ALIGNLEFT,  eFONTSMALLEST}, // [eDate]
+      {"0#",            48, 36, cWARN,      ALIGNLEFT,  eFONTSMALLEST}, // [eNumSat]
+      {"hh:mm",        276, 18, cWARN,      ALIGNRIGHT, eFONTSMALLEST}, // [eTimeHHMM]
+      {"ss",           276, 36, cWARN,      ALIGNRIGHT, eFONTSMALLEST}, // [eTimeSS]
+      {"Barometer:",  col1,yRow1, cLABEL,   ALIGNLEFT,  eFONTSMALL},    // [eBaroLabel]
+      {"12.3",        col2,yRow1, cVALUE,   ALIGNRIGHT, eFONTSMALL},    // [eBaroValue]
+      {"feet",        col3,yRow1, cLABEL,   ALIGNLEFT,  eFONTSMALL},    // [eBaroUnits]
+      {"GPS:",        col1,yRow2, cLABEL,   ALIGNLEFT,  eFONTSMALL},    // [eGpsLabel]
+      {"4567.8",      col2,yRow2, cVALUE,   ALIGNRIGHT, eFONTSMALL},    // [eGpsValue]
+      {"feet",        col3,yRow2, cLABEL,   ALIGNLEFT,  eFONTSMALL},    // [eGpsUnits]
+      {"Enter local sea level pressure:", 
+                        -1,yRow4, cTEXTCOLOR,ALIGNCENTER,eFONTSMALLEST},// [ePrompt1]
+      {"34.567 inHg",   -1,yRow9, cVALUE,   ALIGNCENTER, eFONTSMALLEST},// [eSealevel]
     };
 
     enum buttonID {
@@ -123,86 +124,134 @@ class ViewAltimeter : public View {
       //
       // 3.2" display is 320 x 240 pixels, landscape, (y=239 reserved for activity bar)
       //
-      // label  origin   size      touch-target
-      // text    x,y      w,h      x,y      w,h   radius  color     functionID
-      {  "+",   60,202,  38,32, {  1,158, 159,89},  4,  cTEXTCOLOR, ePressurePlus  },  // Up
-      {  "-",  226,202,  38,32, {161,158, 159,89},  4,  cTEXTCOLOR, ePressureMinus },  // Down
+      // label            origin   size      touch-target
+      // text              x,y      w,h      x,y      w,h   radius  color     functionID
+      {  "+",      160-20-90,202,  38,32, {  1,158, 159,89},  4,  cTEXTCOLOR, ePressurePlus  },  // Up
+      {  "-",      160-20+90,202,  38,32, {161,158, 159,89},  4,  cTEXTCOLOR, ePressureMinus },  // Down
     };
 
-    // ----- screen layout
-    // When using default system fonts, screen pixel coordinates will identify top left of character cell
-    const int xLabel = 8;                 // indent labels, slight margin on left edge of screen
-
     // ======== barometer and temperature helpers ==================
-    /* *****
-    void getBaroData() {
-      if (!baro.performReading()) {
-        Serial.println("Error, failed to read barometer");
+
+    void showTimeOfDay() {
+      // fetch RTC and display it on screen
+      char msg[12];                       // strlen("12:34:56") = 8
+      int mo, dd, hh, mm, ss;
+      if (timeStatus() == timeNotSet) {
+        mo = dd = hh = mm = ss = 0;
+      } else {
+        time_t tt = now();
+        mo = month(tt);
+        dd = day(tt);
+        hh = hour(tt);
+        mm = minute(tt);
+        ss = second(tt);
       }
-      // continue anyway, for demo
-      tempC = baro.temperature;
-      tempF= tempC * 9 / 5 + 32;
-      Pa = baro.pressure;
-      hPa = Pa / 100;
-      inchesHg = 0.0002953 * Pa;
-      altMeters = baro.readAltitude(gSeaLevelPressure);
-      altFeet = altMeters * FEET_PER_METER;
+    
+      snprintf(msg, sizeof(msg), "%d-%02d", mo, dd);
+      txtAltimeter[eDate].print(msg);
+    
+      snprintf(msg, sizeof(msg), "%d#", GPS.satellites);
+      txtAltimeter[eNumSat].print(msg);    // show number of satellites, help give sense of positional accuracy
+    
+      snprintf(msg, sizeof(msg), "%02d:%02d", hh,mm);
+      txtAltimeter[eTimeHHMM].print(msg);  // show time, help identify when RTC stops
+    
+      snprintf(msg, sizeof(msg), "%02d", ss);
+      txtAltimeter[eTimeSS].print(msg);
     }
-    ***** */
 
     // ----- helpers -----
+    float delta() {
+      // how much to change "sea level pressure" with each button press epends on english/metric setting
+      float hPa;
+      if (model->gMetric) {
+        hPa = (0.002F)*HPA_PER_INCHES_MERCURY; // 0.003 inHg is about 2 feet
+      } else {
+        hPa = (0.1F);                  // 0.1 hPa is about 1 meter
+      }
+      return hPa;
+    }
+    
     void increaseSeaLevelPressure() {
-      gSeaLevelPressure += 0.1;
+      gSealevelPressure += delta();
+      Serial.print("Sea level pressure increased to "); Serial.println(gSealevelPressure, 2);
     }
 
     void decreaseSeaLevelPressure() {
-      gSeaLevelPressure -= 0.1;
+      float change = 
+      gSealevelPressure -= delta();
+      Serial.print("Sea level pressure decreased to "); Serial.println(gSealevelPressure, 2);
     }
 
 };  // end class ViewAltimeter
 
-// ========== screen helpers ===================================
-void ViewAltimeter::showReadings() {
-  // called on every pass through main()
-
-  // todo
-
-}
-
-void ViewAltimeter::drawButtons() {
-
-  // todo
-
-}
-
 // ============== implement public interface ================
 void ViewAltimeter::updateScreen() {
+  // called on every pass through main()
 
+  // update clock display
+  showTimeOfDay();
+
+  // read altitude from barometer and GPS, and display everything
+  float pascals = baroModel.getBaroPressure();  // get pressure to trigger a fresh reading
+  //Serial.print("Altimeter "); Serial.print(pascals); Serial.print(" Pa ["); Serial.print(__LINE__); Serial.println("]"); // debug
+  
+  char msg[16];                     // strlen("12,345.6 meters") = 15
+
+  float altMeters = baroModel.getAltitude(gSealevelPressure);
+  float altFeet = altMeters*feetPerMeters;
+  //Serial.print("Altimeter "); Serial.print(altFeet); Serial.print(" feet ["); Serial.print(__LINE__); Serial.println("]"); // debug
+  if (model->gMetric) {
+    txtAltimeter[eBaroValue].print(altMeters, 0);
+  } else {
+    txtAltimeter[eBaroValue].print(altFeet, 0);
+  }
+
+  // if (lost GPS position lock)
   // todo
+  
+  float altitude = model->gAltitude*feetPerMeters;
+  txtAltimeter[eGpsValue].print(altitude, 0);
+
+  // show sea level pressure
+  if (model->gMetric) {
+    // metric: hecto Pascal
+    float sealevel = gSealevelPressure;
+    String sFloat = String(sealevel, 1) + " hPa";
+    txtAltimeter[eSealevel].print(sFloat);
+  } else {
+     // english: inches Mercury
+    float sealevel = gSealevelPressure*INCHES_MERCURY_PER_PASCAL*100;
+    String sFloat = String(sealevel, 3) + " inHg";
+    txtAltimeter[eSealevel].print(sFloat);
+  }
 
 } // end updateScreen
 
 
 void ViewAltimeter::startScreen() {
   // called once each time this view becomes active
-  this->clearScreen(this->background);                  // clear screen
-  txtAltimeter[0].setBackground(this->background);      // set background for all TextFields in this view
+  loadConfig();                       // restore our settings from NVR
+  this->clearScreen(this->background);                      // clear screen
+  txtAltimeter[0].setBackground(this->background);          // set background for all TextFields in this view
   TextField::setTextDirty( txtAltimeter, nTextAltimeter );  // make sure all fields get re-printed on screen change
-  //setFontSize(eFONTSMALLEST);
 
   drawAllIcons();                     // draw gear (settings) and arrow (next screen)
-  showDefaultTouchTargets();          // optionally draw boxes around button-touch area
-  showMyTouchTargets(pressureButtons, nPressureButtons);
+  showDefaultTouchTargets();          // optionally draw box around default button-touch areas
+  showMyTouchTargets(pressureButtons, nPressureButtons); // optionally show this view's touch targets
   showScreenBorder();                 // optionally outline visible area
   showScreenCenterline();             // optionally draw visual alignment bar
 
-  // ----- draw text fields
-  for (int ii=0; ii<nTextAltimeter; ii++) {
-      txtAltimeter[ii].print();
+  if (model->gMetric) {
+    txtAltimeter[eBaroUnits].print("meters");
+    txtAltimeter[eGpsUnits].print("meters");
+  } else {
+    txtAltimeter[eBaroUnits].print("feet");
+    txtAltimeter[eGpsUnits].print("feet");
   }
 
   // ----- draw buttons
-  //setFontSize(12);
+  setFontSize(eFONTSMALL);
   for (int ii=0; ii<nPressureButtons; ii++) {
     FunctionButton item = pressureButtons[ii];
     tft->fillRoundRect(item.x, item.y, item.w, item.h, item.radius, cBUTTONFILL);
@@ -211,9 +260,14 @@ void ViewAltimeter::startScreen() {
     // ----- label on top of button
     int xx = getOffsetToCenterTextOnButton(item.text, item.x, item.w);
 
-    tft->setCursor(xx, item.y+item.h/2+5);
+    tft->setCursor(xx, item.y+item.h/2+5);  // place text centered inside button
     tft->setTextColor(item.color);
     tft->print(item.text);
+  }
+
+  // ----- draw text fields
+  for (int ii=0; ii<nTextAltimeter; ii++) {
+      txtAltimeter[ii].print();
   }
 
   updateScreen();                     // update UI immediately, don't wait for laggy mainline loop
@@ -222,6 +276,7 @@ void ViewAltimeter::startScreen() {
 
 bool ViewAltimeter::onTouch(Point touch) {
   Serial.println("->->-> Touched altimeter screen.");
+
   bool handled = false;               // assume a touch target was not hit
   for (int ii=0; ii<nPressureButtons; ii++) {
     FunctionButton item = pressureButtons[ii];
@@ -239,8 +294,37 @@ bool ViewAltimeter::onTouch(Point touch) {
               Serial.print("Error, unknown function "); Serial.println(item.functionIndex);
               break;
         }
-        updateScreen();               // show the result
+        updateScreen();               // update UI immediately, don't wait for laggy mainline loop
+        this->saveConfig();           // after UI is updated, save setting to nvr
      }
   }
   return handled;                     // true=handled, false=controller uses default action
 } // end onTouch()
+
+// ========== load/save config setting =========================
+// the user's sea level pressure is saved here instead of the model, to keep the 
+// screen responsive. Otherwise it's slow to save the whole GPS model.
+#define ALTIMETER_CONFIG_FILE    CONFIG_FOLDER "/altimetr.cfg" // must be 8.3 filename
+#define CONFIG_ALTIMETER_VERSION "Altimeter v01"               // <-- always change this when changing data saved
+
+// ----- load from SDRAM -----
+void ViewAltimeter::loadConfig() {
+  // Load altimeter settings from NVR
+
+  SaveRestore config(ALTIMETER_CONFIG_FILE, CONFIG_ALTIMETER_VERSION);
+  float tempPressure;
+  int result = config.readConfig( (byte*) &tempPressure, sizeof(tempPressure) );
+  if (result) {
+    this->gSealevelPressure = tempPressure;
+    Serial.print("Loaded sea level pressure: "); Serial.println(this->gSealevelPressure, 2);
+  } else {
+    Serial.println("Failed to load sea level pressure, re-initializing config file");
+    saveConfig();
+  }
+}
+// ----- save to SDRAM -----
+void ViewAltimeter::saveConfig() {
+  SaveRestore config(ALTIMETER_CONFIG_FILE, CONFIG_ALTIMETER_VERSION);
+  int rc = config.writeConfig( (byte*) &gSealevelPressure, sizeof(gSealevelPressure) );
+  Serial.print("Finished with rc = "); Serial.println(rc);  // debug
+}

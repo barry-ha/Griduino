@@ -6,7 +6,7 @@
   Hardware: John Vanderbeck, KM7O, Seattle, WA
 
          The interface to this class provides:
-         1. Read barometer for ongoing display        baro.getBaroData();
+         1. Read barometer for ongoing display        baro.getBaroPressure();
          2. Read-and-save barometer for data logger   baro.logPressure( rightnow );
          3. Load history from NVR                     baro.loadHistory();
          4. Save history to NVR                       baro.saveHistory();
@@ -68,6 +68,7 @@ extern char* dateToString(char* msg, int len, time_t datetime);  // Griduino/Bar
 #define MILLIBARS_PER_INCHES_MERCURY (0.02953)
 #define BARS_PER_INCHES_MERCURY      (0.0338639)
 #define PASCALS_PER_INCHES_MERCURY   (3386.39)
+#define HPA_PER_INCHES_MERCURY       (33.8639)
 #define INCHES_MERCURY_PER_PASCAL    (0.0002953)
 
 // ========== class BarometerModel ======================
@@ -151,7 +152,13 @@ class BarometerModel {
       return rc;
     }
 
-    float getBaroData() {
+    float getAltitude(float sealevel) {
+      // input: sea level air pressure, Pascals
+      // returns: altitude, meters
+      return baro->readAltitude(sealevel);
+    }
+
+    float getBaroPressure() {
       // returns: float Pascals 
       // updates: gPressure (class var)
       //          hPa       (class var)
@@ -170,7 +177,7 @@ class BarometerModel {
     // the schedule is determined by the Controller
     // controller should call this every 15 minutes
     void logPressure(time_t rightnow) {
-      float pressure = getBaroData();           // read
+      float pressure = getBaroPressure();           // read
       rememberPressure( pressure, rightnow );   // push onto stack
       Serial.print("logPressure( "); Serial.print(pressure,1); Serial.println(" )");  // debug
       saveHistory();                    // write stack to NVR
