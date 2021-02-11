@@ -92,12 +92,21 @@ TimeElements targetGMT  { 0,0,7+0,  1,  25,12,2020-1970}; // Midnight in Pacific
 /* */
 
 // Example 4: Time until Valentines Day
-/* */
+/* 
 #define DISPLAY_LINE_1  "Countdown to"
 #define DISPLAY_LINE_2  "Sunday, Feb 14, 2021"
 #define DISPLAY_LINE_3  "Valentines's Day"
 //                        s,m,h,   dow,  d, m, y
 TimeElements targetGMT  { 0,0,8+0,  1,  14,02,2021-1970}; // Midnight in Pacific time (encoded in GMT by adding 8 hours DST)
+/* */
+
+// Example 5: Time until June VHF Contest
+/* */
+#define DISPLAY_LINE_1  "Countdown to"
+#define DISPLAY_LINE_2  "June 12, 2021 at 1800z"
+#define DISPLAY_LINE_3  "ARRL June VHF Contest"
+//                        s,m,h,   dow,  d, m, y
+TimeElements targetGMT  { 0,0,18,   1,  12,06,2021-1970};
 /* */
 
 // ========== extern ===========================================
@@ -138,10 +147,10 @@ class ViewDate : public View {
       {DISPLAY_LINE_3,  -1, 86, cVALUE,     ALIGNCENTER, eFONTSMALL    }, // [TITLE3]
       {"nnn",           -1,152, cVALUE,     ALIGNCENTER, eFONTGIANT    }, // [COUNTDAYS] counted number of days
       {"01:02:03",      -1,182, cVALUEFAINT,ALIGNCENTER, eFONTSMALLEST }, // [COUNTTIME] counted number of hms
-      {"MMM dd, yyyy",  66,226, cTEXTFAINT, ALIGNLEFT,   eFONTSMALLEST }, // [LOCALDATE] Local date
-      {"hh:mm:ss",     178,226, cTEXTFAINT, ALIGNLEFT,   eFONTSMALLEST }, // [LOCALTIME] Local time
-      {"-7h",            8,226, cTEXTFAINT, ALIGNLEFT,   eFONTSMALLEST }, // [TIMEZONE]  addHours time zone
-      {"6#",           308,226, cTEXTFAINT, ALIGNRIGHT,  eFONTSMALLEST }, // [NUMSATS]   numSats
+      {"MMM dd, yyyy",  66,226, cFAINT,     ALIGNLEFT,   eFONTSMALLEST }, // [LOCALDATE] Local date
+      {"hh:mm:ss",     178,226, cFAINT,     ALIGNLEFT,   eFONTSMALLEST }, // [LOCALTIME] Local time
+      {"-7h",            8,226, cFAINT,     ALIGNLEFT,   eFONTSMALLEST }, // [TIMEZONE]  addHours time zone
+      {"6#",           308,226, cFAINT,     ALIGNRIGHT,  eFONTSMALLEST }, // [NUMSATS]   numSats
     };
 
     // ----- helpers -----
@@ -237,7 +246,7 @@ void ViewDate::updateScreen() {
   char sBirds[4];                     // strlen("5#") = 2
   snprintf(sBirds, sizeof(sBirds), "%d#", model->gSatellites);
   // change colors by number of birds
-  txtDate[NUMSATS].color = (model->gSatellites<1) ? cWARN : cTEXTFAINT;
+  txtDate[NUMSATS].color = (model->gSatellites<1) ? cWARN : cFAINT;
   txtDate[NUMSATS].print(sBirds);
   //txtDate[NUMSATS].dump();          // debug
 }
