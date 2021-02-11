@@ -72,16 +72,12 @@ class ViewAltimeter : public View {
     // ========== text screen layout ===================================
 
     // vertical placement of text rows   ---label---         ---button---
-    const int yRow1 = 84;             // barometer's altitude
-    const int yRow2 = yRow1 + 40;     // GPS's altitude
-    const int yRow3 = 172;
-    const int yRow4 = yRow3 + 20;
-    const int yRow9 = gScreenHeight - 14; // sea level pressure
+    const int yRow1 = 78;             // barometer's altitude
+    const int yRow2 = yRow1 + 44;     // GPS's altitude
 
     const int col1 = 10;              // left-adjusted column of text
-    const int col2 = 200;             // right-adjusted numbers
+    const int col2 = 228;             // right-adjusted numbers
     const int col3 = col2 + 10;
-    const int colPressure = 156;
 	
     // these are names for the array indexes, must be named in same order as array below
     enum txtIndex {
@@ -89,11 +85,11 @@ class ViewAltimeter : public View {
       eDate, eNumSat, eTimeHHMM, eTimeSS,
       eBaroLabel, eBaroValue, eBaroUnits,
       eGpsLabel,  eGpsValue,  eGpsUnits,
-      ePrompt1, /*ePrompt2,*/
-      eSealevel,
+      ePrompt1, ePrompt2,
+      eSealevelEnglish, eSealevelMetric, 
     };
 
-    #define nTextAltimeter 13
+    #define nTextAltimeter 15
     TextField txtAltimeter[nTextAltimeter] = {
       // text            x,y    color       align       font
       {"Altitude",      -1, 18, cTITLE,     ALIGNCENTER,eFONTSMALLEST}, // [eTitle] screen title, centered
@@ -101,15 +97,21 @@ class ViewAltimeter : public View {
       {"0#",            48, 36, cWARN,      ALIGNLEFT,  eFONTSMALLEST}, // [eNumSat]
       {"hh:mm",        276, 18, cWARN,      ALIGNRIGHT, eFONTSMALLEST}, // [eTimeHHMM]
       {"ss",           276, 36, cWARN,      ALIGNRIGHT, eFONTSMALLEST}, // [eTimeSS]
+      
       {"Barometer:",  col1,yRow1, cLABEL,   ALIGNLEFT,  eFONTSMALL},    // [eBaroLabel]
-      {"12.3",        col2,yRow1, cVALUE,   ALIGNRIGHT, eFONTSMALL},    // [eBaroValue]
+      {"12.3",        col2,yRow1, cVALUE,   ALIGNRIGHT, eFONTBIG},    // [eBaroValue]
       {"feet",        col3,yRow1, cLABEL,   ALIGNLEFT,  eFONTSMALL},    // [eBaroUnits]
+      
       {"GPS:",        col1,yRow2, cLABEL,   ALIGNLEFT,  eFONTSMALL},    // [eGpsLabel]
-      {"4567.8",      col2,yRow2, cVALUE,   ALIGNRIGHT, eFONTSMALL},    // [eGpsValue]
+      {"4567.8",      col2,yRow2, cVALUE,   ALIGNRIGHT, eFONTBIG},    // [eGpsValue]
       {"feet",        col3,yRow2, cLABEL,   ALIGNLEFT,  eFONTSMALL},    // [eGpsUnits]
-      {"Enter local sea level pressure:", 
-                        -1,yRow4, cTEXTCOLOR,ALIGNCENTER,eFONTSMALLEST},// [ePrompt1]
-      {"34.567 inHg",   -1,yRow9, cVALUE,   ALIGNCENTER, eFONTSMALLEST},// [eSealevel]
+      
+      {"Enter local sea level pressure.", 
+                        -1,162,  cFAINT,    ALIGNCENTER,eFONTSMALLEST}, // [ePrompt1]
+      {"Accuracy depends on your input.",
+                        -1,184,  cFAINT,    ALIGNCENTER,eFONTSMALLEST}, // [ePrompt21]
+      {"34.567 inHg",   -1,208,  cVALUE,    ALIGNCENTER,eFONTSMALLEST}, // [eSealevelEnglish]
+      {"1111.1 hPa",    -1,230,  cVALUE,    ALIGNCENTER,eFONTSMALLEST}, // [eSealevelMetric]
     };
 
     enum buttonID {
@@ -126,8 +128,8 @@ class ViewAltimeter : public View {
       //
       // label            origin   size      touch-target
       // text              x,y      w,h      x,y      w,h   radius  color     functionID
-      {  "+",      160-20-90,202,  38,32, {  1,158, 159,89},  4,  cTEXTCOLOR, ePressurePlus  },  // Up
-      {  "-",      160-20+90,202,  38,32, {161,158, 159,89},  4,  cTEXTCOLOR, ePressureMinus },  // Down
+      {  "+",      160-20-98,198,  42,36, {  1,158, 159,89},  4,  cTEXTCOLOR, ePressurePlus  },  // Up
+      {  "-",      160-20+98,198,  42,36, {161,158, 159,89},  4,  cTEXTCOLOR, ePressureMinus },  // Down
     };
 
     // ======== barometer and temperature helpers ==================
@@ -200,6 +202,8 @@ void ViewAltimeter::updateScreen() {
 
   float altMeters = baroModel.getAltitude(gSealevelPressure);
   float altFeet = altMeters*feetPerMeters;
+  //altMeters += 1000;              // debug
+  //altFeet += 1000;                // debug
   //Serial.print("Altimeter "); Serial.print(altFeet); Serial.print(" feet ["); Serial.print(__LINE__); Serial.println("]"); // debug
   if (model->gMetric) {
     txtAltimeter[eBaroValue].print(altMeters, 0);
@@ -214,17 +218,15 @@ void ViewAltimeter::updateScreen() {
   txtAltimeter[eGpsValue].print(altitude, 0);
 
   // show sea level pressure
-  if (model->gMetric) {
-    // metric: hecto Pascal
-    float sealevel = gSealevelPressure;
-    String sFloat = String(sealevel, 1) + " hPa";
-    txtAltimeter[eSealevel].print(sFloat);
-  } else {
-     // english: inches Mercury
-    float sealevel = gSealevelPressure*INCHES_MERCURY_PER_PASCAL*100;
-    String sFloat = String(sealevel, 3) + " inHg";
-    txtAltimeter[eSealevel].print(sFloat);
-  }
+  // english: inches Mercury
+  float sealevel = gSealevelPressure*INCHES_MERCURY_PER_PASCAL*100;
+  String sFloat = String(sealevel, 3) + " inHg";
+  txtAltimeter[eSealevelEnglish].print(sFloat);
+
+  // metric: hecto Pascal
+  sealevel = gSealevelPressure;
+  sFloat = String(sealevel, 1) + " hPa";
+  txtAltimeter[eSealevelMetric].print(sFloat);
 
 } // end updateScreen
 
