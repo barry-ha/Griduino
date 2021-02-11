@@ -90,8 +90,8 @@ class ViewTime : public View {
       {"MMM dd, yyyy",  -1,140, cVALUE,     ALIGNCENTER, eFONTSMALL}, // [GMTDATE]   GMT date
       {"",              -1,174, cVALUE,     ALIGNCENTER, eFONTSMALL}, // [DEGREES]   Temperature e.g. "12.3 F"
       {"hh:mm:ss",     118,226, cTEXTCOLOR, ALIGNLEFT, eFONTSMALL},   // [LOCALTIME] Local time
-      {"-7h",            8,226, cTEXTFAINT, ALIGNLEFT, eFONTSMALLEST},// [TIMEZONE]  addHours time zone
-      {"6#",           308,226, cTEXTFAINT, ALIGNRIGHT,eFONTSMALLEST},// [NUMSATS]   numSats
+      {"-7h",            8,226, cFAINT,     ALIGNLEFT, eFONTSMALLEST},// [TIMEZONE]  addHours time zone
+      {"6#",           308,226, cFAINT,     ALIGNRIGHT,eFONTSMALLEST},// [NUMSATS]   numSats
     };
 
     enum buttonID {
@@ -190,7 +190,7 @@ void ViewTime::updateScreen() {
   char sBirds[4];                     // strlen("5#") = 2
   snprintf(sBirds, sizeof(sBirds), "%d#", model->gSatellites);
   // change colors by number of birds
-  txtClock[NUMSATS].color = (model->gSatellites<1) ? cWARN : cTEXTFAINT;
+  txtClock[NUMSATS].color = (model->gSatellites<1) ? cWARN : cFAINT;
   txtClock[NUMSATS].print(sBirds);
   //txtClock[NUMSATS].dump();         // debug
 } // end updateScreen
