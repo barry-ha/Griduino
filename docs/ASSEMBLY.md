@@ -145,7 +145,17 @@ Insert U1 Digital Potentiometer DS1804 and U4 Audio Amplifier LM386 into the PCB
 
 ![](img/u4-u1-notch-img7070.jpg)
 
-<h3>Step 7: Testing Feather M4 Express</h3>
+<h3>Step 7: Test Points</h3>
+
+Griduino has 6 optional test points. Three grounding points are together near the voltage regulator and the other three are in the audio chain for checking sound levels and linearity. See the schematic for details. Test points are intended to attach an oscilloscope during software development and are not normally used.
+
+The test points are sized to wedge into their holes up to their shoulders, holding themselves in place while you turn the board upside down and solder them.
+
+Some people say the test points are easier to solder from the top side if you have a good fine-tip soldering iron.
+
+![](img/test-points-img7107.jpg)
+
+<h3>Step 8: Testing Feather M4 Express</h3>
 
 Test the Feather before using it. By testing first, we ensure it's functional before permanently installing it. After soldering it in place, it will be very difficult to remove. 
 
@@ -155,7 +165,7 @@ To test a Feather, plug a standard micro-USB cable into the onboard connector; t
 
 * If this is *not* a new Feather, you can replace its programming. Get the [Blinky](https://learn.adafruit.com/adafruit-arduino-lesson-2-leds/blinking-the-led) demo program to blink the *red* LED, then compile and install the program using the Arduino workbench. <br>![](img/feather-test-img7425.jpg)
 
-<h3>Step 8: Installing Feather M4 Express</h3>
+<h3>Step 9: Installing Feather M4 Express</h3>
 
 The Feather comes with two 16-pin header strips loose in the package. Take one 16-pin strip and break off 4 pins so it exactly matches the Feather's pinout: one 12-pin strip, and one 16-pin strip. 
 
@@ -183,9 +193,11 @@ Solder one bottom pin to the PCB. Check again the header strips remained flush a
 
 You don't need to clip off the long ends; there is ample room inside the case.
 
-It's a good idea to test the Feather once again with the Blinky program.
+It's a good idea to test the Feather once again with the Blinky program. 
 
-<h3>Step 9: U5 Ultimate GPS</h3>
+If the Feather's LED doesn't blink as expected, don't panic; sometimes the computer acquires the Feather M4 as an external drive identified as CIRCUIT.PY or FEATHERBOOT. Check the computer's list of drives to see if that's the case. Unplug and reconnect the Feather several times until it blinks its light.
+
+<h3>Step 10: U5 Ultimate GPS</h3>
 
 The "Ultimate GPS" package shipped from Adafruit comes with a header strip and a battery holder.
 
@@ -202,7 +214,7 @@ Tape the GPS assembly in place, if needed. Turn the board over and solder one pi
 
 ![](img/gps-soldered-img7092.jpg)
 
-<h3>Step 10: BT1 Battery Holder</h3>
+<h3>Step 11: BT1 Battery Holder</h3>
 
 Solder the battery holder onto the PCB. This is a surface-mount device; note that it has a small plastic detent to precisely align it in place. You might still need a small clamp or clothespin (remember those?) or tape to temporarily hold it in place while soldering. 
 
@@ -210,7 +222,7 @@ Solder the battery holder onto the PCB. This is a surface-mount device; note tha
 
 **Do not** insert a battery yet. Put the battery aside until the end to avoid any chance of shorts during construction. In fact, the battery is optional. Its only purpose is to maintain the RTC (real time clock) while Griduino is turned off, thereby reducing the wait-time for GPS synch.
 
-<h3>Step 11: Barometric Pressure Sensor</h3>
+<h3>Step 12: Barometric Pressure Sensor</h3>
 
 The barometric sensor comes with a matching 8-pin header strip. Insert this header strip into the main board, long pins first and short pins extending upward. (Okay, it doesn't really matter but we think this looks better.)
 
@@ -228,7 +240,7 @@ Check the assembly is still tight to the board. If not, reheat the pin while pus
 
 ![](img/pressure-img7100.jpg)
 
-<h3>Step 12: U7 Display ILI9341</h3>
+<h3>Step 13: U7 Display ILI9341</h3>
 
 First, solder jumpers IM1/IM2/IM3 on the back of the board. Melt a solder bridge across each "jumper". The traces are close together to make this easier. This enables the SPI interface. Do not solder jumper IM0.
 
@@ -251,7 +263,7 @@ Assemble the display parts on the main board, which will hold everything in corr
 
 1. Start with main Griduino PCB
 1. Insert one 20-pin header on the PCB to the right of the Feather, long pins facing up.
-1. Insert two 2-pin headers on the PCB along the left edge, one at each end of the row of 20 holes, long pins facing up. These will physically support the display.<br/>(todo: picture)
+1. Insert two 2-pin headers on the PCB along the left edge, one at each end of the row of 20 holes, long pins facing up. These will physically support the display.<br/>![](img/display-img7860.jpg) 
 1. Insert one 20-pin socket on the display, matching the 20-pin header.
 1. Insert two 2-pin sockets on the display, matching the 2-pin headers on the PCB.
 1. Lower the display board onto the pins, spanning all the parts underneath.
@@ -269,19 +281,9 @@ Hey, want to check your work? At this point of assembly, you can plug in USB pow
 
 Turn it right side up and gently unplug the display from the sockets for safekeeping while working on other parts. Later, when everything else is completed, the display will be inserted again.
 
-<h3>Step 13: Test Points</h3>
-
-Griduino has 6 optional test points. Three grounding points are together near the voltage regulator and the other three are in the audio chain for checking sound levels and linearity. See the schematic for details. Test points are intended to attach an oscilloscope during software development and are not normally used.
-
-The test points are sized to wedge into their holes up to their shoulders, holding themselves in place while you turn the board upside down and solder them.
-
-Some people say the test points are easier to solder from the top side if you have a good fine-tip soldering iron.
-
-![](img/test-points-img7107.jpg)
-
 <h3>Step 14: Connectors</h3>
 
-Lastly, insert and solder the power connector, speaker jack and 4-pin terminal strip into place. Be sure to orient the terminal strip so its **openings go toward the edge**. Most of these connectors extend slightly beyond the edge of the PCB, so they are installed after everything else to avoid interfering with the bench vise hardware.
+Lastly, insert and solder the power connector, speaker jack and 4-pin terminal strip into place. Be sure to orient the terminal strip so its **openings go toward the edge**. Most of these connectors extend slightly beyond the edge of the PCB, so they are installed after everything else to avoid interfering with your bench vise hardware.
 
 ![](img/connectors-img7108.jpg)
 
