@@ -2,7 +2,8 @@
   Baroduino - a graphing 3-day barometer
             A standalone example program to demonstrate BMP388 or BMP390 barometric sensor
 
-  Version history: 
+  Version history:
+            2021-02-02 this example program was merged into the main Griduino.ino program
             2021-01-30 added support for BMP390 and latest Adafruit_BMP3XX library, v0.31
             2020-12-19 v0.30 published to the GitHub downloads folder (no functional change)
             2020-10-02 v0.24 published to the GitHub downloads folder
@@ -382,7 +383,7 @@ void showReadings() {
   txtSplash[0].setBackground(cBACKGROUND);          // set background for all TextFields
   TextField::setTextDirty( txtReading, numReadings ); // make sure all fields are updated
 
-  float pascals = baroModel.getBaroData();
+  float pascals = baroModel.getBaroPressure();
   printPressure( pascals );
   tickMarks(3, 5);                    // draw 8 short ticks every day (24hr/8ticks = 3-hour intervals, 5 px high)
   tickMarks(12, 10);                  // draw 2 long ticks every day (24hr/2ticks = 12-hour intervals, 10 px high)
@@ -665,9 +666,6 @@ void drawGraph() {
       //    The data to plot is always 'float Pascals' 
       //    but the graph's y-axis is either Pascals or inches-Hg, each with different scale
       //    so scale the data into the appropriate units on the y-axis
-      if (gUnits == eMetric) {
-        // todo
-      }
       int y1 = map(baroModel.pressureStack[ii].pressure,  yBotPa,yTopPa,  yBot,yTop);
   
       // X-axis:
@@ -941,7 +939,7 @@ void loop() {
     //nextShowPressure = nextOneMinuteMark( rightnow );
     nextShowPressure = nextOneSecondMark( rightnow );
   
-    float pascals = baroModel.getBaroData();
+    float pascals = baroModel.getBaroPressure();
     //redrawGraph = true;             // request draw graph
     printPressure( pascals );
   }

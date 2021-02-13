@@ -360,7 +360,7 @@ void echoGPSinfo() {
 }
 
 // ======== barometer and temperature helpers ==================
-void getBaroData() {
+void getBaroPressure() {
   if (!baro.performReading()) {
     Serial.println("Error, failed to read barometer");
   }
@@ -597,8 +597,8 @@ void setup() {
   baro.setOutputDataRate(BMP3_ODR_50_HZ);
 
   // Get first data point (done twice because first reading is always bad)
-  getBaroData();
-  getBaroData();
+  getBaroPressure();
+  getBaroPressure();
   getGPSData();
   showReadings();
 }
@@ -641,7 +641,7 @@ void loop() {
 
   // periodically read temp and pressure, and display everything
   if (millis() - prevTimer1 > READ_BAROMETER_INTERVAL) {
-    getBaroData();
+    getBaroPressure();
     getGPSData();
 
     showReadings();
@@ -663,7 +663,7 @@ void loop() {
     } else {
       decreaseSeaLevelPressure();
     }
-    getBaroData();
+    getBaroPressure();
     showReadings();
   }
 }

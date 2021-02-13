@@ -289,7 +289,7 @@ void mapTouchToScreen(TSPoint touch, Point* screen) {
 }
 
 // ======== barometer and temperature helpers ==================
-void getBaroData() {
+void getBaroPressure() {
   // returns: gPressure (global var)
   //          hPa       (global var)
   //          inchesHg  (global var)
@@ -643,7 +643,7 @@ void adjustUnits() {
   Serial.print("- unitPressure = "); Serial.println( txtReading[unitPressure].text );
   Serial.print("- unitHour1 = "); Serial.println( txtReading[unitHour1].text );
   Serial.print("- unitHour3 = "); Serial.println( txtReading[unitHour3].text );
-  getBaroData();
+  getBaroPressure();
   showReadings(units);
 }
 
@@ -774,11 +774,11 @@ void setup() {
   // baro.setOutputDataRate(BMP3_ODR_50_HZ);
 
   // Get first data point (done twice because first reading is always bad)
-  getBaroData();
+  getBaroPressure();
   pressureStack[lastIndex].pressure = gPressure + elevCorr;
   showReadings(units);
 
-  getBaroData();
+  getBaroPressure();
   pressureStack[lastIndex].pressure = gPressure + elevCorr;
   showReadings(units);
 }
@@ -815,7 +815,7 @@ void loop() {
 
   // every 5 minutes acquire/print temp and pressure
   if (millis() - prevTimer1 > READ_BAROMETER_INTERVAL) {
-    getBaroData();
+    getBaroPressure();
     showReadings(units);
 
     // every 20 minutes log, display, and graph pressure/delta pressure
