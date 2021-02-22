@@ -1,0 +1,33 @@
+# https://clang.llvm.org/docs/ClangFormatStyleOptions.html
+
+# We like defaults from the LLVM style, but with 2 columns indentation.
+Standard: Cpp11
+BasedOnStyle: LLVM
+IndentWidth: 2
+
+ColumnLimit: 0
+AccessModifierOffset: -4
+
+AlignConsecutiveAssignments: true
+AlignConsecutiveDeclarations: false
+AlignConsecutiveMacros: true
+
+SpacesBeforeTrailingComments: 4
+
+NamespaceIndentation: All
+IndentCaseBlocks: true
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterEnum: false
+  AfterStruct: false
+  AfterClass: false
+  SplitEmptyFunction: true
+  AfterControlStatement: false
+  AfterNamespace: false
+  AfterFunction: false
+  AfterUnion: true
+  AfterExternBlock: false
+  BeforeCatch: false
+  BeforeElse: false
+  SplitEmptyRecord: true
+  SplitEmptyNamespace: true
