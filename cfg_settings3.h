@@ -84,10 +84,10 @@ class ViewSettings3 : public View {
     };
     #define nButtonsUnits 2
     FunctionButton settings3Buttons[nButtonsUnits] = {
-      // label                origin         size      touch-target     
-      // text                   x,y           w,h      x,y           w,h  radius  color   functionID
-      {"Miles, inHg",     xButton,yRow1-26, 150,40, {112,yRow1-36, 204,56},  4,  cVALUE,  eENGLISH },  // [eENGLISH] set units Miles/inHg
-      {"Kilometers, hPa", xButton,yRow2-26, 150,40, {112,yRow2-31, 204,64},  4,  cVALUE,  eMETRIC  },  // [eMETRIC] set units Metric
+      // label                  origin         size      touch-target     
+      // text                     x,y           w,h      x,y           w,h  radius  color   functionID
+      {"Miles, Feet, inHg", xButton,yRow1-26, 150,40, {112,yRow1-36, 204,56},  4,  cVALUE,  eENGLISH },  // [eENGLISH] set units Miles/inHg
+      {"Kilometers, hPa",   xButton,yRow2-26, 150,40, {112,yRow2-31, 204,64},  4,  cVALUE,  eMETRIC  },  // [eMETRIC] set units Metric
     };
 
     // ----- helpers -----
