@@ -41,7 +41,8 @@ class Model {
     bool   gMetric = false;           // distance reported in miles(false), kilometers(true)
     int    gTimeZone = -7;            // default local time Pacific (-7 hours)
     bool   compare4digits = true;     // true=4 digit, false=6 digit comparisons
-    float  gSeaLevelPressure = 1017.4;// default starting value, hPa; adjustable by touch in view_altimeter.h
+    
+    float  gSeaLevelPressure = DEFAULT_SEALEVEL_HPA; // default starting value, hPa; adjustable by touch in view_altimeter.h
 
     Location history[600];            // remember a list of GPS coordinates
     int nextHistoryItem = 0;          // index of next item to write
@@ -61,12 +62,14 @@ class Model {
 
     // Setters
     void setEnglish() {
-      gMetric = false;
-      save();                         // warning: saving entire model is slow, ~1 second
+      gMetric = false;                // caller is responsible to save GPS model to NVR
+                                      // on a schedule convenient to their UI timing, typ. "endView()"
+                                      // because saving entire model is slow, ~1 second
     }
     void setMetric() {
-      gMetric = true;
-      save();                         // warning: saving entire model is slow, ~1 second
+      gMetric = true;                 // caller is responsible to save GPS model to NVR
+                                      // on a schedule convenient to their UI timing, typ. "endView()"
+                                      // because saving entire model is slow, ~1 second
     }
 
     // save current GPS state to non-volatile memory
