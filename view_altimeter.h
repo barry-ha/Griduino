@@ -198,11 +198,11 @@ class ViewAltimeter : public View {
       float gpsAltitude = model->gAltitude; // meters
       
       if (baroAltitude < gpsAltitude) {
-        Serial.println("~~> Barometer's altitude is too low.");
-        Serial.print(". DECREASE sea level pressure from "); Serial.print(sealevelPa,1);
+        Serial.println("~~> Barometer's altitude is lower than GPS' altitude.");
+        Serial.print(". INCREASE sea level pressure from "); Serial.print(sealevelPa,1);
         Serial.print(" Pa in steps of "); Serial.print( delta(),1 ); Serial.println(" Pa");
         
-        // loop using _decreasing_ pressure until altitudes match
+        // loop using _increasing_ pressure until altitudes match
         while (baroAltitude < model->gAltitude) {
           
           Serial.print(count); Serial.print(". ");
@@ -210,24 +210,24 @@ class ViewAltimeter : public View {
           Serial.print(sealevelPa); Serial.print(" Pa, ");
           Serial.print(gpsAltitude); Serial.println(" m");
           
-          sealevelPa -= delta();
-          if (++count > 10) break;     // avoid infinite loop
+          sealevelPa += delta();
+          if (++count > 1000) break;     // avoid infinite loop
           baroAltitude = baroModel.getAltitude(sealevelPa);
         }
       } else {
-        Serial.println("~~> Barometer's altitude is too high.");
-        Serial.print(". INCREASE sea level pressure from "); Serial.print(sealevelPa,1);
+        Serial.println("~~> Barometer's altitude higher than GPS' altitude.");
+        Serial.print(". DECREASE sea level pressure from "); Serial.print(sealevelPa,1);
         Serial.print(" Pa in steps of "); Serial.print( delta(),1 ); Serial.println(" Pa");
 
-        // loop using _increasing_ pressure until altitudes match
+        // loop using _decreasing_ pressure until altitudes match
         while (baroAltitude > gpsAltitude) {
           Serial.print(count); Serial.print(". ");
           Serial.print(baroAltitude); Serial.print(" m, based on ");
           Serial.print(sealevelPa); Serial.print(" Pa, while GPS altitude is ");
           Serial.print(gpsAltitude); Serial.println(" m");
           
-          sealevelPa += delta();
-          if (++count > 10) break;     // avoid infinite loop
+          sealevelPa -= delta();
+          if (++count > 1000) break;     // avoid infinite loop
           baroAltitude = baroModel.getAltitude(sealevelPa);
         }
       }
@@ -245,7 +245,7 @@ void ViewAltimeter::updateScreen() {
   showTimeOfDay();
 
   // read altitude from barometer and GPS, and display everything
-  float pascals = baroModel.getBaroPressure();  // get pressure to trigger a fresh reading
+  float pascals = baroModel.getBaroPressure();  // get pressure, causing BMP3XX to take a fresh reading from sensor
   //Serial.print("Altimeter: "); Serial.print(pascals); Serial.print(" Pa [view_altimeter.h "); Serial.print(__LINE__); Serial.println("]"); // debug
   
   char msg[16];                     // strlen("12,345.6 meters") = 15
@@ -256,7 +256,8 @@ void ViewAltimeter::updateScreen() {
   //altFeet += 2000;                // debug
   //Serial.print("Altimeter: "); Serial.print(altFeet); Serial.print(" ft [viewaltimeter.h "); Serial.print(__LINE__); Serial.println("]"); // debug
   if (model->gMetric) {
-    txtAltimeter[eBaroValue].print(altMeters, 0);
+    int precision = (abs(altMeters)<10) ? 1 : 0;
+    txtAltimeter[eBaroValue].print(altMeters, precision);
   } else {
     txtAltimeter[eBaroValue].print(altFeet, 0);
   }
@@ -264,9 +265,15 @@ void ViewAltimeter::updateScreen() {
   // if (lost GPS position lock)
   // todo
   
-  float altitude = model->gAltitude*feetPerMeters;
-  txtAltimeter[eGpsValue].print(altitude, 0);
-
+  float gpsMeters = model->gAltitude;
+  float gpsFeet = gpsMeters*feetPerMeters;
+  if (model->gMetric) {
+    int precision = (abs(gpsMeters)<10) ? 1 : 0;
+    txtAltimeter[eGpsValue].print(gpsMeters, precision);
+  } else {
+    txtAltimeter[eGpsValue].print(gpsFeet, 0);
+  }
+  
   // show sea level pressure
   // english: inches Mercury
   float pressureInHg = sealevelPa*INCHES_MERCURY_PER_PASCAL;
