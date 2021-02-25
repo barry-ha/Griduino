@@ -7,6 +7,18 @@ Version numbers correspond to [Downloads](https://github.com/barry-ha/Griduino/t
 
 The changelog format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and the Griduino project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+**v0.35** &nbsp; 2020-02-25
+
+Fixed several bugs in the Altimeter view. Added a small 'sync' button on right-hand side which calibrates the sea level pressure so that the two reported altitudes match each other. The GPS is not always right but it's pretty close and the 'sync' button will make large adjustments easy. 
+
+Also fixed the three-day graph of barometric pressure. It had been graphing only two days and now it will show up to three full days.
+
+Get this download and try it out! Recommended for all users.
+
+**v0.34** &nbsp; 2020-02-11
+
+Improved the Altimeter view usability. This is a work in progress.
+
 **v0.33** &nbsp; 2021-02-09
 
 Added Altimeter view which compares altitude from the barometer to altitude from the GPS. This is an interesting way to cross-check and decide for yourself the accuracy of reports.
