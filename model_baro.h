@@ -28,7 +28,6 @@
          . Assume we want a 3-day display, which means 288/3 = 96 pixels (samples) per day
          . Then 24 hours / 96 pixels = 4 samples/hour = 15 minutes per sample
 
-
   Units of Time:
          This relies on "TimeLib.h" which uses "time_t" to represent time.
          The basic unit of time (time_t) is the number of seconds since Jan 1, 1970, 
@@ -68,6 +67,8 @@ extern char* dateToString(char* msg, int len, time_t datetime);  // Griduino/Bar
 #define MILLIBARS_PER_INCHES_MERCURY (0.02953)
 #define BARS_PER_INCHES_MERCURY      (0.0338639)
 #define PASCALS_PER_INCHES_MERCURY   (3386.39)
+#define PASCALS_PER_HPA              (100.0)
+#define HPA_PER_PASCAL               (0.01)
 #define HPA_PER_INCHES_MERCURY       (33.8639)
 #define INCHES_MERCURY_PER_PASCAL    (0.0002953)
 
@@ -78,11 +79,12 @@ class BarometerModel {
     Adafruit_BMP3XX* baro;            // pointer to the hardware-managing class
     int bmp_cs;                       // Chip Select for BMP388 / BMP390 hardware
     float inchesHg;
-    float gPressure;
-    float hPa;
-    float feet;
+    float gPressure;                  // Pascals
 
-    #define maxReadings 288           // 288 = (4 readings/hour)*(24 hours/day)*(3 days)
+    //efine maxReadings 288           // 288 = (4 readings/hour)*(24 hours/day)*(3 days)
+    // todo - It turns out that 288 measurements draws a graph of exactly two days, not three.
+    //        Check that it's actually running 4 samples/hour, and not 6/hr.
+    #define maxReadings 432           // 432 = 288*3/2
     #define lastIndex (maxReadings - 1)  // index to the last element in pressure array
     BaroReading pressureStack[maxReadings] = {};  // array to hold pressure data, init filled with zeros
 
@@ -152,25 +154,24 @@ class BarometerModel {
       return rc;
     }
 
-    float getAltitude(float sealevel) {
+    float getAltitude(float sealevelPa) {
       // input: sea level air pressure, Pascals
       // returns: altitude, meters
-      return baro->readAltitude(sealevel);
+      return baro->readAltitude(sealevelPa/100.0);
     }
 
     float getBaroPressure() {
       // returns: float Pascals 
       // updates: gPressure (class var)
-      //          hPa       (class var)
       //          inchesHg  (class var)
       if (!baro->performReading()) {
         Serial.println("Error, failed to read barometer");
       }
       // continue anyway, for demo
       gPressure = baro->pressure + elevCorr;   // Pressure is returned in SI units of Pascals. 100 Pascals = 1 hPa = 1 millibar
-      hPa = gPressure / 100;
-      inchesHg = 0.0002953 * gPressure;
-      Serial.print("Barometer "); Serial.print(gPressure); Serial.print(" Pa ["); Serial.print(__LINE__); Serial.println("]");
+      //hPa = gPressure / 100;
+      inchesHg = gPressure * INCHES_MERCURY_PER_PASCAL;
+      //Serial.print("Barometer: "); Serial.print(gPressure); Serial.print(" Pa [model_baro.h "); Serial.print(__LINE__); Serial.println("]");  // debug
       return gPressure;
     }
 
@@ -187,7 +188,7 @@ class BarometerModel {
     // Filenames MUST match between Griduino and Baroduino example program
     // To erase and rewrite a new data file, change the version string below.
     const char PRESSURE_HISTORY_FILE[25] = CONFIG_FOLDER "/barometr.dat";
-    const char PRESSURE_HISTORY_VERSION[15] = "Pressure v01";
+    const char PRESSURE_HISTORY_VERSION[15] = "Pressure v02";
     int loadHistory() {
       SaveRestore history(PRESSURE_HISTORY_FILE, PRESSURE_HISTORY_VERSION);
       BaroReading tempStack[maxReadings] = {};      // array to hold pressure data, fill with zeros
