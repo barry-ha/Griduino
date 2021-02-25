@@ -2,7 +2,7 @@
 
 // ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE   "Griduino"
-#define PROGRAM_VERSION "v0.34"
+#define PROGRAM_VERSION "v0.35"
 #define PROGRAM_LINE1   "Barry K7BWH"
 #define PROGRAM_LINE2   "John KM7O"
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
@@ -36,6 +36,9 @@ const double degreesPerRadian = 57.2957795; // conversion factor = (360 degrees)
 
 #define SECS_PER_5MIN  ((time_t)(300UL))
 #define SECS_PER_15MIN ((time_t)(900UL))
+
+#define DEFAULT_SEALEVEL_PASCALS     (101740.0)
+#define DEFAULT_SEALEVEL_HPA         (1017.40)
 
 // ----- load/save configuration using SDRAM
 //#define EXTERNAL_FLASH_USE_QSPI     // 2020-02-11 added by BarryH, since it seems to be missing from 
@@ -81,7 +84,7 @@ const int OFF = 0;                    // = turned off
 #define cVALUEFAINT     0xbdc0          // darker than cVALUE
 #define cHIGHLIGHT      ILI9341_WHITE
 #define cBUTTONFILL     ILI9341_NAVY
-#define cBUTTONOUTLINE  ILI9341_CYAN
+#define cBUTTONOUTLINE  0x0514          // was ILI9341_CYAN
 #define cBREADCRUMB     ILI9341_CYAN
 #define cTITLE          ILI9341_GREEN
 #define cTEXTCOLOR      ILI9341_CYAN    // 0, 255, 255
