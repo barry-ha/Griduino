@@ -355,7 +355,7 @@ bool TouchScreen::isTouching(void) {
   uint16_t pres_val = ::myPressure();
 
   if ((button_state == false) && (pres_val > TOUCHPRESSURE)) {
-    Serial.print(". pressed, pressure = "); Serial.println(pres_val);     // debug
+    Serial.print(". finger pressure = "); Serial.println(pres_val);     // debug
     button_state = true;
   }
 
@@ -689,7 +689,7 @@ void selectNewView(int cmd) {
   }
   Serial.print("selectNewView() from "); Serial.print(currentView);
   Serial.print(" to "); Serial.println(nextView);
-
+  pView->endScreen();                   // a goodbye-kiss to the departing view
   pView = viewTable[ nextView ];
 
   // Every view has an initial setup to prepare its layout
@@ -863,7 +863,7 @@ void setup() {
 
   // ----- init onboard LED
   pinMode(RED_LED, OUTPUT);           // diagnostics RED LED
-  
+
   // one-time Help screen
   pView = &helpView;
   pView->startScreen();

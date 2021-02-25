@@ -47,6 +47,13 @@ class View {
     }
 
     /**
+     * Called once each time this view becomes INactive
+     * This is a 'goodbye kiss' for a view handler to do cleanup work, such as saving its settings
+     */
+    virtual void endScreen() {
+    }
+
+    /**
      * Called whenever the touchscreen has an event for this view
      */
     virtual bool onTouch(Point touch) {

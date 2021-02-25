@@ -11,13 +11,13 @@
             +-----------------------------------------+
             |              Settings 3                 |
             |                                         |
-            | Distance        (o)[ Miles, inHg     ]  |
-            |                 ( )[ Kilometers, hPa ]  |
+            | Distance        (o)[ Miles, inHg     ]  |. . .yRow1
+            |                 ( )[ Kilometers, hPa ]  |. . .yRow2
             |                                         |
             |                                         |
             |                                         |
             |                                         |
-            | v0.32, Feb 2 2021  08:16                |
+            | v0.35, Feb 25 2021  09:41               |
             +-----------------------------------------+
 */
 
@@ -45,6 +45,7 @@ class ViewSettings3 : public View {
     }
     void updateScreen();
     void startScreen();
+    void endScreen();
     bool onTouch(Point touch);
 
   protected:
@@ -54,17 +55,19 @@ class ViewSettings3 : public View {
     // vertical placement of text rows   ---label---         ---button---
     const int yRow1 = 84;             // "English",          "Miles, inHg"
     const int yRow2 = yRow1 + 50;     // "Metric",           "Kilometers, hPa"
-    const int yRow9 = gScreenHeight - 12; // "v0.32, Feb  2 2021"
+    const int yRow9 = gScreenHeight - 12; // "v0.35, Feb 25 2021"
 
     #define col1 10                   // left-adjusted column of text
     #define xButton 160               // indented column of buttons
-
+	
+    // these are names for the array indexes, must be named in same order as array below
     enum txtSettings3 {
       SETTINGS=0, 
       ENGLISH,
       METRIC,
       COMPILED,
     };
+
     #define nTextUnits 4
     TextField txtSettings3[nTextUnits] = {
       //        text                  x, y     color
@@ -118,7 +121,7 @@ void ViewSettings3::updateScreen() {
     }
     tft->fillCircle(xCenter, yCenter, 4, buttonFillColor);
   }
-}
+} // end updateScreen
 
 
 void ViewSettings3::startScreen() {
@@ -129,7 +132,7 @@ void ViewSettings3::startScreen() {
   setFontSize(eFONTSMALLEST);
 
   drawAllIcons();                     // draw gear (settings) and arrow (next screen)
-  showDefaultTouchTargets();          // optionally draw boxes around button-touch area
+  showDefaultTouchTargets();          // optionally draw box around default button-touch areas
   showScreenBorder();                 // optionally outline visible area
   showScreenCenterline();             // optionally draw visual alignment bar
 
@@ -171,8 +174,17 @@ void ViewSettings3::startScreen() {
   }
 
   updateScreen();                     // update UI immediately, don't wait for laggy mainline loop
-
 } // end startScreen()
+
+
+void ViewSettings3::endScreen() {
+  // Called once each time this view becomes INactive
+  // This is a 'goodbye kiss' to do cleanup work
+  // For the english/metric settings view, save our settings here instead of on each 
+  // button press because writing to NVR is slow (0.5 sec) and would delay the user
+  // while trying to press a button many times in a row.
+  saveConfig();
+}
 
 
 bool ViewSettings3::onTouch(Point touch) {
@@ -194,12 +206,7 @@ bool ViewSettings3::onTouch(Point touch) {
               Serial.print("Error, unknown function "); Serial.println(item.functionIndex);
               break;
         }
-
-        showScreenBorder();           // optionally outline visible area
-        showScreenCenterline();       // optionally draw alignment bar
-
         updateScreen();               // update UI immediately, don't wait for laggy mainline loop
-        this->saveConfig();           // after UI is updated, save setting to nvr
      }
   }
   return handled;                     // true=handled, false=controller uses default action
