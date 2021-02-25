@@ -14,19 +14,23 @@
             Show comparison of Barometric result to GPS result.
             - Barometer reading requires frequent calibration with a known altitude or sea level pressure.
             - GPS result can vary by a few hundred feet depending on satellites overhead.
-            Use the touchscreen to enter yor current sea-level barometer setting.
+            Use the touchscreen to enter your current sea-level barometer setting.
+            As much as possible, this module uses Pascals (not hPa).
 
             +-----------------------------------------+
-            | *              Altimeter                |
+            | *              Altitude                 |
             |                                         |
             | Barometer:      17.8 feet               |. . .yRow1
             | GPS (5#):      123.4 feet               |. . .yRow2
             |                                         |
-            | Enter your current local                |. . .yRow3
-            | pressure at sea level:                  |. . .yRow4
-            +-------+                         +-------+
-            |   ^   |     1016.7 hPa          |   v   |. . .yRow9
+            | Enter local sea level pressure          |
+            | Accuracy depends on your input          |
+            |                                         |
+            +-------+      30.150 inHg        +-------+
+            |   ^   |      1016.7 hPa         |   v   |
             +-------+-------------------------+-------+
+              |                  | |
+              col1            col2 col3
 */
 
 #include <Adafruit_ILI9341.h>         // TFT color display library
@@ -55,6 +59,7 @@ class ViewAltimeter : public View {
     }
     void updateScreen();
     void startScreen();
+    void endScreen();
     bool onTouch(Point touch);
     void loadConfig();
     void saveConfig();
@@ -63,11 +68,9 @@ class ViewAltimeter : public View {
     // ---------- local data for this derived class ----------
     // color scheme: see constants.h
 
-    // "Sea Level Pressure" is stored here instead of model_gps.h, because model->save() is slow
-    float gSealevelPressure = 1017.4; // default starting value, hPa; adjustable by touchscreen
-
-    //void showReadings();
-    //void drawButtons();
+    // "Sea Level Pressure" is stored here instead of model_gps.h, 
+    // because model->save() is large and much slower than saving our one value
+    float sealevelPa = DEFAULT_SEALEVEL_PASCALS;  // default starting value, Pascals; adjustable by touchscreen
 
     // ========== text screen layout ===================================
 
@@ -75,9 +78,9 @@ class ViewAltimeter : public View {
     const int yRow1 = 78;             // barometer's altitude
     const int yRow2 = yRow1 + 44;     // GPS's altitude
 
-    const int col1 = 10;              // left-adjusted column of text
-    const int col2 = 228;             // right-adjusted numbers
-    const int col3 = col2 + 10;
+    const int col1 = 6;               // left-adjusted text
+    const int col2 = 238;             // right-adjusted altitude
+    const int col3 = col2 + 12;       // left-adjusted unit names
 	
     // these are names for the array indexes, must be named in same order as array below
     enum txtIndex {
@@ -99,12 +102,12 @@ class ViewAltimeter : public View {
       {"ss",           276, 36, cWARN,      ALIGNRIGHT, eFONTSMALLEST}, // [eTimeSS]
       
       {"Barometer:",  col1,yRow1, cLABEL,   ALIGNLEFT,  eFONTSMALL},    // [eBaroLabel]
-      {"12.3",        col2,yRow1, cVALUE,   ALIGNRIGHT, eFONTBIG},    // [eBaroValue]
-      {"feet",        col3,yRow1, cLABEL,   ALIGNLEFT,  eFONTSMALL},    // [eBaroUnits]
+      {"12.3",        col2,yRow1, cVALUE,   ALIGNRIGHT, eFONTBIG},      // [eBaroValue]
+      {"ft",          col3,yRow1, cLABEL,   ALIGNLEFT,  eFONTSMALL},    // [eBaroUnits]
       
       {"GPS:",        col1,yRow2, cLABEL,   ALIGNLEFT,  eFONTSMALL},    // [eGpsLabel]
-      {"4567.8",      col2,yRow2, cVALUE,   ALIGNRIGHT, eFONTBIG},    // [eGpsValue]
-      {"feet",        col3,yRow2, cLABEL,   ALIGNLEFT,  eFONTSMALL},    // [eGpsUnits]
+      {"4567.8",      col2,yRow2, cVALUE,   ALIGNRIGHT, eFONTBIG},      // [eGpsValue]
+      {"ft",          col3,yRow2, cLABEL,   ALIGNLEFT,  eFONTSMALL},    // [eGpsUnits]
       
       {"Enter local sea level pressure.", 
                         -1,162,  cFAINT,    ALIGNCENTER,eFONTSMALLEST}, // [ePrompt1]
@@ -117,8 +120,9 @@ class ViewAltimeter : public View {
     enum buttonID {
       ePressurePlus,
       ePressureMinus,
+      eSynchronize,
     };
-    #define nPressureButtons 2
+    #define nPressureButtons 3
     FunctionButton pressureButtons[nPressureButtons] = {
       // For "sea level pressure" we have rather small modest +/- buttons, meant to visually
       // fade a little into the background. However, we want touch-targets larger than the
@@ -127,9 +131,10 @@ class ViewAltimeter : public View {
       // 3.2" display is 320 x 240 pixels, landscape, (y=239 reserved for activity bar)
       //
       // label            origin   size      touch-target
-      // text              x,y      w,h      x,y      w,h   radius  color     functionID
-      {  "+",      160-20-98,198,  42,36, {  1,158, 159,89},  4,  cTEXTCOLOR, ePressurePlus  },  // Up
-      {  "-",      160-20+98,198,  42,36, {161,158, 159,89},  4,  cTEXTCOLOR, ePressureMinus },  // Down
+      // text              x,y      w,h      x,y      w,h    radius  color     functionID
+      {  "+",      160-20-98,198,  42,36, {  1,158, 159,89 },  4,  cTEXTCOLOR, ePressurePlus  },  // Up
+      {  "-",      160-20+98,198,  42,36, {161,158, 159,89 },  4,  cTEXTCOLOR, ePressureMinus },  // Down
+      {  "",             280,46,   39,84, {220,48,   99,84 },  4,  cTEXTCOLOR, eSynchronize   },  // sync readings
     };
 
     // ======== barometer and temperature helpers ==================
@@ -164,25 +169,70 @@ class ViewAltimeter : public View {
 
     // ----- helpers -----
     float delta() {
-      // how much to change "sea level pressure" with each button press epends on english/metric setting
-      float hPa;
+      // calculates a minimum visible altitude change
+      // returns a small pressure change, Pascals
+      
+      // how much to change "sea level pressure" with each button press depends on english/metric setting
+      float pascals;
       if (model->gMetric) {
-        hPa = (0.002F)*HPA_PER_INCHES_MERCURY; // 0.003 inHg is about 2 feet
+        pascals = (0.002F)*PASCALS_PER_INCHES_MERCURY; // 0.002 inHg = 6.0 Pa = about 2 feet
       } else {
-        hPa = (0.1F);                  // 0.1 hPa is about 1 meter
+        pascals = (10.0F);                  // 10 Pa is about 1 meter
       }
-      return hPa;
+      return pascals;
     }
     
     void increaseSeaLevelPressure() {
-      gSealevelPressure += delta();
-      Serial.print("Sea level pressure increased to "); Serial.println(gSealevelPressure, 2);
+      sealevelPa += delta();
+      Serial.print("Sea level pressure increased by "); Serial.print(delta()); Serial.print(" to "); Serial.println(sealevelPa, 1);
     }
 
     void decreaseSeaLevelPressure() {
-      float change = 
-      gSealevelPressure -= delta();
-      Serial.print("Sea level pressure decreased to "); Serial.println(gSealevelPressure, 2);
+      sealevelPa -= delta();
+      Serial.print("Sea level pressure decreased by "); Serial.print(delta()); Serial.print(" to "); Serial.println(sealevelPa, 1);
+    }
+
+    void syncBarometerToGPS() {
+      int count = 0;                        // loop counter for debug
+      float baroAltitude = baroModel.getAltitude(sealevelPa); // meters
+      float gpsAltitude = model->gAltitude; // meters
+      
+      if (baroAltitude < gpsAltitude) {
+        Serial.println("~~> Barometer's altitude is too low.");
+        Serial.print(". DECREASE sea level pressure from "); Serial.print(sealevelPa,1);
+        Serial.print(" Pa in steps of "); Serial.print( delta(),1 ); Serial.println(" Pa");
+        
+        // loop using _decreasing_ pressure until altitudes match
+        while (baroAltitude < model->gAltitude) {
+          
+          Serial.print(count); Serial.print(". ");
+          Serial.print(baroAltitude); Serial.print(" m <- ");
+          Serial.print(sealevelPa); Serial.print(" Pa, ");
+          Serial.print(gpsAltitude); Serial.println(" m");
+          
+          sealevelPa -= delta();
+          if (++count > 10) break;     // avoid infinite loop
+          baroAltitude = baroModel.getAltitude(sealevelPa);
+        }
+      } else {
+        Serial.println("~~> Barometer's altitude is too high.");
+        Serial.print(". INCREASE sea level pressure from "); Serial.print(sealevelPa,1);
+        Serial.print(" Pa in steps of "); Serial.print( delta(),1 ); Serial.println(" Pa");
+
+        // loop using _increasing_ pressure until altitudes match
+        while (baroAltitude > gpsAltitude) {
+          Serial.print(count); Serial.print(". ");
+          Serial.print(baroAltitude); Serial.print(" m, based on ");
+          Serial.print(sealevelPa); Serial.print(" Pa, while GPS altitude is ");
+          Serial.print(gpsAltitude); Serial.println(" m");
+          
+          sealevelPa += delta();
+          if (++count > 10) break;     // avoid infinite loop
+          baroAltitude = baroModel.getAltitude(sealevelPa);
+        }
+      }
+
+      Serial.print(". Altimeter synchronized to GPS at "); Serial.print(sealevelPa, 1); Serial.print(" Pa, "); Serial.print(count); Serial.println(" steps");
     }
 
 };  // end class ViewAltimeter
@@ -196,15 +246,15 @@ void ViewAltimeter::updateScreen() {
 
   // read altitude from barometer and GPS, and display everything
   float pascals = baroModel.getBaroPressure();  // get pressure to trigger a fresh reading
-  //Serial.print("Altimeter "); Serial.print(pascals); Serial.print(" Pa ["); Serial.print(__LINE__); Serial.println("]"); // debug
+  //Serial.print("Altimeter: "); Serial.print(pascals); Serial.print(" Pa [view_altimeter.h "); Serial.print(__LINE__); Serial.println("]"); // debug
   
   char msg[16];                     // strlen("12,345.6 meters") = 15
 
-  float altMeters = baroModel.getAltitude(gSealevelPressure);
+  float altMeters = baroModel.getAltitude(sealevelPa);
   float altFeet = altMeters*feetPerMeters;
-  //altMeters += 1000;              // debug
-  //altFeet += 1000;                // debug
-  //Serial.print("Altimeter "); Serial.print(altFeet); Serial.print(" feet ["); Serial.print(__LINE__); Serial.println("]"); // debug
+  //altMeters += 2000;              // debug, helps test layout with large numbers
+  //altFeet += 2000;                // debug
+  //Serial.print("Altimeter: "); Serial.print(altFeet); Serial.print(" ft [viewaltimeter.h "); Serial.print(__LINE__); Serial.println("]"); // debug
   if (model->gMetric) {
     txtAltimeter[eBaroValue].print(altMeters, 0);
   } else {
@@ -219,13 +269,13 @@ void ViewAltimeter::updateScreen() {
 
   // show sea level pressure
   // english: inches Mercury
-  float sealevel = gSealevelPressure*INCHES_MERCURY_PER_PASCAL*100;
-  String sFloat = String(sealevel, 3) + " inHg";
+  float pressureInHg = sealevelPa*INCHES_MERCURY_PER_PASCAL;
+  String sFloat = String(pressureInHg, 3) + " inHg";
   txtAltimeter[eSealevelEnglish].print(sFloat);
 
   // metric: hecto Pascal
-  sealevel = gSealevelPressure;
-  sFloat = String(sealevel, 1) + " hPa";
+  float pressureHPa = sealevelPa/100;
+  sFloat = String(pressureHPa, 1) + " hPa";
   txtAltimeter[eSealevelMetric].print(sFloat);
 
 } // end updateScreen
@@ -234,6 +284,7 @@ void ViewAltimeter::updateScreen() {
 void ViewAltimeter::startScreen() {
   // called once each time this view becomes active
   loadConfig();                       // restore our settings from NVR
+  //this->sealevelPa = DEFAULT_SEALEVEL_PASCALS;  // debug: one-time override NVR
   this->clearScreen(this->background);                      // clear screen
   txtAltimeter[0].setBackground(this->background);          // set background for all TextFields in this view
   TextField::setTextDirty( txtAltimeter, nTextAltimeter );  // make sure all fields get re-printed on screen change
@@ -245,19 +296,24 @@ void ViewAltimeter::startScreen() {
   showScreenCenterline();             // optionally draw visual alignment bar
 
   if (model->gMetric) {
-    txtAltimeter[eBaroUnits].print("meters");
-    txtAltimeter[eGpsUnits].print("meters");
+    txtAltimeter[eBaroUnits].print("m");
+    txtAltimeter[eGpsUnits].print("m");
   } else {
-    txtAltimeter[eBaroUnits].print("feet");
-    txtAltimeter[eGpsUnits].print("feet");
+    txtAltimeter[eBaroUnits].print("ft");
+    txtAltimeter[eGpsUnits].print("ft");
   }
 
   // ----- draw buttons
   setFontSize(eFONTSMALL);
   for (int ii=0; ii<nPressureButtons; ii++) {
     FunctionButton item = pressureButtons[ii];
-    tft->fillRoundRect(item.x, item.y, item.w, item.h, item.radius, cBUTTONFILL);
-    tft->drawRoundRect(item.x, item.y, item.w, item.h, item.radius, cBUTTONOUTLINE);
+    if (ii == eSynchronize) {
+      // nothing - the button on top of the altimeter readout doesn't change background color
+    } else {
+      // show background color for normal buttons
+      tft->fillRoundRect(item.x, item.y, item.w, item.h, item.radius, cBUTTONFILL);
+      tft->drawRoundRect(item.x, item.y, item.w, item.h, item.radius, cBUTTONOUTLINE);
+    }
 
     // ----- label on top of button
     int xx = getOffsetToCenterTextOnButton(item.text, item.x, item.w);
@@ -272,8 +328,26 @@ void ViewAltimeter::startScreen() {
       txtAltimeter[ii].print();
   }
 
+  // ----- draw text vertically onto  "Sync" button
+  tft->setRotation(0);                // todo landscape
+  const int xx = tft->width()/2 + 12;
+  const int yy = tft->height()-10;
+  TextField sync("Sync", xx, yy, cFAINT);
+  sync.print();
+  tft->setRotation(1);                // todo
+
   updateScreen();                     // update UI immediately, don't wait for laggy mainline loop
 } // end startScreen()
+
+
+void ViewAltimeter::endScreen() {
+  // Called once each time this view becomes INactive
+  // This is a 'goodbye kiss' to do cleanup work
+  // For the altimeter view, save our settings here instead of on each 
+  // button press because writing to NVR is slow (0.5 sec) and would delay the user
+  // while trying to press a button many times in a row.
+  saveConfig();
+}
 
 
 bool ViewAltimeter::onTouch(Point touch) {
@@ -283,22 +357,29 @@ bool ViewAltimeter::onTouch(Point touch) {
   for (int ii=0; ii<nPressureButtons; ii++) {
     FunctionButton item = pressureButtons[ii];
     if (item.hitTarget.contains(touch)) {
-        handled = true;               // hit!
         switch (item.functionIndex)   // do the thing
         {
           case ePressurePlus:
               increaseSeaLevelPressure();
+              handled = true;
               break;
           case ePressureMinus:
               decreaseSeaLevelPressure();
+              handled = true;
+              break;
+          case eSynchronize:
+              syncBarometerToGPS();
+              handled = true;
               break;
           default:
               Serial.print("Error, unknown function "); Serial.println(item.functionIndex);
               break;
         }
         updateScreen();               // update UI immediately, don't wait for laggy mainline loop
-        this->saveConfig();           // after UI is updated, save setting to nvr
      }
+  }
+  if (!handled) {
+    Serial.println("No match to my hit targets.");  // debug
   }
   return handled;                     // true=handled, false=controller uses default action
 } // end onTouch()
@@ -317,8 +398,9 @@ void ViewAltimeter::loadConfig() {
   float tempPressure;
   int result = config.readConfig( (byte*) &tempPressure, sizeof(tempPressure) );
   if (result) {
-    this->gSealevelPressure = tempPressure;
-    Serial.print("Loaded sea level pressure: "); Serial.println(this->gSealevelPressure, 2);
+    
+    this->sealevelPa = tempPressure;
+    Serial.print("Loaded sea level pressure: "); Serial.println(this->sealevelPa, 1);
   } else {
     Serial.println("Failed to load sea level pressure, re-initializing config file");
     saveConfig();
@@ -327,6 +409,6 @@ void ViewAltimeter::loadConfig() {
 // ----- save to SDRAM -----
 void ViewAltimeter::saveConfig() {
   SaveRestore config(ALTIMETER_CONFIG_FILE, CONFIG_ALTIMETER_VERSION);
-  int rc = config.writeConfig( (byte*) &gSealevelPressure, sizeof(gSealevelPressure) );
+  int rc = config.writeConfig( (byte*) &sealevelPa, sizeof(sealevelPa) );
   Serial.print("Finished with rc = "); Serial.println(rc);  // debug
 }
