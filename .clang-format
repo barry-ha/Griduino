@@ -1,20 +1,27 @@
 # https://clang.llvm.org/docs/ClangFormatStyleOptions.html
+# https://zed0.co.uk/clang-format-configurator/
 
-# We like defaults from the LLVM style, but with 2 columns indentation.
+# We prefer the LLVM style, but with 2 columns indentation.
 Standard: Cpp11
 BasedOnStyle: LLVM
 IndentWidth: 2
+TabWidth: 2
+UseTab: Never
 
 ColumnLimit: 0
-AccessModifierOffset: -4
+AccessModifierOffset: -2
 
 AlignConsecutiveAssignments: true
 AlignConsecutiveDeclarations: false
 AlignConsecutiveMacros: true
 
-SpacesBeforeTrailingComments: 4
+# We prefer listing system libraries first, then user includes, and sorting by clang does the opposite
+SortIncludes: false
 
-NamespaceIndentation: All
+SpacesBeforeTrailingComments: 3
+SpaceBeforeParens: NonEmptyParentheses
+
+NamespaceIndentation: Inner
 IndentCaseBlocks: true
 BreakBeforeBraces: Custom
 BraceWrapping:

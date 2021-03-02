@@ -1,4 +1,4 @@
-#pragma once
+#pragma once   // Please format this file with clang before check-in to GitHub
 /*
   File:     model_baro.h
 
@@ -56,12 +56,12 @@
          about +/- 0.5 meter of altitude.
 */
 
-#include <Arduino.h>
-#include <Adafruit_BMP3XX.h>          // Precision barometric and temperature sensor
-#include "constants.h"                // Griduino constants, colors, typedefs
+#include <Adafruit_BMP3XX.h>   // Precision barometric and temperature sensor
+#include <Arduino.h>           //
+#include "constants.h"         // Griduino constants, colors, typedefs
 
 // ========== extern ===========================================
-extern char* dateToString(char* msg, int len, time_t datetime);  // Griduino/Baroduino.ino
+extern char *dateToString (char *msg, int len, time_t datetime);   // Griduino/Baroduino.ino
 
 // ------------ definitions
 #define MILLIBARS_PER_INCHES_MERCURY (0.02953)
@@ -74,54 +74,51 @@ extern char* dateToString(char* msg, int len, time_t datetime);  // Griduino/Bar
 
 // ========== class BarometerModel ======================
 class BarometerModel {
-  public:
-    // Class member variables
-    Adafruit_BMP3XX* baro;            // pointer to the hardware-managing class
-    int bmp_cs;                       // Chip Select for BMP388 / BMP390 hardware
-    float inchesHg;
-    float gPressure;                  // Pascals
+public:
+  // Class member variables
+  Adafruit_BMP3XX *baro;   // pointer to the hardware-managing class
+  int bmp_cs;              // Chip Select for BMP388 / BMP390 hardware
+  float gPressure;         // pressure in Pascals
+  float inchesHg;          // same pressure in inHg
 
-    //efine maxReadings 288           // 288 = (4 readings/hour)*(24 hours/day)*(3 days)
-    // todo - It turns out that 288 measurements draws a graph of exactly two days, not three.
-    //        Check that it's actually running 4 samples/hour, and not 6/hr.
-    #define maxReadings 432           // 432 = 288*3/2
-    #define lastIndex (maxReadings - 1)  // index to the last element in pressure array
-    BaroReading pressureStack[maxReadings] = {};  // array to hold pressure data, init filled with zeros
+#define maxReadings 384                          // 384 = (4 readings/hour)*(24 hours/day)*(4 days)
+#define lastIndex   (maxReadings - 1)            // index to the last element in pressure array
+  BaroReading pressureStack[maxReadings] = {};   // array to hold pressure data, init filled with zeros
 
-    //float elevCorr = 4241;          // elevation correction in Pascals
-    // use difference between altimeter setting and station pressure: https://www.weather.gov/epz/wxcalc_altimetersetting
-    float elevCorr = 0;               // todo: unused for now, review and change if needed
+  //float elevCorr = 4241;          // elevation correction in Pascals
+  // use difference between altimeter setting and station pressure: https://www.weather.gov/epz/wxcalc_altimetersetting
+  float elevCorr = 0;   // todo: unused for now, review and change if needed
 
-    // Constructor - create and initialize member variables
-    BarometerModel(Adafruit_BMP3XX* vbaro, int vcs) {
-      baro = vbaro;
-      bmp_cs = vcs;
-    }
+  // Constructor - create and initialize member variables
+  BarometerModel (Adafruit_BMP3XX *vbaro, int vcs) {
+    baro   = vbaro;
+    bmp_cs = vcs;
+  }
 
-    // init BMP388 or BMP390 barometer
-    int begin(void) {
-      int rc = 1;                     // assume success
-      if (baro->begin_SPI(bmp_cs)) {
-        // Bosch BMP388 datasheet:
-        //      https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bmp388-ds001.pdf
-        // IIR: 
-        //      An "infinite impulse response" filter intended to remove short-term 
-        //      fluctuations in pressure, e.g. caused by slamming a door or wind blowing 
-        //      on the sensor.
-        // Oversampling: 
-        //      Each oversampling step reduces noise and increases output resolution 
-        //      by one bit.
-        //
+  // init BMP388 or BMP390 barometer
+  int begin (void) {
+    int rc = 1;   // assume success
+    if (baro->begin_SPI (bmp_cs)) {
+      // Bosch BMP388 datasheet:
+      //      https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bmp388-ds001.pdf
+      // IIR:
+      //      An "infinite impulse response" filter intended to remove short-term
+      //      fluctuations in pressure, e.g. caused by slamming a door or wind blowing
+      //      on the sensor.
+      // Oversampling:
+      //      Each oversampling step reduces noise and increases output resolution
+      //      by one bit.
+      //
 
-        // ----- Settings recommended by Bosch based on use case for "handheld device dynamic"
-        // https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bmp388-ds001.pdf
-        // Section 3.5 Filter Selection, page 17
-        baro->setTemperatureOversampling(BMP3_NO_OVERSAMPLING);
-        baro->setPressureOversampling(BMP3_OVERSAMPLING_4X);
-        baro->setIIRFilterCoeff(BMP3_IIR_FILTER_COEFF_7);     // was 3, too busy
-        baro->setOutputDataRate(BMP3_ODR_50_HZ);
+      // ----- Settings recommended by Bosch based on use case for "handheld device dynamic"
+      // https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bmp388-ds001.pdf
+      // Section 3.5 Filter Selection, page 17
+      baro->setTemperatureOversampling (BMP3_NO_OVERSAMPLING);
+      baro->setPressureOversampling (BMP3_OVERSAMPLING_4X);
+      baro->setIIRFilterCoeff (BMP3_IIR_FILTER_COEFF_7);   // was 3, too busy
+      baro->setOutputDataRate (BMP3_ODR_50_HZ);
 
-        /*****
+      /*****
         // ----- Settings from Adafruit example
         // https://github.com/adafruit/Adafruit_BMP3XX/blob/master/examples/bmp3xx_simpletest/bmp3xx_simpletest.ino
         // Set up oversampling and filter initialization
@@ -131,7 +128,7 @@ class BarometerModel {
         baro->setOutputDataRate(BMP3_ODR_50_HZ);
         *****/
 
-        /*****
+      /*****
         // ----- Settings from original Barograph example
         // Set up BMP388 oversampling and filter initialization
         baro->setTemperatureOversampling(BMP3_OVERSAMPLING_2X);
@@ -140,115 +137,125 @@ class BarometerModel {
         // baro->setOutputDataRate(BMP3_ODR_50_HZ);
         *****/
 
-        // Get and discard the first data point 
-        // Repeated because first reading is always bad, until iir oversampling buffers are populated
-        for (int ii=0; ii<4; ii++) {
-          baro->performReading();     // read hardware 
-          delay(50);
+      // Get and discard the first data point
+      // Repeated because first reading is always bad, until iir oversampling buffers are populated
+      for (int ii = 0; ii < 4; ii++) {
+        baro->performReading();   // read hardware
+        delay (50);
+      }
+
+    } else {
+      Serial.println ("Error, unable to initialize BMP388 / BMP390, check the wiring");
+      rc = 0;   // return failure
+    }
+    return rc;
+  }
+
+  float getAltitude (float sealevelPa) {
+    // input: sea level air pressure, Pascals
+    // returns: altitude, meters
+    return baro->readAltitude (sealevelPa / 100.0);
+  }
+
+  float getBaroPressure() {
+    // returns: float Pascals
+    // updates: gPressure (class var)
+    //          inchesHg  (class var)
+    if (!baro->performReading()) {
+      Serial.println ("Error, failed to read barometer");
+    }
+    // continue anyway, for demo
+    gPressure = baro->pressure + elevCorr;   // Pressure is returned in SI units of Pascals. 100 Pascals = 1 hPa = 1 millibar
+    //hPa = gPressure / 100;
+    inchesHg = gPressure * INCHES_MERCURY_PER_PASCAL;
+    //Serial.print("Barometer: "); Serial.print(gPressure); Serial.print(" Pa [model_baro.h "); Serial.print(__LINE__); Serial.println("]");  // debug
+    return gPressure;
+  }
+
+  // the schedule is determined by the Controller
+  // controller should call this every 15 minutes
+  void logPressure (time_t rightnow) {
+    float pressure = getBaroPressure();      // read
+    rememberPressure (pressure, rightnow);   // push onto stack
+    Serial.print ("logPressure( ");          // debug
+    Serial.print (pressure, 1);              // debug
+    Serial.println (" )");                   // debug
+    saveHistory();                           // write stack to NVR
+  }
+
+  // ========== load/save barometer pressure history =============
+  // Filenames MUST match between Griduino and Baroduino example program
+  // To erase and rewrite a new data file, change the version string below.
+  const char PRESSURE_HISTORY_FILE[25]    = CONFIG_FOLDER "/barometr.dat";
+  const char PRESSURE_HISTORY_VERSION[15] = "Pressure v02";
+  int loadHistory() {
+    SaveRestore history (PRESSURE_HISTORY_FILE, PRESSURE_HISTORY_VERSION);
+    BaroReading tempStack[maxReadings] = {};   // array to hold pressure data, fill with zeros
+    int result                         = history.readConfig ((byte *)&tempStack, sizeof (tempStack));
+    if (result) {
+      int numNonZero = 0;
+      for (int ii = 0; ii < maxReadings; ii++) {
+        pressureStack[ii] = tempStack[ii];
+        if (pressureStack[ii].pressure > 0) {
+          numNonZero++;
         }
-
-      } else {
-        Serial.println("Error, unable to initialize BMP388 / BMP390, check the wiring");
-        rc = 0;                       // return failure
       }
-      return rc;
-    }
 
-    float getAltitude(float sealevelPa) {
-      // input: sea level air pressure, Pascals
-      // returns: altitude, meters
-      return baro->readAltitude(sealevelPa/100.0);
+      Serial.print (". Loaded barometric pressure history file, ");
+      Serial.print (numNonZero);
+      Serial.println (" readings found");
     }
+    dumpPressureHistory();   // debug
+    return result;
+  }
 
-    float getBaroPressure() {
-      // returns: float Pascals 
-      // updates: gPressure (class var)
-      //          inchesHg  (class var)
-      if (!baro->performReading()) {
-        Serial.println("Error, failed to read barometer");
-      }
-      // continue anyway, for demo
-      gPressure = baro->pressure + elevCorr;   // Pressure is returned in SI units of Pascals. 100 Pascals = 1 hPa = 1 millibar
-      //hPa = gPressure / 100;
-      inchesHg = gPressure * INCHES_MERCURY_PER_PASCAL;
-      //Serial.print("Barometer: "); Serial.print(gPressure); Serial.print(" Pa [model_baro.h "); Serial.print(__LINE__); Serial.println("]");  // debug
-      return gPressure;
-    }
-
-    // the schedule is determined by the Controller
-    // controller should call this every 15 minutes
-    void logPressure(time_t rightnow) {
-      float pressure = getBaroPressure();           // read
-      rememberPressure( pressure, rightnow );   // push onto stack
-      Serial.print("logPressure( "); Serial.print(pressure,1); Serial.println(" )");  // debug
-      saveHistory();                    // write stack to NVR
-    }
-    
-    // ========== load/save barometer pressure history =============
-    // Filenames MUST match between Griduino and Baroduino example program
-    // To erase and rewrite a new data file, change the version string below.
-    const char PRESSURE_HISTORY_FILE[25] = CONFIG_FOLDER "/barometr.dat";
-    const char PRESSURE_HISTORY_VERSION[15] = "Pressure v02";
-    int loadHistory() {
-      SaveRestore history(PRESSURE_HISTORY_FILE, PRESSURE_HISTORY_VERSION);
-      BaroReading tempStack[maxReadings] = {};      // array to hold pressure data, fill with zeros
-      int result = history.readConfig( (byte*) &tempStack, sizeof(tempStack) );
-      if (result) {
-        int numNonZero = 0;
-        for (int ii=0; ii<maxReadings; ii++) {
-          pressureStack[ii] = tempStack[ii];
-          if (pressureStack[ii].pressure > 0) {
-            numNonZero++;
-          }
-        }
-    
-        Serial.print(". Loaded barometric pressure history file, ");
-        Serial.print(numNonZero);
-        Serial.println(" readings found");
-      }
-      dumpPressureHistory();              // debug
-      return result;
-    }
-
-    void saveHistory() {
-      SaveRestore history(PRESSURE_HISTORY_FILE, PRESSURE_HISTORY_VERSION);
-      history.writeConfig( (byte*) &pressureStack, sizeof(pressureStack) );
-      Serial.print("Saved the pressure history to non-volatile memory [line "); Serial.print(__LINE__); Serial.println("]");
-    }
+  void saveHistory() {
+    SaveRestore history (PRESSURE_HISTORY_FILE, PRESSURE_HISTORY_VERSION);
+    history.writeConfig ((byte *)&pressureStack, sizeof (pressureStack));
+    Serial.print ("Saved the pressure history to non-volatile memory [line ");   // debug
+    Serial.print (__LINE__);                                                     // debug
+    Serial.println ("]");                                                        // debug
+  }
 
 #ifdef RUN_UNIT_TESTS
-    void testRememberPressure( float pascals, time_t time ) {
-      rememberPressure(pascals, time);
-    }
+  void testRememberPressure (float pascals, time_t time) {
+    rememberPressure (pascals, time);
+  }
 #endif
 
-  protected:
-    void rememberPressure( float pascals, time_t time ) {
-      // interface for unit test
-      // push the given barometer reading onto the stack (without reading hardware)
-      // shift existing stack to the left
-      for (int ii = 0; ii < lastIndex; ii++) {
-        pressureStack[ii] = pressureStack[ii + 1];
-      }
-  
-      // put the latest pressure onto the stack
-      pressureStack[lastIndex].pressure = pascals;
-      pressureStack[lastIndex].time = time;
+protected:
+  void rememberPressure (float pascals, time_t time) {
+    // interface for unit test
+    // push the given barometer reading onto the stack (without reading hardware)
+    // shift existing stack to the left
+    for (int ii = 0; ii < lastIndex; ii++) {
+      pressureStack[ii] = pressureStack[ii + 1];
     }
 
-    void dumpPressureHistory() {            // debug
-      Serial.print("Pressure history stack, non-zero values [line "); Serial.print(__LINE__); Serial.println("]");
-      for (int ii=0; ii<maxReadings; ii++) {
-        BaroReading item = pressureStack[ii];
-        if (item.pressure > 0) {
-          Serial.print("Stack["); Serial.print(ii); Serial.print("] = ");
-          Serial.print(item.pressure);
-          Serial.print("  ");
-          char msg[24];
-          Serial.println( dateToString(msg, sizeof(msg), item.time) );                          // debug
-        }
-      }
-      return;
-    }
+    // put the latest pressure onto the stack
+    pressureStack[lastIndex].pressure = pascals;
+    pressureStack[lastIndex].time     = time;
+  }
 
-};  // end class BarometerModel 
+  void dumpPressureHistory() {   // debug
+    // format the barometric pressure array and write it to the Serial console log
+    // entire subroutine is for debug purposes
+    Serial.print ("Pressure history stack, non-zero values [line ");
+    Serial.print (__LINE__);
+    Serial.println ("]");
+    for (int ii = 0; ii < maxReadings; ii++) {
+      BaroReading item = pressureStack[ii];
+      if (item.pressure > 0) {
+        Serial.print ("Stack[");
+        Serial.print (ii);
+        Serial.print ("] = ");
+        Serial.print (item.pressure);
+        Serial.print ("  ");
+        char msg[24];
+        Serial.println (dateToString (msg, sizeof (msg), item.time));
+      }
+    }
+    return;
+  }
+
+};   // end class BarometerModel
