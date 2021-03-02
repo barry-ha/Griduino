@@ -115,9 +115,9 @@ In the Arduino IDE menu bar, go to **Tools > Manage Libraries**. Install the lat
    - LiquidCrystal v1.0.7
    - SD v1.2.4
    - TFT v1.0.6
-   - Adafruit BMP3XX Library v1.1.0 <br>(do not use BMP3XX v2.0.0, Adafruit made incompatible changes as a result of October 2020 driver updates from Bosch sensor software)
-   - Adafruit GFX Library v1.10.4
-   - Adafruit GPS Library v1.5.3
+   - Adafruit BMP3XX Library v2.0.2
+   - Adafruit GFX Library v1.10.6
+   - Adafruit GPS Library v1.5.4
    - Adafruit ILI9341 v1.5.6
    - Adafruit ImageReader Library v2.5.3
    - Adafruit NeoPixel v1.7.0
@@ -125,6 +125,7 @@ In the Arduino IDE menu bar, go to **Tools > Manage Libraries**. Install the lat
    - Adafruit TouchScreen v1.1.1
    - elapsedMillis by Paul Stoffregen v1.0.6
    - SdFat – Adafruit Fork by Bill Greiman v1.2.3 <br>(use v1, as we have not tested v2)
+   - *do not* install SdFat because it has incompatible SdFat.h file
    - Time by Michael Margolis v1.6.0
 
 The volume control component is outside of Arduino's Library Manager, so follow this link to GitHub and install the latest version:
