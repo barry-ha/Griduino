@@ -19,7 +19,7 @@ AlignConsecutiveMacros: true
 SortIncludes: false
 
 SpacesBeforeTrailingComments: 3
-SpaceBeforeParens: NonEmptyParentheses
+SpaceBeforeParens: ControlStatements
 
 NamespaceIndentation: Inner
 IndentCaseBlocks: true
