@@ -54,7 +54,7 @@ class TextField {
   //
   // To center text left-right, specify x = -1
   //
-  // Note about proportional fonts:
+  // Note about system's handling of proportional fonts:
   //      1. Text origin is bottom left corner
   //      2. Rect origin is upper left corner
   //      3. Printing text in proportional font does not clear its own background
@@ -140,9 +140,10 @@ class TextField {
     }
     void setColor(uint16_t fgd) {
       this->color = fgd;
+      this->dirty = true;
     }
     void setBackground(uint16_t bkg) {
-      // Set all text field's background color
+      // Set ALL text fields background color - this is a single static var
       cBackground = bkg;
     }
 

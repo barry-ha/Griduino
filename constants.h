@@ -2,7 +2,7 @@
 
 // ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE    "Griduino"
-#define PROGRAM_VERSION  "v0.35"
+#define PROGRAM_VERSION  "v0.36"
 #define PROGRAM_LINE1    "Barry K7BWH"
 #define PROGRAM_LINE2    "John KM7O"
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
@@ -81,6 +81,7 @@ const int OFF       = 0;     // = turned off
 #define cDISTANCE      ILI9341_YELLOW   //
 #define cVALUE         ILI9341_YELLOW   // 255, 255, 0
 #define cVALUEFAINT    0xbdc0           // darker than cVALUE
+#define cDISABLED      0x7bee           // 125, 125, 115 = gray for disabled screen item
 #define cHIGHLIGHT     ILI9341_WHITE    //
 #define cBUTTONFILL    ILI9341_NAVY     //
 #define cBUTTONOUTLINE 0x0514           // was ILI9341_CYAN
