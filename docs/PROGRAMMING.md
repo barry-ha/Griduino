@@ -124,9 +124,8 @@ In the Arduino IDE menu bar, go to **Tools > Manage Libraries**. Install the lat
    - Adafruit SPIFlash v3.3.6
    - Adafruit TouchScreen v1.1.1
    - elapsedMillis by Paul Stoffregen v1.0.6
-   - SdFat – Adafruit Fork by Bill Greiman v1.2.3 <br>(use v1, as we have not tested v2)
-   - *do not* install SdFat because it has incompatible SdFat.h file
-   - Time by Michael Margolis v1.6.0
+   - SdFat – Adafruit Fork by Bill Greiman v1.2.3 <br>*Note:* Use v1, as we have not tested v2<br> *Note:* do not install SdFat because it has incompatible SdFat.h file
+   - Time by Michael Margolis v1.6.0 <br>*Note:* searching the library manager for the word "time" lists just about every library. Searching for the word "timekeeping" will show the correct library.
 
 The volume control component is outside of Arduino's Library Manager, so follow this link to GitHub and install the latest version:
 
