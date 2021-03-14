@@ -1,7 +1,8 @@
 /*
   DAC audio playback from stored program memory
 
-  Date:     2021-03-11 created 16-bit floating point 22khz sketch
+  Date:     2021-03-11 updated to alternate between 22khz/float and 8khz/8bit
+            2021-03-11 created 16-bit floating point 22khz sketch
             2020-03-14 created 8-bit 8khz sketch
 
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
@@ -10,8 +11,8 @@
   Purpose:  This sketch is a simple monaural program using only DAC0. 
             It plays a mono WAV file sampled at 22,050 Hz.
             Sample audio is stored in program memory.
-            Limited length to 2 seconds due to array size:
-            32767 bytes * (1 sample/2 bytes) / (1 second / 22050 samples) = 0.74 seconds
+            Limited length to 3 seconds due to 16-bit array index size:
+            65535 bytes * (1 sample/4 bytes) / (1 second / 22050 samples) = 2.97 seconds
 
   Preparing audio files:
             Prepare your WAV file to 22 kHz mono:
@@ -39,6 +40,7 @@
                0.26563
                0.28125
                ...
+
             7. Copy, rename, and edit this into a C++ header file:
             
                // C:\Users\barry\Documents\Audacity\HEREWEGO.txt   1 channel (mono)
@@ -65,11 +67,12 @@
 #include <Adafruit_ILI9341.h>         // TFT color display library
 #include <DS1804.h>                   // DS1804 digital potentiometer library
 #include "elapsedMillis.h"            // short-interval timing functions
-#include "herewego.h"                 // audio clip 1
+#include "herewego.h"                 // audio clip 1, 22 khz/float
+#include "sample1.h"                  // audio clip 2, 8 khz/8-bit
 
 // ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE   "DAC Audio 22 kHz"
-#define PROGRAM_VERSION "v0.37"
+#define PROGRAM_VERSION "v0.38"
 #define PROGRAM_LINE1   "Barry K7BWH"
 #define PROGRAM_LINE2   "John KM7O"
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
@@ -79,9 +82,9 @@
 */
 
 // ---------- Touch Screen
-  #define TFT_BL   4                  // TFT backlight
-  #define TFT_CS   5                  // TFT chip select pin
-  #define TFT_DC  12                  // TFT display/command pin
+#define TFT_BL   4                  // TFT backlight
+#define TFT_CS   5                  // TFT chip select pin
+#define TFT_DC  12                  // TFT display/command pin
 
 // create an instance of the TFT Display
 Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
@@ -114,20 +117,18 @@ struct Point {
 #define cVALUE          ILI9341_YELLOW  // 255, 255, 0
 
 // ------------ global scope
-const int howLongToWait = 5;          // max number of seconds before using Serial port to console
-int gLoopCount = 0;
+const int howLongToWait = 5;          // max number of seconds at startup waiting for Serial port to console
+int gLoopCount = 1;
 
 const int gSampleRate = 22050;         // 20 kHz audio file
-const int gHoldTime = 1E6 / gSampleRate;  // microseconds to hold each output sample
 
 // ========== splash screen ====================================
 const int xLabel = 8;                 // indent labels, slight margin on left edge of screen
-const int yRow1 = 10;                 // title
-const int yRow2 = yRow1 + 20;         // program version
-const int yRow3 = yRow2 + 20;         // compiled date
-const int yRow4 = yRow3 + 40;         // loop count
-const int yRow5 = yRow4 + 40;         // volume
-const int yRow6 = yRow5 + 24;         // wave info
+const int yRow1 = 8;                  // title
+const int yRow2 = yRow1 + 20;         // compiled date
+const int yRow3 = yRow2 + 40;         // loop count
+const int yRow4 = yRow3 + 40;         // volume
+const int yRow5 = yRow4 + 24;         // wave info
 
 void startSplashScreen() {
   tft.setTextSize(2);
@@ -137,10 +138,7 @@ void startSplashScreen() {
   tft.print(PROGRAM_TITLE);
 
   tft.setCursor(xLabel, yRow2);
-  tft.setTextColor(cLABEL);
-  tft.print(PROGRAM_VERSION);
-
-  tft.setCursor(xLabel, yRow3);
+  tft.setTextColor(cVALUE, cBACKGROUND);
   tft.println(PROGRAM_COMPILED);
 }
 
@@ -211,18 +209,23 @@ int audioFloatToInt(float item) {   // scale floating point sample to DAC intege
   // output: (0 ... 2^12)
   return int( (item+1.0) * 2040.0 );
 }
-
-void playAudio(const float* audio, unsigned int audiosize) {
+void playAudioFloat(const float* audio, unsigned int audiosize, int holdTime) {
   for (int ii=0; ii<audiosize; ii++) {
     int value = audioFloatToInt( audio[ii] );       
     analogWrite(DAC0, value);
-    delayMicroseconds(gHoldTime);     // hold the sample value for the sample time
+    delayMicroseconds(holdTime);     // hold the sample value for the sample time
   }
   // reduce speaker click by setting resting output sample to midpoint
   int midpoint = audioFloatToInt( (audio[0] + audio[audiosize-1])/2.0 );
   analogWrite(DAC0, midpoint);
 }
-
+void playAudio8bit(const unsigned char* audio, int audiosize, int holdTime) {
+  for (int ii=0; ii<audiosize; ii++) {
+    int value = audio[ii] << 4;       // max sample is 2^8, max DAC output 2^12, so shift left by 4
+    analogWrite(DAC0, value);
+    delayMicroseconds(holdTime);     // hold the sample value for the sample time
+  }
+}
 void showWiperPosition(int row, int wiper) {
     tft.setCursor(xLabel, row);
     tft.setTextColor(cTEXTCOLOR, cBACKGROUND);
@@ -241,32 +244,57 @@ void showLoopCount( int row, int loopCount) {
     tft.print(loopCount); 
     tft.print(" ");
 }
-void showWaveInfo( int row, int numItems, int numBytes, int bytesPerItem ) {
+void showMessage(int x, int y, const char* msg, int value) {
+  tft.setTextColor(cTEXTCOLOR, cBACKGROUND); 
+  tft.setCursor(x, y); 
+  tft.print(msg);
+  tft.setTextColor(cVALUE, cBACKGROUND);
+  tft.print(value);
+  tft.print("   ");
+}
+void showWaveInfo( int row, int numItems, int numBytes, int bytesPerItem, int bitrate ) {
 
+    float playbackTime = (1.0 / bitrate * numItems);
+    int x = xLabel;
+    showMessage(x, row+ 0, "Total entries ", numItems);
+    showMessage(x, row+20, "Bytes / sample ", bytesPerItem);
+    showMessage(x, row+40, "Total bytes ", numBytes);
+    showMessage(x, row+60, "Bit rate ", bitrate);
+
+    tft.setTextColor(cTEXTCOLOR, cBACKGROUND);
+    tft.setCursor(xLabel, row +80); 
+    tft.print("Playback time ");  
+    tft.setTextColor(cVALUE,cBACKGROUND); 
+    tft.print(playbackTime, 3);
+    tft.print("  ");
+    /*
     const int c=cTEXTCOLOR;
     const int b=cBACKGROUND;
     const int v=cVALUE;
-    float playbackTime = (1.0 / 22050.0 * numItems);
-    tft.setTextColor(c, b); tft.setCursor(xLabel, row + 0); tft.print("Total entries ");  tft.setTextColor(v,b); tft.print(numItems);
-    tft.setTextColor(c, b); tft.setCursor(xLabel, row +20); tft.print("Bytes / sample "); tft.setTextColor(v,b); tft.print(bytesPerItem);
-    tft.setTextColor(c, b); tft.setCursor(xLabel, row +40); tft.print("Total bytes ");    tft.setTextColor(v,b); tft.print(numBytes);
-    tft.setTextColor(c, b); tft.setCursor(xLabel, row +60); tft.print("Playback time ");  tft.setTextColor(v,b); tft.print(playbackTime, 3);
+    tft.setTextColor(c, b); tft.setCursor(xLabel, row + 0); tft.print("Total entries ");  tft.setTextColor(v,b); tft.print(numItems); tft.print("   ");
+    tft.setTextColor(c, b); tft.setCursor(xLabel, row +20); tft.print("Bytes / sample "); tft.setTextColor(v,b); tft.print(bytesPerItem); tft.print("   ");
+    tft.setTextColor(c, b); tft.setCursor(xLabel, row +40); tft.print("Total bytes ");    tft.setTextColor(v,b); tft.print(numBytes);  tft.print("   ");
+    tft.setTextColor(c, b); tft.setCursor(xLabel, row +60); tft.print("Bit rate ");       tft.setTextColor(v,b); tft.print(bitrate);  tft.print("   ");
+    tft.setTextColor(c, b); tft.setCursor(xLabel, row +80); tft.print("Playback time ");  tft.setTextColor(v,b); tft.print(playbackTime, 3);  tft.print("   ");
+    */
 }
 
 //=========== main work loop ===================================
 const int AUDIO_CLIP_INTERVAL = 2000; // msec between one audio clip and the next
 
 void loop() {
-
-  // ----- play audio clip 1 several times
   Serial.print("Starting playback "); Serial.println(gLoopCount);
-  
-  showLoopCount( yRow4, gLoopCount);
-  showWiperPosition(yRow5, gVolume);
-  showWaveInfo( yRow6, NUM_SAMPLE1, sizeof(sample1), sizeof(sample1[0]) );
+  showLoopCount( yRow3, gLoopCount);
+  showWiperPosition(yRow4, gVolume);
 
-  playAudio(sample1, NUM_SAMPLE1);  // play sample
+  // ----- play audio clip at 22 khz/float
+  showWaveInfo( yRow5, NUM_SAMPLE22KHZ, sizeof(sample22khz), sizeof(sample22khz[0]), bitrate_22khz );
+  playAudioFloat(sample22khz, NUM_SAMPLE22KHZ, holdtime_22khz);  // play sample
   delay(AUDIO_CLIP_INTERVAL);       // insert pause between clips
 
+  // ----- play audio clip at 8 khz/8-bit
+  showWaveInfo( yRow5, NUM_SAMPLE8KHZ, sizeof(sample8khz), sizeof(sample8khz[0]), bitrate_8khz );
+  playAudio8bit(sample8khz, NUM_SAMPLE8KHZ, holdtime_8khz);  // play sample
+  delay(AUDIO_CLIP_INTERVAL);       // insert pause between clips
   gLoopCount++;
 }

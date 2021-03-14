@@ -1,8 +1,10 @@
 // C:\Users\barry\Documents\Audacity\HEREWEGO.txt   1 channel (mono)
 // Sample Rate: 22050 Hz. Sample values on linear scale.
 // Length processed: 27255 samples 1.23605 seconds.
-#define NUM_SAMPLE1   (sizeof(sample1)/sizeof(sample1[0]))
-const float sample1[] = {
+#define NUM_SAMPLE22KHZ   (sizeof(sample22khz)/sizeof(sample22khz[0]))
+const int bitrate_22khz = 22050;
+const int holdtime_22khz = 1E6 / bitrate_22khz;  // microseconds to hold each output sample
+const float sample22khz[] = {
 0.26563
 ,0.24219
 ,0.26563
