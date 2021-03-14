@@ -68,12 +68,11 @@
          7. loop()
 */
 
-//#include "Adafruit_GFX.h"             // Core graphics display library
 #include <Adafruit_ILI9341.h>         // TFT color display library
 #include <TouchScreen.h>              // Touchscreen built in to 3.2" Adafruit TFT display
-#include "Adafruit_GPS.h"             // Ultimate GPS library
-#include "Adafruit_NeoPixel.h"        // On-board color addressable LED
-#include "DS1804.h"                   // DS1804 digital potentiometer library
+#include <Adafruit_GPS.h>             // Ultimate GPS library
+#include <Adafruit_NeoPixel.h>        // On-board color addressable LED
+#include <DS1804.h>                   // DS1804 digital potentiometer library
 #include "save_restore.h"             // save/restore configuration data to SDRAM
 #include "constants.h"                // Griduino constants, colors, typedefs
 
