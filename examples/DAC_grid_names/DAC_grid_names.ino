@@ -87,9 +87,32 @@ struct LetterInfo {
   const int totalBytes;   // number of bytes in this wave table,  e.g. 'sizeof(c_barry_16)'
   const int numSamples;   // number of samples in this wave file, e.g. 'sizeof(c_barry_16)/sizeof(c_barry_16[0])'
 };
+#include "sound\a_barry_16.h"
+#include "sound\b_barry_16.h"
 #include "sound\c_barry_16.h"
 #include "sound\d_barry_16.h"
+#include "sound\e_barry_16.h"
+#include "sound\f_barry_16.h"
+#include "sound\g_barry_16.h"
+#include "sound\h_barry_16.h"
+//#include "sound\i_barry_16.h"
+//#include "sound\j_barry_16.h"
+//#include "sound\k_barry_16.h"
+//#include "sound\l_barry_16.h"
+//#include "sound\m_barry_16.h"
 #include "sound\n_barry_16.h"
+//#include "sound\o_barry_16.h"
+//#include "sound\p_barry_16.h"
+//#include "sound\q_barry_16.h"
+//#include "sound\r_barry_16.h"
+//#include "sound\s_barry_16.h"
+//#include "sound\t_barry_16.h"
+//#include "sound\u_barry_16.h"
+//#include "sound\v_barry_16.h"
+//#include "sound\w_barry_16.h"
+//#include "sound\x_barry_16.h"
+//#include "sound\y_barry_16.h"
+//#include "sound\z_barry_16.h"
 #include "sound\0_barry_16.h"
 #include "sound\1_barry_16.h"
 #include "sound\2_barry_16.h"
@@ -327,21 +350,37 @@ void sayGrid(const char *name) {
   Serial.print("Say ");
   Serial.println(name);
   for (int ii = 0; ii < strlen(name); ii++) {
+
+    char letter = name[ii];
+    const LetterInfo* pInfo = getLetterInfo(letter);
+  
+#if(1)
+    // removed - this causes linker error message:
+    // collect2.exe: error: ld returned 1 exit status
+    // Multiple libraries were found for "Adafruit_ZeroDMA.h"
+    // Used:     C:\Users\barry\Documents\ArduinoData\packages\adafruit\hardware\samd\1.6.3\libraries\Adafruit_ZeroDMA
+    // Not used: C:\Users\barry\Documents\Arduino\libraries\Adafruit_Zero_DMA_Library
+    // exit status 1
+
     char letter             = name[ii];
     const LetterInfo *pInfo = &c_info;
     switch (letter) {
+    case 'a':   pInfo = &a_info;   break;
+    case 'b':   pInfo = &b_info;   break;
     case 'c':   pInfo = &c_info;   break;
     case 'd':   pInfo = &d_info;   break;
+    case 'e':   pInfo = &e_info;   break;
+    case 'f':   pInfo = &f_info;   break;
+    case 'g':   pInfo = &g_info;   break;
+    case 'h':   pInfo = &h_info;   break;
     case 'n':   pInfo = &n_info;   break;
     case '0':   pInfo = &w0_info;  break;
-    /*
-      case '1': pInfo = &w1_info; break;
-      case '2': pInfo = &w2_info; break;
-      case '3': pInfo = &w3_info; break;
-      case '4': pInfo = &w4_info; break;
-      case '5': pInfo = &w5_info; break;
-      case '6': pInfo = &w6_info; break;
-      */
+    case '1':   pInfo = &w1_info; break;
+    case '2':   pInfo = &w2_info; break;
+    case '3':   pInfo = &w3_info; break;
+    case '4':   pInfo = &w4_info; break;
+    case '5':   pInfo = &w5_info; break;
+    case '6':   pInfo = &w6_info; break;
     case '7':   pInfo = &w7_info;  break;
     case '8':   pInfo = &w8_info;  break;
     case '9':   pInfo = &w9_info;  break;
@@ -352,6 +391,7 @@ void sayGrid(const char *name) {
       break;
       return;
     }
+#endif
     int holdtime = 1E6 / pInfo->bitrate;
     showWaveInfo(yRow5, pInfo->numSamples, pInfo->totalBytes, sizeof(pInfo->pTable), pInfo->bitrate);
     playAudioFloat(pInfo->pTable, pInfo->numSamples, holdtime);   // play entire sample
