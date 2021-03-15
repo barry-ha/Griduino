@@ -11,6 +11,11 @@
             It plays Barry's recorded voice sampled at 16 khz.
             Sample audio is stored in program memory.
 
+  Conclusion:
+            Audio quality is clear and sufficient volume.
+            Audacity is effective at creating sound files in a variety of usable formats.
+            Sketch is too big at 424KB - only able to fit 10 of 36 words into program memory.
+
   Preparing audio files:
             Prepare your WAV file to 16 kHz mono:
             1. Open Audacity
@@ -71,7 +76,6 @@
             The largest 12-bit number is 4,096:
             * Writing 0 will set the DAC to minimum (0.0 v) output.
             * Writing 4096 sets the DAC to maximum (3.3 v) output.
-
             This example program has no user inputs.
 */
 
@@ -91,35 +95,39 @@ struct LetterInfo {
 #include "sound\b_barry_16.h"
 #include "sound\c_barry_16.h"
 #include "sound\d_barry_16.h"
+#include "sound\n_barry_16.h"
+/* ---
 #include "sound\e_barry_16.h"
 #include "sound\f_barry_16.h"
 #include "sound\g_barry_16.h"
 #include "sound\h_barry_16.h"
-//#include "sound\i_barry_16.h"
-//#include "sound\j_barry_16.h"
-//#include "sound\k_barry_16.h"
-//#include "sound\l_barry_16.h"
-//#include "sound\m_barry_16.h"
-#include "sound\n_barry_16.h"
-//#include "sound\o_barry_16.h"
-//#include "sound\p_barry_16.h"
-//#include "sound\q_barry_16.h"
-//#include "sound\r_barry_16.h"
-//#include "sound\s_barry_16.h"
-//#include "sound\t_barry_16.h"
-//#include "sound\u_barry_16.h"
-//#include "sound\v_barry_16.h"
-//#include "sound\w_barry_16.h"
-//#include "sound\x_barry_16.h"
-//#include "sound\y_barry_16.h"
-//#include "sound\z_barry_16.h"
+#include "sound\i_barry_16.h"
+#include "sound\j_barry_16.h"
+#include "sound\k_barry_16.h"
+#include "sound\l_barry_16.h"
+#include "sound\m_barry_16.h"
+#include "sound\o_barry_16.h"
+#include "sound\p_barry_16.h"
+#include "sound\q_barry_16.h"
+#include "sound\r_barry_16.h"
+#include "sound\s_barry_16.h"
+#include "sound\t_barry_16.h"
+#include "sound\u_barry_16.h"
+#include "sound\v_barry_16.h"
+#include "sound\w_barry_16.h"
+#include "sound\x_barry_16.h"
+#include "sound\y_barry_16.h"
+#include "sound\z_barry_16.h"
+--- */
 #include "sound\0_barry_16.h"
 #include "sound\1_barry_16.h"
+/* ---
 #include "sound\2_barry_16.h"
 #include "sound\3_barry_16.h"
 #include "sound\4_barry_16.h"
 #include "sound\5_barry_16.h"
 #include "sound\6_barry_16.h"
+--- */
 #include "sound\7_barry_16.h"
 #include "sound\8_barry_16.h"
 #include "sound\9_barry_16.h"
@@ -158,26 +166,6 @@ int gVolume   = 32;   // initial digital potentiometer wiper position, 0..99
 
 // ----- Griduino color scheme
 // RGB 565 color code: http://www.barth-dev.de/online/rgb565-color-picker/
-#define BACKGROUND     0x00A            // a little darker than ILI9341_NAVY
-#define cBACKGROUND    0x00A            // 0,   0,  10 = darker than ILI9341_NAVY, but not black
-#define cGRIDNAME      ILI9341_GREEN    //
-#define cLABEL         ILI9341_GREEN    //
-#define cDISTANCE      ILI9341_YELLOW   //
-#define cVALUE         ILI9341_YELLOW   // 255, 255, 0
-#define cVALUEFAINT    0xbdc0           // darker than cVALUE
-#define cDISABLED      0x7bee           // 125, 125, 115 = gray for disabled screen item
-#define cHIGHLIGHT     ILI9341_WHITE    //
-#define cBUTTONFILL    ILI9341_NAVY     //
-#define cBUTTONOUTLINE 0x0514           // was ILI9341_CYAN
-#define cBREADCRUMB    ILI9341_CYAN     //
-#define cTITLE         ILI9341_GREEN    //
-#define cTEXTCOLOR     ILI9341_CYAN     // 0, 255, 255
-#define cFAINT         0x0514           // 0, 160, 160 = blue, between CYAN and DARKCYAN
-#define cBOXDEGREES    0x0410           // 0, 128, 128 = blue, between CYAN and DARKCYAN
-#define cBUTTONLABEL   ILI9341_YELLOW   //
-#define cCOMPASS       ILI9341_BLUE     // a little darker than cBUTTONOUTLINE
-#define cWARN          0xF844           // brighter than ILI9341_RED but not pink
-#define cTOUCHTARGET   ILI9341_RED      // outline touch-sensitive areas
 
 // ------------ typedef's
 struct Point {
@@ -344,6 +332,36 @@ void showWaveInfo(int row, int numItems, int numBytes, int bytesPerItem, int bit
   tft.print(playbackTime, 3);
   tft.print("  ");
 }
+const LetterInfo *pMeta[] = {
+    &a_info,
+    &b_info,
+    &c_info,
+    &d_info,
+    //&e_info,  &f_info,  &g_info,  &h_info,
+
+    &n_info,
+
+    &w0_info,
+    &w1_info,
+    /* &w2_info, &w3_info,
+  &w4_info, &w5_info, &w6_info, */
+    &w7_info,
+    &w8_info,
+    &w9_info,
+};
+const int numMeta = sizeof(pMeta) / sizeof(pMeta[0]);
+const LetterInfo *getLetterMeta(char letter) {
+  // returns pointer to information about the selected spoken letter
+  const LetterInfo *result = &a_info;
+  for (int ii = 0; ii < numMeta; ii++) {
+    const LetterInfo *pItem = pMeta[ii];
+    if (letter == pItem->letter) {
+      result = pItem;
+      break;
+    }
+  }
+  return result;
+}
 
 // ------ here's the meat of this potato -------
 void sayGrid(const char *name) {
@@ -351,48 +369,10 @@ void sayGrid(const char *name) {
   Serial.println(name);
   for (int ii = 0; ii < strlen(name); ii++) {
 
-    char letter = name[ii];
-    const LetterInfo* pInfo = getLetterInfo(letter);
-  
-#if(1)
-    // removed - this causes linker error message:
-    // collect2.exe: error: ld returned 1 exit status
-    // Multiple libraries were found for "Adafruit_ZeroDMA.h"
-    // Used:     C:\Users\barry\Documents\ArduinoData\packages\adafruit\hardware\samd\1.6.3\libraries\Adafruit_ZeroDMA
-    // Not used: C:\Users\barry\Documents\Arduino\libraries\Adafruit_Zero_DMA_Library
-    // exit status 1
-
     char letter             = name[ii];
-    const LetterInfo *pInfo = &c_info;
-    switch (letter) {
-    case 'a':   pInfo = &a_info;   break;
-    case 'b':   pInfo = &b_info;   break;
-    case 'c':   pInfo = &c_info;   break;
-    case 'd':   pInfo = &d_info;   break;
-    case 'e':   pInfo = &e_info;   break;
-    case 'f':   pInfo = &f_info;   break;
-    case 'g':   pInfo = &g_info;   break;
-    case 'h':   pInfo = &h_info;   break;
-    case 'n':   pInfo = &n_info;   break;
-    case '0':   pInfo = &w0_info;  break;
-    case '1':   pInfo = &w1_info; break;
-    case '2':   pInfo = &w2_info; break;
-    case '3':   pInfo = &w3_info; break;
-    case '4':   pInfo = &w4_info; break;
-    case '5':   pInfo = &w5_info; break;
-    case '6':   pInfo = &w6_info; break;
-    case '7':   pInfo = &w7_info;  break;
-    case '8':   pInfo = &w8_info;  break;
-    case '9':   pInfo = &w9_info;  break;
-    default:
-      Serial.print("Letter ");
-      Serial.print(letter);
-      Serial.println(" not found in wave table");
-      break;
-      return;
-    }
-#endif
-    int holdtime = 1E6 / pInfo->bitrate;
+    const LetterInfo *pInfo = getLetterMeta(letter);
+    int holdtime            = 1E6 / pInfo->bitrate;
+
     showWaveInfo(yRow5, pInfo->numSamples, pInfo->totalBytes, sizeof(pInfo->pTable), pInfo->bitrate);
     playAudioFloat(pInfo->pTable, pInfo->numSamples, holdtime);   // play entire sample
   }
@@ -418,6 +398,8 @@ void loop() {
   sayGrid("dn07");
   delay(AUDIO_CLIP_INTERVAL);
   sayGrid("dn08");
+  delay(AUDIO_CLIP_INTERVAL);   // insert pause between clips
+  sayGrid("abcdn01789");
   delay(AUDIO_CLIP_INTERVAL);   // insert pause between clips
 
   delay(AUDIO_CLIP_INTERVAL * 10);   // extra pause between loops
