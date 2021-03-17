@@ -1,9 +1,11 @@
+// Please format this file with clang before check-in to GitHub
 /*
   File: Flash_file_directory_list.ino
   
   Lists the contents of Feather M4's onboard 2MB Quad-SPI Flash chip
   This example ignores the MicroSD Card slot on the ILI9341 TFT Display
   and ONLY examines the file system on the 2MB Flash memory.
+  This is a rather simple program that only reports at root and first folder levels.
 
   Author:   Barry K7BWH, barry@k7bwh.com, Seattle, WA
 
@@ -17,38 +19,102 @@
 
 */
 
-#include "SPI.h"                 // Serial Peripheral Interface
-#include "Adafruit_ILI9341.h"    // TFT color display library
+#include <Adafruit_ILI9341.h>    // TFT color display library
 #include <SdFat.h>               // for FAT file systems on Flash and Micro SD cards
 #include <Adafruit_SPIFlash.h>   // for FAT file systems on SPI flash chips
 
+// ------- Identity for splash screen and console --------
+#define EXAMPLE_TITLE    "Flash File Directory List"
+#define EXAMPLE_VERSION  "v0.38"
+#define PROGRAM_LINE1    "Barry K7BWH"
+#define PROGRAM_LINE2    ""
+#define PROGRAM_COMPILED __DATE__ " " __TIME__
+
 // ---------- Hardware Wiring ----------
-// Same as Griduino
+// Same as Griduino platform
+
+// ---------- Touch Screen
+#define TFT_BL 4    // TFT backlight
+#define TFT_CS 5    // TFT chip select pin
+#define TFT_DC 12   // TFT display/command pin
+
+// create an instance of the TFT Display
+Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 
 // SD card share the hardware SPI interface with TFT display, and have
 // separate 'select' pins to identify the active device on the bus.
 const int chipSelectPin = 7;
 const int chipDetectPin = 8;
 
-// ------- Identity for console
-#define PROGRAM_TITLE   "Flash File Directory List"
-#define PROGRAM_VERSION "v0.2"
-#define PROGRAM_LINE1   "Barry K7BWH"
-#define PROGRAM_LINE2   ""
-
-// ------------ definitions
-const int howLongToWait = 8;   // max number of seconds at startup waiting for Serial port to console
+// ----- Griduino color scheme
+// RGB 565 color code: http://www.barth-dev.de/online/rgb565-color-picker/
+#define cBACKGROUND 0x00A            // 0,   0,  10 = darker than ILI9341_NAVY, but not black
+#define cTEXTCOLOR  ILI9341_CYAN     // 0, 255, 255
+#define cLABEL      ILI9341_GREEN    //
+#define cVALUE      ILI9341_YELLOW   // 255, 255, 0
+#define cWARN       0xF844           // brighter than ILI9341_RED but not pink
 
 // ------------ global scope
+const int howLongToWait = 8;                    // max number of seconds at startup waiting for Serial port to console
 Adafruit_FlashTransport_QSPI gFlashTransport;   // Quad-SPI 2MB memory chip
 Adafruit_SPIFlash gFlash(&gFlashTransport);     //
 FatFileSystem gFatfs;                           // file system object from SdFat
+
+// ========== splash screen ====================================
+const int xLabel    = 8;   // indent labels, slight margin on left edge of screen
+const int yRow1     = 8;   // title
+const int rowHeight = 12;
+int gCurrentY       = yRow1;
+
+void startSplashScreen() {
+  tft.setTextSize(1);
+
+  tft.setCursor(xLabel, gCurrentY);
+  tft.setTextColor(cTEXTCOLOR, cBACKGROUND);
+  tft.print(EXAMPLE_TITLE);
+  gCurrentY += rowHeight;
+
+  tft.setTextColor(cLABEL, cBACKGROUND);   // continued on same line
+  tft.println("   " PROGRAM_COMPILED);
+}
+
+// ========== screen helpers ===================================
+void clearScreen() {
+  tft.fillScreen(cBACKGROUND);
+}
+
+// ----- console+display output formatter
+void showFile(const char *indent, const int count, const char *filename, const int filesize, const char *comment) {
+  char msg[256];
+  snprintf(msg, sizeof(msg), "%s%d. %-14s  %d %s",
+           indent, count, filename, filesize, comment);
+  Serial.println(msg);
+
+  tft.setCursor(xLabel, gCurrentY);
+  tft.setTextColor(cVALUE, cBACKGROUND);
+  tft.print(msg);
+  gCurrentY += rowHeight;
+
+  delay(20);   // debug delay in case of runaway listing
+}
+void showErrorMessage(const char *error) {
+  Serial.println(error);
+
+  tft.setCursor(xLabel, gCurrentY);
+  tft.setTextColor(cWARN, cBACKGROUND);
+  tft.print(error);
+  gCurrentY += rowHeight;
+  if (strlen(error) > 51) {   // at font size 1, a row can hold 51 chars
+    // if a long line spilled onto next line, add vertical space
+    gCurrentY += rowHeight;
+  }
+}
 
 // ----- console Serial port helper
 void waitForSerial(int howLong) {
   // Adafruit Feather M4 Express takes awhile to restore its USB connx to the PC
   // and the operator takes awhile to restart the console (Tools > Serial Monitor)
-  // so give them a few seconds for all this to settle before sending messages to IDE
+  // so give them a few seconds for this to settle before sending messages to IDE
   unsigned long targetTime = millis() + howLong * 1000;
   while (millis() < targetTime) {
     if (Serial)
@@ -62,7 +128,7 @@ int openFlash() {
 
   // Initialize flash library and check its chip ID.
   if (!gFlash.begin()) {
-    Serial.println("Error, failed to initialize onboard memory.");
+    showErrorMessage("Error, failed to initialize onboard memory.");
     return 0;
   }
   Serial.print(". Flash chip JEDEC ID: 0x");
@@ -71,33 +137,22 @@ int openFlash() {
   // First call begin to mount the filesystem.  Check that it returns true
   // to make sure the filesystem was mounted.
   if (!gFatfs.begin(&gFlash)) {
-    Serial.println("Error, failed to mount filesystem!");
-    Serial.println("Was the flash chip formatted with the SdFat_format example?");
+    showErrorMessage("Error, failed to mount filesystem");
+    showErrorMessage("Was the flash chip formatted with the SdFat_format example?");
     return 0;
   }
   Serial.println(". Mounted SPI flash filesystem");
   return 1;
 }
-// ----- file helper
-//int getFileSize(File handle) {
-//  
-//}
-// ----- console output formatter
-void showFile(const char* indent, const int count, const char* filename, const int filesize, const char* comment) {
-  char msg[256];
-  snprintf(msg, sizeof(msg), "%s%d. %-14s  %d %s", 
-                         indent, count, filename, filesize, comment);
-  Serial.println(msg);
-  delay(20);  // debug, in vcsadre 
-}
+
 // ----- iterate files in a folder
-void listLevel2(const char* folder) {
+void listLevel2(const char *folder) {
   // Open a subdirectory to list all its children (files and folders)
   bool okay = true;   // assume success
   //Serial.print("   Listing children of "); Serial.println(folder);
   File mydir = gFatfs.open(folder);
   if (!mydir) {
-    Serial.println("   Error, failed to open subfolder");
+    showErrorMessage("Error, failed to open subfolder");
   }
   File kid2 = mydir.openNextFile();
   int count = 1;
@@ -128,21 +183,21 @@ void listLevel2(const char* folder) {
 // ----- iterate files at root level
 int listFiles() {
   // Open the root folder to list all the children (files and directories).
-  int rc = 1;   // assume success
+  int rc       = 1;   // assume success
   File testDir = gFatfs.open("/");
   if (!testDir) {
-    Serial.println("Error, failed to open root directory!");
+    showErrorMessage("Error, failed to open root directory");
     rc = 0;
-  } 
+  }
   if (!testDir.isDirectory()) {
-    Serial.println("Error, expected root to be a directory!");
+    showErrorMessage("Error, expected root to be a directory");
     rc = 0;
   } else {
 
     Serial.println("Listing files in the root directory:");
     File child = testDir.openNextFile();
     int count  = 1;
-    while (child && rc>0) {
+    while (child && rc > 0) {
       char filename[64];
       child.getName(filename, sizeof(filename));
 
@@ -179,13 +234,25 @@ int listFiles() {
 //=========== setup ============================================
 void setup() {
 
+  // ----- init TFT display
+  tft.begin();          // initialize TFT display
+  tft.setRotation(1);   // 1=landscape (default is 0=portrait)
+  clearScreen();        // note that "begin()" does not clear screen
+
+  // ----- init TFT backlight
+  pinMode(TFT_BL, OUTPUT);
+  analogWrite(TFT_BL, 255);   // start at full brightness
+
+  // ----- announce ourselves
+  startSplashScreen();
+
   // ----- init serial monitor
-  Serial.begin(115200);           // init for debuggging in the Arduino IDE
+  Serial.begin(115200);           // init for debugging in the Arduino IDE
   waitForSerial(howLongToWait);   // wait for developer to connect debugging console
 
   // now that Serial is ready and connected (or we gave up)...
-  Serial.println(PROGRAM_TITLE " " PROGRAM_VERSION);   // Report our program name to console
-  Serial.println("Compiled " __DATE__ " " __TIME__);   // Report our compiled date
+  Serial.println(EXAMPLE_TITLE " " EXAMPLE_VERSION);   // Report our program name to console
+  Serial.println("Compiled " PROGRAM_COMPILED);        // Report our compiled date
   Serial.println(__FILE__);                            // Report our source code file name
 
   // ----- look for memory card
@@ -211,11 +278,6 @@ void setup() {
 
   result = listFiles();   // debug - list all files recursively
 
-  // ----- init audio player
-  //if (AudioPlayer.begin(sampleRate, NUM_AUDIO_CHANNELS, YOUR_SD_CS) == -1) {
-  //  Serial.println("Error: unable to init audio player!");
-  //  while(true);
-  //}
   //Serial.println(" done.");
 
   //#define FILE1  "R2D2.wav"
@@ -228,34 +290,4 @@ void setup() {
 
 //=========== main work loop ===================================
 void loop() {
-  /*
-  if (Serial.available()) {
-    char c = Serial.read();
-
-    if ( c == 'q') {
-      AudioPlayer.play("LaserFire1.wav", 0);
-    }
-    else if ( c == 'w') {
-      AudioPlayer.play("LaserFire1.wav", 1);
-    } else if ( c == 'e') {
-      AudioPlayer.play("LaserFire2.wav", 2);
-    } else if ( c == 'r') {
-      AudioPlayer.play("LaserFire2.wav", 3);
-    } else if ( c == 't') {
-      AudioPlayer.play("R2D2.wav", 3);
-    } else if ( c == '1') {
-      AudioPlayer.stopChannel(0);
-      Serial.println("ch0 off!");
-    } else if ( c == '2') {
-      AudioPlayer.stopChannel(1);
-      Serial.println("ch1 off!");
-    } else if ( c == '3') {
-      AudioPlayer.stopChannel(2);
-      Serial.println("ch2 off!");
-    } else if ( c == '4') {
-      AudioPlayer.stopChannel(3);
-      Serial.println("ch3 off!");
-    }
-  }
-  */
 }
