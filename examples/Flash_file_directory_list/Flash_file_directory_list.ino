@@ -24,7 +24,7 @@
 #include <Adafruit_SPIFlash.h>   // for FAT file systems on SPI flash chips
 
 // ------- Identity for splash screen and console --------
-#define EXAMPLE_TITLE    "Flash File Directory List"
+#define EXAMPLE_TITLE    "Flash File Directory"
 #define EXAMPLE_VERSION  "v0.38"
 #define PROGRAM_LINE1    "Barry K7BWH"
 #define PROGRAM_LINE2    ""
@@ -72,10 +72,15 @@ void startSplashScreen() {
   tft.setCursor(xLabel, gCurrentY);
   tft.setTextColor(cTEXTCOLOR, cBACKGROUND);
   tft.print(EXAMPLE_TITLE);
-  gCurrentY += rowHeight;
 
   tft.setTextColor(cLABEL, cBACKGROUND);   // continued on same line
-  tft.println("   " PROGRAM_COMPILED);
+  tft.println("  Compiled " PROGRAM_COMPILED);
+  gCurrentY += rowHeight;
+
+  tft.setCursor(xLabel, gCurrentY);
+  tft.setTextColor(ILI9341_WHITE, cBACKGROUND);   // continued on same line
+  tft.println("Open serial console for complete file listing");
+  gCurrentY += rowHeight;
 }
 
 // ========== screen helpers ===================================
