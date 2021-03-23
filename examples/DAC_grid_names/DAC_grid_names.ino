@@ -9,12 +9,12 @@
 
   Purpose:  This sketch speaks grid names, e.g. "CN87" as "Charlie November Eight Seven"
             It plays Barry's recorded voice sampled at 16 khz.
-            Sample audio is stored in program memory.
+            Sample audio is stored in the 2MB Flash chip.
+            WAV files are stored in the chip by temporarily loading CircuitPy
+            and then drag'n drop files from within Windows, then loading our sketch again.
 
   Conclusion:
-            Audio quality is clear and sufficient volume.
-            Audacity is effective at creating sound files in a variety of usable formats.
-            Sketch is too big at 424KB - only able to fit 10 of 36 words into program memory.
+            .
 
   Preparing audio files:
             Prepare your WAV file to 16 kHz mono:
@@ -23,55 +23,22 @@
             3. Select "Project rate" of 16000 Hz
             4. Select a piece of audio, such as "Charlie"
             5. Menu bar Effect > Normalize > Remove DC offset, normalize peaks -1.0 dB
-            5. Menu bar > Sample Data Export
-               a. Limit output to first: 99999
-               b. Measurement scale: Linear
-               c. Export data to: e.g. C_BARRY_16.txt
-               d. Index: None   (or use "Sample Count" to see line numbers)
-               e. Include header: All
-               f. Channel layout: L-R on Same Line
-               g. Show messages: Yes
-            6. The output file contains floating point numbers in the range +1.000 to -1.000, like:
-            
-               C:\Users\barry\Documents\Arduino\Griduino\work_in_progress\Spoken Word Originals\Barry\C_BARRY_16.txt
-               Sample Rate: 16000 Hz. Sample values on linear scale. 1 channel (mono).
-               Length processed: 8336 samples, 0.52100 seconds.
-               Peak amplitude: 0.89049 (linear) -1.00746 dB.  Unweighted RMS: -14.10552 dB.
-               DC offset: -0.00002 linear, -94.45499 dB.
+            5. Menu bar > File > Export > Export selected audio
+               a. todo
+               b. Choose WAV, Unsigned int 16-bit
+               c. Filename = e.g. "h_bwh_16.wav"
+            6. The output file contains floating point numbers in the range -16535 to +16535, like:
 
-               -0.00218
-               -0.00451
-               -0.00135
-               0.00394
-               0.00490
-               0.00142
-               ...
-
-            7. Edit this into a C++ header file:
-               (Hint: change all "0." to ",0.")
-               (Hint: change all "-,0" to ",-0")
-            
-               // C:\Users\barry\Documents\Arduino\Griduino\work_in_progress\Spoken Word Originals\Barry\C_BARRY_16.txt
-               // Sample Rate: 16000 Hz. Sample values on linear scale. 1 channel (mono).
-               // Length processed: 8336 samples, 0.52100 seconds.
-               // Peak amplitude: 0.89049 (linear) -1.00746 dB.  Unweighted RMS: -14.10552 dB.
-               // DC offset: -0.00002 linear, -94.45499 dB.
-               const LetterInfo c_info = {
-                 'c',                   // key
-                 c_barry_16,            // ptr to array of float
-                 16000,                 // bitrate 
-                 sizeof(c_barry_16),    // number of bytes in this wave table
-                 sizeof(c_barry_16)/sizeof(c_barry_16[0])    // number of samples in this wave file
-               };
-               const float c_barry_16[] = {
-               -0.00218
-               -0.00451
-               -0.00135
-               0.00394
-               0.00490
-               0.00142
-               ...
-
+  Relevant background:
+            http://www.lightlink.com/tjweber/StripWav/WAVE.txt
+            http://www.lightlink.com/tjweber/StripWav/Canon.html
+            https://www.instructables.com/Playing-Wave-file-using-arduino/
+            https://www.arduino.cc/en/Tutorial/SimpleAudioPlayer
+            https://learn.adafruit.com/introducing-itsy-bitsy-m0/using-spi-flash
+            https://www.arduino.cc/en/reference/SD
+            https://www.arduino.cc/en/Reference/FileRead
+            https://forum.arduino.cc/index.php?topic=695228.0
+  
   Mono Audio: The DAC on the SAMD51 is a 12-bit output, from 0 - 3.3v.
             The largest 12-bit number is 4,096:
             * Writing 0 will set the DAC to minimum (0.0 v) output.
@@ -79,58 +46,11 @@
             This example program has no user inputs.
 */
 
-#include <Adafruit_ILI9341.h>   // TFT color display library
-#include <DS1804.h>             // DS1804 digital potentiometer library
-#include "elapsedMillis.h"      // short-interval timing functions
-
-struct LetterInfo {
-  // LetterInfo describes everything about a single sampled sound stored in memory
-  const char letter;      // key, e.g. 'c'
-  const float *pTable;    // ptr to array of float,               e.g. 'c_barry_16'
-  const int bitrate;      // bitrate,                             e.g. '16000'
-  const int totalBytes;   // number of bytes in this wave table,  e.g. 'sizeof(c_barry_16)'
-  const int numSamples;   // number of samples in this wave file, e.g. 'sizeof(c_barry_16)/sizeof(c_barry_16[0])'
-};
-#include "sound\a_barry_16.h"
-#include "sound\b_barry_16.h"
-#include "sound\c_barry_16.h"
-#include "sound\d_barry_16.h"
-#include "sound\n_barry_16.h"
-/* ---
-#include "sound\e_barry_16.h"
-#include "sound\f_barry_16.h"
-#include "sound\g_barry_16.h"
-#include "sound\h_barry_16.h"
-#include "sound\i_barry_16.h"
-#include "sound\j_barry_16.h"
-#include "sound\k_barry_16.h"
-#include "sound\l_barry_16.h"
-#include "sound\m_barry_16.h"
-#include "sound\o_barry_16.h"
-#include "sound\p_barry_16.h"
-#include "sound\q_barry_16.h"
-#include "sound\r_barry_16.h"
-#include "sound\s_barry_16.h"
-#include "sound\t_barry_16.h"
-#include "sound\u_barry_16.h"
-#include "sound\v_barry_16.h"
-#include "sound\w_barry_16.h"
-#include "sound\x_barry_16.h"
-#include "sound\y_barry_16.h"
-#include "sound\z_barry_16.h"
---- */
-#include "sound\0_barry_16.h"
-#include "sound\1_barry_16.h"
-/* ---
-#include "sound\2_barry_16.h"
-#include "sound\3_barry_16.h"
-#include "sound\4_barry_16.h"
-#include "sound\5_barry_16.h"
-#include "sound\6_barry_16.h"
---- */
-#include "sound\7_barry_16.h"
-#include "sound\8_barry_16.h"
-#include "sound\9_barry_16.h"
+#include <Adafruit_ILI9341.h>    // TFT color display library
+#include <SdFat.h>               // for FAT file systems on Flash and Micro SD cards
+#include <Adafruit_SPIFlash.h>   // for FAT file systems on SPI flash chips
+#include <DS1804.h>              // DS1804 digital potentiometer library
+#include "elapsedMillis.h"       // short-interval timing functions
 
 // ------- Identity for splash screen and console --------
 #define EXAMPLE_TITLE    "DAC Grid Names"
@@ -138,6 +58,17 @@ struct LetterInfo {
 #define PROGRAM_LINE1    "Barry K7BWH"
 #define PROGRAM_LINE2    "John KM7O"
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
+
+struct WaveInfo {
+  // this is what we want to know about a single "Microsoft WAV" 16-bit PCM sampled sound
+  char letter;             // key, e.g. 'c'
+  char filename[32];       // filename,                           e.g. "/male/c_bwh_16.wav"
+  int bitrate;             // bitrate,                            e.g. '16000'
+  int filesize;            // total number of bytes in this WAV file
+  int numBytesPerSample;   // number of bytes in each sample      e.g. '2' for 16-bit int
+  int numSamples;          // number of samples in this wave file
+  int holdtime;            // microseconds to hold each sample    e.g. 1e6/bitrate = 62 usec
+};
 
 // ---------- Hardware Wiring ----------
 // Same as Griduino platform
@@ -149,6 +80,12 @@ struct LetterInfo {
 
 // create an instance of the TFT Display
 Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
+
+// ---------- Flash chip
+// SD card share the hardware SPI interface with TFT display, and have
+// separate 'select' pins to identify the active device on the bus.
+const int chipSelectPin = 7;
+const int chipDetectPin = 8;
 
 // ------------ Audio output
 #define DAC_PIN     DAC0   // onboard DAC0 == pin A0
@@ -164,9 +101,6 @@ DS1804 volume = DS1804(PIN_VCS, PIN_VINC, PIN_VUD, DS1804_TEN);
 int gVolume   = 32;   // initial digital potentiometer wiper position, 0..99
                       // note that speaker distortion begins at wiper=40 when powered by USB
 
-// ----- Griduino color scheme
-// RGB 565 color code: http://www.barth-dev.de/online/rgb565-color-picker/
-
 // ------------ typedef's
 struct Point {
   int x, y;
@@ -174,15 +108,18 @@ struct Point {
 
 // ----- Griduino color scheme
 // RGB 565 color code: http://www.barth-dev.de/online/rgb565-color-picker/
-#define cBACKGROUND 0x00A   // 0,   0,  10 = darker than ILI9341_NAVY, but not black
-#define cSCALECOLOR 0xF844
-#define cTEXTCOLOR  ILI9341_CYAN   // 0, 255, 255
-#define cLABEL      ILI9341_GREEN
+#define cBACKGROUND 0x00A            // 0,   0,  10 = darker than ILI9341_NAVY, but not black
+#define cSCALECOLOR 0xF844           //
+#define cTEXTCOLOR  ILI9341_CYAN     // 0, 255, 255
+#define cLABEL      ILI9341_GREEN    //
 #define cVALUE      ILI9341_YELLOW   // 255, 255, 0
+#define cWARN       0xF844           // brighter than ILI9341_RED but not pink
 
 // ------------ global scope
-const int howLongToWait = 5;   // max number of seconds at startup waiting for Serial port to console
-int gLoopCount          = 1;
+const int howLongToWait = 8;                    // max number of seconds at startup waiting for Serial port to console
+Adafruit_FlashTransport_QSPI gFlashTransport;   // Quad-SPI 2MB memory chip
+Adafruit_SPIFlash gFlash(&gFlashTransport);     //
+FatFileSystem gFatfs;                           // file system object from SdFat
 
 // ========== splash screen ====================================
 const int xLabel = 8;            // indent labels, slight margin on left edge of screen
@@ -221,6 +158,30 @@ void waitForSerial(int howLong) {
   }
 }
 
+// ========== file system helpers ==============================
+#define MAXBUFFERSIZE 32000   // max = 32K @ 16 khz = max 2.0 seconds
+int openFlash() {
+  // returns 1=success, 0=failure
+
+  // Initialize flash library and check its chip ID.
+  if (!gFlash.begin()) {
+    showErrorMessage("Error, failed to initialize onboard memory.");
+    return 0;
+  }
+  Serial.print(". Flash chip JEDEC ID: 0x");
+  Serial.println(gFlash.getJEDECID(), HEX);
+
+  // First call begin to mount the filesystem.  Check that it returns true
+  // to make sure the filesystem was mounted.
+  if (!gFatfs.begin(&gFlash)) {
+    showErrorMessage("Error, failed to mount filesystem");
+    showErrorMessage("Was the flash chip formatted with the SdFat_format example?");
+    return 0;
+  }
+  Serial.println(". Mounted SPI flash filesystem");
+  return 1;
+}
+
 //=========== setup ============================================
 void setup() {
 
@@ -244,6 +205,21 @@ void setup() {
   Serial.println(EXAMPLE_TITLE " " EXAMPLE_VERSION);   // Report our program name to console
   Serial.println("Compiled " PROGRAM_COMPILED);        // Report our compiled date
   Serial.println(__FILE__);                            // Report our source code file name
+
+  // ----- look for memory card
+  Serial.print("Detecting Flash memory using pin ");
+  Serial.println(chipDetectPin);
+  pinMode(chipDetectPin, INPUT_PULLUP);               // use internal pullup resistor
+  bool isCardDetected = digitalRead(chipDetectPin);   // HIGH = no card; LOW = card detected
+  if (isCardDetected) {
+    Serial.println(". Success - found a memory chip");
+  } else {
+    Serial.println(". Failed - no memory chip found");
+  }
+
+  // ----- init FLASH memory chip on the Feather M4 board
+  Serial.println("Initializing interface to Flash memory...");
+  int result = openFlash();   // open file system
 
   // ----- init digital potentiometer
   volume.unlock();      // unlock digipot (in case someone else, like an example pgm, has locked it)
@@ -283,6 +259,18 @@ void playAudioFloat(const float *audio, unsigned int audiosize, int holdTime) {
   int midpoint = audioFloatToInt((audio[0] + audio[audiosize - 1]) / 2.0);
   analogWrite(DAC0, midpoint);
 }
+unsigned int scale16BitToDAC(int sample) {
+  // input:  (-32767 ... +32767)
+  // output: (0 ... 2^12)
+  return map(sample, -32767,+32767, 0,4096);
+}
+void playAudio16Bit(int audio[MAXBUFFERSIZE], int audiosize, int holdTime) {
+  for (int ii = 0; ii < audiosize; ii++) {
+    int value = scale16BitToDAC(audio[ii]);
+    analogWrite(DAC0, value);
+    delayMicroseconds(holdTime);   // hold the sample value for the sample time
+  }
+}
 //void playAudio8bit(const unsigned char* audio, int audiosize, int holdTime) {
 //  for (int ii=0; ii<audiosize; ii++) {
 //    int value = audio[ii] << 4;       // max sample is 2^8, max DAC output 2^12, so shift left by 4
@@ -290,6 +278,7 @@ void playAudioFloat(const float *audio, unsigned int audiosize, int holdTime) {
 //    delayMicroseconds(holdTime);     // hold the sample value for the sample time
 //  }
 //}
+// ===== screen helpers
 void showWiperPosition(int row, int wiper) {
   tft.setCursor(xLabel, row);
   tft.setTextColor(cTEXTCOLOR, cBACKGROUND);
@@ -316,15 +305,22 @@ void showMessage(int x, int y, const char *msg, int value) {
   tft.print(value);
   tft.print("   ");
 }
-void showWaveInfo(int row, int numItems, int numBytes, int bytesPerItem, int bitrate) {
+void showErrorMessage(const char *error) {
+  // error is so critical we have to stop
+  Serial.println(error);
 
-  float playbackTime = (1.0 / bitrate * numItems);
-  int x              = xLabel;
-  showMessage(x, row + 0, "Total entries ", numItems);
-  showMessage(x, row + 20, "Bytes / sample ", bytesPerItem);
-  showMessage(x, row + 40, "Total bytes ", numBytes);
-  showMessage(x, row + 60, "Bit rate ", bitrate);
+  tft.setCursor(xLabel, tft.height()/2);
+  tft.setTextColor(cWARN, cBACKGROUND);
+  tft.print(error);
+}
+void showWaveInfo(int row, WaveInfo meta) {
+  int x = xLabel;
+  showMessage(x, row + 0, "Total entries ", meta.numSamples);
+  showMessage(x, row + 20, "Bytes / sample ", meta.numBytesPerSample);
+  showMessage(x, row + 40, "Total bytes ", meta.filesize);
+  showMessage(x, row + 60, "Bit rate ", meta.bitrate);
 
+  float playbackTime = (1.0 / meta.bitrate * meta.numSamples);
   tft.setTextColor(cTEXTCOLOR, cBACKGROUND);
   tft.setCursor(xLabel, row + 80);
   tft.print("Playback time ");
@@ -332,35 +328,70 @@ void showWaveInfo(int row, int numItems, int numBytes, int bytesPerItem, int bit
   tft.print(playbackTime, 3);
   tft.print("  ");
 }
-const LetterInfo *pMeta[] = {
-    &a_info,
-    &b_info,
-    &c_info,
-    &d_info,
-    //&e_info,  &f_info,  &g_info,  &h_info,
+bool getWaveData(WaveInfo *pInfo, int pBuffer[MAXBUFFERSIZE], const char key) {
+  // input: a single character
+  // output: meta data filled in about the WAV file
+  //         buffer filled in with data
+  //         all files and file handles are closed
+  bool rc       = true;   // assume success
+  pInfo->letter = key;
+  snprintf(pInfo->filename, sizeof(pInfo->filename), "/male/%c_bwh_16.wav", key);   // todo: select voice
+  pInfo->bitrate           = 16000;   // todo: read bitrate from WAV file
+  pInfo->filesize          = 0;       // todo: read filesize from WAV file
+  pInfo->numBytesPerSample = 2;       // todo: read from WAV file
+  pInfo->numSamples        = 0;       // todo: read #samples from WAV file
 
-    &n_info,
+  // open wave file from 2MB flash memory
+  Serial.print("Opening file: ");
+  Serial.println(pInfo->filename);
 
-    &w0_info,
-    &w1_info,
-    /* &w2_info, &w3_info,
-  &w4_info, &w5_info, &w6_info, */
-    &w7_info,
-    &w8_info,
-    &w9_info,
-};
-const int numMeta = sizeof(pMeta) / sizeof(pMeta[0]);
-const LetterInfo *getLetterMeta(char letter) {
-  // returns pointer to information about the selected spoken letter
-  const LetterInfo *result = &a_info;
-  for (int ii = 0; ii < numMeta; ii++) {
-    const LetterInfo *pItem = pMeta[ii];
-    if (letter == pItem->letter) {
-      result = pItem;
-      break;
-    }
+  if (gFatfs.exists(pInfo->filename)) {
+    // success
+  } else {
+    Serial.println(". EXISTS error, file not found");
   }
-  return result;
+  
+  File myFile = gFatfs.open(pInfo->filename);
+  if (myFile) {
+    pInfo->filesize = myFile.size();
+    char header[44];
+    int bytesread   = myFile.read(header, sizeof(header));
+    if (bytesread == sizeof(header)) {
+      //   Offset  Length   Contents
+      //    0       4 bytes  'RIFF'
+      //    4       4 bytes  <file length - 8>
+      //    8       4 bytes  'WAVE'
+      //    12      4 bytes  'fmt '
+      //    16      4 bytes  0x00000010     // Length of the fmt data (16 bytes)
+      //    20      2 bytes  0x0001         // Format tag: 1 = PCM
+      //    22      2 bytes  <channels>     // Channels: 1 = mono, 2 = stereo
+      //    24      4 bytes  <sample rate>  // Samples per second: e.g., 44100
+      //    28      4 bytes  <bytes/second> // sample rate * block align
+      //    32      2 bytes  <block align>  // channels * bits/sample / 8
+      //    34      2 bytes  <bits/sample>  // 8 or 16
+      //    36      4 bytes  'data'
+      //    40      4 bytes  <length of the data block>
+      //    44        bytes  <sample data>
+      if (header[0]=='R' && header[1]=='I' && header[2]=='F' && header[3]=='F') {
+        // ----- all good so far!
+        Serial.println(". Successfully read WAV file header");
+        //  data is successfully written to caller's buffer
+        //  todo: parse the data (if you want to support mono/stereo, other formats, other PCM, other bit rates)
+        // -----
+      } else {
+        Serial.println(". DATA error, file does not begin with 'RIFF'");
+        rc = false;
+      }
+    } else {
+      Serial.println(". READ error, did not read any bytes from file");
+      rc = false;
+    }
+  } else {
+    Serial.println(". OPEN error opening file");
+    rc = false;
+  }
+  myFile.close();
+  return rc;
 }
 
 // ------ here's the meat of this potato -------
@@ -369,17 +400,20 @@ void sayGrid(const char *name) {
   Serial.println(name);
   for (int ii = 0; ii < strlen(name); ii++) {
 
-    char letter             = name[ii];
-    const LetterInfo *pInfo = getLetterMeta(letter);
-    int holdtime            = 1E6 / pInfo->bitrate;
+    char letter = name[ii];
+    WaveInfo waveMeta;
+    int waveData[MAXBUFFERSIZE];
 
-    showWaveInfo(yRow5, pInfo->numSamples, pInfo->totalBytes, sizeof(pInfo->pTable), pInfo->bitrate);
-    playAudioFloat(pInfo->pTable, pInfo->numSamples, holdtime);   // play entire sample
+    if (getWaveData(&waveMeta, waveData, letter)) {
+      showWaveInfo(yRow5, waveMeta);
+      playAudio16Bit(waveData, waveMeta.numSamples, waveMeta.holdtime);
+    }
   }
 }
 
 //=========== main work loop ===================================
 const int AUDIO_CLIP_INTERVAL = 150;   // msec between complete spoken grid squares
+int gLoopCount                = 1;
 
 void loop() {
 
