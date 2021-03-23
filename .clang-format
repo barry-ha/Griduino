@@ -15,7 +15,8 @@ AlignConsecutiveAssignments: true
 AlignConsecutiveDeclarations: false
 AlignConsecutiveMacros: true
 
-# We prefer listing system libraries first, then user includes, and sorting by clang does the opposite
+# Turn off "sort includes" because we prefer listing system libraries first, 
+# then user includes, and clang's default sorting would do the opposite
 SortIncludes: false
 
 SpacesBeforeTrailingComments: 3
