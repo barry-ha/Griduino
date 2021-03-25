@@ -197,32 +197,7 @@ It's a good idea to test the Feather once again with the Blinky program.
 
 If the Feather's LED doesn't blink as expected, don't panic; sometimes the computer acquires the Feather M4 as an external drive identified as CIRCUIT.PY or FEATHERBOOT. Check the computer's list of drives to see if that's the case. Unplug and reconnect the Feather several times until it blinks its light.
 
-<h3>Step 10: U5 Ultimate GPS</h3>
-
-The "Ultimate GPS" package shipped from Adafruit comes with a header strip and a battery holder.
-
-* Count the pins on the supplied header strip. The GPS requires a 9-pin header and sometimes Adafruit may ship an 8-pin header. If needed, add an extra pin from some extra strip, such as the one leftover from the Feather.
-* Do not solder a battery holder onto the back of the GPS. It won't hurt anything to have this holder, but it will go unused. Its slot will be unreachable after all the parts are installed. Instead, our Griduino board is designed with a separate coin battery holder, BT1, to replace the one on the Ultimate GPS board.
-
-Insert a 9-pin header pin strip onto the Griduino PCB. Break off two single pins from a leftover strip and insert them into the other two corners. Do not solder them yet. Also shown below are the two battery holders and which one goes on the board in the next step.
-
-![](img/gps-pins-img7089.jpg)
-
-Lower the GPS onto the pins and solder the top pins. The two single pins in the corners only provide physical support and have no other functional purpose.
-
-Tape the GPS assembly in place, if needed. Turn the board over and solder one pin. Check the GPS assembly is still tight to the board. If not, reheat the pin while pushing it down. Solder the remaining pins.
-
-![](img/gps-soldered-img7092.jpg)
-
-<h3>Step 11: BT1 Battery Holder</h3>
-
-Solder the battery holder onto the PCB. This is a surface-mount device; note that it has a small plastic detent to precisely align it in place. You might still need a small clamp or clothespin (remember those?) or tape to temporarily hold it in place while soldering. 
-
-![](img/battery-holder-img7096.jpg)
-
-**Do not** insert a battery yet. Put the battery aside until the end to avoid any chance of shorts during construction. In fact, the battery is optional. Its only purpose is to maintain the RTC (real time clock) while Griduino is turned off, thereby reducing the wait-time for GPS synch.
-
-<h3>Step 12: Barometric Pressure Sensor</h3>
+<h3>Step 10: Barometric Pressure Sensor</h3>
 
 The barometric sensor comes with a matching 8-pin header strip. Insert this header strip into the main board, long pins first and short pins extending upward. (Okay, it doesn't really matter but we think this looks better.)
 
@@ -239,6 +214,31 @@ If needed, clamp or tape the pressure sensor in place, and turn over the assembl
 Check the assembly is still tight to the board. If not, reheat the pin while pushing the assembly tight to the board. Solder the remaining bottom pins, and solder any remaining top pins.
 
 ![](img/pressure-img7100.jpg)
+
+<h3>Step 11: BT1 Battery Holder</h3>
+
+Solder the battery holder onto the PCB. This is a surface-mount device; note that it has a small plastic detent to precisely align it in place. You might still need a small clamp or clothespin (remember those?) or tape to temporarily hold it in place while soldering. 
+
+![](img/battery-holder-img7096.jpg)
+
+**Do not** insert a battery yet. Put the battery aside until the end to avoid any chance of shorts during construction. In fact, the battery is optional. Its only purpose is to maintain the RTC (real time clock) while Griduino is turned off, thereby reducing the wait-time for GPS synch.
+
+<h3>Step 12: U5 Ultimate GPS</h3>
+
+The "Ultimate GPS" package shipped from Adafruit comes with a header strip and a battery holder.
+
+* Count the pins on the supplied header strip. The GPS requires a 9-pin header and sometimes Adafruit may ship an 8-pin header. If needed, add an extra pin from some extra strip, such as the one leftover from the Feather.
+* Do not solder a battery holder onto the back of the GPS. It won't hurt anything to have this holder, but it will go unused. Its slot will be unreachable after all the parts are installed. Instead, our Griduino board is designed with a separate coin battery holder, BT1, to replace the one on the Ultimate GPS board.
+
+Insert a 9-pin header pin strip onto the Griduino PCB. Break off two single pins from a leftover strip and insert them into the other two corners. Do not solder them yet. Also shown below are the two battery holders and which one goes on the board in the next step.
+
+![](img/gps-pins-img7089.jpg)
+
+Lower the GPS onto the pins and solder the top pins. The two single pins in the corners only provide physical support and have no other functional purpose.
+
+Tape the GPS assembly in place, if needed. Turn the board over and solder one pin. Check the GPS assembly is still tight to the board. If not, reheat the pin while pushing it down. Solder the remaining pins.
+
+![](img/gps-soldered-img7092.jpg)
 
 <h3>Step 13: U7 Display ILI9341</h3>
 
