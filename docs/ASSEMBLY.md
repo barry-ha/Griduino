@@ -262,8 +262,8 @@ These steps will solder the fragile pins onto the PCB, and the sturdier sockets 
 Assemble the display parts on the main board, which will hold everything in correct alignment before soldering:
 
 1. Start with main Griduino PCB
-1. Insert one 20-pin header on the PCB to the right of the Feather, long pins facing up.
-1. Insert two 2-pin headers on the PCB along the left edge, one at each end of the row of 20 holes, long pins facing up. These will physically support the display.<br/>![](img/display-img7860.jpg) 
+1. Insert one 20-pin header on the PCB to the right of the Feather, **long pins facing up**.
+1. Insert two 2-pin headers on the PCB along the left edge, one at each end of the row of 20 holes, **long pins facing up**. These will physically support the display.<br/>![](img/display-img7860.jpg) 
 1. Insert one 20-pin socket on the display, matching the 20-pin header.
 1. Insert two 2-pin sockets on the display, matching the 2-pin headers on the PCB.
 1. Lower the display board onto the pins, spanning all the parts underneath.
@@ -277,9 +277,9 @@ From the top, solder all pins on the display board.
 
 Turn it over, holding the assembly together, and rest the display on a soft surface. Solder all socket pins on the bottom of the main board.
 
-Hey, want to check your work? At this point of assembly, you can plug in USB power: The Blinky program will flash the red LED and the backlight will turn on. You can even load the Griduino program and it will basically work fine except it lacks all other connectors.
+Hey, want to check your work? At this point of assembly, you can plug in USB power: The Blinky program will flash the red LED and the backlight will turn on. You can even load the Griduino program and it will basically work fine except it lacks its connectors to the world.
 
-Turn it right side up and gently unplug the display from the sockets for safekeeping while working on other parts. Later, when everything else is completed, the display will be inserted again.
+Turn the assembly right side up and gently unplug the display from the sockets for safekeeping while working on other parts. Later, when everything else is completed, the display will be inserted again.
 
 <h3>Step 14: Connectors</h3>
 
