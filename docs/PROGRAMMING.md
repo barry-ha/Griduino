@@ -94,8 +94,8 @@ In this step, we will install support files needed by Arduino IDE to talk to the
 In the Arduino IDE menu bar, go to **Tools > Board > Boards Manager**. It will display a long list of hardware. Install the latest version of:
 <ul>
 <li>Arduino AVR Boards, Built-In by Arduino: v1.8.3</li>
-<li>Arduino SAMD Boards (32-bits ARM Cortex-M0+): v1.8.8</li>
-<li>Adafruit SAMD Boards: v1.6.3</li>
+<li>Arduino SAMD Boards (32-bits ARM Cortex-M0+): v1.8.11</li>
+<li>Adafruit SAMD Boards: v1.6.6</li>
 </ul>
 
 1. **Select Board**<br/>
@@ -116,10 +116,10 @@ In the Arduino IDE menu bar, go to **Tools > Manage Libraries**. Install the lat
    - SD v1.2.4
    - TFT v1.0.6
    - Adafruit BMP3XX Library v2.0.2
-   - Adafruit GFX Library v1.10.6
+   - Adafruit GFX Library v1.10.7
    - Adafruit GPS Library v1.5.4
    - Adafruit ILI9341 v1.5.6
-   - Adafruit ImageReader Library v2.5.3
+   - Adafruit ImageReader Library v2.6.1
    - Adafruit NeoPixel v1.7.0
    - Adafruit SPIFlash v3.3.6
    - Adafruit TouchScreen v1.1.1
@@ -127,9 +127,10 @@ In the Arduino IDE menu bar, go to **Tools > Manage Libraries**. Install the lat
    - SdFat – Adafruit Fork by Bill Greiman v1.2.3 <br>*Note:* Use v1, as we have not tested v2<br> *Note:* do not install SdFat because it has incompatible SdFat.h file
    - Time by Michael Margolis v1.6.0 <br>*Note:* searching the library manager for the word "time" lists just about every library. Searching for the word "timekeeping" will show the correct library.
 
-The volume control component is outside of Arduino's Library Manager, so follow this link to GitHub and install the latest version:
+These components are outside of Arduino's Library Manager, so follow these links to GitHub and install the latest version:
 
-   - https://github.com/tom-dudman/DS1804 - library for DS1804 Digital Potentiometer
+   - https://github.com/tom-dudman/DS1804 - library to control DS1804 Digital Potentiometer
+   - https://github.com/barry-ha/Audio_QSPI - library to play WAV files from Quad-SPI memory chip
 
 
 <h2>5. Disclaimer</h2>
