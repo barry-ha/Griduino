@@ -24,9 +24,9 @@
 #include <Arduino.h>
 #include "constants.h"            // Griduino constants and colors
 #include "save_restore.h"         // class definition
-#include "SPI.h"                  // Serial Peripheral Interface
+#include <SPI.h>                  // Serial Peripheral Interface
 #include <SdFat.h>                // SDRAM File Allocation Table filesystem
-#include <Adafruit_SPIFlash.h>
+#include <Adafruit_SPIFlash.h>    // for FAT filesystems on SPI flash chips.
 
 // ------------ forward references in this same .cpp file
 int openFlash();
