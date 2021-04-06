@@ -24,8 +24,8 @@
 #include <Adafruit_SPIFlash.h>   // for FAT file systems on SPI flash chips
 
 // ------- Identity for splash screen and console --------
-#define EXAMPLE_TITLE    "Flash File Directory"
-#define EXAMPLE_VERSION  "v0.38"
+#define EXAMPLE_TITLE    "Flash File Directory List"
+#define EXAMPLE_VERSION  "v0.39"
 #define PROGRAM_LINE1    "Barry K7BWH"
 #define PROGRAM_LINE2    ""
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
@@ -52,6 +52,7 @@ const int chipDetectPin = 8;
 #define cTEXTCOLOR  ILI9341_CYAN     // 0, 255, 255
 #define cLABEL      ILI9341_GREEN    //
 #define cVALUE      ILI9341_YELLOW   // 255, 255, 0
+#define cHIGHLIGHT  ILI9341_WHITE    //
 #define cWARN       0xF844           // brighter than ILI9341_RED but not pink
 
 // ------------ global scope
@@ -72,14 +73,16 @@ void startSplashScreen() {
   tft.setCursor(xLabel, gCurrentY);
   tft.setTextColor(cTEXTCOLOR, cBACKGROUND);
   tft.print(EXAMPLE_TITLE);
-
-  tft.setTextColor(cLABEL, cBACKGROUND);   // continued on same line
-  tft.println("  Compiled " PROGRAM_COMPILED);
   gCurrentY += rowHeight;
 
   tft.setCursor(xLabel, gCurrentY);
-  tft.setTextColor(ILI9341_WHITE, cBACKGROUND);   // continued on same line
-  tft.println("Open serial console for complete file listing");
+  tft.setTextColor(cLABEL, cBACKGROUND);
+  tft.println("Compiled " PROGRAM_COMPILED);
+  gCurrentY += rowHeight;
+
+  tft.setCursor(xLabel, gCurrentY);
+  tft.setTextColor(cLABEL, cBACKGROUND);   // continued on same line
+  tft.println("Open serial console for listing");
   gCurrentY += rowHeight;
 }
 
@@ -89,18 +92,27 @@ void clearScreen() {
 }
 
 // ----- console+display output formatter
-void showFile(const char *indent, const int count, const char *filename, const int filesize, const char *comment) {
+void showFile(const char *indent, const int count, const char *filename, const int filesize) {
   char msg[256];
-  snprintf(msg, sizeof(msg), "%s%d. %-14s  %d %s",
-           indent, count, filename, filesize, comment);
+  snprintf(msg, sizeof(msg), "%s%d. %-14s  %d",
+           indent, count, filename, filesize);
   Serial.println(msg);
 
   tft.setCursor(xLabel, gCurrentY);
   tft.setTextColor(cVALUE, cBACKGROUND);
   tft.print(msg);
   gCurrentY += rowHeight;
+}
+void showDirectory(const char *indent, const int count, const char *dirname) {
+  char msg[256];
+  snprintf(msg, sizeof(msg), "%s%d. %-14s  (dir)",
+           indent, count, dirname);
+  Serial.println(msg);
 
-  delay(20);   // debug delay in case of runaway listing
+  tft.setCursor(xLabel, gCurrentY);
+  tft.setTextColor(cHIGHLIGHT, cBACKGROUND);
+  tft.print(msg);
+  gCurrentY += rowHeight;
 }
 void showErrorMessage(const char *error) {
   Serial.println(error);
@@ -154,7 +166,7 @@ int openFlash() {
 void listLevel2(const char *folder) {
   // Open a subdirectory to list all its children (files and folders)
   bool okay = true;   // assume success
-  //Serial.print("   Listing children of "); Serial.println(folder);
+  Serial.println(folder);
   File mydir = gFatfs.open(folder);
   if (!mydir) {
     showErrorMessage("Error, failed to open subfolder");
@@ -170,18 +182,19 @@ void listLevel2(const char *folder) {
     } else {
       // Print the file name and mention if it's a directory.
       if (kid2.isDirectory()) {
-        showFile("   ", count, filename, -1, "(directory)");
+        showDirectory("   ", count, filename);
       } else {
         int filesize = kid2.size();
-        showFile("   ", count, filename, filesize, "");
+        showFile("   ", count, filename, filesize);
       }
 
       // increment loop counters
       kid2 = mydir.openNextFile();
-      if (++count > 64) {
+      if (++count > 128) {
         Serial.println("And many more, but I'm stopping here.");
         okay = false;
       }
+      delay(20);   // delay in case of runaway listing to quiet things down slightly
     }
   }
 }
@@ -199,9 +212,10 @@ int listFiles() {
     rc = 0;
   } else {
 
+    int count = 1;
     Serial.println("Listing files in the root directory:");
+
     File child = testDir.openNextFile();
-    int count  = 1;
     while (child && rc > 0) {
       char filename[64];
       child.getName(filename, sizeof(filename));
@@ -213,10 +227,10 @@ int listFiles() {
 
         // Print the file name and mention if it's a directory.
         if (child.isDirectory()) {
-          showFile("", count, filename, 0, "(directory)");
+          showDirectory("", count, filename);
         } else {
           int filesize = child.size();
-          showFile("", count, filename, filesize, "");
+          showFile("", count, filename, filesize);
         }
 
         // If it was a directory, list its children
@@ -241,7 +255,7 @@ void setup() {
 
   // ----- init TFT display
   tft.begin();          // initialize TFT display
-  tft.setRotation(1);   // 1=landscape (default is 0=portrait)
+  tft.setRotation(0);   // 1=landscape (default is 0=portrait)
   clearScreen();        // note that "begin()" does not clear screen
 
   // ----- init TFT backlight
@@ -272,24 +286,10 @@ void setup() {
     Serial.println(". Failed - no memory chip found");
   }
 
-  // ----- init SD-card on the TFT board
-  //Serial.println("Initializing Micro-SD interface...");
-  // TODO
-
-  // ----- init FLASH memory chip on the Feather M4 board
+  // ----- Do The Thing
   Serial.println("Initializing Flash memory interface...");
-
   int result = openFlash();   // open file system
-
-  result = listFiles();   // debug - list all files recursively
-
-  //Serial.println(" done.");
-
-  //#define FILE1  "R2D2.wav"
-  //AudioPlayer.play(FILE1, 0);
-
-  //Serial.println("Playing file " FILE1 " ...");
-
+  result     = listFiles();   // list all files in the file system
   Serial.println("All done.");
 }
 
