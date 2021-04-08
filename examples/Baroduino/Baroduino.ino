@@ -747,7 +747,7 @@ void saveConfigUnits() {
 
 // ----- console Serial port helper
 void waitForSerial(int howLong) {
-  // Adafruit Feather M4 Express takes awhile to restore its USB connx to the PC
+  // Adafruit Feather M4 Express takes awhile to restore its USB connection to the PC
   // and the operator takes awhile to restart the console (Tools > Serial Monitor)
   // so give them a few seconds for this to settle before sending messages to IDE
   unsigned long targetTime = millis() + howLong*1000;
@@ -793,7 +793,7 @@ void setup() {
   startSplashScreen();
 
   // ----- init serial monitor
-  Serial.begin(115200);               // init for debuggging in the Arduino IDE
+  Serial.begin(115200);               // init for debugging in the Arduino IDE
   waitForSerial(howLongToWait);       // wait for developer to connect debugging console
 
   // now that Serial is ready and connected (or we gave up)...
