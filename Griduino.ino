@@ -1,5 +1,5 @@
 /*
-  Griduino -- Grid Square Navigator with GPS
+  Griduino -- Grid Square Tracker with GPS
 
   Version history: 
             https://github.com/barry-ha/Griduino/blob/master/downloads/CHANGELOG.md
@@ -32,7 +32,7 @@
          https://github.com/PaulStoffregen/Time
 
   Real Time Clock:
-         The real time clock in the Adafruit Ultimate GPS is not directly readable or 
+         The real time clock in the Adafruit Ultimate GPS is not directly readable nor 
          accessible from the Arduino. It's definitely not writeable. It's only internal to the GPS. 
          Once the battery is installed, and the GPS gets its first data reception from satellites 
          it will set the internal RTC. Then as long as the battery is installed, you can read the 
@@ -89,25 +89,26 @@
 #include "cfg_settings2.h"            // config GPS
 #include "cfg_settings3.h"            // config miles/km
 #include "cfg_settings4.h"            // config 4/6 digit crossing
-#include "cfg_settings5.h"            // config screen rotation 
+#include "cfg_settings5.h"            // config audio Morse/speech
+#include "cfg_settings6.h"            // config screen rotation 
 
 // ---------- Hardware Wiring ----------
 /*                                Arduino       Adafruit
   ___Label__Description______________Mega_______Feather M4__________Resource____
 TFT Power:
    GND  - Ground                  - ground      - J2 Pin 13
-   VIN  - VCC                     - 5v          - Pin 10 J5 Vusb
+   VIN  - VCC                     - 5v          - J5 Pin 10 Vusb
 TFT SPI: 
-   SCK  - SPI Serial Clock        - Digital 52  - SCK (J2 Pin 6)  - uses hardw SPI
-   MISO - SPI Master In Slave Out - Digital 50  - MI  (J2 Pin 4)  - uses hardw SPI
-   MOSI - SPI Master Out Slave In - Digital 51  - MO  (J2 Pin 5)  - uses hardw SPI
+   SCK  - SPI Serial Clock        - Digital 52  - SCK (J2 Pin 6)  - uses hardware SPI
+   MISO - SPI Master In Slave Out - Digital 50  - MI  (J2 Pin 4)  - uses hardware SPI
+   MOSI - SPI Master Out Slave In - Digital 51  - MO  (J2 Pin 5)  - uses hardware SPI
    CS   - SPI Chip Select         - Digital 10  - D5  (Pin 3 J5)
    D/C  - SPI Data/Command        - Digital  9  - D12 (Pin 8 J5)
 TFT MicroSD:
    CD   - SD Card Detection       - Digital  8  - D10 (Pin 6 J5)
    CCS  - SD Card Chip Select     - Digital  7  - D11 (Pin 7 J5)
 TFT Backlight:
-   BL   - Backlight               - Digital 12  - D4  (J2 Pin 1)  - uses hardw PWM
+   BL   - Backlight               - Digital 12  - D4  (J2 Pin 1)  - uses hardware PWM
 TFT Resistive touch:
    X+   - Touch Horizontal axis   - Digital  4  - A3  (Pin 4 J5)
    X-   - Touch Horizontal        - Analog  A3  - A4  (J2 Pin 8)  - uses analog A/D
@@ -199,7 +200,7 @@ TouchScreen ts = TouchScreen(PIN_XP, PIN_YP, PIN_XM, PIN_YM, XP_XM_OHMS);
 
 // ---------- Feather's onboard lights
 #define RED_LED 13                    // diagnostics RED LED
-//efine PIN_LED 13                    // already defined in Feather's board variant.h
+//define PIN_LED 13                    // already defined in Feather's board variant.h
 
 // ---------- GPS ----------
 /* "Ultimate GPS" pin wiring is connected to a dedicated hardware serial port
@@ -239,6 +240,11 @@ DACMorseSender dacMorse(DAC_PIN, gFrequency, gWordsPerMinute);
 //#include "morse.h"                  // Morse Code Library for Arduino with Non-Blocking Sending
 //                                    // https://github.com/markfickett/arduinomorse
 
+// ----------- Speech PCM Audio Playback
+#include <Audio_QSPI.h>               // Audio playback library for Arduino
+                                      // https://github.com/barry-ha/Audio_QSPI
+AudioQSPI dacSpeech;
+
 // 2. Helper Functions
 // ============== touchscreen helpers ==========================
 
@@ -272,7 +278,7 @@ bool newScreenTap(Point* pPoint) {
       Serial.print(","); Serial.print(pPoint->y); Serial.println(")");
     }
   }
-  //delay(10);   // no delay: code above completely handles debouncing without blocking the loop
+  //delay(10);   // no delay: code above completely handles debounce without blocking the loop
   return result;
 }
 
@@ -457,7 +463,7 @@ void floatToCharArray(char* result, int maxlen, double fValue, int decimalPlaces
 
 // ----- console Serial port helper
 void waitForSerial(int howLong) {
-  // Adafruit Feather M4 Express takes awhile to restore its USB connx to the PC
+  // Adafruit Feather M4 Express takes awhile to restore its USB connection to the PC
   // and the operator takes awhile to restart the console (Tools > Serial Monitor)
   // so give them a few seconds for this to settle before sending messages to IDE
   unsigned long targetTime = millis() + howLong*1000;
@@ -614,7 +620,8 @@ enum {
   SETTING2_VIEW,                      // gps/simulator 
   SETTING3_VIEW,                      // english/metric
   SETTING4_VIEW,                      // announce grid crossing 4/6 digit boundaries 
-  SETTING5_VIEW,                      // screen rotation
+  SETTING5_VIEW,                      // audio output Morse/speech
+  SETTING6_VIEW,                      // screen rotation
   SPLASH_VIEW,
   STATUS_VIEW,
   TIME_VIEW,
@@ -636,6 +643,7 @@ ViewSettings2 settings2View(&tft, SETTING2_VIEW);
 ViewSettings3 settings3View(&tft, SETTING3_VIEW);
 ViewSettings4 settings4View(&tft, SETTING4_VIEW);
 ViewSettings5 settings5View(&tft, SETTING5_VIEW);
+ViewSettings6 settings6View(&tft, SETTING6_VIEW);
 ViewSplash    splashView(&tft, SPLASH_VIEW);
 ViewStatus    statusView(&tft, STATUS_VIEW);
 ViewTime      timeView(&tft, TIME_VIEW);
@@ -652,6 +660,7 @@ void selectNewView(int cmd) {
         &settings3View,    // [SETTING3_VIEW]
         &settings4View,    // [SETTING4_VIEW]
         &settings5View,    // [SETTING5_VIEW]
+        &settings6View,    // [SETTING6_VIEW]
         &splashView,       // [SPLASH_VIEW]
         &statusView,       // [STATUS_VIEW]
         &timeView,         // [TIME_VIEW]
@@ -681,7 +690,8 @@ void selectNewView(int cmd) {
       case SETTING2_VIEW: nextView = SETTING3_VIEW; break;
       case SETTING3_VIEW: nextView = SETTING4_VIEW; break;
       case SETTING4_VIEW: nextView = SETTING5_VIEW; break;
-      case SETTING5_VIEW: nextView = VOLUME_VIEW; break;
+      case SETTING5_VIEW: nextView = SETTING6_VIEW; break;
+      case SETTING6_VIEW: nextView = VOLUME_VIEW; break;
       // none of above: we must be showing some normal user view, so go to the first settings view
       default:           nextView = VOLUME_VIEW; break;
     }
@@ -724,29 +734,52 @@ void sendMorseLostSignal() {
   dacMorse.sendBlocking();            // TODO - use non-blocking
 }
 
-void sendMorseGrid4(String gridName) {
-  // announce new grid by Morse code
-  String grid4 = gridName.substring(0, 4);
-  grid4.toLowerCase();
+void announceGrid(const String gridName, int length) {
+  // todo: change "String" class parameter into "char*" type
+  char grid[7];
+  strncpy(grid, gridName.c_str(), sizeof(grid));
+  grid[length] = 0;   // null-terminate string to requested 4- or 6-character length
+  Serial.print("Announcing grid: "); Serial.println(grid);
 
-  dacMorse.setMessage( grid4 );
-  dacMorse.sendBlocking();
+  switch (settings5View.selectedAudio) {
+    case ViewSettings5::MORSE: 
+      sendMorseGrid6( grid );
+      break;
+    case ViewSettings5::SPEECH:
+      for (int ii=0; ii<strlen(grid); ii++) {
 
-  //spkrMorse.setMessage( grid4 );
-  //spkrMorse.startSending();   // would prefer non-blocking but some bug causes random dashes to be too long
-  //spkrMorse.sendBlocking();
+        char myfile[32];
+        char letter = tolower( grid[ii] );
+        snprintf(myfile, sizeof(myfile), "/audio/%c.wav", letter);
+
+        dacSpeech.play( myfile );
+      }
+      break;
+    case ViewSettings5::NO_AUDIO:
+      // do nothing
+      break;
+    default:
+      // should not happen
+      Serial.print("Internal error: unsupported audio in line "); Serial.println(__LINE__);
+      break;
+  }
 }
 
-void sendMorseGrid6(String gridName) {
+void sendMorseGrid4(const String gridName) {
   // announce new grid by Morse code
-  gridName.toLowerCase();
+  String grid4 = gridName.substring(0, 4);
+  sendMorseGrid6( grid4 );
+}
 
-  dacMorse.setMessage( gridName );
+void sendMorseGrid6(const String gridName) {
+  // announce new grid by Morse code
+  String grid = gridName;
+  grid.toLowerCase();
+
+  dacMorse.setMessage( grid );
   dacMorse.sendBlocking();
-
-  //spkrMorse.setMessage( gridName );
+  //spkrMorse.setMessage( grid );
   //spkrMorse.startSending();   // would prefer non-blocking but some bug causes random dashes to be too long
-  //spkrMorse.sendBlocking();
 }
 
 void showActivityBar(int row, uint16_t foreground, uint16_t background) {
@@ -761,6 +794,32 @@ void showActivityBar(int row, uint16_t foreground, uint16_t background) {
     rmvDotX = (rmvDotX + 1) % gScreenWidth;   // advance
     tft.drawPixel(addDotX, row, foreground);  // write new
     tft.drawPixel(rmvDotX, row, background);  // erase old
+  }
+}
+
+void sayGrid(const char *name) {
+  Serial.print("Say ");
+  Serial.println(name);
+
+  for (int ii = 0; ii < strlen(name); ii++) {
+
+    // example: choose the filename to play
+    char myfile[32];
+    char letter = name[ii];
+    snprintf(myfile, sizeof(myfile), "/audio/%c.wav", letter);
+
+    // example: read WAV attributes and display it on screen while playing it
+    WaveInfo info;
+    dacSpeech.getInfo(&info, myfile);
+    //showWaveInfo(info);             // debug
+
+    // example: play audio through DAC
+    bool rc = dacSpeech.play(myfile);
+    if (!rc) {
+      Serial.print("sayGrid(");
+      Serial.print(letter);
+      Serial.println(") failed");
+    }
   }
 }
 
@@ -787,7 +846,7 @@ void setup() {
   ts.pressureThreshhold = 200;
 
   // ----- init serial monitor
-  Serial.begin(115200);               // init for debuggging in the Arduino IDE
+  Serial.begin(115200);               // init for debugging in the Arduino IDE
   waitForSerial(howLongToWait);       // wait for developer to connect debugging console
 
   // now that Serial is ready and connected (or we gave up)...
@@ -850,6 +909,7 @@ void setup() {
   volume.setWiperPosition( gWiper );  // set default volume in digital pot
 
   volumeView.loadConfig();            // restore volume setting from non-volatile RAM
+  settings5View.loadConfig();         // restore Morse-vs-Speech setting from non-volatile RAM
 
   // ----- init DAC for audio/morse code
   #if defined(SAMD_SERIES)
@@ -859,6 +919,9 @@ void setup() {
   #endif
   dacMorse.setup();                   // required Morse Code initialization
   dacMorse.dump();                    // debug
+  
+  dacSpeech.begin();                  // required Audio_QSPI initialization
+  //sayGrid("k7bwh");                 // debug test 
 
   // ----- init onboard LED
   pinMode(RED_LED, OUTPUT);           // diagnostics RED LED
@@ -1035,9 +1098,9 @@ void loop() {
       char newGrid6[7];
       calcLocator(newGrid6, model->gLatitude, model->gLongitude, 6);
       if (model->compare4digits) {
-        sendMorseGrid4( newGrid6 );       // announce 4-digit grid by Morse code
+        announceGrid( newGrid6, 4 );  // announce with Morse code or speech, according to user's config
       } else {
-        sendMorseGrid6( newGrid6 );       // announce 6-digit grid by Morse code
+        announceGrid( newGrid6, 6 );  // announce with Morse code or speech, according to user's config
       }
     }
   }

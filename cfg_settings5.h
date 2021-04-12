@@ -1,164 +1,175 @@
+// Please format this file with clang before check-in to GitHub
 /*
   File:     cfg_settings5.h 
 
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
 
-  Purpose:  This is the 'control panel' for screen rotation.
-            Since it's NOT intended for a driver in motion, we use a
-            smaller font to cram more stuff onto the screen.
+  Purpose:  This selects the audio output type, Morse code or speech.
+            Since it's not intended for a driver in motion, we can use 
+            a smaller font and cram more stuff onto the screen.
 
             +-----------------------------------------+
-            |             5. Rotation       /|\       |
-            | Screen                         |        |
-            | Orientation        (o)[ This edge up ]  |
+            |             6. Audio Type               |
             |                                         |
-            |                    ( )[ That edge up ]  |
-            |                                |        |
-            |                                |        |
-            |                                |        |
-            | v0.32, Feb 2 2021             \|/       |
+            | Announcements      (o)[ Morse code ]    |... yRow1
+            |                                         |
+            |                    ( )[ Spoken word ]   |... yRow2
+            |                                         |
+            |                    ( )[ No audio ]      |... yRow3
+            |                                         |
+            | v0.36, Apr 6 2021                       |
             +-----------------------------------------+
 */
 
 #include <Arduino.h>
-#include <Adafruit_ILI9341.h>         // TFT color display library
-#include "constants.h"                // Griduino constants and colors
-#include "model_gps.h"                // Model of a GPS for model-view-controller
-#include "TextField.h"                // Optimize TFT display text for proportional fonts
-#include "view.h"                     // Base class for all views
+#include <Adafruit_ILI9341.h>   // TFT color display library
+#include "constants.h"          // Griduino constants and colors
+#include "model_gps.h"          // Model of a GPS for model-view-controller
+#include "TextField.h"          // Optimize TFT display text for proportional fonts
+#include "view.h"               // Base class for all views
 
 // ========== extern ===========================================
-extern Model* model;                  // "model" portion of model-view-controller
+extern Model *model;   // "model" portion of model-view-controller
 
-extern void showDefaultTouchTargets();// Griduino.ino
+extern void showDefaultTouchTargets();   // Griduino.ino
+//extern void sendMorseGrid4(String gridName);  // Griduino.ino
 
 // ========== class ViewSettings5 ==============================
 class ViewSettings5 : public View {
-  public:
-    // ---------- public interface ----------
-    // This derived class must implement the public interface:
-    ViewSettings5(Adafruit_ILI9341* vtft, int vid)  // ctor 
-      : View{ vtft, vid }
-    {
-      background = cBACKGROUND;       // every view can have its own background color
-    }
-    void updateScreen();
-    void startScreen();
-    bool onTouch(Point touch);
-    void loadConfig();
-    void saveConfig();
+public:
+  // ---------- public interface ----------
+  // This derived class must implement the public interface:
+  ViewSettings5(Adafruit_ILI9341 *vtft, int vid)   // ctor
+      : View{vtft, vid} {
+    background    = cBACKGROUND;   // every view can have its own background color
+    selectedAudio = MORSE;         // default to Morse code (until we read setting from Flash)
+  }
+  void updateScreen();
+  void startScreen();
+  void endScreen();
+  bool onTouch(Point touch);
+  void loadConfig();
+  void saveConfig();
 
-  protected:
-    // ---------- local data for this derived class ----------
-    // color scheme: see constants.h
+  enum functionID {
+    MORSE = 0,
+    SPEECH,
+    NO_AUDIO,
+  };
+  functionID selectedAudio;   // <-- this is the whole reason for this module's existence
 
-    // vertical placement of text rows   ---label---           ---button---
-    const int yRow1 = 70;             // "Screen Orientation", "This edge up"
-    const int yRow2 = yRow1 + 70;     //                       "That edge up"
-    const int yRow9 = gScreenHeight - 12; // "v0.32, Feb  2 2021"
+protected:
+  // ---------- local data for this derived class ----------
+  // color scheme: see constants.h
 
-    #define col1 10                   // left-adjusted column of text
-    #define xButton 160               // indented column of buttons
+  // vertical placement of text rows   ---label---           ---button---
+  const int yRow1 = 80;                   // "Announcements", "Morse code"
+  const int yRow2 = yRow1 + 52;           //                  "Spoken word"
+  const int yRow3 = yRow2 + 52;           //                  "No audio"
+  const int yRow9 = gScreenHeight - 12;   // "v0.37, Apr  8 2021"
 
-    enum txtSettings5 {
-      SETTINGS=0, 
-      SCREEN,
-      ORIENTATION,
-      COMPILED,
-    };
+#define col1    10    // left-adjusted column of text
+#define xButton 160   // indented column of buttons
 
-    #define nFields 4
-    TextField txtSettings5[nFields] = {
-      //        text                x, y        color
-      TextField("5. Rotation",   col1, 20,      cHIGHLIGHT, ALIGNCENTER),// [SETTINGS]
-      TextField("Screen",        col1,yRow1,    cVALUE),                 // [SCREEN]
-      TextField("Orientation",   col1,yRow1+20, cVALUE),                 // [ORIENTATION]
-      TextField(PROGRAM_VERSION ", " __DATE__, 
-                                 col1,yRow9,    cLABEL, ALIGNLEFT),      // [COMPILED]
-    };
+  // these are names for the array indexes, must be named in same order as array below
+  enum txtSettings5 {
+    SETTINGS = 0,
+    ANNOUNCEMENTS,
+    ANNOUNCEMENTS2,
+    COMPILED,
+  };
 
-    enum functionID {
-      THIS_BUTTON=0,
-      THAT_BUTTON,
-    };
-    #define nButtons 2
-    FunctionButton myButtons[nButtons] = {
-      // label             origin         size      touch-target     
-      // text                x,y           w,h      x,y      w,h  radius  color   functionID
-      {"This edge up", xButton,yRow1-26, 140,40, {120, 35, 190,65},  4,  cVALUE,  THIS_BUTTON },
-      {"That edge up", xButton,yRow2-26, 140,40, {120,100, 190,75},  4,  cVALUE,  THAT_BUTTON },
-    };
+#define nTxtSettings5 4
+  TextField txtSettings5[nTxtSettings5] = {
+      //        text                x, y        color                      enum
+      TextField("5. Audio Type", col1, 20, cHIGHLIGHT, ALIGNCENTER),   // [SETTINGS]
+      TextField("Announce", col1, yRow1, cVALUE),                      // [ANNOUNCEMENTS]
+      TextField("grids using:", col1, yRow1 + 20, cVALUE),             // [ANNOUNCEMENTS2]
+      TextField(PROGRAM_VERSION ", " __DATE__,                         // [COMPILED]
+                col1, yRow9, cLABEL, ALIGNCENTER),
+  };
 
-    #define xLine (xButton+80)
-    #define topY 8
-    #define botY (gScreenHeight-6)
+#define nButtonsAudio 3
+  FunctionButton myButtons[nButtonsAudio] = {
+      // label            origin          size      touch-target
+      // text               x,y            w,h       x,y           w,h  radius color  functionID
+      {"Morse code", xButton, yRow1 - 26, 140, 40, {120, yRow1 - 42, 195, 62}, 4, cVALUE, MORSE},
+      {"Spoken word", xButton, yRow2 - 26, 140, 40, {120, yRow2 - 32, 195, 52}, 4, cVALUE, SPEECH},
+      {"No audio", xButton, yRow3 - 26, 140, 40, {120, yRow3 - 32, 195, 62}, 4, cVALUE, NO_AUDIO},
+  };
 
-    #define nLines 6
-    TwoPoints myLines[nLines] = {
-      //   x1,y1           x2,y2
-      {xLine,yRow1-26,  xLine,  topY,    cBUTTONOUTLINE},    // from top outline of top button, to top edge of screen
-      {xLine,5,         xLine-4,topY+15, cBUTTONOUTLINE},    // left half of arrowhead
-      {xLine,5,         xLine+4,topY+15, cBUTTONOUTLINE},    // right half of arrowhead
+  // ---------- local functions for this derived class ----------
+  void setMorse() {
+    Serial.println("->->-> Clicked MORSE CODE button.");
+    selectedAudio = MORSE;
+    updateScreen();   // update UI before the long pause to send sample audio
 
-      {xLine,yRow2+14,  xLine,botY,      cBUTTONOUTLINE},    // from bottom outline of bottom button, to bottom edge of screen
-      {xLine,botY,      xLine-4,botY-16, cBUTTONOUTLINE},    // left half of arrowhead
-      {xLine,botY,      xLine+4,botY-16, cBUTTONOUTLINE},    // right half of arrowhead
-    };
+    // announce grid name for an audible example of this selection
+    char newGrid4[7];
+    calcLocator(newGrid4, model->gLatitude, model->gLongitude, 4);
+    announceGrid(newGrid4, 4);   // announce 4-digit grid by Morse code
+  }
+  
+  void setSpeech() {
+    selectedAudio = SPEECH;
+    updateScreen();   // update UI before the long pause to send sample audio
 
-    // ---------- local functions for this derived class ----------
-    void fRotateScreen() {
-      Serial.println("->->-> Clicked OTHER EDGE UP button.");
-      if (this->screenRotation == eSCREEN_ROTATE_0) {
-        this->setScreenRotation(eSCREEN_ROTATE_180);
-      } else {
-        this->setScreenRotation(eSCREEN_ROTATE_0);
-      }
-    }
+    // announce grid square for an audible example of this selection
+    char newGrid4[7];
+    calcLocator(newGrid4, model->gLatitude, model->gLongitude, 4);
+    announceGrid(newGrid4, 4);   // announce 4-digit grid by Morse code OR speech
+  }
+  void setNone() {
+    selectedAudio = NO_AUDIO;
+  }
 
-};  // end class ViewSettings5
+};   // end class ViewSettings5
 
 // ============== implement public interface ================
 void ViewSettings5::updateScreen() {
   // called on every pass through main()
 
   // ----- show selected radio buttons by filling in the circle
-  for (int ii=0; ii<nButtons; ii++) {
+  for (int ii = 0; ii < nButtonsAudio; ii++) {
     FunctionButton item = myButtons[ii];
-    int xCenter = item.x - 16;
-    int yCenter = item.y + (item.h/2);
+    int xCenter         = item.x - 16;
+    int yCenter         = item.y + (item.h / 2);
     int buttonFillColor = cBACKGROUND;
 
-    if (item.functionIndex == THIS_BUTTON) {
-      // it may seem strange, but we ALWAYS highlight the first button as active 
-      // because the first button is always the "up" edge 
+    if (ii == MORSE && selectedAudio == MORSE) {
+      buttonFillColor = cLABEL;
+    }
+    if (ii == SPEECH && selectedAudio == SPEECH) {
+      buttonFillColor = cLABEL;
+    }
+    if (ii == NO_AUDIO && selectedAudio == NO_AUDIO) {
       buttonFillColor = cLABEL;
     }
     tft->fillCircle(xCenter, yCenter, 4, buttonFillColor);
   }
 
-} // end updateScreen
-
+}   // end updateScreen
 
 void ViewSettings5::startScreen() {
   // called once each time this view becomes active
-  this->clearScreen(this->background);                  // clear screen
-  txtSettings5[0].setBackground(this->background);      // set background for all TextFields in this view
-  TextField::setTextDirty( txtSettings5, nFields );     // make sure all fields get re-printed on screen change
+  this->clearScreen(this->background);                    // clear screen
+  txtSettings5[0].setBackground(this->background);        // set background for all TextFields in this view
+  TextField::setTextDirty(txtSettings5, nTxtSettings5);   // make sure all fields get re-printed on screen change
 
-  drawAllIcons();                     // draw gear (settings) and arrow (next screen)
-  showDefaultTouchTargets();          // optionally draw box around default button-touch areas
-  showScreenBorder();                 // optionally outline visible area
-  showScreenCenterline();             // optionally draw visual alignment bar
+  drawAllIcons();              // draw gear (settings) and arrow (next screen)
+  showDefaultTouchTargets();   // optionally draw box around default button-touch areas
+  showScreenBorder();          // optionally outline visible area
+  showScreenCenterline();      // optionally draw visual alignment bar
 
   // ----- draw text fields
-  for (int ii=0; ii<nFields; ii++) {
-      txtSettings5[ii].print();
+  for (int ii = 0; ii < nTxtSettings5; ii++) {
+    txtSettings5[ii].print();
   }
 
   // ----- draw buttons
   setFontSize(eFONTSMALLEST);
-  for (int ii=0; ii<nButtons; ii++) {
+  for (int ii = 0; ii < nButtonsAudio; ii++) {
     FunctionButton item = myButtons[ii];
     tft->fillRoundRect(item.x, item.y, item.w, item.h, item.radius, cBUTTONFILL);
     tft->drawRoundRect(item.x, item.y, item.w, item.h, item.radius, cBUTTONOUTLINE);
@@ -166,84 +177,88 @@ void ViewSettings5::startScreen() {
     // ----- label on top of button
     int xx = getOffsetToCenterTextOnButton(item.text, item.x, item.w);
 
-    tft->setCursor(xx, item.y+item.h/2+5);  // place text centered inside button
+    tft->setCursor(xx, item.y + item.h / 2 + 5);   // place text centered inside button
     tft->setTextColor(item.color);
     tft->print(item.text);
-  }
 
-  // ----- draw arrows from buttons to top/bottom edges
-  for (int ii=0; ii<nLines; ii++) {
-    TwoPoints m = myLines[ii];
-    tft->drawLine(m.x1, m.y1, m.x2, m.y2, m.color);
+#ifdef SHOW_TOUCH_TARGETS
+    tft->drawRect(item.hitTarget.ul.x, item.hitTarget.ul.y,   // debug: draw outline around hit target
+                  item.hitTarget.size.x, item.hitTarget.size.y,
+                  cTOUCHTARGET);
+#endif
   }
 
   // ----- draw outlines of radio buttons
-  for (int ii=0; ii<nButtons; ii++) {
+  for (int ii = 0; ii < nButtonsAudio; ii++) {
     FunctionButton item = myButtons[ii];
-    int xCenter = item.x - 16;
-    int yCenter = item.y + (item.h/2);
+    int xCenter         = item.x - 16;
+    int yCenter         = item.y + (item.h / 2);
 
     // outline the radio button
     // the active button will be indicated in updateScreen()
     tft->drawCircle(xCenter, yCenter, 7, cVALUE);
   }
 
-  updateScreen();                     // update UI immediately, don't wait for laggy mainline loop
-} // end startScreen()
+  updateScreen();   // update UI immediately, don't wait for laggy mainline loop
+}   // end startScreen()
 
+void ViewSettings5::endScreen() {
+  // Called once each time this view becomes INactive
+  // This is a 'goodbye kiss' to do cleanup work
+  // For the english/metric settings view, save our settings here instead of on each
+  // button press because writing to NVR is slow (0.5 sec) and would delay the user
+  // while trying to press a button many times in a row.
+  saveConfig();
+}
 
 bool ViewSettings5::onTouch(Point touch) {
   Serial.println("->->-> Touched settings screen.");
-  bool handled = false;               // assume a touch target was not hit
-  for (int ii=0; ii<nButtons; ii++) {
+  bool handled = false;   // assume a touch target was not hit
+  for (int ii = 0; ii < nButtonsAudio; ii++) {
     FunctionButton item = myButtons[ii];
     if (item.hitTarget.contains(touch)) {
-        handled = true;               // hit!
-        switch (item.functionIndex)   // do the thing
-        {
-          case THIS_BUTTON:
-              // nothing - this button is already at top of screen
-              break;
-          case THAT_BUTTON:
-              // end-user wants the OTHER edge of the screen (whatever it is) to be "up"
-              fRotateScreen();
-              break;
-          default:
-              Serial.print("Error, unknown function "); Serial.println(item.functionIndex);
-              break;
-        }
-        updateScreen();               // update UI immediately, don't wait for laggy mainline loop
-        this->saveConfig();           // after UI is updated, save setting to nvr
-     }
+      handled = true;               // hit!
+      switch (item.functionIndex)   // do the thing
+      {
+      case MORSE:
+        setMorse();
+        break;
+      case SPEECH:
+        setSpeech();
+        break;
+      case NO_AUDIO:
+        setNone();
+        break;
+      default:
+        Serial.print("Error, unknown function ");
+        Serial.println(item.functionIndex);
+        break;
+      }
+    }
   }
-  return handled;                     // true=handled, false=controller uses default action
-} // end onTouch()
+  return handled;   // true=handled, false=controller uses default action
+}   // end onTouch()
 
 // ========== load/save config setting =========================
-#define SCREEN_CONFIG_FILE    CONFIG_FOLDER "/screen.cfg"
-#define CONFIG_SCREEN_VERSION "Screen Orientation v03"
+#define AUDIO_CONFIG_FILE    CONFIG_FOLDER "/announce.cfg"
+#define AUDIO_CONFIG_VERSION "Audio Announce v01"
 
 // ----- load from SDRAM -----
 void ViewSettings5::loadConfig() {
-  // Load screen orientation from NVR, and do minimal amount of work
-  // Since this is called first thing during setup, we can't use 
-  // resource-heavy functions like "this->setScreenRotation(int rot)"
-
-  SaveRestore config(SCREEN_CONFIG_FILE, CONFIG_SCREEN_VERSION);
-  int tempRotation;
-  int result = config.readConfig( (byte*) &tempRotation, sizeof(tempRotation) );
+  SaveRestore config(AUDIO_CONFIG_FILE, AUDIO_CONFIG_VERSION);
+  functionID tempAudioOutputType;
+  int result = config.readConfig((byte *)&tempAudioOutputType, sizeof(tempAudioOutputType));
   if (result) {
-    this->screenRotation = tempRotation;
-    tft->setRotation(tempRotation);    // 0=portrait (default), 1=landscape, 3=180 degrees
-    Serial.print("Loaded screen orientation: "); Serial.println(this->screenRotation);
+    this->selectedAudio = tempAudioOutputType;
+    Serial.print("Loaded audio output type: ");
+    Serial.println(this->selectedAudio);
   } else {
-    Serial.println("Failed to load screen orientation, re-initializing config file");
+    Serial.println("Failed to load Audio Output Type, re-initializing config file");
     saveConfig();
   }
 }
 // ----- save to SDRAM -----
 void ViewSettings5::saveConfig() {
-  SaveRestore config(SCREEN_CONFIG_FILE, CONFIG_SCREEN_VERSION);
-  int rc = config.writeConfig( (byte*) &screenRotation, sizeof(screenRotation) );
-  //Serial.print("Finished with rc = "); Serial.println(rc);  // debug
+  SaveRestore config(AUDIO_CONFIG_FILE, AUDIO_CONFIG_VERSION);
+  int rc = config.writeConfig((byte *)&selectedAudio, sizeof(selectedAudio));
 }

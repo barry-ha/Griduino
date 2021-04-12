@@ -27,8 +27,9 @@
 */
 
 #include <Arduino.h>
-#include "Adafruit_ILI9341.h"   // TFT color display library
+#include <Adafruit_ILI9341.h>   // TFT color display library
 #include <DS1804.h>             // DS1804 digital potentiometer library
+#include <Audio_QSPI.h>         // Audio playback library for Arduino, https://github.com/barry-ha/Audio_QSPI
 #include "constants.h"          // Griduino constants and colors
 #include "model_gps.h"          // Model of a GPS for model-view-controller
 #include "morse_dac.h"          // morse code
@@ -36,7 +37,9 @@
 #include "view.h"               // Base class for all views
 
 // ========== extern ===========================================
-extern DACMorseSender dacMorse;   // morse code (so we can send audio samples)
+extern void announceGrid(String gridName, int len); // Griduino.ino
+extern DACMorseSender dacMorse;   // morse code (so we can send audio sample)
+extern AudioQSPI dacSpeech;       // spoken word (so we can play speech sample)
 extern DS1804 volume;             // digital potentiometer
 
 // ========== class ViewVolume =================================
@@ -278,8 +281,20 @@ bool ViewVolume::onTouch(Point touch) {
       }
       updateScreen();   // update UI immediately, don't wait for laggy mainline loop
       if (!gMute) {
+        // audible example
+        announceGrid("hi", 4);
+/*
+        // announce grid square for an audible example of this selection
+        char newGrid4[7];
+        calcLocator(newGrid4, model->gLatitude, model->gLongitude, 4);
+        announceGrid(newGrid4, 4);   // announce by Morse code OR speech
+*/
+/*
         dacMorse.setMessage("hi");   // announce new volume in Morse code
         dacMorse.sendBlocking();
+        dacSpeech.play("/audio/7.wav");  // announce new volume in Spoken Word
+        dacSpeech.play("/audio/3.wav");
+*/
       }
     }
   }

@@ -121,7 +121,7 @@ int SaveRestore::readConfig(byte* pData, const int sizeData) {
 // ========== save configuration ======================
 int SaveRestore::writeConfig(const byte* pData, const int sizeData) {
   // initialize configuration file in file system, called by setup() if needed
-  // assumes this is Feather M4 Express with 2 MB flash
+  // assumes this is Feather M4 Express with 2 MB Quad-SPI flash memory
   // returns 1=success, 0=failure
   int result = 1;             // assume success
   Serial.println("Starting to write config to SDRAM...");
@@ -169,7 +169,7 @@ int SaveRestore::openFlash() {
   
   // Initialize flash library and check its chip ID.
   if (!gFlash.begin()) {
-    Serial.println("Error, failed to initialize onboard memory.");
+    Serial.println("Error, unable to begin using Flash onboard memory.");
     return 0;
   }
   //Serial.print(". Flash chip JEDEC ID: 0x"); Serial.println(gFlash.getJEDECID(), HEX);

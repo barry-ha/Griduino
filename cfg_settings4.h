@@ -31,8 +31,7 @@
 extern Model* model;                  // "model" portion of model-view-controller
 
 extern void showDefaultTouchTargets();// Griduino.ino
-extern void sendMorseGrid4(String gridName);  // Griduino.ino
-extern void sendMorseGrid6(String gridName);  // Griduino.ino
+extern void announceGrid(String gridName, int len); // Griduino.ino
 
 // ========== class ViewSettings4 ==============================
 class ViewSettings4 : public View {
@@ -87,22 +86,22 @@ class ViewSettings4 : public View {
     void f4Digit() {
       Serial.println("->->-> Clicked 4-DIGIT button.");
       model->compare4digits = true;
-      this->updateScreen();             // update UI before starting the slow morse code
+      this->updateScreen();           // update UI before starting the slow morse code
 
       // announce grid square, so they have an audible example of this selection
       char newGrid4[7];
       calcLocator(newGrid4, model->gLatitude, model->gLongitude, 4);
-      sendMorseGrid4( newGrid4 );       // announce 4-digit grid by Morse code
+      announceGrid( newGrid4, 4 );    // announce 4-digit grid by Morse code
     }
     void f6Digit() {
       Serial.println("->->-> Clicked 6-DIGIT button.");
       model->compare4digits = false;
-      this->updateScreen();             // update UI before starting the slow morse code
+      this->updateScreen();           // update UI before starting the slow morse code
 
       // announce grid square, so they have an audible example of this selection
       char newGrid6[7];
       calcLocator(newGrid6, model->gLatitude, model->gLongitude, 6);
-      sendMorseGrid6( newGrid6 );       // announce 4-digit grid by Morse code
+      announceGrid( newGrid6, 6 );    // announce 6-digit grid by Morse code
     }
 
     enum buttonID {
@@ -152,6 +151,7 @@ void ViewSettings4::startScreen() {
   drawAllIcons();                     // draw gear (settings) and arrow (next screen)
   showDefaultTouchTargets();          // optionally draw boxes around button-touch area
   showScreenBorder();                 // optionally outline visible area
+  showScreenCenterline();             // optionally draw visual alignment bar
 
   // ----- draw buttons
   setFontSize(eFONTSMALLEST);
