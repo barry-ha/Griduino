@@ -110,7 +110,7 @@ protected:
     calcLocator(newGrid4, model->gLatitude, model->gLongitude, 4);
     announceGrid(newGrid4, 4);   // announce 4-digit grid by Morse code
   }
-  
+
   void setSpeech() {
     selectedAudio = SPEECH;
     updateScreen();   // update UI before the long pause to send sample audio

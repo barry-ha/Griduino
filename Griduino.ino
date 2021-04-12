@@ -752,7 +752,10 @@ void announceGrid(const String gridName, int length) {
         char letter = tolower( grid[ii] );
         snprintf(myfile, sizeof(myfile), "/audio/%c.wav", letter);
 
-        dacSpeech.play( myfile );
+        if (!dacSpeech.play( myfile )) {
+          // indicate error playing WAV file (probably "file not found")
+          sendMorseGrid6("i");
+        }
       }
       break;
     case ViewSettings5::NO_AUDIO:

@@ -37,10 +37,10 @@
 #include "view.h"               // Base class for all views
 
 // ========== extern ===========================================
-extern void announceGrid(String gridName, int len); // Griduino.ino
-extern DACMorseSender dacMorse;   // morse code (so we can send audio sample)
-extern AudioQSPI dacSpeech;       // spoken word (so we can play speech sample)
-extern DS1804 volume;             // digital potentiometer
+extern void announceGrid(String gridName, int len);   // Griduino.ino
+extern DACMorseSender dacMorse;                       // morse code (so we can send audio sample)
+extern AudioQSPI dacSpeech;                           // spoken word (so we can play speech sample)
+extern DS1804 volume;                                 // digital potentiometer
 
 // ========== class ViewVolume =================================
 class ViewVolume : public View {
@@ -283,13 +283,13 @@ bool ViewVolume::onTouch(Point touch) {
       if (!gMute) {
         // audible example
         announceGrid("hi", 4);
-/*
+        /*
         // announce grid square for an audible example of this selection
         char newGrid4[7];
         calcLocator(newGrid4, model->gLatitude, model->gLongitude, 4);
         announceGrid(newGrid4, 4);   // announce by Morse code OR speech
 */
-/*
+        /*
         dacMorse.setMessage("hi");   // announce new volume in Morse code
         dacMorse.sendBlocking();
         dacSpeech.play("/audio/7.wav");  // announce new volume in Spoken Word

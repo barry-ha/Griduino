@@ -33,8 +33,8 @@ const float gridHeightDegrees = 1.0;   // vert N-S size of one grid square, degr
 #define mphPerKnots   1.15078                 // speed conversion
 const double degreesPerRadian = 57.2957795;   // conversion factor = (360 degrees)/(2 pi radians)
 
-#define SECS_PER_5MIN  ((time_t) (300UL))
-#define SECS_PER_15MIN ((time_t) (900UL))
+#define SECS_PER_5MIN  ((time_t)(300UL))
+#define SECS_PER_15MIN ((time_t)(900UL))
 
 #define DEFAULT_SEALEVEL_PASCALS (101740.0)
 #define DEFAULT_SEALEVEL_HPA     (1017.40)
@@ -128,7 +128,7 @@ struct TwoPoints {
 struct Rect {
   Point ul;
   Point size;
-  bool contains (const Point touch) {
+  bool contains(const Point touch) {
     if ((ul.x <= touch.x) && (touch.x <= ul.x + size.x) && (ul.y <= touch.y) && (touch.y <= ul.y + size.y)) {
       return true;
     } else {
@@ -181,7 +181,7 @@ struct FunctionButton {
 struct LetterInfo {
   // LetterInfo describes everything about a single sampled sound stored in memory
   const char letter;      // key, e.g. 'c'
-  const float* pTable;    // ptr to array of float,               e.g. 'c_barry_16'
+  const float *pTable;    // ptr to array of float,               e.g. 'c_barry_16'
   const int bitrate;      // bitrate,                             e.g. '16000'
   const int totalBytes;   // number of bytes in this wave table,  e.g. 'sizeof(c_barry_16)'
   const int numSamples;   // number of samples in this wave file, e.g. 'sizeof(c_barry_16)/sizeof(c_barry_16[0])'

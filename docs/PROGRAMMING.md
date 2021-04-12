@@ -1,6 +1,6 @@
 <h1>Griduino Programming Instructions</h1>
 
-<h2>1. Introduction</h2>
+<h2 id="intro">1. Introduction</h2>
 
 <img src="../img/griduino-logo-120.png" align="right" alt="Griduino logo" title="Griduino logo"/>Thank you for purchasing a Griduino GPS navigation kit. After [assembling the kit](https://github.com/barry-ha/Griduino/blob/master/ASSEMBLY.md "ASSEMBLY.md"), use this document to program it with the latest Griduino software. 
 
@@ -12,8 +12,8 @@ When complete, you'll have a useful driver's aid dedicated to show your location
 
 ![](img/overview-img6804.jpg)
 
-<h2>2. How to Install the Griduino Program</h2>
-Follow these steps to obtain the Griduino binary file and update the hardware.
+<h2 id="program">2. Install the Griduino Program</h2>
+Follow these steps to obtain the Griduino binary file and update the software.
 
 1. **Download Griduino Binary**<br/>
    - Visit https://github.com/barry-ha/Griduino
@@ -31,16 +31,54 @@ Follow these steps to obtain the Griduino binary file and update the hardware.
    - In Windows, open the **File Explorer**.
    - Find the new drive, e.g. "**FEATHERBOOT (F:)**"
 
-
 1. **Install Griduino Software on Feather M4 Express**<br/>
    - Drag the .UF2 file that you downloaded and drop it on the new drive. Or you can copy/paste it on the new drive.
    - The Griduino screen will blank and it will begin running the new software.
    - First it shows an animation, then it shows a credits screen with the program name and version number.
    - Tap the top half of the display to advance to the Settings screen. This includes the version number and compiled date on the bottom line.
 
-<h2>3. How to Create a Binary File for Distribution</h2>
+<h2 id="audio">3. Install Audio Files</h2>
 
-It may be useful to know how to create a binary image of a compiled program for Arduino processors in general. If you ever want to distribute an Arduino program, it is easier for your users to install your binary image than to compile the source code themselves.
+Griduino can use speech to announce grid lines. To do so, we must install audio recordings of the letters and numbers. These WAV files are copied onto the Feather separately using a very different process than the binary program file.
+
+The idea here is to temporarily install CircuitPython which allows the Flash memory to appear as an external USB drive. Then copy audio files to Flash and install the Griduino program again. The first time CircuitPython is installed, it automatically formats Flash memory in a way that remains compatible thereafter.
+
+1. **Download the "griduino_audio.zip" file from GitHub**<br/>
+   - Visit https://github.com/barry-ha/Griduino/tree/master/downloads
+   - Get a copy of **griduino_audio.zip** 
+   - Unzip this file to a temporary folder; it doesn't matter where as long as you can find it again a few steps later. 
+   - This file contains 26 letters and 10 numbers as short recordings in standard Microsoft WAV format.
+   - To make your own recordings that are compatible with Griduino, follow instructions in the README document at https://github.com/barry-ha/Audio_QSPI.
+
+1. **Download "CircuitPython" binary distribution file**<br/>
+   - Get the latest CircuitPython UF2 file for your board (Feather M4 Express) from https://circuitpython.org/downloads.
+   - As of April 2021, the latest version is 6.1.0 and the UF2 file is named "adafruit-circuitpython-feather\_m4\_express-en_US-6.1.0.uf2"<br/>![](img/circuit_python_feather_m4.png)
+
+1. **Start the bootloader on the Feather board** by double-clicking its Reset button.<br/>
+   - After a moment, you should see a "FEATHERBOOT" drive appear on your desktop computer.<br/>
+
+1. **Drag the circuitpython UF2 file** from Windows to FEATHERBOOT.
+   - There is no need to rename the downloaded file first.
+   - The UF2 file will be copied and the Feather will reboot.
+   - Then you should see a CIRCUITPY drive appear as an external USB drive. It will already have a few files on it.
+
+1. **Drag the audio files** from Windows to CIRCUITPY.<br/>
+   - Be sure to store all of the WAV files (there are at least 36 of them) in a top-level folder named "audio".
+   - Note that file names and folders are case-sensitive.
+
+1. **Reboot Feather and re-install Griduino**<br/>
+   - Follow the steps (above) in [2. How to Install the Griduino Program](#program) above to run the program.
+   
+1. **Test Griduino's audio playback**<br/>
+   - Start the Griduino program
+   - Press the "gear" icon until you see the **Audio Type** screen.<br/>Select **Spoken Word**.<br/>It should immediately announce your grid square.<br/>If it beeps, then Griduino did not find the audio files.
+   - Press the "gear" icon until you see the **Speaker Volume** screen.<br/>Press the up/down buttons to adjust a comfortable volume.<br/>It should play an audio sample of something.
+   - To troubleshoot errors, open the **Arduino IDE** and click **Tools** > **Serial Monitor** to read error messages.
+  
+
+<h2 id="uf2">4. How to Create a Binary File for Distribution</h2>
+
+It may be useful to know how to create a binary image of a compiled program for Arduino processors in general. If you ever want to distribute your own Arduino program, it is easier for your users to install your binary image than to compile the source code themselves.
 
 This section also applies to how we prepared the Griduino software for general distribution.
 
@@ -63,7 +101,7 @@ Run the Python conversion script (author https://github.com/microsoft/uf2):
    - Run the Python converter script, e.g.:<br/>**py uf2conv.py -c -b 0x4000 -o downloads/griduino.uf2 Griduino.ino.feather_m4.bin**
    - Where "**-c:**" will pass remaining arguments to python script, "**-b 0x4000**" will set start of program, "**-o file.uf2**" is output file, and "**file.bin**" is input file
 
-<h2>4. How to Setup the Arduino IDE for Griduino</h2>
+<h2 id="ide">5. How to Setup the Arduino IDE for Griduino</h2>
 
 If you want to compile Griduino source code or work with its example files (and we hope you do) then here's everything you need to setup the workbench.
 
@@ -133,7 +171,7 @@ These components are outside of Arduino's Library Manager, so follow these links
    - https://github.com/barry-ha/Audio_QSPI - library to play WAV files from Quad-SPI memory chip
 
 
-<h2>5. Disclaimer</h2>
+<h2 id=disclaimer>6. Disclaimer</h2>
 
 The information provided is for general education and entertainment. We hope you learn from this and enjoy your hobbies in a safe manner with this new GPS information available at a glance. We take no responsibility for your assembly and construction, nor for how you use these devices. 
 
