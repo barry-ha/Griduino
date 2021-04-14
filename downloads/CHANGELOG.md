@@ -7,6 +7,20 @@ Version numbers correspond to [Downloads](https://github.com/barry-ha/Griduino/t
 
 The changelog format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and the Griduino project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+**v0.37** &nbsp; 2020-04-12
+
+Added speech audio output as an alternative to Morse code. This is a major upgrade.
+
+Griduino can now speak grid square names. This feature requires:
+
+   1. Install audio recordings of the letters and numbers. These WAV files are copied onto the Feather separately using a different process than the binary program file. See https://github.com/barry-ha/Griduino/blob/master/docs/PROGRAMMING.md#3-install-audio-files
+   1. Install the latest Griduino program, v0.37 or later
+   1. Press the "gear" icon until you see the **Audio Type** screen.<br/>Select **Spoken Word**.<br/>It should immediately announce your grid square.<br/>If it beeps, then Griduino did not find the audio files.
+
+**v0.36** &nbsp; Skipped
+
+This was an internal testing version. The pre-compiled binary was not released.
+
 **v0.35** &nbsp; 2020-02-25
 
 Fixed several bugs in the Altimeter view. Added a small 'sync' button on right-hand side which calibrates the sea level pressure so that the two reported altitudes match each other. The GPS is not always right but it's pretty close and the 'sync' button will make large adjustments easy. 
@@ -26,7 +40,7 @@ Added Altimeter view which compares altitude from the barometer to altitude from
 The problem is that both of them can be off:
 
 * An accurate reading from the barometer depends on knowing your current pressure at sea level at your location. The altimeter screen therefore offers + and - buttons to calibrate it. You can get the correct pressure by searching the web for a local weather report, or by adjusting it to a known altitude. 
-* An accurate reading from the GPS depends on the number and position of satellites overhead. You would need a good satellite right overhead for best results. Further, signal reflections from nearby objects can throw it off. Unfortunately the consumer GPS service was designed to be more accurate positionally than for altitude. For example, at my home, the GPS reports will vary by 300 feet or so.
+* An accurate reading from the GPS depends on the number and position of satellites overhead. You would need a good satellite right overhead for best results. Further, signal reflections from nearby objects can throw it off. Unfortunately the consumer GPS service was designed to be more accurate positionally than for altitude. For example, at my home, the GPS reports can vary day-by-day by 300 feet or so.
 
 **v0.32** &nbsp; 2021-02-03
 
