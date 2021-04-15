@@ -1,16 +1,16 @@
-// Please format this file with clang before check-in to GitHub
+#pragma once   // Please format this file with clang before check-in to GitHub
 /*
-  File:     cfg_settings5.h 
+  File:     cfg_audio_type.h
 
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
 
-  Purpose:  This selects the audio output type, Morse code or speech.
+  Purpose:  This selects the audio output type: Morse code or speech.
             Since it's not intended for a driver in motion, we can use 
             a smaller font and cram more stuff onto the screen.
 
             +-----------------------------------------+
-            |             6. Audio Type               |
+            |             2. Audio Type               |
             |                                         |
             | Announcements      (o)[ Morse code ]    |... yRow1
             |                                         |
@@ -22,7 +22,7 @@
             +-----------------------------------------+
 */
 
-#include <Arduino.h>
+#include <Arduino.h>            //
 #include <Adafruit_ILI9341.h>   // TFT color display library
 #include "constants.h"          // Griduino constants and colors
 #include "model_gps.h"          // Model of a GPS for model-view-controller
@@ -32,15 +32,15 @@
 // ========== extern ===========================================
 extern Model *model;   // "model" portion of model-view-controller
 
-extern void showDefaultTouchTargets();   // Griduino.ino
-//extern void sendMorseGrid4(String gridName);  // Griduino.ino
+extern void showDefaultTouchTargets();                // Griduino.ino
+extern void announceGrid(String gridName, int len);   // Griduino.ino
 
-// ========== class ViewSettings5 ==============================
-class ViewSettings5 : public View {
+// ========== class ViewCfgAudioType ==============================
+class ViewCfgAudioType : public View {
 public:
   // ---------- public interface ----------
   // This derived class must implement the public interface:
-  ViewSettings5(Adafruit_ILI9341 *vtft, int vid)   // ctor
+  ViewCfgAudioType(Adafruit_ILI9341 *vtft, int vid)   // ctor
       : View{vtft, vid} {
     background    = cBACKGROUND;   // every view can have its own background color
     selectedAudio = MORSE;         // default to Morse code (until we read setting from Flash)
@@ -67,7 +67,7 @@ protected:
   const int yRow1 = 80;                   // "Announcements", "Morse code"
   const int yRow2 = yRow1 + 52;           //                  "Spoken word"
   const int yRow3 = yRow2 + 52;           //                  "No audio"
-  const int yRow9 = gScreenHeight - 12;   // "v0.37, Apr  8 2021"
+  const int yRow9 = gScreenHeight - 12;   // "v0.38, Apr 13 2021"
 
 #define col1    10    // left-adjusted column of text
 #define xButton 160   // indented column of buttons
@@ -83,7 +83,7 @@ protected:
 #define nTxtSettings5 4
   TextField txtSettings5[nTxtSettings5] = {
       //        text                x, y        color                      enum
-      TextField("5. Audio Type", col1, 20, cHIGHLIGHT, ALIGNCENTER),   // [SETTINGS]
+      TextField("2. Audio Type", col1, 20, cHIGHLIGHT, ALIGNCENTER),   // [SETTINGS]
       TextField("Announce", col1, yRow1, cVALUE),                      // [ANNOUNCEMENTS]
       TextField("grids using:", col1, yRow1 + 20, cVALUE),             // [ANNOUNCEMENTS2]
       TextField(PROGRAM_VERSION ", " __DATE__,                         // [COMPILED]
@@ -124,10 +124,10 @@ protected:
     selectedAudio = NO_AUDIO;
   }
 
-};   // end class ViewSettings5
+};   // end class ViewCfgAudioType
 
 // ============== implement public interface ================
-void ViewSettings5::updateScreen() {
+void ViewCfgAudioType::updateScreen() {
   // called on every pass through main()
 
   // ----- show selected radio buttons by filling in the circle
@@ -148,10 +148,9 @@ void ViewSettings5::updateScreen() {
     }
     tft->fillCircle(xCenter, yCenter, 4, buttonFillColor);
   }
-
 }   // end updateScreen
 
-void ViewSettings5::startScreen() {
+void ViewCfgAudioType::startScreen() {
   // called once each time this view becomes active
   this->clearScreen(this->background);                    // clear screen
   txtSettings5[0].setBackground(this->background);        // set background for all TextFields in this view
@@ -161,11 +160,6 @@ void ViewSettings5::startScreen() {
   showDefaultTouchTargets();   // optionally draw box around default button-touch areas
   showScreenBorder();          // optionally outline visible area
   showScreenCenterline();      // optionally draw visual alignment bar
-
-  // ----- draw text fields
-  for (int ii = 0; ii < nTxtSettings5; ii++) {
-    txtSettings5[ii].print();
-  }
 
   // ----- draw buttons
   setFontSize(eFONTSMALLEST);
@@ -199,19 +193,27 @@ void ViewSettings5::startScreen() {
     tft->drawCircle(xCenter, yCenter, 7, cVALUE);
   }
 
+  // ----- draw text fields
+  for (int ii = 0; ii < nTxtSettings5; ii++) {
+    txtSettings5[ii].print();
+  }
+
+  showScreenBorder();       // optionally outline visible area
+  showScreenCenterline();   // optionally draw alignment bar
+
   updateScreen();   // update UI immediately, don't wait for laggy mainline loop
 }   // end startScreen()
 
-void ViewSettings5::endScreen() {
+void ViewCfgAudioType::endScreen() {
   // Called once each time this view becomes INactive
   // This is a 'goodbye kiss' to do cleanup work
-  // For the english/metric settings view, save our settings here instead of on each
+  // For the current configuration screen; save our settings here instead of on each
   // button press because writing to NVR is slow (0.5 sec) and would delay the user
   // while trying to press a button many times in a row.
   saveConfig();
 }
 
-bool ViewSettings5::onTouch(Point touch) {
+bool ViewCfgAudioType::onTouch(Point touch) {
   Serial.println("->->-> Touched settings screen.");
   bool handled = false;   // assume a touch target was not hit
   for (int ii = 0; ii < nButtonsAudio; ii++) {
@@ -244,7 +246,7 @@ bool ViewSettings5::onTouch(Point touch) {
 #define AUDIO_CONFIG_VERSION "Audio Announce v01"
 
 // ----- load from SDRAM -----
-void ViewSettings5::loadConfig() {
+void ViewCfgAudioType::loadConfig() {
   SaveRestore config(AUDIO_CONFIG_FILE, AUDIO_CONFIG_VERSION);
   functionID tempAudioOutputType;
   int result = config.readConfig((byte *)&tempAudioOutputType, sizeof(tempAudioOutputType));
@@ -258,7 +260,7 @@ void ViewSettings5::loadConfig() {
   }
 }
 // ----- save to SDRAM -----
-void ViewSettings5::saveConfig() {
+void ViewCfgAudioType::saveConfig() {
   SaveRestore config(AUDIO_CONFIG_FILE, AUDIO_CONFIG_VERSION);
   int rc = config.writeConfig((byte *)&selectedAudio, sizeof(selectedAudio));
 }

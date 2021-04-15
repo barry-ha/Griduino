@@ -55,8 +55,9 @@
             Speaker is a commodity item and many devices and options are available.
             We tested a piezo speaker but they're tuned for a narrow frequency and 
             unsatisfactory for anything but a single pitch.
-            Breadboard-friendly speaker:                    https://www.adafruit.com/product/1898
-            Better fidelity speaker:                        https://www.adafruit.com/product/4445
+            Breadboard-friendly speaker:   https://www.adafruit.com/product/1898
+            Better fidelity speaker:       https://www.adafruit.com/product/4445
+            Micro speaker:                 https://www.digikey.com/en/products/detail/cui-devices/CES-20134-088PM/10821309
 
   Source Code Outline:
          1. Hardware Wiring  (pin definitions)
@@ -85,12 +86,12 @@
 #include "view_status.h"              // status screen 
 #include "view_time.h"                // GMT time screen 
 
+#include "cfg_audio_type.h"           // config audio Morse/speech
+#include "cfg_crossing.h"             // config 4/6 digit crossing
+#include "cfg_gps.h"                  // config GPS (alphabetical order)
+#include "cfg_rotation.h"             // config screen rotation 
+#include "cfg_units.h"                // config english/metric
 #include "cfg_volume.h"               // config volume level
-#include "cfg_settings2.h"            // config GPS
-#include "cfg_settings3.h"            // config miles/km
-#include "cfg_settings4.h"            // config 4/6 digit crossing
-#include "cfg_settings5.h"            // config audio Morse/speech
-#include "cfg_settings6.h"            // config screen rotation 
 
 // ---------- Hardware Wiring ----------
 /*                                Arduino       Adafruit
@@ -611,22 +612,22 @@ BarometerModel baroModel( &baro, BMP_CS );    // create instance of the model, g
 //    "updateXxxxScreen" is dynamic and displays things that change over time
 //==============================================================
 
-// alias names for the views - must be in same alphabetical order as array below
+// alias names for the views - MUST be in same order as "viewTable" array below, alphabetical by class name
 enum {
   GRID_VIEW = 0,
   ALTIMETER_VIEW,                     // altimeter
   BARO_VIEW,                          // barometer graph
   HELP_VIEW,
-  SETTING2_VIEW,                      // gps/simulator 
-  SETTING3_VIEW,                      // english/metric
-  SETTING4_VIEW,                      // announce grid crossing 4/6 digit boundaries 
-  SETTING5_VIEW,                      // audio output Morse/speech
-  SETTING6_VIEW,                      // screen rotation
+  CFG_GPS,                            // gps/simulator 
+  CFG_UNITS,                          // english/metric
+  CFG_CROSSING,                       // announce grid crossing 4/6 digit boundaries 
+  CFG_AUDIO_TYPE,                     // audio output Morse/speech
+  CFG_ROTATION,                       // screen rotation
   SPLASH_VIEW,
   STATUS_VIEW,
   TIME_VIEW,
   DATE_VIEW,                          // Groundhog Day, Halloween, or other day-counting screen
-  VOLUME_VIEW,
+  CFG_VOLUME,
   //VOLUME2_VIEW,
   GOTO_SETTINGS,                      // command the state machine to show control panel
   GOTO_NEXT_VIEW,                     // command the state machine to show next screen
@@ -634,20 +635,20 @@ enum {
 // list of objects derived from "class View", in alphabetical order
 View* pView;                          // pointer to a derived class
 
-ViewAltimeter altimeterView(&tft, ALTIMETER_VIEW);  // alphabetical order
-ViewBaro      baroView(&tft, BARO_VIEW); // instantiate derived classes
-ViewDate      dateView(&tft, DATE_VIEW);
-ViewGrid      gridView(&tft, GRID_VIEW);
-ViewHelp      helpView(&tft, HELP_VIEW);
-ViewSettings2 settings2View(&tft, SETTING2_VIEW);
-ViewSettings3 settings3View(&tft, SETTING3_VIEW);
-ViewSettings4 settings4View(&tft, SETTING4_VIEW);
-ViewSettings5 settings5View(&tft, SETTING5_VIEW);
-ViewSettings6 settings6View(&tft, SETTING6_VIEW);
-ViewSplash    splashView(&tft, SPLASH_VIEW);
-ViewStatus    statusView(&tft, STATUS_VIEW);
-ViewTime      timeView(&tft, TIME_VIEW);
-ViewVolume    volumeView(&tft, VOLUME_VIEW);
+ViewAltimeter    altimeterView(&tft, ALTIMETER_VIEW);  // alphabetical order by class name
+ViewBaro         baroView(&tft, BARO_VIEW);            // instantiate derived classes
+ViewCfgAudioType cfgAudioType(&tft, CFG_AUDIO_TYPE);
+ViewCfgCrossing  cfgCrossing(&tft, CFG_CROSSING);
+ViewCfgGPS       cfgGPS(&tft, CFG_GPS);
+ViewCfgRotation  cfgRotation(&tft, CFG_ROTATION);
+ViewCfgUnits     cfgUnits(&tft, CFG_UNITS);
+ViewDate         dateView(&tft, DATE_VIEW);
+ViewGrid         gridView(&tft, GRID_VIEW);
+ViewHelp         helpView(&tft, HELP_VIEW);
+ViewSplash       splashView(&tft, SPLASH_VIEW);
+ViewStatus       statusView(&tft, STATUS_VIEW);
+ViewTime         timeView(&tft, TIME_VIEW);
+ViewVolume       volumeView(&tft, CFG_VOLUME);
 
 void selectNewView(int cmd) {
   // this is a state machine to select next view, given current view and type of command
@@ -656,16 +657,16 @@ void selectNewView(int cmd) {
         &altimeterView,    // [ALTIMETER_VIEW]
         &baroView,         // [BARO_VIEW]
         &helpView,         // [HELP_VIEW]
-        &settings2View,    // [SETTING2_VIEW]
-        &settings3View,    // [SETTING3_VIEW]
-        &settings4View,    // [SETTING4_VIEW]
-        &settings5View,    // [SETTING5_VIEW]
-        &settings6View,    // [SETTING6_VIEW]
+        &cfgGPS,           // [CFG_GPS]
+        &cfgUnits,         // [CFG_UNITS]
+        &cfgCrossing,      // [CFG_CROSSING]
+        &cfgAudioType,     // [CFG_AUDIO_TYPE]
+        &cfgRotation,      // [CFG_ROTATION]
         &splashView,       // [SPLASH_VIEW]
         &statusView,       // [STATUS_VIEW]
         &timeView,         // [TIME_VIEW]
         &dateView,         // [DATE_VIEW]
-        &volumeView,       // [VOLUME_VIEW]
+        &volumeView,       // [CFG_VOLUME]
   };
 
   int currentView = pView->screenID;
@@ -673,27 +674,27 @@ void selectNewView(int cmd) {
   if (cmd == GOTO_NEXT_VIEW) {
     // operator requested the next NORMAL user view
     switch (currentView) {
-      case GRID_VIEW:   nextView = BARO_VIEW; break;
-      case BARO_VIEW:   nextView = ALTIMETER_VIEW; break;
+      case GRID_VIEW:      nextView = BARO_VIEW; break;
+      case BARO_VIEW:      nextView = ALTIMETER_VIEW; break;
       case ALTIMETER_VIEW: nextView = STATUS_VIEW; break;
-      case STATUS_VIEW: nextView = TIME_VIEW; break;
-      case TIME_VIEW:   nextView = DATE_VIEW; break;
-      case DATE_VIEW:   nextView = GRID_VIEW; break;
+      case STATUS_VIEW:    nextView = TIME_VIEW; break;
+      case TIME_VIEW:      nextView = DATE_VIEW; break;
+      case DATE_VIEW:      nextView = GRID_VIEW; break;
       // none of above: we must be showing some settings view, so go to the first normal user view
-      default:          nextView = GRID_VIEW; break;
+      default:             nextView = GRID_VIEW; break;
     }
   } else {
     // operator requested the next SETTINGS view
     switch (currentView) {
-      case VOLUME_VIEW:  nextView = SETTING2_VIEW; break;
-      //se VOLUME2_VIEW:  nextView = SETTING2_VIEW; break;
-      case SETTING2_VIEW: nextView = SETTING3_VIEW; break;
-      case SETTING3_VIEW: nextView = SETTING4_VIEW; break;
-      case SETTING4_VIEW: nextView = SETTING5_VIEW; break;
-      case SETTING5_VIEW: nextView = SETTING6_VIEW; break;
-      case SETTING6_VIEW: nextView = VOLUME_VIEW; break;
+      case CFG_VOLUME:     nextView = CFG_AUDIO_TYPE; break;
+      //se VOLUME2_VIEW:   nextView = CFG_AUDIO_TYPE; break;
+      case CFG_AUDIO_TYPE: nextView = CFG_CROSSING; break;
+      case CFG_CROSSING:   nextView = CFG_GPS; break;
+      case CFG_GPS:        nextView = CFG_UNITS; break;
+      case CFG_UNITS:      nextView = CFG_ROTATION; break;
+      case CFG_ROTATION:   nextView = CFG_VOLUME; break;
       // none of above: we must be showing some normal user view, so go to the first settings view
-      default:           nextView = VOLUME_VIEW; break;
+      default:             nextView = CFG_VOLUME; break;
     }
   }
   Serial.print("selectNewView() from "); Serial.print(currentView);
@@ -741,11 +742,11 @@ void announceGrid(const String gridName, int length) {
   grid[length] = 0;   // null-terminate string to requested 4- or 6-character length
   Serial.print("Announcing grid: "); Serial.println(grid);
 
-  switch (settings5View.selectedAudio) {
-    case ViewSettings5::MORSE: 
+  switch (cfgAudioType.selectedAudio) {
+    case ViewCfgAudioType::MORSE: 
       sendMorseGrid6( grid );
       break;
-    case ViewSettings5::SPEECH:
+    case ViewCfgAudioType::SPEECH:
       for (int ii=0; ii<strlen(grid); ii++) {
 
         char myfile[32];
@@ -758,7 +759,7 @@ void announceGrid(const String gridName, int length) {
         }
       }
       break;
-    case ViewSettings5::NO_AUDIO:
+    case ViewCfgAudioType::NO_AUDIO:
       // do nothing
       break;
     default:
@@ -912,7 +913,7 @@ void setup() {
   volume.setWiperPosition( gWiper );  // set default volume in digital pot
 
   volumeView.loadConfig();            // restore volume setting from non-volatile RAM
-  settings5View.loadConfig();         // restore Morse-vs-Speech setting from non-volatile RAM
+  cfgAudioType.loadConfig();         // restore Morse-vs-Speech setting from non-volatile RAM
 
   // ----- init DAC for audio/morse code
   #if defined(SAMD_SERIES)
@@ -1097,7 +1098,7 @@ void loop() {
     pView->updateScreen();
 
     // note that cfg_settings4 will handle all of its own morse code announcement 
-    if (pView->screenID != SETTING4_VIEW) {
+    if (pView->screenID != CFG_CROSSING) {
       char newGrid6[7];
       calcLocator(newGrid6, model->gLatitude, model->gLongitude, 6);
       if (model->compare4digits) {

@@ -71,6 +71,7 @@ protected:
 #define col1    10    // left-adjusted column of text
 #define xButton 160   // indented column of buttons
 
+  // these are names for the array indexes, must be named in same order as array below
   enum txtSettings {
     SETTINGS = 0,
     BIGVOLUME,
@@ -178,7 +179,7 @@ protected:
     setVolume(gVolIndex);
   }
 
-};   // end class ViewSettings4
+};   // end class ViewVolume
 
 // ============== implement public interface ================
 void ViewVolume::updateScreen() {
@@ -190,7 +191,7 @@ void ViewVolume::updateScreen() {
 
   txtVolume[MUTELABEL].setBackground(cBUTTONFILL);
   txtVolume[MUTELABEL].print();
-}
+}   // end updateScreen
 
 void ViewVolume::startScreen() {
   // called once each time this view becomes active
@@ -199,9 +200,9 @@ void ViewVolume::startScreen() {
   TextField::setTextDirty(txtVolume, numVolFields);   // make sure all fields get re-printed on screen change
 
   drawAllIcons();              // draw gear (settings) and arrow (next screen)
-  showDefaultTouchTargets();   // optionally draw boxes around button-touch area
+  showDefaultTouchTargets();   // optionally draw box around default button-touch areas
   showScreenBorder();          // optionally outline visible area
-  showScreenCenterline();      // optionally draw alignment bar
+  showScreenCenterline();      // optionally draw visual alignment bar
 
   // ----- draw buttons
   for (int ii = 0; ii < nVolButtons; ii++) {
