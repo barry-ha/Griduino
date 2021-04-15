@@ -151,9 +151,6 @@ In the Arduino IDE menu bar, go to **Tools > Port** and select the COM port that
 1. **Install Libraries**</br>
 In the Arduino IDE menu bar, go to **Tools > Manage Libraries**. Install the latest version (and their dependencies) of these libraries:
    - AudioZero v1.1.1
-   - Bridge v1.7.0
-   - GSM v1.0.6
-   - LiquidCrystal v1.0.7
    - SD v1.2.4
    - TFT v1.0.6
    - Adafruit BMP3XX Library v2.0.2
@@ -161,17 +158,17 @@ In the Arduino IDE menu bar, go to **Tools > Manage Libraries**. Install the lat
    - Adafruit GPS Library v1.5.4
    - Adafruit ILI9341 v1.5.6
    - Adafruit ImageReader Library v2.6.1
-   - Adafruit NeoPixel v1.7.0
+   - Adafruit NeoPixel v1.8.0
    - Adafruit SPIFlash v3.3.6
    - Adafruit TouchScreen v1.1.1
    - elapsedMillis by Paul Stoffregen v1.0.6
-   - SdFat – Adafruit Fork by Bill Greiman v1.2.3 <br>*Note:* Use v1, as we have not tested v2<br> *Note:* do not install SdFat because it has incompatible SdFat.h file
+   - SdFat – Adafruit Fork by Bill Greiman v1.2.3 <br>*Note:* Use v1, as we have not tested v2<br> *Note:* There are two libraries with similar names. Be sure to install "SdFat - Adafruit Fork" and not "SdFat" which has an incompatible SdFat.h file
    - Time by Michael Margolis v1.6.0 <br>*Note:* searching the library manager for the word "time" lists just about every library. Searching for the word "timekeeping" will show the correct library.
 
 These components are outside of Arduino's Library Manager, so follow these links to GitHub and install the latest version:
 
-   - https://github.com/tom-dudman/DS1804 - library to control DS1804 Digital Potentiometer
-   - https://github.com/barry-ha/Audio_QSPI - library to play WAV files from Quad-SPI memory chip
+   - https://github.com/tom-dudman/DS1804 v0.1.1 - library to control DS1804 Digital Potentiometer
+   - https://github.com/barry-ha/Audio_QSPI v1.1.0 - library to play WAV files from Quad-SPI memory chip
 
 
 <h2 id=disclaimer>6. Disclaimer</h2>
