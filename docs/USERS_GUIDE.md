@@ -38,7 +38,12 @@ When you cross a grid line, the new grid is announced with Morse Code on the spe
 
 When you arrive at a destination, you might want to switch to the GMT clock view. This is useful to visually compare to your computer clock for accurate time.
 
-Griduino has non-volatile memory to save its settings, the breadcrumb trail, barometer readings, and more while it is turned off. 
+Griduino has non-volatile memory to save its settings, the breadcrumb trail, barometer readings, and more while it is turned off.
+
+Optional connectors:
+
+* Connect headphones or speaker to hear audio. [Here's how.](https://github.com/barry-ha/Griduino/blob/master/docs/ASSEMBLY.md#speaker "Speaker")
+* Connect a battery or vehicle power. [Here's how.](https://github.com/barry-ha/Griduino/blob/master/docs/ASSEMBLY.md#power "Power")
 
 # 2. Screen Reference Guide
 Griduino will automatically show a few screens in sequence as it powers up. During this time, it does not respond to touches or anything else.

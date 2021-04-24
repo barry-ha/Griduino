@@ -343,7 +343,7 @@ We designed a 3D printed top cover to fit the Polycase bottom half. The STL desi
 
 We recommend 3D printing with PETG or ABS (instead of PLA) for improved durability and UV resistance.
 
-<h3>Step 17: Speaker</h3>
+<h3 id="speaker">Step 17: Speaker</h3>
 
 You can connect a small 8-ohm or 4-ohm speaker either to the stereo plugin jack or to the screw terminal strip.
 
@@ -362,6 +362,22 @@ Gluing or screwing this with the paper cone *in* toward the case will protect it
 ![](img/speaker-img7714.jpg)
 
 Note that additional clarity (less distortion) at high audio volume is available when powering the Griduino from a car’s electrical system with 10-15 vdc, compared to powering it from the 5v USB connector. The higher voltage source reduces clipping at higher volume levels. At lower volume levels, the speaker sounds the same regardless of power source.
+
+<h3 id="power">Step 18: Power Plug</h3>
+
+You can optionally power Griduino from a battery or your vehicle:
+
+* Power plug is positive on center pin and ground on the outer barrel
+* It needs 10-15 vdc and up to 175 mA
+
+Using voltage from your car is often called “the power supply from hell” so it's designed to be well protected:
+
+* Griduino has an internal regulator and filtering for its 12v power input. 
+* An input diode protects Griduino if the 12v polarity is accidentally reversed. 
+* A TVS diode (transient voltage suppression) protects Griduino from voltage spikes.
+* There’s no problem if you connect both the power plug and a USB cable at the same time.
+
+Which power source, 12v or USB,  is best? Not much difference, really. Use the one that’s most convenient. There is a minor advantage in running from 12vdc since the additional headroom allows more speaker volume before audio clipping sets in.
 
 <h2>5. Before You Use It</h2>
 
