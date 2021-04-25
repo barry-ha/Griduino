@@ -4,13 +4,12 @@
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
 
-  Purpose:  This screen shows most of what the GPS knows about location
-            and velocity in text format. Results are updated in real time.
+  Purpose:  Show the grid square's characteritics and how it is
+            displayed on the screen. It gives a sense of how to 
+            interpret the bread crumb trail, and why it doesn't 
+            appear to update very often.
 
-            Todo: Add "internal temperature: 97F" readout
-            Add "local time zone: -7h" readout
-
-            +-----------------------------------+
+up to v1.0: +-----------------------------------+
             |         GMT:  19:54:14            |...yRow1
             |               Jan 15, 2020        |...yRow2
             |        Grid:  CN87us              |...yRow3
@@ -19,6 +18,20 @@
             |          47.0753, -122.2847       |...yRow6
             |   Waiting for GPS                 |...yRow7?
             |                                   |
+            +------------:--:-------------------+
+                    labelX  valueX
+
+2021-04-25: +-----------------------------------+
+            | *        Size and Scale           |
+            |     Jan 15, 2020  19:54:14        |
+            |                                   |
+            |   Size CN87:  101.7 x 69.1 mi     |
+            | Size CN87us:  4.4 x 3.3 mi        |
+            |                                   |
+            |   Scale E-W:  1px = 0.81 miles    |
+            |   Scale N-W:  1px = 0.52 miles    |
+            |                                   |
+            | 19'    47.0753, -122.2847     3#  |
             +------------:--:-------------------+
                     labelX  valueX
 */
