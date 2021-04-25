@@ -557,16 +557,23 @@ char* dateToString(char* msg, int len, time_t datetime) {
 
 // Does the GPS real-time clock contain a valid date?
 bool isDateValid(int yy, int mm, int dd) {
+  bool valid = true;
   if (yy < 20) {
-    return false;
+    valid = false;
   }
   if (mm < 1 || mm > 12) {
-    return false;
+    valid = false;
   }
   if (dd < 1 || dd > 31) {
-    return false;
+    valid = false;
   }
-  return true;
+  if (!valid) {
+    // debug - issue message to console, in hopes of tracking down timing problem in Baroduino view
+    char msg[120];
+    snprintf(msg, sizeof(msg), "Date ymd not valid: %d-%d-%d");
+    Serial.print(msg);
+  }
+  return valid;
 }
 
 time_t nextOneSecondMark(time_t timestamp) {
@@ -1110,7 +1117,6 @@ void loop() {
   }
 
   // if there's touchscreen input, handle it
-  //                                ul        size
   Point touch;
   if (newScreenTap(&touch)) {
 
