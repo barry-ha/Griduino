@@ -7,6 +7,13 @@ Version numbers correspond to [Downloads](https://github.com/barry-ha/Griduino/t
 
 The changelog format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and the Griduino project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+
+**v1.01** &nbsp; 2020-0426
+
+New: Replaced the status screen with new "Grid Size and Scale" information.
+
+This gives the user a sense of scale looking at our main screen map. It helps understand the bread crumb trail and how far to go within a 4-digit and 6-digit grid squares. The previous status screen was one of the first screens built and became redundant with other screens.
+
 **v1.0** &nbsp; 2020-04-17
 
 Griduino has all major features completed, so the version number jumps to **v1.0**. We like the [semantic versioning](https://semver.org/) scheme so we'll manage our version numbers accordingly. However, since Griduino doesn't have an API, our scheme is  modified to only use two numbers. 
