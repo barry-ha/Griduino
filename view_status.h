@@ -5,33 +5,19 @@
   Hardware: John Vanderbeck, KM7O, Seattle, WA
 
   Purpose:  Show the grid square's characteritics and how it is
-            displayed on the screen. It gives a sense of how to 
-            interpret the bread crumb trail, and why it doesn't 
-            appear to update very often.
+            displayed on the screen. It gives the user a sense of 
+            how to interpret the bread crumb trail, and how far to
+            to within a 6-digit grid square.
 
-up to v1.0: +-----------------------------------+
-            |         GMT:  19:54:14            |...yRow1
-            |               Jan 15, 2020        |...yRow2
-            |        Grid:  CN87us              |...yRow3
-            |    Altitude:  xx.x ft             |...yRow4
-            |  Satellites:  None                |...yRow5
-            |          47.0753, -122.2847       |...yRow6
-            |   Waiting for GPS                 |...yRow7?
+            +-----------------------------------+
+            | *      Grid Size and Scale      > |...yRow1
+            |                                   |...yRow2 (unused)
+            |     Size CN87:  93 x 69 mi        |...yRow3
+            |   Size CN87us:  3.9 x 2.9 mi      |...yRow4
             |                                   |
-            +------------:--:-------------------+
-                    labelX  valueX
-
-2021-04-25: +-----------------------------------+
-            | *        Size and Scale           |
-            |     Jan 15, 2020  19:54:14        |
+            |   Scale:  1 pixel = 0.5 miles     |...yRow5
             |                                   |
-            |   Size CN87:  101.7 x 69.1 mi     |
-            | Size CN87us:  4.4 x 3.3 mi        |
-            |                                   |
-            |   Scale E-W:  1px = 0.81 miles    |
-            |   Scale N-W:  1px = 0.52 miles    |
-            |                                   |
-            | 19'    47.0753, -122.2847     3#  |
+            |    Jan 01, 2020  01:01:01  GMT    |...yRow7
             +------------:--:-------------------+
                     labelX  valueX
 */
@@ -45,7 +31,7 @@ up to v1.0: +-----------------------------------+
 
 // ========== extern ===========================================
 extern Model* model;                  // "model" portion of model-view-controller
-
+void floatToCharArray(char* result, int maxlen, double fValue, int decimalPlaces);  // Griduino.ino
 extern void showDefaultTouchTargets();// Griduino.ino
 
 // ========== class ViewStatus =================================
@@ -67,35 +53,46 @@ class ViewStatus : public View {
     // color scheme: see constants.h
 
     // vertical placement of text rows
-    const int yRow1 = 24;
-    const int yRow2 = yRow1 + 32;
-    const int yRow3 = yRow2 + 44;
-    const int yRow4 = yRow3 + 44;
-    const int yRow5 = yRow4 + 32;
-    const int yRow6 = yRow5 + 40;
-    const int yRow7 = yRow6 + 24;
+    const int space = 30;
+    const int half = space/2;
 
-    const int labelX = 114;               // right-align labels, near their values
+    const int yRow1 = 18;
+    const int yRow2 = yRow1 + space;
+    const int yRow3 = yRow2 + half;
+    const int yRow4 = yRow3 + space;
+    const int yRow5 = yRow4 + space+half;
+    const int yRow6 = yRow5 + space;
+    const int yRow7 = 226;                // GMT date on bottom row, "226" will match other views
+
+    const int labelX = 122;               // right-align labels, near their values
     const int valueX = 140;               // left-align values
 
-    // ----- static screen text
-    #define nStatusLabels 4
-    TextField txtLabels[nStatusLabels] = {
-      { "GMT:",        labelX, yRow1, cLABEL, ALIGNRIGHT },
-      { "Grid:",       labelX, yRow3, cLABEL, ALIGNRIGHT },
-      { "Altitude:",   labelX, yRow4, cLABEL, ALIGNRIGHT },
-      { "Satellites:", labelX, yRow5, cLABEL, ALIGNRIGHT },
+    const int label2 = 100;
+    const int value2 = 118;
+
+    // ----- screen text
+    // names for the array indexes, must be named in same order as array below
+    enum txtIndex {
+      TITLE=0,
+      GRID4, SIZE4,
+      GRID6, SIZE6, 
+      SCALE_LABEL, SCALE,
+      GMT_DATE, GMT_TIME, GMT
     };
 
-    // ----- dynamic screen text
-    #define nStatusValues 6
+    // ----- static + dynamic screen text
+    #define nStatusValues 10
     TextField txtValues[nStatusValues] = {
-      TextField(valueX, yRow1, cVALUE),     // [0] GMT time
-      TextField(valueX, yRow2, cVALUE),     // [1] GMT date
-      TextField(valueX, yRow3, cHIGHLIGHT), // [2] Grid6, brighter color because "grid" is important
-      TextField(valueX, yRow4, cVALUE),     // [3] Altitude
-      TextField(valueX, yRow5, cVALUE),     // [4] Satellites
-      TextField(  64,   yRow6, cVALUE),     // [5] lat/long
+      {"Grid Size and Scale",  -1, yRow1, cTITLE,     ALIGNCENTER, eFONTSMALLEST},  // [TITLE] view title, centered
+      {"CN87:",            labelX, yRow3, cLABEL,     ALIGNRIGHT,  eFONTSMALL},     // [GRID4]
+      {"101 x 69 mi",      valueX, yRow3, cHIGHLIGHT, ALIGNLEFT,   eFONTSMALL},     // [SIZE4]
+      {"CN87us:",          labelX, yRow4, cLABEL,     ALIGNRIGHT,  eFONTSMALL},     // [GRID6]
+      {"4.4 x 3.3 mi",     valueX, yRow4, cVALUE,     ALIGNLEFT,   eFONTSMALL},     // [SIZE6]
+      {"Screen:",          label2, yRow5, cLABEL,     ALIGNRIGHT,  eFONTSMALL},     // [SCALE_LABEL]
+      {"1 pixel = 0.7 mi", value2, yRow5, cVALUE,     ALIGNLEFT,   eFONTSMALL},     // [SCALE]
+      {"Apr 26, 2021",        130, yRow7, cFAINT,     ALIGNRIGHT,  eFONTSMALLEST},  // [GMT_DATE]
+      {"02:34:56",            148, yRow7, cFAINT,     ALIGNLEFT,   eFONTSMALLEST},  // [GMT_TIME]
+      {"GMT",                 232, yRow7, cFAINT,     ALIGNLEFT,   eFONTSMALLEST},  // [GMT]
     };
 
 };  // end class ViewStatus
@@ -105,54 +102,74 @@ void ViewStatus::updateScreen() {
   // called on every pass through main()
 
   setFontSize(12);
-
-  // ----- GMT time
-  char sTime[10];                     // strlen("19:54:14") = 8
-  model->getTime(sTime);
-  txtValues[0].print(sTime);
-
-  // ----- GMT date
-  char sDate[15];                     // strlen("Jan 12, 2020") = 13
-  model->getDate(sDate, sizeof(sDate));
-  txtValues[1].print(sDate);
-
-  // ----- grid square
-  char sGrid[10];                     // strlen("CN87us") = 6
-  calcLocator(sGrid, model->gLatitude, model->gLongitude, 6);
-  txtValues[2].print(sGrid);
-  
-  // ----- altitude
-  float altitude = model->gAltitude*feetPerMeters;
-  String sValue = String(altitude, 0) + " ft";
-  sValue.trim();                      // remove leading blanks and whitespace
-  char sAltitude[12];                 // strlen("12345 ft") = 8
-  sValue.toCharArray(sAltitude, sizeof(sAltitude)-1);
-  txtValues[3].print(sAltitude);
-
-  // ----- satellites
-  uint8_t numSatellites = model->gSatellites;
-  uint16_t color;
-  char sSatellites[6];                // strlen("none") = 4, strlen("4") = 1
-  if (numSatellites > 0) {
-    txtValues[4].color = cVALUE;
-    txtValues[4].print(numSatellites);
-  } else {
-    txtValues[4].color = cWARN;
-    txtValues[4].print("None");
+  char sUnits[] = "mi";
+  if (model->gMetric) {
+    strcpy(sUnits, "km");
   }
 
-  // ----- center lat/long on its own row
-  char sLatLong[22];                  // strlen("-xxx.xxxx,-yyy.yyyy") = 19
-  snprintf(sLatLong, 22, "%.4f, %.4f",
-                model->gLatitude, model->gLongitude);
-  txtValues[5].print(sLatLong);
+  // ----- 4-digit grid size
+  char sGrid[10];                         // strlen("CN87us") = 6
+  calcLocator(sGrid, model->gLatitude, model->gLongitude, 4);
+  strcat(sGrid, ":");
+  txtValues[GRID4].print(sGrid);
+
+  // all North-South distances are the same but we'll calculate it anyway
+  float nextNorth = model->nextGridLineNorth();
+  float nextSouth = model->nextGridLineSouth();
+  float nextEast = model->nextGridLineEast();
+  float nextWest = model->nextGridLineWest();
+  int nsDistance = (int) round(model->calcDistanceLat(nextNorth, nextSouth));
+  int ewDistance = (int) round(model->calcDistanceLong(model->gLatitude, nextEast, nextWest));
+
+  char msg[33];
+  snprintf(msg, sizeof(msg), "%d x %d %s", ewDistance, nsDistance, sUnits);
+  txtValues[SIZE4].print(msg);
+  
+  // ----- 6-digit grid size
+  calcLocator(sGrid, model->gLatitude, model->gLongitude, 6);
+  strcat(sGrid, ":");
+  txtValues[GRID6].print(sGrid);
+
+  nextNorth = model->nextGrid6North();
+  nextSouth = model->nextGrid6South();
+  nextEast = model->nextGrid6East();
+  nextWest = model->nextGrid6West();
+  float fNS = model->calcDistanceLat(nextNorth, nextSouth);
+  float fEW = model->calcDistanceLong(model->gLatitude, nextEast, nextWest);
+  char sNS[10], sEW[10];
+  floatToCharArray(sNS, 8, fNS, 1);
+  floatToCharArray(sEW, 8, fEW, 1);
+  snprintf(msg, sizeof(msg), "%s x %s %s", sEW, sNS, sUnits);
+  txtValues[SIZE6].print(msg);
+
+  // ----- scale of our screen map and the breadcrumb trail
+  // averaging together the scale in each direction
+  // this is the minimum real-world travel required to turn on the next pixel
+  const double minLong = gridWidthDegrees / gBoxWidth;  // longitude degrees from one pixel to the next
+  const double minLat = gridHeightDegrees / gBoxHeight; // latitude degrees from one pixel to the next
+
+  float ewScale = model->calcDistanceLong(model->gLatitude, 0.0, minLong);
+  float nsScale = model->calcDistanceLat(0.0, minLat);
+  float scale = (ewScale + nsScale)/2;
+  char sScale[10];
+  floatToCharArray(sScale, 8, scale, 1);
+  snprintf(msg, sizeof(msg), "1 pixel = %s %s", sScale, sUnits);
+  txtValues[SCALE].print(msg);
+
+  // ----- GMT date & time
+  char sDate[15];                     // strlen("Jan 12, 2020") = 13
+  char sTime[10];                     // strlen("19:54:14") = 8
+  model->getDate(sDate, sizeof(sDate));
+  model->getTime(sTime);
+  txtValues[GMT_DATE].print(sDate);
+  txtValues[GMT_TIME].print(sTime);
+  txtValues[GMT].print();
 } // end updateScreen
 
 void ViewStatus::startScreen() {
   // called once each time this view becomes active
   this->clearScreen(this->background);                  // clear screen
   txtValues[0].setBackground(this->background);         // set background for all TextFields in this view
-  TextField::setTextDirty( txtLabels, nStatusLabels );
   TextField::setTextDirty( txtValues, nStatusValues );  // make sure all fields get re-printed on screen change
   setFontSize(eFONTSMALL);
 
@@ -161,11 +178,9 @@ void ViewStatus::startScreen() {
   showScreenBorder();                 // optionally outline visible area
   showScreenCenterline();             // optionally draw visual alignment bar
 
-  // ----- draw text fields
-  for (int ii=0; ii<nStatusLabels; ii++) {
-    txtLabels[ii].print();
-  }
-
+  // ----- draw fields that have static text
+  txtValues[TITLE].print();
+  txtValues[SCALE_LABEL].print();
   updateScreen();                     // fill in values immediately, don't wait for the main loop to eventually get around to it
 
   #ifdef SHOW_SCREEN_CENTERLINE
