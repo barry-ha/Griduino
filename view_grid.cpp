@@ -36,8 +36,6 @@ extern Model* model;                  // "model" portion of model-view-controlle
 
 extern void showDefaultTouchTargets();  // Griduino.ino
 extern void setFontSize(int font);      // TextField.cpp
-extern float nextGridLineEast(float longitudeDegrees);       // Griduino.ino
-extern float nextGridLineWest(float longitudeDegrees);       // Griduino.ino
 extern void floatToCharArray(char* result, int maxlen, double fValue, int decimalPlaces);  // Griduino.ino
 
 // ============== constants ====================================
@@ -168,8 +166,8 @@ void drawBoxLatLong() {
   setFontSize(12);
   txtGrid[N_BOX_LAT].print( ceil(model->gLatitude) );    // latitude of N,S box edges
   txtGrid[S_BOX_LAT].print( floor(model->gLatitude) );
-  txtGrid[E_BOX_LONG].print( nextGridLineEast(model->gLongitude) ); // longitude of E,W box edges
-  txtGrid[W_BOX_LONG].print( nextGridLineWest(model->gLongitude) );
+  txtGrid[E_BOX_LONG].print( model->nextGridLineEast() ); // longitude of E,W box edges
+  txtGrid[W_BOX_LONG].print( model->nextGridLineWest() );
   
   int radius = 3;
   // draw "degree" symbol at:       x                        y        r     color
@@ -212,8 +210,8 @@ void drawNeighborDistances() {
   }
   
   // E-W: grid lines occur on nearest EVEN degrees
-  int eastLine = ::nextGridLineEast(model->gLongitude);
-  int westLine = ::nextGridLineWest(model->gLongitude);
+  int eastLine = model->nextGridLineEast();
+  int westLine = model->nextGridLineWest();
   float fEast = model->calcDistanceLong(model->gLatitude, model->gLongitude, eastLine);
   float fWest = model->calcDistanceLong(model->gLatitude, model->gLongitude, westLine);
   if (fEast < 2.0) {
@@ -394,7 +392,7 @@ void ViewGrid::updateScreen() {
   // called on every pass through main()
 
   // coordinates of lower-left corner of currently displayed grid square
-  PointGPS gridOrigin{ nextGridLineSouth(model->gLatitude), nextGridLineWest(model->gLongitude) };
+  PointGPS gridOrigin{ model->nextGridLineSouth(), model->nextGridLineWest() };
 
   PointGPS myLocation{ model->gLatitude, model->gLongitude }; // current location
   
