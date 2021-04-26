@@ -15,9 +15,6 @@
 // ========== extern ===========================================
 extern Adafruit_GPS GPS;
 void calcLocator(char* result, double lat, double lon, int precision); // Griduino.ino
-float nextGridLineEast(float longitudeDegrees);
-float nextGridLineWest(float longitudeDegrees);
-float nextGridLineSouth(float latitudeDegrees);
 void floatToCharArray(char* result, int maxlen, double fValue, int decimalPlaces);  // Griduino.ino
 bool isVisibleDistance(const PointGPS from, const PointGPS to); // view_grid.cpp
 
@@ -376,11 +373,12 @@ class Model {
     //=========== distance helpers =============================
     double calcDistanceLat(double fromLat, double toLat) {
       // calculate distance in N-S direction (miles)
-      // returns 4-character String
+      // input:   latitudes in degrees
+      // returns: 'double' in either English or Metric
 
-      double R = 3958.8;                  // average Earth radius (kilometers)
+      double R = 3958.8;                  // average Earth radius (miles)
       if (gMetric) {
-        R = 6371.0;                       // average Earth radius (miles)
+        R = 6371.0;                       // average Earth radius (kilometers)
       }
       double angleDegrees = fabs(fromLat - toLat);
       double angleRadians = angleDegrees / degreesPerRadian;
@@ -389,7 +387,8 @@ class Model {
     }
     double calcDistanceLong(double lat, double fromLong, double toLong) {
       // calculate distance in E-W direction (degrees)
-      // returns 4-character String (miles)
+      // input:   latitudes in degrees
+      // returns: 'double' in either English or Metric
 
       double R = 3958.8;                  // average Earth radius (miles)
       if (gMetric) {
@@ -401,6 +400,52 @@ class Model {
       double distance = angleRadians * R;
       return distance;
     }
+
+    // ============== grid helpers =================================
+    float nextGridLineNorth(void) {     // if no value given, use current GPS reading
+      return nextGridLineNorth(gLatitude);
+    }
+    float nextGridLineNorth(float latitudeDegrees) {
+      return ceil(latitudeDegrees);
+    }
+    float nextGrid6North(void) {
+      // six-digit grid every 2.5 minutes latitude (2.5/60 = 0.041666 degrees)
+      return ceil(gLatitude*60.0/2.5) / (60.0/2.5);
+    }
+    float nextGridLineSouth(void) {   // if no value given, use current GPS reading
+      return nextGridLineSouth(gLatitude);
+    }
+    float nextGridLineSouth(float latitudeDegrees) {
+      return floor(latitudeDegrees);
+    }
+    float nextGrid6South(void) {
+      // six-digit grid every 2.5 minutes latitude (2.5/60 = 0.041666 degrees)
+      return floor(gLatitude*60.0/2.5) / (60.0/2.5);
+    }
+
+    // given a position, find the longitude of the next grid line
+    // this is always an even integer number since grids are 2-degrees wide
+    float nextGridLineEast(void) {
+      return nextGridLineEast(gLongitude);
+    }
+    float nextGridLineEast(float longitudeDegrees) {
+      return ceil(longitudeDegrees / 2) * 2;
+    }
+    float nextGrid6East(void) {
+      // six-digit grid every 5 minutes longitude (5/60 = 0.08333 degrees)
+      return floor(gLongitude*60.0/5.0) / (60.0/5.0);
+    }
+    float nextGridLineWest(void) {
+      return nextGridLineWest(gLongitude);
+    }
+    float nextGridLineWest(float longitudeDegrees) {
+      return floor(longitudeDegrees / 2) * 2;
+    }
+    float nextGrid6West(void) {
+      // six-digit grid every 5 minutes longitude (5/60 = 0.08333 degrees)
+      return ceil(gLongitude*60.0/5.0) / (60.0/5.0);
+    }
+
 
   private:
     void echoGPSinfo() {

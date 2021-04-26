@@ -51,7 +51,7 @@
 
          4. Adafruit BMP388 Barometric Pressure             https://www.adafruit.com/product/3966
 
-         5. One-transistor audio amplifier, digital potentiometer and mini speaker
+         5. One-chip audio amplifier, digital potentiometer and mini speaker
             Speaker is a commodity item and many devices and options are available.
             We tested a piezo speaker but they're tuned for a narrow frequency and 
             unsatisfactory for anything but a single pitch.
@@ -408,18 +408,6 @@ void mapTouchToScreen(TSPoint touch, Point* screen) {
 }
 
 // ============== grid helpers =================================
-
-// given a position, find the longitude of the next grid line
-// this is always an even integer number since grids are 2-degrees wide
-float nextGridLineEast(float longitudeDegrees) {
-  return ceil(longitudeDegrees / 2) * 2;
-}
-float nextGridLineWest(float longitudeDegrees) {
-  return floor(longitudeDegrees / 2) * 2;
-}
-float nextGridLineSouth(float latitudeDegrees) {
-  return floor(latitudeDegrees);
-}
 void calcLocator(char* result, double lat, double lon, int precision) {
   // Converts from lat/long to Maidenhead Grid Locator
   // From: https://ham.stackexchange.com/questions/221/how-can-one-convert-from-lat-long-to-grid-square
