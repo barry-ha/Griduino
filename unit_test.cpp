@@ -14,8 +14,6 @@
 #include "view.h"                   // Base class for all views
 
 // ========== extern ==================================
-extern float nextGridLineEast(float longitudeDegrees);       // Griduino.ino
-extern float nextGridLineWest(float longitudeDegrees);       // Griduino.ino
 extern void calcLocator(char* result, double lat, double lon, int precision); // Griduino.ino
 extern void setFontSize(int font);             // TextField.cpp
 extern void clearScreen();                     // Griduino.ino
@@ -32,7 +30,7 @@ TextField txtTest("test", 1,21, ILI9341_WHITE);
 // Testing "grid helper" routines in Griduino.ino
 void testNextGridLineEast(float fExpected, double fLongitude) {
   // unit test helper for finding grid line crossings
-  float result = nextGridLineEast(fLongitude);
+  float result = model->nextGridLineEast(fLongitude);
   //~Serial.print("Grid Crossing East: given = "); //~Serial.print(fLongitude);
   //~Serial.print(", expected = "); //~Serial.print(fExpected);
   //~Serial.print(", result = "); //~Serial.print(result);
