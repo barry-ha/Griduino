@@ -99,9 +99,23 @@ Insert the larger TVS diode, D4, and solder into place. Although the board marki
 
 Automobiles are "the power supply from hell." The TVS diode protects the Griduino from wild voltage spikes in either direction. 
 
-<h3>Step 3: Resistors</h3>
+<h3>Step 3: Small 0.1 uF Capacitors</h3>
 
-This kit uses five resistors, R1 - R5, each of a different value. Refer to the [bill-of-materials](https://github.com/barry-ha/Griduino/blob/master/hardware/bill_of_materials.md#passive-components "BOM") or schematic for the values.
+The four tiny 0.1 uF ceramic capacitors are all the same, but they're tiny so don't drop them. They are not polarized; however, it is good practice to orient their labels all in the same direction to make it easier to read their legends.
+
+Solder the four small ceramic capacitors onto the PCB and snip off excess wire length.
+
+![](img/ceramics-img7062.jpg)
+
+<h3>Step 4: Resistors</h3>
+
+This kit uses five resistors, R1 - R5, each of a different value as shown in the v4 [bill-of-materials](https://github.com/barry-ha/Griduino/blob/master/hardware/bill_of_materials.md#passive-components "BOM") or [schematic](https://github.com/barry-ha/Griduino/blob/master/hardware/Griduino%20v4%20Schematic%202020-04-28.png):
+
+1. R1 = 22 ohms, 2-watt
+2. R2 = 82K
+3. R3 = 10K
+4. R4 = 10 ohm
+5. R5 = 100 ohm
 
 Measure the resistance of each item with your ohmmeter before installation. These resistors are very small and it's easy to mistake the color coded bands.
 
@@ -110,14 +124,6 @@ Insert resistor R1 - R5 onto the PCB. It is good practice to orient the color co
 Solder the five resistors and snip off excess wire lengths.
 
 ![](img/resistors-img7061.jpg)
-
-<h3>Step 4: Small 0.1 uF Capacitors</h3>
-
-The four tiny 0.1 uF ceramic capacitors are all the same, but they're tiny so don't drop them. They are not polarized; however, it is good practice to orient their labels all in the same direction to make it easier to read their legends.
-
-Solder the four small ceramic capacitors onto the PCB and snip off excess wire length.
-
-![](img/ceramics-img7062.jpg)
 
 <h3>Step 5: Electrolytic Capacitors</h3>
 
@@ -168,6 +174,8 @@ To test a Feather, plug a standard micro-USB cable into the onboard connector; t
 <h3>Step 9: Installing Feather M4 Express</h3>
 
 The Feather comes with two 16-pin header strips loose in the package. Take one 16-pin strip and break off 4 pins so it exactly matches the Feather's pinout: one 12-pin strip, and one 16-pin strip. 
+
+Keep the small 4-pin piece that you separated. We'll use all of them later: two pins for the barometric sensor, two pins for the display.
 
 Put the header strips into the PCB; this ensures precise alignment. The long end of the pins go down into the breadboard; the short end goes into the Feather's PCB. (Actually the long pins can go up *or* down, it doesn't matter. We like them down for a more tidy appearance from the top.)
 
@@ -299,7 +307,7 @@ Don't overtighten the PCB screws. These are short, small screws and can be easil
 
 **Optional:** You can buy an active external antenna for this GPS from other vendors. The GPS has a "uFL" connector so be aware that you may need an [SMA to uFL RF Adapter Cable]([https://www.adafruit.com/product/851), depending on your choice of antenna.
 
-**Optional:** If you'd like to run wires (e.g. power or speaker) through the back of the case, then drill a 3/8" hole (9 mm) at the position the mark in the mold as shown in the photo below.
+**Optional:** If you'd like to run wires (e.g. power or speaker) through the back of the case, then drill a 3/16" hole (9 mm) at the position the mark in the mold as shown in the photo below.
 
 ![](img/feedthru-hole-img7588.jpg)
 
@@ -316,8 +324,8 @@ There are several choices for the top cover. Choose one of these according to yo
 <h3>16.a No cover</h3>
 This is how I use my Griduino. This is the easiest way to reach the Reset button during software development or to double-click the Reset button to apply pre-compiled software updates. 
 
-<h3>16.b Polycase standard cover</h3>
-If you have the unmodified [Polycase QS50](https://www.polycase.com/qs-50), carefully cut an opening to fit the display. A [manual cutting template](https://github.com/barry-ha/Griduino/tree/master/hardware) is available that can be printed and taped on for guidance.  Cutting the top cover's opening by hand is actually rather difficult to do accurately and neatly.
+<h3>16.b Polycase standard cover</h3> 
+If you have the unmodified [Polycase QS50](https://www.polycase.com/qs-50), carefully cut an opening to fit the display. A [manual cutting template](https://github.com/barry-ha/Griduino/tree/master/hardware) can be printed and taped on for guidance.  Cutting the top cover's opening by hand is actually rather difficult to do accurately and neatly.
 
 Carefully cut openings for the connectors and display with a sharp craft knife.
 
