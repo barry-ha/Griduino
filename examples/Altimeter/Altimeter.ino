@@ -1,7 +1,7 @@
 /*
   Altimeter -- a functional altimeter with comparison to GPS altitudes
 
-  Version history: 
+  Version history:
             2021-01-30 added support for BMP390 and latest Adafruit_BMP3XX library
             2020-05-12 updated TouchScreen code
             2020-03-06 created 0.9
@@ -69,8 +69,7 @@
 #define SCREEN_ROTATION 1             // 1=landscape, 3=landscape 180-degrees
 
 // ---------- Hardware Wiring ----------
-/* Same as Griduino platform
-*/
+// Same as Griduino platform - see hardware.h
 
 // TFT display and SD card share the hardware SPI interface, and have
 // separate 'select' pins to identify the active device on the bus.
