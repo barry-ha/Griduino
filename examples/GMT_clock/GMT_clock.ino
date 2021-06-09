@@ -663,7 +663,7 @@ void setup() {
   //GPS.sendCommand(PMTK_SET_NMEA_UPDATE_200_MILLIHERTZ); // Once every 5 seconds update
 
   // ----- query GPS
-  Serial.print("Sending command to query GPS Firmware version");
+  Serial.print("Sending command to query GPS Firmware version ");
   Serial.println(PMTK_Q_RELEASE);     // Echo query to console
   GPS.sendCommand(PMTK_Q_RELEASE);    // Send query to GPS unit
                                       // expected reply: $PMTK705,AXN_2.10...
