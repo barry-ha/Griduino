@@ -2,7 +2,7 @@
 
 // ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE    "Griduino"
-#define PROGRAM_VERSION  "v1.01"
+#define PROGRAM_VERSION  "v1.02"
 #define PROGRAM_LINE1    "Barry K7BWH"
 #define PROGRAM_LINE2    "John KM7O"
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
@@ -92,6 +92,7 @@ const int OFF       = 0;     // = turned off
 #define cBOXDEGREES    0x0410           // 0, 128, 128 = blue, between CYAN and DARKCYAN
 #define cBUTTONLABEL   ILI9341_YELLOW   //
 #define cCOMPASS       ILI9341_BLUE     // a little darker than cBUTTONOUTLINE
+#define cSTATUS        0xFC10           // 255, 128, 128 = lavendar
 #define cWARN          0xF844           // brighter than ILI9341_RED but not pink
 #define cTOUCHTARGET   ILI9341_RED      // outline touch-sensitive areas
 

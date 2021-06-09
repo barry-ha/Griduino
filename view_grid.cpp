@@ -76,9 +76,9 @@ TextField txtGrid[] = {
   //         text      x,y     color
   TextField("CN77",  101,101,  cGRIDNAME),      // GRID4: center of screen
   TextField("tt",    138,141,  cGRIDNAME),      // GRID6: center of screen
-  TextField("47.1234,-123.4567", 4,223, cWARN), // LATLONG: left-adj on bottom row
-  TextField("123'",   62,196,  cWARN, ALIGNRIGHT),  // ALTITUDE: just above bottom row
-  TextField("99#",   313,221,  cWARN, ALIGNRIGHT),  // NUMSAT: lower right corner
+  TextField("47.1234,-123.4567", 4,223, cSTATUS), // LATLONG: left-adj on bottom row
+  TextField("123'",   62,196,  cSTATUS, ALIGNRIGHT),  // ALTITUDE: just above bottom row
+  TextField("99#",   313,221,  cSTATUS, ALIGNRIGHT),  // NUMSAT: lower right corner
   TextField( "N",    156, 47,  cCOMPASS ),      // N_COMPASS: centered left-right
   TextField( "S",    156,181,  cCOMPASS ),      // S_COMPASS
   TextField( "E",    232,114,  cCOMPASS ),      // E_COMPASS: centered top-bottom
