@@ -11,6 +11,7 @@
 *.psd 
 *.xlsx
 docs_mfr/
+orders/
 work_in_progress/
 
 # User-specific files
