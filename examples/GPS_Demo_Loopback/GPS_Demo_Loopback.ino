@@ -154,8 +154,10 @@ const int howLongToWait = 8;   // max number of seconds at startup waiting for S
 #define indent 10
 #define yRow1  20           // program title
 #define yRow2  yRow1 + 22   // program version
-#define yRow3  yRow2 + 58   // message line 1
-#define yRow4  yRow3 + 24   // message line 2
+#define yRow3  yRow2 + 48   // message line 1
+#define yRow4  yRow3 + 22   // message line 2
+#define yRow5  yRow4 + 36   // echo GPS sentence, even
+#define yRow6  yRow5 + 48   // echo GPS sentence, odd
 
 void clearScreen(int color = cBACKGROUND) {
   tft.fillScreen(color);
@@ -206,6 +208,7 @@ void setup() {
 
   // ----- announce ourselves
   startSplashScreen();
+  tft.setCursor(indent, yRow5);   // prepare for the first NMEA sentence to show on screen
 
   // ----- init serial monitor
   Serial.begin(115200);           // init for debugging in the Arduino IDE
@@ -228,7 +231,7 @@ void setup() {
 
   init_Adafruit_GPS();
 
-  //init_Quectel_GPS();
+  //init_Quectel_GPS();   // todo, after we figure out what special init is needed
 }
 
 //=========== Adafruit Ultimate GPS ============================
@@ -268,12 +271,20 @@ void init_Adafruit_GPS() {
 }
 
 //=========== main work loop ===================================
+int count = 0;   // number of NMEA sentences received
 
 void loop() {
   if (Serial1.available()) {   // read from GPS
     char c = Serial1.read();
     Serial.write(c);   // write to console
-    //mySerial.write(c);
+
+    if (c == '$') {
+      int yy = (count % 2) ? yRow5 : yRow6;
+      tft.setCursor(indent, yy);
+      tft.fillRect(0, yy, tft.width(), 36, cBACKGROUND);
+      count++;
+    }
+    tft.print(c);
   }
   if (Serial.available()) {   // read from console
     char c = Serial.read();
