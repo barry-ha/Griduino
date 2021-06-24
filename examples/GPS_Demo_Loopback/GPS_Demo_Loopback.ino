@@ -16,11 +16,12 @@
 
   Tested with:
          1. Arduino Feather M4 Express (120 MHz SAMD51)     https://www.adafruit.com/product/3857
+
          2. Adafruit Ultimate GPS                           https://www.adafruit.com/product/746
-               Tested and works great with the Adafruit Ultimate GPS module (MTK33x9 chipset)
-         3. Quectel LC86L GPS chip on our breakout board, pin-compatible with Adafruit Ultimate GPS
-            L86 is an ultra compact GNSS POT (Patch on Top) module using the MediaTek new generation GNSS chipset MT3333
-            High sensitivity: -167dBm @ Tracking, -149dBm @ Acquisition
+               Tested and works great with the Adafruit Ultimate GPS module (Mediatek MTK33x9 chipset)
+         3. Quectel LC86L GPS chip on a breakout board of our own design
+               L86 is an ultra compact GNSS POT (Patch on Top) module (MediaTek MT3333 chipset)
+               High sensitivity: -167dBm @ Tracking, -149dBm @ Acquisition
 
   NMEA references:
          https://gpsd.gitlab.io/gpsd/NMEA.html - "NMEA Revealed" by Eric S. Raymond, comprehensive guide
@@ -105,9 +106,9 @@
 #include <SPI.h>                 // Serial Peripheral Interface
 #include <Adafruit_GFX.h>        // Core graphics display library
 #include <Adafruit_ILI9341.h>    // TFT color display library
+#include <TouchScreen.h>         // Touchscreen built in to 3.2" Adafruit TFT display
 #include <Adafruit_GPS.h>        // Ultimate GPS library
 #include <Adafruit_NeoPixel.h>   // On-board color addressable LED
-#include "TouchScreen.h"         // Touchscreen built in to 3.2" Adafruit TFT display
 
 // ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE    "GPS Demo Loopback"
@@ -152,12 +153,11 @@ const int howLongToWait = 8;   // max number of seconds at startup waiting for S
 // ========== splash screen helpers ============================
 // splash screen layout
 #define indent 10
-#define yRow1  20           // program title
-#define yRow2  yRow1 + 22   // program version
-#define yRow3  yRow2 + 48   // message line 1
-#define yRow4  yRow3 + 22   // message line 2
-#define yRow5  yRow4 + 36   // echo GPS sentence, even
-#define yRow6  yRow5 + 48   // echo GPS sentence, odd
+#define yRow1  18           // program title & version
+#define yRow2  yRow1 + 22   // message line 1
+#define yRow3  yRow2 + 22   // message line 2
+#define yRow4  yRow3 + 36   // echo GPS sentence, even
+#define yRow5  yRow4 + 60   // echo GPS sentence, odd
 
 void clearScreen(int color = cBACKGROUND) {
   tft.fillScreen(color);
@@ -168,11 +168,11 @@ void startSplashScreen() {
   tft.setTextSize(2);
   tft.setCursor(indent, yRow1);
   tft.print(PROGRAM_TITLE);
-  tft.setCursor(indent, yRow2);
+  tft.print("  ");
   tft.print(PROGRAM_VERSION);
-  tft.setCursor(indent, yRow3);
+  tft.setCursor(indent, yRow2);
   tft.print("See IDE console monitor");
-  tft.setCursor(indent, yRow4);
+  tft.setCursor(indent, yRow3);
   tft.print("for status and results");
 }
 
@@ -208,7 +208,7 @@ void setup() {
 
   // ----- announce ourselves
   startSplashScreen();
-  tft.setCursor(indent, yRow5);   // prepare for the first NMEA sentence to show on screen
+  tft.setCursor(indent, yRow4);   // prepare for the first NMEA sentence to show on screen
 
   // ----- init serial monitor
   Serial.begin(115200);           // init for debugging in the Arduino IDE
@@ -238,36 +238,47 @@ void setup() {
 
 void init_Adafruit_GPS() {
 
-  /***** */
   Serial.print("Set GPS baud rate to 57600: ");
   Serial.println(PMTK_SET_BAUD_57600);
   GPS.sendCommand(PMTK_SET_BAUD_57600);
   delay(50);
   GPS.begin(57600);
-  /* *****/
+  delay(50);             
+
+  // init Quectel L86 chip to improve USA satellite acquisition
+  GPS.sendCommand("$PMTK353,1,0,0,0,0*2A");     // search American GPS satellites only (not Russian GLONASS satellites)
+  delay(50);
 
   Serial.print("Turn on RMC (recommended minimum) and GGA (fix data) including altitude: ");
   Serial.println(PMTK_SET_NMEA_OUTPUT_RMCGGA);
   GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
-  delay(100);
+  delay(50);
 
   Serial.print("Set GPS 1 Hz update rate: ");
   Serial.println(PMTK_SET_NMEA_UPDATE_1HZ);
-  GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);
-  delay(100);
+  //GPS.sendCommand(PMTK_SET_NMEA_UPDATE_5HZ);              // 5 Hz update rate
+  GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);                // 1 Hz
+  //GPS.sendCommand(PMTK_SET_NMEA_UPDATE_200_MILLIHERTZ);   // Every 5 seconds
+  delay(50);
 
-  /***** */
   if (0) {   // this command is saved in the GPS chip NVR, so always send one of these cmds
     Serial.print("Request antenna status: ");
     Serial.println(PGCMD_ANTENNA);    // echo command to console log
     GPS.sendCommand(PGCMD_ANTENNA);   // tell GPS to send us antenna status
+                                      // expected reply: $PGTOP,11,...
   } else {
     Serial.print("Request to NOT send antenna status: ");
     Serial.println(PGCMD_NOANTENNA);    // echo command to console log
     GPS.sendCommand(PGCMD_NOANTENNA);   // tell GPS to NOT send us antena status
   }
-  delay(100);
-  /* *****/
+  delay(50);
+
+  // ----- query GPS firmware
+  Serial.print("Sending command to query GPS Firmware version: ");
+  Serial.println(PMTK_Q_RELEASE);     // Echo query to console
+  GPS.sendCommand(PMTK_Q_RELEASE);    // Send query to GPS unit
+                                      // expected reply: $PMTK705,AXN_2.10...
+  delay(50);
 }
 
 //=========== main work loop ===================================
@@ -279,9 +290,9 @@ void loop() {
     Serial.write(c);   // write to console
 
     if (c == '$') {
-      int yy = (count % 2) ? yRow5 : yRow6;
+      int yy = (count % 2) ? yRow4 : yRow5;
       tft.setCursor(indent, yy);
-      tft.fillRect(0, yy, tft.width(), 36, cBACKGROUND);
+      tft.fillRect(0, yy, tft.width(), 48, cBACKGROUND);
       count++;
     }
     tft.print(c);

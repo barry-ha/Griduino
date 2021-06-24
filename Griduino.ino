@@ -1,7 +1,7 @@
 /*
   Griduino -- Grid Square Tracker with GPS
 
-  Version history: 
+  Version history:
             https://github.com/barry-ha/Griduino/blob/master/downloads/CHANGELOG.md
 
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
@@ -42,14 +42,18 @@
   Tested with:
          1. Arduino Feather M4 Express (120 MHz SAMD51)     https://www.adafruit.com/product/3857
 
-         2. Adafruit 3.2" TFT color LCD display ILI-9341    https://www.adafruit.com/product/1743
+         2. Adafruit Ultimate GPS                           https://www.adafruit.com/product/746
+               Tested and works great with the Adafruit Ultimate GPS module (Mediatek MTK33x9 chipset)
+         3. Quectel LC86L GPS chip on a breakout board of our own design
+               L86 is an ultra compact GNSS POT (Patch on Top) module (MediaTek MT3333 chipset)
+               High sensitivity: -167dBm @ Tracking, -149dBm @ Acquisition
+
+         4. Adafruit 3.2" TFT color LCD display ILI-9341    https://www.adafruit.com/product/1743
             How to:      https://learn.adafruit.com/adafruit-2-dot-8-color-tft-touchscreen-breakout-v2
             SPI Wiring:  https://learn.adafruit.com/adafruit-2-dot-8-color-tft-touchscreen-breakout-v2/spi-wiring-and-test
             Touchscreen: https://learn.adafruit.com/adafruit-2-dot-8-color-tft-touchscreen-breakout-v2/resistive-touchscreen
 
-         3. Adafruit Ultimate GPS                           https://www.adafruit.com/product/746
-
-         4. Adafruit BMP388 Barometric Pressure             https://www.adafruit.com/product/3966
+         5. Adafruit BMP388 Barometric Pressure             https://www.adafruit.com/product/3966
 
          5. One-chip audio amplifier, digital potentiometer and mini speaker
             Speaker is a commodity item and many devices and options are available.
@@ -556,10 +560,10 @@ bool isDateValid(int yy, int mm, int dd) {
     valid = false;
   }
   if (!valid) {
-    // debug - issue message to console, in hopes of tracking down timing problem in Baroduino view
+    // debug - issue message to console to help track down timing problem in Baroduino view
     char msg[120];
     snprintf(msg, sizeof(msg), "Date ymd not valid: %d-%d-%d");
-    Serial.print(msg);
+    Serial.println(msg);
   }
   return valid;
 }
@@ -868,22 +872,42 @@ void setup() {
   // ----- init GPS
   GPS.begin(9600);                              // 9600 NMEA is the default baud rate for Adafruit MTK GPS's
   delay(50);                                    // is delay really needed?
-  GPS.sendCommand(PMTK_SET_BAUD_57600);         // set baud rate to 57600
+  Serial.print("Set GPS baud rate to 57600: ");
+  Serial.println(PMTK_SET_BAUD_57600);
+  GPS.sendCommand(PMTK_SET_BAUD_57600);
   delay(50);
   GPS.begin(57600);
-  GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA); // turn on RMC (recommended minimum) and GGA (fix data) including altitude
+  delay(50);             
 
-  GPS.sendCommand(PMTK_SET_NMEA_UPDATE_5HZ);    // 5 Hz update rate
-  //GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);    // 1 Hz update rate
-  //GPS.sendCommand(PMTK_SET_NMEA_UPDATE_200_MILLIHERTZ); // Once every 5 seconds update
+  // init Quectel L86 chip to improve USA satellite acquisition
+  GPS.sendCommand("$PMTK353,1,0,0,0,0*2A");     // search American GPS satellites only (not Russian GLONASS satellites)
+  delay(50);
 
-  // ----- query GPS
-  Serial.print("Sending command to query GPS Firmware version");
+  Serial.print("Turn on RMC (recommended minimum) and GGA (fix data) including altitude: ");
+  Serial.println(PMTK_SET_NMEA_OUTPUT_RMCGGA);
+  GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
+  delay(50);
+
+  Serial.print("Set GPS 1 Hz update rate: ");
+  Serial.println(PMTK_SET_NMEA_UPDATE_1HZ);
+  //GPS.sendCommand(PMTK_SET_NMEA_UPDATE_5HZ);              // 5 Hz update rate
+  GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);                // 1 Hz
+  //GPS.sendCommand(PMTK_SET_NMEA_UPDATE_200_MILLIHERTZ);   // Every 5 seconds
+  delay(50);
+
+  // todo - figure out how to make Quectel GPS _not_ send ext antenna status
+  //Serial.print("Request antenna status: ");
+  //Serial.println(PGCMD_ANTENNA);    // echo command to console log
+  //GPS.sendCommand(PGCMD_ANTENNA);   // Request antenna status (comment out to keep quiet)
+                                      // expected reply: $PGTOP,11,...
+  //delay(50);
+
+  // ----- query GPS firmware
+  Serial.print("Sending command to query GPS Firmware version: ");
   Serial.println(PMTK_Q_RELEASE);     // Echo query to console
   GPS.sendCommand(PMTK_Q_RELEASE);    // Send query to GPS unit
                                       // expected reply: $PMTK705,AXN_2.10...
-  //GPS.sendCommand(PGCMD_ANTENNA);   // Request antenna status (comment out to keep quiet)
-                                      // expected reply: $PGTOP,11,...
+  delay(50);
 
   // ----- report on our memory hogs
   char temp[200];
