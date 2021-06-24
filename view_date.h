@@ -1,9 +1,13 @@
+// Please format this file with clang before check-in to GitHub
 /*
   File:     view_date.cpp
 
   Special Event Calendar Count - "How many days since Groundhog Day 2020"
+            or "How many days until June VHF Contest"
 
-  Date:     2020-10-15 refactored from .cpp to .h
+  Version history: 
+            2021-06-24 added multiple choices of count-down-to-date 
+            2020-10-15 refactored from .cpp to .h
             2020-10-02 created
 
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
@@ -51,190 +55,265 @@
 
 */
 
-#include <Arduino.h>
-#include <Adafruit_ILI9341.h>         // TFT color display library
-#include <TimeLib.h>                  // BorisNeubert / Time (who forked it from PaulStoffregen / Time)
-#include "constants.h"                // Griduino constants and colors
-#include "model_gps.h"                // Model of a GPS for model-view-controller
-#include "Adafruit_BMP3XX.h"          // Precision barometric and temperature sensor
-#include "TextField.h"                // Optimize TFT display text for proportional fonts
-#include "view.h"                     // Base class for all views
+#include <Adafruit_ILI9341.h>   // TFT color display library
+#include <TimeLib.h>            // BorisNeubert / Time (who forked it from PaulStoffregen / Time)
+#include "constants.h"          // Griduino constants and colors
+#include "model_gps.h"          // Model of a GPS for model-view-controller
+#include "TextField.h"          // Optimize TFT display text for proportional fonts
+#include "view.h"               // Base class for all views
 
-// ======= customize this for any count up/down display ========
-// Example 1: Number of "Groundhog Days"
-//      Encode "Sunday, Feb 2, 2020" as a time_t
-//      But use the day before Feb 2, so the counter includes "Groundhog Day #1" on 2/2/2020
-/* 
-#define HIDE_ELAPSED_HMS
-#define DISPLAY_LINE_1  "Total days including"
-#define DISPLAY_LINE_2  "Sunday, Feb 2, 2020"
-#define DISPLAY_LINE_3  "Groundhog Day"
-//                        s,m,h, dow, d,m,y
-TimeElements targetGMT  { 0,0,7,  1,  1,2,2020-1970};    // GMT Groundhog Day (add 7 hours for when Pacific time starts their new day)
-/* */
+// ===== definitions to manage the count up/down events
+#define DAYS_SINCE   true    // count UP after a date has passed
+#define COUNTDOWN_TO false   // count DOWN until a date is reached
 
-// Example 2: Time until Halloween Trick'r Treaters
-/* 
-#define DISPLAY_LINE_1  "Countdown to"
-#define DISPLAY_LINE_2  "Halloween 6pm"
-#define DISPLAY_LINE_3  "Days til Trick'n Treaters"
-//                        s,m,h,   dow,   d, m, y
-TimeElements targetGMT  { 0,0,7+18,  1,  31,10,2020-1970}; // 6pm Halloween in Pacific time (encoded in GMT by adding 7 hours)
-/* */
+#define SHOW_HMS true
+#define HIDE_HMS false
 
-// Example 3: Time until Christmas Eve
-/*
-#define DISPLAY_LINE_1  "Countdown to"
-#define DISPLAY_LINE_2  "Santa's Arrival"
-#define DISPLAY_LINE_3  "Christmas Eve"
-//                        s,m,h,   dow,   d, m, y
-TimeElements targetGMT  { 0,0,7+0,  1,  25,12,2020-1970}; // Midnight in Pacific time (encoded in GMT by adding 7 hours)
-/* */
+struct DefinedEvent {
+  int countup;     // DAYS_SINCE | COUNTDOWN_TO
+  bool show_HMS;   // SHOW_HMS | HIDE_HMS
+  char line1[24];
+  char line2[24];
+  char line3[26];
+  TimeElements eventGMT;
+};
 
-// Example 4: Time until Valentines Day
-/* 
-#define DISPLAY_LINE_1  "Countdown to"
-#define DISPLAY_LINE_2  "Sunday, Feb 14, 2021"
-#define DISPLAY_LINE_3  "Valentines's Day"
-//                        s,m,h,   dow,  d, m, y
-TimeElements targetGMT  { 0,0,8+0,  1,  14,02,2021-1970}; // Midnight in Pacific time (encoded in GMT by adding 8 hours DST)
-/* */
+// ======= some interesting target events for count up/down display ========
 
-// Example 5: Time until June VHF Contest
-/* */
-#define DISPLAY_LINE_1  "Countdown to"
-#define DISPLAY_LINE_2  "June 12, 2021 at 1800z"
-#define DISPLAY_LINE_3  "ARRL June VHF Contest"
-//                        s,m,h,   dow,  d, m, y
-TimeElements targetGMT  { 0,0,18,   1,  12,06,2021-1970};
-/* */
+DefinedEvent june_vhf{
+    // Example 1: Time until June VHF Contest
+    COUNTDOWN_TO,
+    SHOW_HMS,
+    "Countdown to",
+    "June 11, 2022 at 1800z",
+    "ARRL June VHF Contest",
+    //s,m,h, dow, dd, mm, yy
+    {0, 0, 18, 1, 11, 06, 2022 - 1970},
+};
+
+DefinedEvent groundhog{
+    // Example 2: Number of "Groundhog Days"
+    DAYS_SINCE,
+    HIDE_HMS,
+    "Total days including",
+    "Sunday, Feb 2, 2020",
+    "Groundhog Day",
+    //s,m,h, dow, dd, mm, yy
+    {0, 0, 7, 1,  1, 2, 2020 - 1970},   // Use the day before Feb 2, so the counter includes "Groundhog Day #1" on 2/2/2020
+};
+
+DefinedEvent halloween{
+    // Example 3: Time until Halloween Trick'r Treaters knock on door
+    COUNTDOWN_TO,
+    SHOW_HMS,
+    "Countdown to",
+    "Halloween 6pm",
+    "Days til Trick'r Treaters",
+    //s,m,h,     dow, dd, mm, yy
+    {0, 0, 7 + 18, 1, 31, 10, 2021 - 1970},   // 6pm Halloween in Pacific time (encoded in GMT by adding 7 hours)
+};
+
+DefinedEvent christmas{
+    // Example 4: Time until Christmas Eve
+    COUNTDOWN_TO,
+    SHOW_HMS,
+    "Countdown to",
+    "Santa's Arrival",
+    "Christmas Eve",
+    //s,m,h,    dow, dd, mm, yy
+    {0, 0, 7 + 0, 1, 25, 12, 2021 - 1970},   // Midnight in Pacific time (encoded in GMT by adding 7 hours)
+};
+
+DefinedEvent valentines{
+    // Example 5: Time until Valentines Day
+    COUNTDOWN_TO,
+    SHOW_HMS,
+    "Countdown to",
+    "Monday, Feb 14, 2022",
+    "Valentine's Day",
+    //s,m,h,    dow, dd, mm, yy
+    {0, 0, 7 + 0, 1, 14, 02, 2022 - 1970},   // Midnight in Pacific time (encoded in GMT by adding 7 hours PDT)
+};
+
+// ---- list of target events
+DefinedEvent eventList[] = {
+    june_vhf,
+    groundhog,
+    halloween,
+    christmas,
+    valentines,
+};
+
+// ----- choose target event
+DefinedEvent target = eventList[0];
 
 // ========== extern ===========================================
-extern Model* model;                  // "model" portion of model-view-controller
-extern void showDefaultTouchTargets();// Griduino.ino
+extern Model *model;                     // "model" portion of model-view-controller
+extern void showDefaultTouchTargets();   // Griduino.ino
 
 // ========== class ViewDate ===================================
 class ViewDate : public View {
-  public:
-    // ---------- public interface ----------
-    // This derived class must implement the public interface:
-    ViewDate(Adafruit_ILI9341* vtft, int vid)  // ctor 
-      : View{ vtft, vid }
-    {
-      background = cBACKGROUND;       // every view can have its own background color
-    }
-    void updateScreen();
-    void startScreen();
-    bool onTouch(Point touch);
+public:
+  // ---------- public interface ----------
+  // This derived class must implement the public interface:
+  ViewDate(Adafruit_ILI9341 *vtft, int vid)   // ctor
+      : View{vtft, vid} {
+    background = cBACKGROUND;   // every view can have its own background color
+  }
+  void updateScreen();
+  void startScreen();
+  void endScreen();
+  bool onTouch(Point touch);
+  //void loadConfig();
+  //void saveConfig();
 
-  protected:
-    // ---------- local data for this derived class ----------
-    // color scheme: see constants.h
+protected:
+  // ---------- local data for this derived class ----------
+  // color scheme: see constants.h
 
-    // ----- main clock view helpers -----
-    // these are names for the array indexes, must be named in same order as array below
-    enum txtIndex {
-      TITLE1=0, TITLE2, TITLE3,
-      COUNTDAYS, COUNTTIME,
-      LOCALDATE, LOCALTIME, TIMEZONE, NUMSATS,
-    };
+  int whichEvent = 0;   // keep track of which count-down event to display
+  // ----- main clock view helpers -----
+  // these are names for the array indexes, must be named in same order as array below
+  enum txtIndex {
+    TITLE1 = 0,
+    TITLE2,
+    TITLE3,
+    COUNTDAYS,
+    COUNTTIME,
+    LOCALDATE,
+    LOCALTIME,
+    TIMEZONE,
+    NUMSATS,
+  };
 
-    #define numDateFields 9
-    TextField txtDate[numDateFields] = {
+#define numDateFields 9
+  TextField txtDate[numDateFields] = {
       // text            x,y    color       alignment    size
-      {DISPLAY_LINE_1,  -1, 20, cTEXTCOLOR, ALIGNCENTER, eFONTSMALLEST }, // [TITLE1] program title, centered
-      {DISPLAY_LINE_2,  -1, 44, cTEXTCOLOR, ALIGNCENTER, eFONTSMALLEST }, // [TITLE2]
-      {DISPLAY_LINE_3,  -1, 86, cVALUE,     ALIGNCENTER, eFONTSMALL    }, // [TITLE3]
-      {"nnn",           -1,152, cVALUE,     ALIGNCENTER, eFONTGIANT    }, // [COUNTDAYS] counted number of days
-      {"01:02:03",      -1,182, cVALUEFAINT,ALIGNCENTER, eFONTSMALLEST }, // [COUNTTIME] counted number of hms
-      {"MMM dd, yyyy",  66,226, cFAINT,     ALIGNLEFT,   eFONTSMALLEST }, // [LOCALDATE] Local date
-      {"hh:mm:ss",     178,226, cFAINT,     ALIGNLEFT,   eFONTSMALLEST }, // [LOCALTIME] Local time
-      {"-7h",            8,226, cFAINT,     ALIGNLEFT,   eFONTSMALLEST }, // [TIMEZONE]  addHours time zone
-      {"6#",           308,226, cFAINT,     ALIGNRIGHT,  eFONTSMALLEST }, // [NUMSATS]   numSats
-    };
+      {"line1", -1, 20, cTEXTCOLOR, ALIGNCENTER, eFONTSMALLEST},        // [TITLE1] program title, centered
+      {"line2", -1, 44, cTEXTCOLOR, ALIGNCENTER, eFONTSMALLEST},        // [TITLE2]
+      {"line3", -1, 86, cVALUE, ALIGNCENTER, eFONTSMALL},               // [TITLE3]
+      {"nnn", -1, 152, cVALUE, ALIGNCENTER, eFONTGIANT},                // [COUNTDAYS] counted number of days
+      {"01:02:03", -1, 182, cVALUEFAINT, ALIGNCENTER, eFONTSMALLEST},   // [COUNTTIME] counted number of hms
+      {"MMM dd, yyyy", 66, 226, cFAINT, ALIGNLEFT, eFONTSMALLEST},      // [LOCALDATE] Local date
+      {"hh:mm:ss", 178, 226, cFAINT, ALIGNLEFT, eFONTSMALLEST},         // [LOCALTIME] Local time
+      {"-7h", 8, 226, cFAINT, ALIGNLEFT, eFONTSMALLEST},                // [TIMEZONE]  addHours time zone
+      {"6#", 308, 226, cFAINT, ALIGNRIGHT, eFONTSMALLEST},              // [NUMSATS]   numSats
+  };
 
-    // ----- helpers -----
-    #define TIME_FOLDER  "/GMTclock"     // 8.3 names
-    #define TIME_FILE    TIME_FOLDER "/AddHours.cfg"
-    #define TIME_VERSION "v01"
+  enum buttonID {
+    eMore,
+  };
+#define nDateButtons 1
+  FunctionButton dateButtons[nDateButtons] = {
+      // label            origin   size      touch-target
+      // text              x,y      w,h      x,y      w,h    radius  color     functionID
+      {"", 280, 70, 39, 84, {240, 84, 78, 88}, 4, cTEXTCOLOR, eMore},   // show next "count-down" item
+  };
 
-    char* dateToString(char* msg, int len, time_t datetime) {
-      // utility function to format date:  "2020-9-27 at 11:22:33"
-      // Example 1:
-      //      char sDate[24];
-      //      dateToString( sDate, sizeof(sDate), now() );
-      //      Serial.println( sDate );
-      // Example 2:
-      //      char sDate[24];
-      //      Serial.print("The current time is ");
-      //      Serial.println( dateToString(sDate, sizeof(sDate), now()) );
-      snprintf(msg, len, "%d-%d-%d at %02d:%02d:%02d",
-                         year(datetime),month(datetime),day(datetime), 
-                         hour(datetime),minute(datetime),second(datetime));
-      return msg;
-    }
+// ----- helpers -----
+#define DATE_FOLDER  "/GMTclock"   // 8.3 names
+#define DATE_FILE    DATE_FOLDER "/DateView.cfg"
+#define DATE_VERSION "v01"
 
-    // Formatted elapsed time
-    //    this is similar to getTimeLocal (view_date.cpp)
-    void getTimeElapsed(char* result, int len, time_t elapsed) {
-      // @param result = char[10] = string buffer to modify
-      // @param len = string buffer length
+  char *dateToString(char *msg, int len, time_t datetime) {
+    // utility function to format date:  "2020-9-27 at 11:22:33"
+    // Example 1:
+    //      char sDate[24];
+    //      dateToString( sDate, sizeof(sDate), now() );
+    //      Serial.println( sDate );
+    // Example 2:
+    //      char sDate[24];
+    //      Serial.print("The current time is ");
+    //      Serial.println( dateToString(sDate, sizeof(sDate), now()) );
+    snprintf(msg, len, "%d-%d-%d at %02d:%02d:%02d",
+             year(datetime), month(datetime), day(datetime),
+             hour(datetime), minute(datetime), second(datetime));
+    return msg;
+  }
+  // advance to show next date event counter
+  void nextDateEvent() {
+    whichEvent = (whichEvent + 1) % (sizeof(eventList) / sizeof(eventList[0]));
+    target     = eventList[whichEvent];
+    Serial.print(". Changed event to #");
+    Serial.print(whichEvent);
+    Serial.print(", ");
+    Serial.println(eventList[whichEvent].line3);
+  }
 
-      int dd = elapsedDays(elapsed);
-      int hh = numberOfHours(elapsed);
-      int mm = numberOfMinutes(elapsed);
-      int ss = numberOfSeconds(elapsed);
-      snprintf(result, len, "%02d:%02d:%02d",
-                             hh, mm,  ss);
-    }
+  // Formatted elapsed time
+  //    this is similar to getTimeLocal (view_date.cpp)
+  void getTimeElapsed(char *result, int len, time_t elapsed) {
+    // @param result = char[10] = string buffer to modify
+    // @param len = string buffer length
 
-};  // end class ViewDate
+    int dd = elapsedDays(elapsed);
+    int hh = numberOfHours(elapsed);
+    int mm = numberOfMinutes(elapsed);
+    int ss = numberOfSeconds(elapsed);
+    snprintf(result, len, "%02d:%02d:%02d",
+             hh, mm, ss);
+  }
+
+};   // end class ViewDate
 // ============== implement public interface ================
 void ViewDate::updateScreen() {
   // called on every pass through main()
 
   // GMT Time
   char sHour[8], sMinute[8], sSeconds[8];
-  snprintf(sHour,   sizeof(sHour), "%02d", GPS.hour);
+  snprintf(sHour, sizeof(sHour), "%02d", GPS.hour);
   snprintf(sMinute, sizeof(sMinute), "%02d", GPS.minute);
-  snprintf(sSeconds,sizeof(sSeconds), "%02d", GPS.seconds);
+  snprintf(sSeconds, sizeof(sSeconds), "%02d", GPS.seconds);
 
   if (GPS.seconds == 0) {
     // report GMT to console, but not too often
-    Serial.print(sHour);    Serial.print(":");
-    Serial.print(sMinute);  Serial.print(":");
-    Serial.print(sSeconds); Serial.println(" GMT");
+    Serial.print(sHour);
+    Serial.print(":");
+    Serial.print(sMinute);
+    Serial.print(":");
+    Serial.print(sSeconds);
+    Serial.println(" GMT");
   }
 
-  //                       s,m,h, dow, d,m,y 
-  //TimeElements targetGMT{ 1,1,1,  1,  2,2,2020-1970};    // GMT Groundhog Day
+  //                       s,m,h, dow, d,m,y
+  //TimeElements eventGMT{ 1,1,1,  1,  2,2,2020-1970};    // GMT Groundhog Day
   //meElements todaysDate{ 1,1,1,  1,  2,2,2020-1970};    // debug: verify the first Groundhog Day is "day #1"
   //meElements todaysDate{ 1,1,1,  1,  2,10,2020-1970};   // debug: verify Oct 2nd is "day #244" i.e. one more than shown on https://days.to/groundhog-day/2020
-  TimeElements todaysDate{ GPS.seconds,GPS.minute,GPS.hour,
-                           1,GPS.day,GPS.month,(byte)(2000-1970+GPS.year)}; // GMT current date/time 
-  
+  TimeElements todaysDate{GPS.seconds, GPS.minute, GPS.hour,
+                          1, GPS.day, GPS.month, (byte)(2000 - 1970 + GPS.year)};   // GMT current date/time
+
   time_t adjustment = model->gTimeZone * SECS_PER_HOUR;
 
-  time_t date1local = makeTime(targetGMT);
+  time_t date1local = makeTime(target.eventGMT);
   time_t date2local = makeTime(todaysDate);
 
-  time_t elapsed = abs(date2local - date1local);      // absolute value ensures result is always +ve
+  time_t elapsed;
+  if (target.countup) {
+    elapsed = (date2local - date1local);   // e.g. "days SINCE target date"
+  } else {
+    elapsed = (date1local - date2local);   // e.g. "days UNTIL target date"
+  }
+
   int elapsedDays = elapsed / SECS_PER_DAY;
-  char sTime[24];                     // strlen("01:23:45") = 8
+  if (GPS.seconds == 0) {   // debug
+    Serial.print("elapsed time count: ");
+    Serial.println((int)elapsed);   // typecast to int, required by compiler
+  }
+  char sTime[24];   // strlen("01:23:45") = 8
   getTimeElapsed(sTime, sizeof(sTime), elapsed);
-  
+
   txtDate[COUNTDAYS].print(elapsedDays);
   txtDate[COUNTTIME].print(sTime);
 
   // Local Date
-  char sDate[16];                       // strlen("Jan 12, 2020 ") = 14
-  model->getDate(sDate, sizeof(sDate)); // todo - make this local not GMT date
+  char sDate[16];                         // strlen("Jan 12, 2020 ") = 14
+  model->getDate(sDate, sizeof(sDate));   // todo - make this local not GMT date
   txtDate[LOCALDATE].print(sDate);
 
   // Hours to add/subtract from GMT for local time
-  char sign[2] = { 0, 0 };            // prepend a plus-sign when >=0
-  sign[0] = (model->gTimeZone >= 0) ? '+' : 0;   // (don't need to add a minus-sign bc the print stmt does that for us)
-  char sTimeZone[6];                  // strlen("-10h") = 4
+  char sign[2] = {0, 0};                              // prepend a plus-sign when >=0
+  sign[0]      = (model->gTimeZone >= 0) ? '+' : 0;   // (don't need to add a minus-sign bc the print stmt does that for us)
+  char sTimeZone[6];                                  // strlen("-10h") = 4
   snprintf(sTimeZone, sizeof(sTimeZone), "%s%dh", sign, model->gTimeZone);
   txtDate[TIMEZONE].print(sTimeZone);
 
@@ -243,49 +322,87 @@ void ViewDate::updateScreen() {
   txtDate[LOCALTIME].print(sTime);
 
   // Satellite Count
-  char sBirds[4];                     // strlen("5#") = 2
+  char sBirds[4];   // strlen("5#") = 2
   snprintf(sBirds, sizeof(sBirds), "%d#", model->gSatellites);
   // change colors by number of birds
-  txtDate[NUMSATS].color = (model->gSatellites<1) ? cWARN : cFAINT;
+  txtDate[NUMSATS].color = (model->gSatellites < 1) ? cWARN : cFAINT;
   txtDate[NUMSATS].print(sBirds);
   //txtDate[NUMSATS].dump();          // debug
 }
 
 void ViewDate::startScreen() {
   // called once each time this view becomes active
-  this->clearScreen(this->background);                  // clear screen
-  txtDate[0].setBackground(this->background);           // set background for all TextFields in this view
-  TextField::setTextDirty( txtDate, numDateFields );    // make sure all fields get re-printed on screen change
+  this->clearScreen(this->background);               // clear screen
+  txtDate[0].setBackground(this->background);        // set background for all TextFields in this view
+  TextField::setTextDirty(txtDate, numDateFields);   // make sure all fields get re-printed on screen change
 
-  drawAllIcons();                     // draw gear (settings) and arrow (next screen)
-  showDefaultTouchTargets();          // optionally draw boxes around button-touch area
-  //showMyTouchTargets(timeButtons, nTimeButtons);
-  showScreenBorder();                 // optionally outline visible area
-  showScreenCenterline();             // optionally draw visual alignment bar
+  drawAllIcons();                                  // draw gear (settings) and arrow (next screen)
+  showDefaultTouchTargets();                       // optionally draw box around default button-touch areas
+  showMyTouchTargets(dateButtons, nDateButtons);   // optionally show this view's touch targets
+  showScreenBorder();                              // optionally outline visible area
+  showScreenCenterline();                          // optionally draw visual alignment bar
 
   // ----- draw page title
-  txtDate[TITLE1].print();
-  txtDate[TITLE2].print();
-  txtDate[TITLE3].print();
+  txtDate[TITLE1].print(target.line1);
+  txtDate[TITLE2].print(target.line2);
+  txtDate[TITLE3].print(target.line3);
 
   // ----- draw giant fields
-  txtDate[COUNTDAYS].print();
-  #ifdef HIDE_ELAPSED_HMS
-    txtDate[COUNTTIME].setColor(cBACKGROUND); // if requested, make invisible the elapsed h:m:s
-  #endif
+  if (target.show_HMS) {
+    txtDate[COUNTTIME].setColor(cTEXTCOLOR);   // show the elapsed h:m:s
+  } else {
+    txtDate[COUNTTIME].setColor(cBACKGROUND);   // make invisible the elapsed h:m:s
+  }
 
   // ----- draw text fields
-  for (int ii=LOCALDATE; ii<numDateFields; ii++) {
+  for (int ii = LOCALDATE; ii < numDateFields; ii++) {
     txtDate[ii].print();
   }
 
-  updateScreen();                     // update UI immediately, don't wait for laggy mainline loop
-} // end startScreen()
+  // ----- draw text vertically onto  "More" button
+  tft->setRotation(0);   // todo - set this rotation differently according to the user's screen orientation
+  const int xx = tft->width() / 2 - 30;
+  const int yy = tft->height() - 10;
+  TextField sync("More", xx, yy, cFAINT);
+  sync.print();
+  tft->setRotation(1);   // todo
 
+  updateScreen();   // update UI immediately, don't wait for laggy mainline loop
+}   // end startScreen()
+
+void ViewDate::endScreen() {
+  // Called once each time this view becomes INactive
+  // This is a 'goodbye kiss' to do cleanup work
+  // For the altimeter view, save our settings here instead of on each
+  // button press because writing to NVR is slow (0.5 sec) and would delay the user
+  // while trying to press a button many times in a row.
+  //saveConfig();   // todo - save/restore which of several count-down displays is active
+}
 
 bool ViewDate::onTouch(Point touch) {
   Serial.println("->->-> Touched date screen.");
 
-  bool handled = false;               // assume a touch target was not hit
-  return handled;                     // true=handled, false=controller uses default action
-} // end onTouch()
+  bool handled = false;   // assume a touch target was not hit
+  for (int ii = 0; ii < nDateButtons; ii++) {
+    FunctionButton item = dateButtons[ii];
+    if (item.hitTarget.contains(touch)) {
+      switch (item.functionIndex)   // do the thing
+      {
+      case eMore:
+        nextDateEvent();
+        handled = true;
+        break;
+      default:
+        Serial.print("Error, unknown function ");
+        Serial.println(item.functionIndex);
+        break;
+      }
+      startScreen();
+      updateScreen();   // update UI immediately, don't wait for laggy mainline loop
+    }
+  }
+  if (!handled) {
+    Serial.println("No match to my hit targets.");   // debug
+  }
+  return handled;   // true=handled, false=controller uses default action
+}   // end onTouch()

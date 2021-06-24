@@ -20,6 +20,7 @@
             +-----------------------------------------+
             | *              Altitude                 |
             |                                         |
+            |                                         |
             | Barometer:      17.8 feet               |. . .yRow1
             | GPS (5#):      123.4 feet               |. . .yRow2
             |                                         |
@@ -263,7 +264,7 @@ void ViewAltimeter::updateScreen() {
   }
 
   // if (lost GPS position lock)
-  // todo
+  // todo - maybe the 'sync' button should be disabled here
   
   float gpsMeters = model->gAltitude;
   float gpsFeet = gpsMeters*feetPerMeters;
