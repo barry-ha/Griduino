@@ -8,7 +8,11 @@ Version numbers correspond to [Downloads](https://github.com/barry-ha/Griduino/t
 The changelog format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and the Griduino project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-**v1.01** &nbsp; 2020-0426
+**v1.02** &nbsp; 2020-06-24
+
+New: The "count-down to date" view can cycle among five different events: ARRL June VHF Contest, Groundhogs Day, Christmas, Halloween, and Valentine's Day. Look for a "More" button on the right edge of the screen. This was a major revision to view_date.h module.
+
+**v1.01** &nbsp; 2020-04-26
 
 New: Replaced the status screen with new "Grid Size and Scale" information.
 
