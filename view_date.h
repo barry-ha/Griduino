@@ -80,30 +80,41 @@ struct DefinedEvent {
 
 // ======= some interesting target events for count up/down display ========
 
+DefinedEvent sept_vhf{
+    // Time until Sept VHF Contest
+    COUNTDOWN_TO,
+    SHOW_HMS,
+    "Countdown to",
+    "Sept 11, 2021 at 1800z",
+    "ARRL Sept VHF Contest",
+    //s,m,h, dow, dd, mm, yy
+    {0, 0, 18, 1, 11,  9, 2021 - 1970},
+};
+
 DefinedEvent june_vhf{
-    // Example 1: Time until June VHF Contest
+    // Time until June VHF Contest
     COUNTDOWN_TO,
     SHOW_HMS,
     "Countdown to",
     "June 11, 2022 at 1800z",
     "ARRL June VHF Contest",
     //s,m,h, dow, dd, mm, yy
-    {0, 0, 18, 1, 11, 06, 2022 - 1970},
+    {0, 0, 18, 1, 11,  6, 2022 - 1970},
 };
 
 DefinedEvent groundhog{
-    // Example 2: Number of "Groundhog Days"
+    // Number of "Groundhog Days"
     DAYS_SINCE,
     HIDE_HMS,
     "Total days including",
     "Sunday, Feb 2, 2020",
     "Groundhog Day",
     //s,m,h, dow, dd, mm, yy
-    {0, 0, 7, 1,  1, 2, 2020 - 1970},   // Use the day before Feb 2, so the counter includes "Groundhog Day #1" on 2/2/2020
+    {0, 0, 7, 1,   1,  2, 2020 - 1970},   // Use the day before Feb 2, so the counter includes "Groundhog Day #1" on 2/2/2020
 };
 
 DefinedEvent halloween{
-    // Example 3: Time until Halloween Trick'r Treaters knock on door
+    // Time until Halloween Trick'r Treaters knock on door
     COUNTDOWN_TO,
     SHOW_HMS,
     "Countdown to",
@@ -114,7 +125,7 @@ DefinedEvent halloween{
 };
 
 DefinedEvent christmas{
-    // Example 4: Time until Christmas Eve
+    // Time until Christmas Eve
     COUNTDOWN_TO,
     SHOW_HMS,
     "Countdown to",
@@ -125,7 +136,7 @@ DefinedEvent christmas{
 };
 
 DefinedEvent valentines{
-    // Example 5: Time until Valentines Day
+    // Time until Valentines Day
     COUNTDOWN_TO,
     SHOW_HMS,
     "Countdown to",
@@ -137,6 +148,7 @@ DefinedEvent valentines{
 
 // ---- list of target events
 DefinedEvent eventList[] = {
+    sept_vhf,
     june_vhf,
     groundhog,
     halloween,
