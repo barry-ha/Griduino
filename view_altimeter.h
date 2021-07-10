@@ -340,9 +340,9 @@ void ViewAltimeter::startScreen() {
   // for vertical text, temporarily rotate TFT screen into portrait mode
   int savedRotation = tft->getRotation();
   int newRotation = (savedRotation + 3) % 4;
-  tft->setRotation(newRotation);      // todo landscape
+  tft->setRotation(newRotation);      // set portrait mode
   const int xx = tft->width()/2 + 12;
-  const int yy = tft->height()-10;
+  const int yy = tft->height() - 10;
   TextField sync("Sync", xx, yy, cFAINT);
   sync.print();
   tft->setRotation(savedRotation);    // restore screen orientation
