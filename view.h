@@ -113,7 +113,7 @@ class View {
     /**
      * Rotate screen right-side-up / upside-down
      * 1=landscape, 3=landscape 180-degrees 
-     * This is "protected" to ensure *only* the Settings page will set rotation.
+     * This is a "protected" method in base class to ensure *only* the Settings page will set rotation.
      */
     void setScreenRotation(int rot) {
       Serial.print("Rotating screen to: "); Serial.println(rot);
