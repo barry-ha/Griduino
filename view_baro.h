@@ -469,17 +469,21 @@ class ViewBaro : public View {
           int x1 = map( t1,   minTime,maxTime,  xDay1,xRight);
     
           if (x1 < xDay1) {
-            dateToString(sDate, sizeof(sDate), t1);
-            snprintf(msg, sizeof(msg), "%d. Ignored: Date x1 (%s = %d) is off left edge of (%d).", 
-                                        ii,                  sDate,x1,                   xDay1); 
-            Serial.println(msg);          // debug
+            #ifdef SHOW_IGNORED_PRESSURE
+              dateToString(sDate, sizeof(sDate), t1);
+              snprintf(msg, sizeof(msg), "%d. Ignored: Date x1 (%s = %d) is off left edge of (%d).", 
+                                          ii,                  sDate,x1,                   xDay1); 
+              Serial.println(msg);          // debug
+            #endif
             continue;
           }
           if (x1 > xRight) {
-            dateToString(sDate, sizeof(sDate), t1);
-            snprintf(msg, sizeof(msg), "%d. Ignored: Date x1 (%s = %d) is off right edge of (%d).", 
-                                        ii,                 sDate, x1,                   xRight); 
-            Serial.println(msg);          // debug
+            #ifdef SHOW_IGNORED_PRESSURE
+              dateToString(sDate, sizeof(sDate), t1);
+              snprintf(msg, sizeof(msg), "%d. Ignored: Date x1 (%s = %d) is off right edge of (%d).", 
+                                          ii,                 sDate, x1,                   xRight); 
+              Serial.println(msg);          // debug
+            #endif
             continue;
           }
     
