@@ -7,8 +7,8 @@
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
 
-  Purpose:  This program runs a GPS display for your vehicle's dashboard to 
-            show your position in your Maidenhead Grid Square, with distances 
+  Purpose:  This is a GPS display for your vehicle's dashboard, showing
+            your position in your Maidenhead Grid Square, with distances 
             to nearby squares. This is optimized for ham radio rovers. 
             Read about the Maidenhead Locator System (grid squares) 
             at https://en.wikipedia.org/wiki/Maidenhead_Locator_System
@@ -831,24 +831,17 @@ void setup() {
 
   // ----- init TFT display
   tft.begin();                        // initialize TFT display
-  tft.setRotation(1);                 // 1=landscape (default is 0=portrait)
-  tft.fillScreen(ILI9341_BLACK);      // note that "begin()" does not clear screen 
+  tft.setRotation(eSCREEN_ROTATE_0);  // 1=landscape (default is 0=portrait)
+  tft.fillScreen(ILI9341_BLACK);      // note that "begin()" does not clear screen
 
   // ----- init TFT backlight
   pinMode(TFT_BL, OUTPUT);
   analogWrite(TFT_BL, 255);           // start at full brightness
 
-  // ----- init Feather M4 onboard lights
-  pixel.begin();
-  pixel.clear();                      // turn off NeoPixel
-  pinMode(RED_LED, OUTPUT);           // diagnostics RED LED
-  digitalWrite(PIN_LED, LOW);         // turn off little red LED
-  Serial.println("NeoPixel initialized and turned off");
-
   // ----- init touch screen
   ts.pressureThreshhold = 200;
 
-  // ----- init serial monitor
+  // ----- init serial monitor (do not "Serial.print" before this, it won't show up in console)
   Serial.begin(115200);               // init for debugging in the Arduino IDE
   waitForSerial(howLongToWait);       // wait for developer to connect debugging console
 
@@ -863,7 +856,18 @@ void setup() {
     Serial.println("Sorry, your hardware platform is not recognized.");
   #endif
 
-  // one-time Splash screen
+  // ----- init Feather M4 onboard lights
+  pixel.begin();
+  pixel.clear();                      // turn off NeoPixel
+  pinMode(RED_LED, OUTPUT);           // diagnostics RED LED
+  digitalWrite(PIN_LED, LOW);         // turn off little red LED
+  Serial.println("NeoPixel initialized and turned off");
+
+  // ----- init screen orientation
+  Serial.println("Starting cfgRotation.loadConfig()...");
+  cfgRotation.loadConfig();           // restore previous screen orientation
+
+  // ----- one-time Splash screen
   pView = &splashView;
   pView->startScreen();
   pView->updateScreen();
@@ -932,7 +936,7 @@ void setup() {
   volume.setWiperPosition( gWiper );  // set default volume in digital pot
 
   volumeView.loadConfig();            // restore volume setting from non-volatile RAM
-  cfgAudioType.loadConfig();         // restore Morse-vs-Speech setting from non-volatile RAM
+  cfgAudioType.loadConfig();          // restore Morse-vs-Speech setting from non-volatile RAM
 
   // ----- init DAC for audio/morse code
   #if defined(SAMD_SERIES)

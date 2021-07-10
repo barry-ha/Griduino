@@ -264,7 +264,7 @@ void ViewAltimeter::updateScreen() {
   }
 
   // if (lost GPS position lock)
-  // todo - maybe the 'sync' button should be disabled here
+  // todo - maybe the 'sync' button should be disabled when GPS is lost
   
   float gpsMeters = model->gAltitude;
   float gpsFeet = gpsMeters*feetPerMeters;
@@ -336,13 +336,16 @@ void ViewAltimeter::startScreen() {
       txtAltimeter[ii].print();
   }
 
-  // ----- draw text vertically onto  "Sync" button
-  tft->setRotation(0);                // todo landscape
+  // ----- draw text vertically onto "Sync" button
+  // for vertical text, temporarily rotate TFT screen into portrait mode
+  int savedRotation = tft->getRotation();
+  int newRotation = (savedRotation + 3) % 4;
+  tft->setRotation(newRotation);      // todo landscape
   const int xx = tft->width()/2 + 12;
   const int yy = tft->height()-10;
   TextField sync("Sync", xx, yy, cFAINT);
   sync.print();
-  tft->setRotation(1);                // todo
+  tft->setRotation(savedRotation);    // restore screen orientation
 
   updateScreen();                     // update UI immediately, don't wait for laggy mainline loop
 } // end startScreen()

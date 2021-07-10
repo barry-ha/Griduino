@@ -2,7 +2,7 @@
 
 // ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE    "Griduino"
-#define PROGRAM_VERSION  "v1.02"
+#define PROGRAM_VERSION  "v1.03"
 #define PROGRAM_LINE1    "Barry K7BWH"
 #define PROGRAM_LINE2    "John KM7O"
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
@@ -15,6 +15,7 @@
 //#define SHOW_TOUCH_TARGETS          // use this to outline touchscreen sensitive buttons
 //#define SHOW_SCREEN_BORDER          // use this to outline the screen's displayable area
 //#define SHOW_SCREEN_CENTERLINE      // use this visual aid to help layout the screen
+//#define SHOW_IGNORED_PRESSURE       // use this to see barometric pressure readings that are out of range and therefore ignored
 
 // ------- TFT screen definitions ---------
 #define gScreenWidth  320   // screen pixels wide

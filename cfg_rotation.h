@@ -6,8 +6,8 @@
   Hardware: John Vanderbeck, KM7O, Seattle, WA
 
   Purpose:  This is the 'control panel' for screen rotation.
-            Since it's NOT intended for a driver in motion, we use a
-            smaller font to cram more stuff onto the screen.
+            Since it's not intended for a driver in motion, we can use 
+            a smaller font and cram more stuff onto the screen.
 
             +-----------------------------------------+
             |             6. Rotation       /|\       |
@@ -22,7 +22,7 @@
             +-----------------------------------------+
 */
 
-#include <Arduino.h>
+#include <Arduino.h>            //
 #include <Adafruit_ILI9341.h>   // TFT color display library
 #include "constants.h"          // Griduino constants and colors
 #include "model_gps.h"          // Model of a GPS for model-view-controller
@@ -56,7 +56,7 @@ protected:
   // vertical placement of text rows   ---label---           ---button---
   const int yRow1 = 70;                   // "Screen Orientation", "This edge up"
   const int yRow2 = yRow1 + 70;           //                       "That edge up"
-  const int yRow9 = gScreenHeight - 12;   // "v0.32, Feb  2 2021"
+  const int yRow9 = gScreenHeight - 12;   // "v1.03, Jul  9 2021"
 
 #define col1    10    // left-adjusted column of text
 #define xButton 160   // indented column of buttons
@@ -137,7 +137,6 @@ void ViewCfgRotation::updateScreen() {
     }
     tft->fillCircle(xCenter, yCenter, 4, buttonFillColor);
   }
-
 }   // end updateScreen
 
 void ViewCfgRotation::startScreen() {
@@ -188,6 +187,9 @@ void ViewCfgRotation::startScreen() {
     tft->drawCircle(xCenter, yCenter, 7, cVALUE);
   }
 
+  showScreenBorder();       // optionally outline visible area
+  showScreenCenterline();   // optionally draw alignment bar
+
   updateScreen();   // update UI immediately, don't wait for laggy mainline loop
 }   // end startScreen()
 
@@ -221,7 +223,7 @@ bool ViewCfgRotation::onTouch(Point touch) {
 
 // ========== load/save config setting =========================
 #define SCREEN_CONFIG_FILE    CONFIG_FOLDER "/screen.cfg"
-#define CONFIG_SCREEN_VERSION "Screen Orientation v03"
+#define CONFIG_SCREEN_VERSION "Screen Orientation v04"
 
 // ----- load from SDRAM -----
 void ViewCfgRotation::loadConfig() {
@@ -234,11 +236,29 @@ void ViewCfgRotation::loadConfig() {
   int result = config.readConfig((byte *)&tempRotation, sizeof(tempRotation));
   if (result) {
     this->screenRotation = tempRotation;
-    tft->setRotation(tempRotation);   // 0=portrait (default), 1=landscape, 3=180 degrees
+    switch (tempRotation) {
+      case eSCREEN_ROTATE_0:
+        // normal result
+        this->screenRotation = tempRotation;
+        break;
+      case eSCREEN_ROTATE_180:
+        // normal result
+        this->screenRotation = tempRotation;
+        break;
+      default:
+        // should not happen unless config file is corrupt
+        Serial.print(SCREEN_CONFIG_FILE);
+        Serial.print(" has unexpected screen orientation: ");
+        Serial.println(tempRotation);
+        this->screenRotation = eSCREEN_ROTATE_0;
+        break;
+    }
+    tft->setRotation(this->screenRotation);   // 0=portrait (default), 1=landscape, 3=180 degrees
     Serial.print("Loaded screen orientation: ");
     Serial.println(this->screenRotation);
   } else {
-    Serial.println("Failed to load screen orientation, re-initializing config file");
+    Serial.println("Failed to load screen orientation, re-initializing config file\n");
+    this->screenRotation = eSCREEN_ROTATE_0;
     saveConfig();
   }
 }
@@ -246,5 +266,5 @@ void ViewCfgRotation::loadConfig() {
 void ViewCfgRotation::saveConfig() {
   SaveRestore config(SCREEN_CONFIG_FILE, CONFIG_SCREEN_VERSION);
   int rc = config.writeConfig((byte *)&screenRotation, sizeof(screenRotation));
-  //Serial.print("Finished with rc = "); Serial.println(rc);  // debug
+  Serial.print("Finished ViewCfgRotation::saveConfig() with rc = "); Serial.println(rc);  // debug
 }
