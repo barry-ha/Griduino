@@ -1,4 +1,5 @@
 # Changelog
+
 To install a firmware update, see the [Programming](https://github.com/barry-ha/Griduino/blob/master/docs/PROGRAMMING.md#2-how-to-install-the-griduino-program) instructions.
 
 All notable changes to this project are documented in this file.
@@ -7,8 +8,7 @@ Version numbers correspond to [Downloads](https://github.com/barry-ha/Griduino/t
 
 The changelog format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and the Griduino project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-
-**v1.03** &nbsp; 2021-06-24
+**v1.03** &nbsp; 2021-07-10
 
 Fixed the visual layout when the screen is rotated. This affected the Altimeter display and the Countdown to Date screens which were badly mangled.
 
@@ -24,7 +24,7 @@ This gives the user a sense of scale looking at our main screen map. It helps un
 
 **v1.0** &nbsp; 2021-04-17
 
-Griduino has all major features completed, so the version number jumps to **v1.0**. We like the [semantic versioning](https://semver.org/) scheme so we'll manage our version numbers accordingly. However, since Griduino doesn't have an API, our scheme is  modified to only use two numbers. 
+Griduino has all major features completed, so the version number jumps to **v1.0**. We like the [semantic versioning](https://semver.org/) scheme so we'll manage our version numbers accordingly. However, since Griduino doesn't have an API, our scheme is  modified to only use two numbers.
 
 Given a version number `MAJOR.MINOR`, we will increment the:
 
@@ -47,7 +47,7 @@ This was an internal testing version. The pre-compiled binary was not released.
 
 **v0.35** &nbsp; 2021-02-25
 
-Fixed several bugs in the Altimeter view. Added a small 'sync' button on right-hand side which calibrates the sea level pressure so that the two reported altitudes match each other. The GPS is not always right but it's pretty close and the 'sync' button will make large adjustments easy. 
+Fixed several bugs in the Altimeter view. Added a small 'sync' button on right-hand side which calibrates the sea level pressure so that the two reported altitudes match each other. The GPS is not always right but it's pretty close and the 'sync' button will make large adjustments easy.
 
 Also fixed the three-day graph of barometric pressure. It had been graphing only two days and now it will show up to three full days.
 
@@ -63,22 +63,22 @@ Added Altimeter view which compares altitude from the barometer to altitude from
 
 The problem is that both of them can be off:
 
-* An accurate reading from the barometer depends on knowing your current pressure at sea level at your location. The altimeter screen therefore offers + and - buttons to calibrate it. You can get the correct pressure by searching the web for a local weather report, or by adjusting it to a known altitude. 
+* An accurate reading from the barometer depends on knowing your current pressure at sea level at your location. The altimeter screen therefore offers + and - buttons to calibrate it. You can get the correct pressure by searching the web for a local weather report, or by adjusting it to a known altitude.
 * An accurate reading from the GPS depends on the number and position of satellites overhead. You would need a good satellite right overhead for best results. Further, signal reflections from nearby objects can throw it off. Unfortunately the consumer GPS service was designed to be more accurate positionally than for altitude. For example, at my home, the GPS reports can vary day-by-day by 300 feet or so.
 
 **v0.32** &nbsp; 2021-02-03
 
-Added 3-day graph of barometric pressure, a "Baroduino" if you'll excuse the amalgam. Please report any bugs or usability glitches. 
+Added 3-day graph of barometric pressure, a "Baroduino" if you'll excuse the amalgam. Please report any bugs or usability glitches.
 
 This is a major update that merges code from [examples/Baroduino](https://github.com/barry-ha/Griduino/tree/master/examples/Baroduino) into the main Griduino program which becomes an additional view in the screens as you cycle through views. The standalone example program is no longer needed. We also fixed a few bugs and changed titles of the configuration screens to be more descriptive, such as "1. Speaker" instead of "Settings 1".
 
 **v0.31** &nbsp; 2021-01-30
 
 Updated the pressure sensor code to use the latest BMP3XX library. Please update to the v2 library from Adafruit or you’ll get a compile error:
-1	Run the Arduino workbench
-1	Tools > Manage Libraries … > Type: Updateable
-1	Find “Adafruit BMP3XX Library” in the list and update to the latest version
-1	It’s okay to get all the latest library dependencies, too. The list has been updated and tested for v0.31.
+1 Run the Arduino workbench
+1 Tools > Manage Libraries … > Type: Updatable
+1 Find “Adafruit BMP3XX Library” in the list and update to the latest version
+1 It’s okay to get all the latest library dependencies, too. The list has been updated and tested for v0.31.
 
 When we started the Griduino project in early 2020, Adafruit offered only one barometric sensor: BMP388. In October 2020, Bosch introduced a more sensitive device, BMP390, and Adafruit followed suit to sell it on a pin-compatible breakout board. However, it’s not quite software-compatible. I bought and tested the new BMP390 to make sure it works successfully and today I checked in the code changes. Griduino software will now work with either barometric sensor and is a little more future-proof.
 
@@ -112,8 +112,7 @@ Before this change, it typically displayed 'xx:59' seconds as the tone is heard.
 
 Added new view for a frivolous "Groundhog Day" counter display. We feel like we're stuck in a time loop, just like Bill Murray in his 1993 movie. Now we know how long we've been in the pandemic and self-imposed social distancing.
 
-
-Also vastly updated the stadalone "Baroduino" example program.
+Also vastly updated the standalone "Baroduino" example program.
 
 **v0.23** &nbsp; 2020-09-02
 
@@ -128,7 +127,7 @@ Added setting to show distance in miles/kilometers
 Fixed audio volume set-save-restore bug
 
 **v0.20** &nbsp; 2020-08-14
- 
+
 Added icons for gear, arrow
 
 **v0.18** &nbsp; 2020-07-06
@@ -167,7 +166,6 @@ Added altimeter example program
 
 Added saving settings in 2MB RAM
 
-
 **v09.4** &nbsp; 2020-02-18
 
 Added a new view for controlling audio volume
@@ -180,8 +178,6 @@ Made the Morse Code actually work, and replaces view-stat-screen
 
 Added Morse Code announcements via generated audio waveform on DAC.
 
-
 **v09.0** &nbsp; 2019-12-20  
 
 Generates sound by synthesized sine wave intended for decent fidelity from a small speaker. The hardware goal is to support spoken-word output.
-
