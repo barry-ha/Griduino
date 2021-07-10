@@ -8,17 +8,21 @@ Version numbers correspond to [Downloads](https://github.com/barry-ha/Griduino/t
 The changelog format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and the Griduino project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-**v1.02** &nbsp; 2020-06-24
+**v1.03** &nbsp; 2021-06-24
+
+Fixed the visual layout when the screen is rotated. This affected the Altimeter display and the Countdown to Date screens which were badly mangled.
+
+**v1.02** &nbsp; 2021-06-24
 
 New: The "count-down to date" view can cycle among five different events: ARRL June VHF Contest, Groundhogs Day, Christmas, Halloween, and Valentine's Day. Look for a "More" button on the right edge of the screen. This was a major revision to view_date.h module.
 
-**v1.01** &nbsp; 2020-04-26
+**v1.01** &nbsp; 2021-04-26
 
 New: Replaced the status screen with new "Grid Size and Scale" information.
 
 This gives the user a sense of scale looking at our main screen map. It helps understand the bread crumb trail and how far to go within a 4-digit and 6-digit grid squares. The previous status screen was one of the first screens built and became redundant with other screens.
 
-**v1.0** &nbsp; 2020-04-17
+**v1.0** &nbsp; 2021-04-17
 
 Griduino has all major features completed, so the version number jumps to **v1.0**. We like the [semantic versioning](https://semver.org/) scheme so we'll manage our version numbers accordingly. However, since Griduino doesn't have an API, our scheme is  modified to only use two numbers. 
 
@@ -27,7 +31,7 @@ Given a version number `MAJOR.MINOR`, we will increment the:
    * `MAJOR` version when adding major features or hardware changes, and
    * `MINOR` version for fixing bugs or for small incremental changes.
 
-**v0.37** &nbsp; 2020-04-12
+**v0.37** &nbsp; 2021-04-12
 
 Added speech audio output as an alternative to Morse code. This is a major upgrade.
 
@@ -41,7 +45,7 @@ Griduino can now speak grid square names. This feature requires:
 
 This was an internal testing version. The pre-compiled binary was not released.
 
-**v0.35** &nbsp; 2020-02-25
+**v0.35** &nbsp; 2021-02-25
 
 Fixed several bugs in the Altimeter view. Added a small 'sync' button on right-hand side which calibrates the sea level pressure so that the two reported altitudes match each other. The GPS is not always right but it's pretty close and the 'sync' button will make large adjustments easy. 
 
@@ -49,7 +53,7 @@ Also fixed the three-day graph of barometric pressure. It had been graphing only
 
 Get this download and try it out! Recommended for all users.
 
-**v0.34** &nbsp; 2020-02-11
+**v0.34** &nbsp; 2021-02-11
 
 Improved the Altimeter view usability. This is a work in progress.
 
@@ -107,6 +111,7 @@ Before this change, it typically displayed 'xx:59' seconds as the tone is heard.
 **v0.24** &nbsp; 2020-10-02
 
 Added new view for a frivolous "Groundhog Day" counter display. We feel like we're stuck in a time loop, just like Bill Murray in his 1993 movie. Now we know how long we've been in the pandemic and self-imposed social distancing.
+
 
 Also vastly updated the stadalone "Baroduino" example program.
 
