@@ -199,7 +199,7 @@ void mapTouchToScreen(TSPoint touch, Point* screen) {
   screen->x = constrain(screen->x, 0, tft.width());
   screen->y = constrain(screen->y, 0, tft.height());
 
-  if (tft.getRotation() == 3) {
+  if (tft.getRotation() == eSCREEN_ROTATE_180) {
     // if display is flipped, then also flip both x,y touchscreen coords
     screen->x = tft.width() - screen->x;
     screen->y = tft.height() - screen->y;
