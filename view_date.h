@@ -372,12 +372,15 @@ void ViewDate::startScreen() {
   }
 
   // ----- draw text vertically onto  "More" button
-  tft->setRotation(0);   // todo - set this rotation differently according to the user's screen orientation
+  // for vertical text, temporarily rotate TFT screen into portrait mode
+  int savedRotation = tft->getRotation();
+  int newRotation = (savedRotation + 3) % 4;
+  tft->setRotation(newRotation);      // set portrait mode
   const int xx = tft->width() / 2 - 30;
   const int yy = tft->height() - 10;
   TextField sync("More", xx, yy, cFAINT);
   sync.print();
-  tft->setRotation(1);   // todo
+  tft->setRotation(savedRotation);    // restore screen orientation
 
   updateScreen();   // update UI immediately, don't wait for laggy mainline loop
 }   // end startScreen()
