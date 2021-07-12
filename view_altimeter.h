@@ -19,12 +19,12 @@
 
             +-----------------------------------------+
             | *              Altitude                 |
-            |                                         |
-            |                                         |
-            | Barometer:      17.8 feet               |. . .yRow1
-            | GPS (5#):      123.4 feet               |. . .yRow2
-            |                                         |
-            | Enter local sea level pressure          |
+            |                                      +--+
+            |                                     | S |
+            | Barometer:      17.8 feet           | y |. . .yRow1
+            | GPS (5#):      123.4 feet           | n |. . .yRow2
+            |                                     | c |
+            | Enter local sea level pressure      +--+|
             | Accuracy depends on your input          |
             |                                         |
             +-------+      30.150 inHg        +-------+
@@ -354,8 +354,8 @@ void ViewAltimeter::startScreen() {
 void ViewAltimeter::endScreen() {
   // Called once each time this view becomes INactive
   // This is a 'goodbye kiss' to do cleanup work
-  // For the altimeter view, save our settings here instead of on each 
-  // button press because writing to NVR is slow (0.5 sec) and would delay the user
+  // We save our settings here instead of on each button press 
+  // because writing to NVR is slow (0.5 sec) and would delay the user
   // while trying to press a button many times in a row.
   saveConfig();
 }
