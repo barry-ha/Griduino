@@ -4,6 +4,7 @@
   GMT_clock - bright colorful Greenwich Mean Time based on GPS
 
   Version history: 
+            2021-07-11 fixed saving local time zone offset
             2020-10-15 refactored from .cpp to .h
             2020-04-22 created
             2020-04-29 added touch adjustment of local time zone
@@ -37,7 +38,6 @@
    
 */
 
-#include <Arduino.h>
 #include <Adafruit_ILI9341.h>         // TFT color display library
 #include "constants.h"                // Griduino constants and colors
 #include "model_gps.h"                // Model of a GPS for model-view-controller
@@ -63,7 +63,10 @@ class ViewTime : public View {
     }
     void updateScreen();
     void startScreen();
+    void endScreen();
     bool onTouch(Point touch);
+    //void loadConfig();
+    //void saveConfig();
 
   protected:
     // ---------- local data for this derived class ----------
@@ -80,7 +83,7 @@ class ViewTime : public View {
 
     #define numClockFields 11
     TextField txtClock[numClockFields] = {
-      // text            x,y    color             index
+      // text            x,y    color       align       font
       {"Griduino GMT",  -1, 18, cTITLE,     ALIGNCENTER,eFONTSMALLEST}, // [TITLE]   program title, centered
       {"hh",            12, 94, cVALUE,     ALIGNLEFT, eFONTGIANT},   // [HOURS]     giant clock hours
       {":",             94, 94, cVALUE,     ALIGNLEFT, eFONTGIANT},   // [COLON1]    :
@@ -112,7 +115,7 @@ class ViewTime : public View {
       {  "-",  226,204,  36,30, {190,180, 110,59},  4,  cTEXTCOLOR, etimeZoneMinus },  // Down
     };
 
-    // ----- time helpers
+    // ----- helpers -----
     /* 2020-10-15 bwh - moved this into model_gps.h since it's used by multiple views
     #define TIME_FOLDER  "/GMTclock"     // 8.3 names
     #define TIME_FILE    TIME_FOLDER "/AddHours.cfg"
@@ -162,18 +165,6 @@ void ViewTime::updateScreen() {
   model->getDate(sDate, sizeof(sDate));
   txtClock[GMTDATE].print(sDate);
 
-  // Temperature
-  //float t = getTemperature();       // (no, removed this, doesn't make sense to report internal temperature on this view)
-  //double intpart;
-  //double fractpart= modf(t, &intpart);
-
-  //int degr = (int) intpart;
-  //int frac = (int) fractpart*10;
-  
-  //char sTemp[9];         // strlen("123.4 F") = 7
-  //snprintf(sTemp, sizeof(sTemp), "%d.%d F", degr, frac);
-  //txtClock[DEGREES].print(sTemp);
-
   // Hours to add/subtract from GMT for local time
   char sign[2] = { 0, 0 };            // prepend a plus-sign when >=0
   sign[0] = (model->gTimeZone >= 0) ? '+' : 0;   // (don't need to add a minus-sign bc the print stmt does that for us)
@@ -203,7 +194,7 @@ void ViewTime::startScreen() {
   TextField::setTextDirty( txtClock, numClockFields );  // make sure all fields get re-printed on screen change
 
   drawAllIcons();                     // draw gear (settings) and arrow (next screen)
-  showDefaultTouchTargets();          // optionally draw boxes around button-touch area
+  showDefaultTouchTargets();          // optionally draw box around default button-touch areas
   showMyTouchTargets(timeButtons, nTimeButtons);
   showScreenBorder();                 // optionally outline visible area
   showScreenCenterline();             // optionally draw visual alignment bar
@@ -233,7 +224,7 @@ void ViewTime::startScreen() {
     // ----- label on top of button
     int xx = getOffsetToCenterTextOnButton(item.text, item.x, item.w);
 
-    tft->setCursor(xx, item.y+item.h/2+5);
+    tft->setCursor(xx, item.y+item.h/2+5);  // place text centered inside button
     tft->setTextColor(item.color);
     tft->print(item.text);
 
@@ -241,6 +232,17 @@ void ViewTime::startScreen() {
 
   updateScreen();                     // update UI immediately, don't wait for laggy mainline loop
 } // end startScreen()
+
+
+void ViewTime::endScreen() {
+  // Called once each time this view becomes INactive
+  // This is a 'goodbye kiss' to do cleanup work
+  // For the GMT time view, the local timezone is part of the model.
+  // We save our settings here instead of on each button press 
+  // because writing to NVR is slow (0.5 sec) and would delay the user
+  // while trying to press a button many times in a row.
+  model->save();
+}
 
 
 bool ViewTime::onTouch(Point touch) {

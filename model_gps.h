@@ -113,6 +113,7 @@ public:
     gSpeed            = 0.0;                      // assume speed unknown
     gAngle            = 0.0;                      // assume direction of travel unknown
     gMetric           = from.gMetric;             // distance report in miles/kilometers
+    gTimeZone         = from.gTimeZone;           // offset from GMT to local time
     compare4digits    = from.compare4digits;      //
     gSeaLevelPressure = from.gSeaLevelPressure;   // hPa
 
@@ -367,8 +368,9 @@ public:
     }
     Serial.print("Time zone changed to ");
     Serial.println(gTimeZone);
-    this->save();   // save the new timezone (and model) in non-volatile memory
-    //myconfig.writeConfig();
+    // don't save to NVR here, "save()" is slow, to the caller
+    // should call model->save() when it's able to spend the time
+    //this->save();   // save the new timezone (and model) in non-volatile memory
   }
   void timeZoneMinus() {
     gTimeZone--;
@@ -377,8 +379,9 @@ public:
     }
     Serial.print("Time zone changed to ");
     Serial.println(gTimeZone);
-    this->save();   // save the new timezone (and model) in non-volatile memory
-    //myconfig.writeConfig();
+    // don't save to NVR here, "save()" is slow, to the caller
+    // should call model->save() when it's able to spend the time
+    //this->save();   // save the new timezone (and model) in non-volatile memory
   }
 
   //=========== distance helpers =============================
