@@ -1,4 +1,5 @@
-#pragma once   // Please format this file with clang before check-in to GitHub
+#pragma once
+// Please format this file with clang before check-in to GitHub
 /*
   File:     model_baro.h
 
@@ -238,6 +239,7 @@ protected:
   }
 
   void dumpPressureHistory() {   // debug
+    return;                      // debug debug
     // format the barometric pressure array and write it to the Serial console log
     // entire subroutine is for debug purposes
     Serial.print("Pressure history stack, non-zero values [line ");

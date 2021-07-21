@@ -30,7 +30,7 @@
 
 #define ALIGNLEFT        0        // align text toward left, using x=left edge of string
 #define ALIGNRIGHT       1        // align text toward right, using x=right edge of string
-#define ALIGNCENTER      2        // center text left-right
+#define ALIGNCENTER      2        // center text left-right, should set x=-1
 #define UNSPECIFIEDCOLOR 0x71ce   // oddball purple that's unlikely to be deliberately used
 
 // utilities in TextField.cpp

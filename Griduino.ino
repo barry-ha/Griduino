@@ -88,6 +88,7 @@
 #include "view_help.h"                // help screen
 #include "view_splash.h"              // splash screen
 #include "view_status.h"              // status screen 
+#include "view_ten_mile_alert.h"      // microwave rover screen
 #include "view_time.h"                // GMT time screen 
 
 #include "cfg_audio_type.h"           // config audio Morse/speech
@@ -616,14 +617,15 @@ enum {
   GRID_VIEW = 0,
   ALTIMETER_VIEW,                     // altimeter
   BARO_VIEW,                          // barometer graph
-  HELP_VIEW,
+  HELP_VIEW,                          // hints at startup
   CFG_GPS,                            // gps/simulator 
   CFG_UNITS,                          // english/metric
   CFG_CROSSING,                       // announce grid crossing 4/6 digit boundaries 
   CFG_AUDIO_TYPE,                     // audio output Morse/speech
   CFG_ROTATION,                       // screen rotation
-  SPLASH_VIEW,
+  SPLASH_VIEW,                        // startup
   STATUS_VIEW,
+  TEN_MILE_ALERT_VIEW,                // microwave rover view
   TIME_VIEW,
   DATE_VIEW,                          // Groundhog Day, Halloween, or other day-counting screen
   CFG_VOLUME,
@@ -646,6 +648,7 @@ ViewGrid         gridView(&tft, GRID_VIEW);
 ViewHelp         helpView(&tft, HELP_VIEW);
 ViewSplash       splashView(&tft, SPLASH_VIEW);
 ViewStatus       statusView(&tft, STATUS_VIEW);
+ViewTenMileAlert tenMileAlertView(&tft, TEN_MILE_ALERT_VIEW);
 ViewTime         timeView(&tft, TIME_VIEW);
 ViewVolume       volumeView(&tft, CFG_VOLUME);
 
@@ -663,6 +666,7 @@ void selectNewView(int cmd) {
         &cfgRotation,      // [CFG_ROTATION]
         &splashView,       // [SPLASH_VIEW]
         &statusView,       // [STATUS_VIEW]
+        &tenMileAlertView, // [TEN_MILE_ALERT_VIEW]
         &timeView,         // [TIME_VIEW]
         &dateView,         // [DATE_VIEW]
         &volumeView,       // [CFG_VOLUME]
@@ -673,7 +677,8 @@ void selectNewView(int cmd) {
   if (cmd == GOTO_NEXT_VIEW) {
     // operator requested the next NORMAL user view
     switch (currentView) {
-      case GRID_VIEW:      nextView = BARO_VIEW; break;
+      case GRID_VIEW:      nextView = TEN_MILE_ALERT_VIEW; break;
+      case TEN_MILE_ALERT_VIEW: nextView = BARO_VIEW; break;
       case BARO_VIEW:      nextView = ALTIMETER_VIEW; break;
       case ALTIMETER_VIEW: nextView = STATUS_VIEW; break;
       case STATUS_VIEW:    nextView = TIME_VIEW; break;
@@ -868,10 +873,14 @@ void setup() {
   cfgRotation.loadConfig();           // restore previous screen orientation
 
   // ----- one-time Splash screen
+#ifdef FASTBOOT
+  Serial.println("Fast boot: skip Splash screen");
+#else
   pView = &splashView;
   pView->startScreen();
   pView->updateScreen();
   delay(2000);
+#endif
 
   // ----- init GPS
   GPS.begin(9600);                              // 9600 NMEA is the default baud rate for Adafruit MTK GPS's
@@ -953,10 +962,14 @@ void setup() {
   // ----- init onboard LED
   pinMode(RED_LED, OUTPUT);           // diagnostics RED LED
 
+#ifdef FASTBOOT
+  Serial.println("Fast boot: skip Help screen");
+#else
   // one-time Help screen
   pView = &helpView;
   pView->startScreen();
   delay(2000);
+#endif
 
   // ----- restore GPS driving track breadcrumb history
   model->restore();                   // this takes noticeable time (~0.2 sec) 

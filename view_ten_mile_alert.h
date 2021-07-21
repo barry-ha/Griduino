@@ -64,7 +64,7 @@ protected:
   double startLat  = 40.0;     // approximate center of US on Kansas/Nebraska border
   double startLong = -100.0;   // 40,-100 = EN00aa
 
-  float prevDiffLat = 99.9;
+  float prevDiffLat  = 99.9;
   float prevDiffLong = 99.9;
 
   // ========== text screen layout ===================================
@@ -161,10 +161,12 @@ protected:
     tft->drawCircle(xCenter, yCenter, radius, cHIGHLIGHT);
 
     // tick marks
+    /* commented out, it's just visual clutter
     tft->drawLine(xCenter, yCenter - radius - 3, xCenter, yCenter - radius, cHIGHLIGHT);   // N
     tft->drawLine(xCenter, yCenter + radius + 3, xCenter, yCenter + radius, cHIGHLIGHT);   // S
     tft->drawLine(xCenter - radius - 3, yCenter, xCenter - radius, yCenter, cHIGHLIGHT);   // W
     tft->drawLine(xCenter + radius + 3, yCenter, xCenter + radius, yCenter, cHIGHLIGHT);   // E
+    */
   }
 
   float updateCompass(double diffLat, double diffLong, uint16_t color) {
@@ -172,15 +174,29 @@ protected:
     float theta = atan2(diffLat, diffLong);   // returns angle in radians
 
     // draw new arrow inside compass circle
-    float xStart = xCenter - (radius - 4) * cos(theta);
-    float yStart = yCenter + (radius - 4) * sin(theta);
+    float xStart = xCenter - (radius - 3) * cos(theta);
+    float yStart = yCenter + (radius - 3) * sin(theta);
 
-    float xEnd = xCenter + (radius - 1) * cos(theta);
-    float yEnd = yCenter - (radius - 1) * sin(theta);
+    float xEnd = xCenter + (radius - 4) * cos(theta);
+    float yEnd = yCenter - (radius - 4) * sin(theta);
+
+    // draw primary line in arrow
+    tft->drawLine(xStart, yStart, xEnd, yEnd, color);
 
     // draw origin of arrow
-    tft->drawLine(xStart, yStart, xEnd, yEnd, color);
-    tft->drawCircle(xStart, yStart, 3, color);
+    /* Works fine, but it's heavy and draws too much attention away from arrowhead
+    tft->drawCircle(xStart, yStart, 2, color);
+    */
+
+    /* Works fine, but a short line doesn't look good at this small scale
+    float tailLength = radius * 0.10;
+    float tailAngle = theta + (PI / 2.0); // = (90.0 * DEG2RAD);
+    int x0 = xStart - tailLength * cos(tailAngle);
+    int y0 = yStart + tailLength * sin(tailAngle);
+    int x1 = xStart + tailLength * cos(tailAngle);
+    int y1 = yStart - tailLength * sin(tailAngle);
+    tft->drawLine(x0, y0, x1, y1, color);
+    */
 
     // arrowhead at (xEnd,yEnd) is two short lines about +/-10 degrees from theta
     float arLength = radius * 0.5;   // arrowhead is short, about 10% of diameter of circle
@@ -287,8 +303,8 @@ void ViewTenMileAlert::updateScreen() {
       updateCompass(prevDiffLat, prevDiffLong, cBACKGROUND);     // erase old arrow
       float rads = updateCompass(deltaLat, deltaLong, cVALUE);   // draw new arrow
       updateDirectionName(rads);
-      
-      prevDiffLat = deltaLat;
+
+      prevDiffLat  = deltaLat;
       prevDiffLong = deltaLong;
     }
   }

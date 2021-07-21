@@ -414,6 +414,13 @@ public:
     double distance     = angleRadians * R;
     return distance;
   }
+  double calcDistance(double fromLat, double fromLong, double toLat, double toLong) {
+    // Note: accurate for short distances, since it ignores curvature of earth
+    double latDist = calcDistanceLat(fromLat, toLat);
+    double longDist = calcDistanceLong(fromLat, fromLong, toLong);
+    double total = sqrt(latDist*latDist + longDist*longDist);
+    return total;
+  }
 
   // ============== grid helpers =================================
   float nextGridLineNorth(void) {   // if no value given, use current GPS reading
@@ -554,7 +561,7 @@ public:
       //    2-degrees east-west is about (94.3 miles) / (6m 17s) = 900 mph
       float timeScale = 1200.0;   // arbitrary divisor to slow down the motion
       gLatitude       = midCN87.lat + 0.6 * gridHeightDegrees * cos(secondHand / timeScale * 2.0 * PI);
-      gLongitude      = midCN87.lng + 0.6 * gridWidthDegrees * sin(secondHand / timeScale * 2.0 * PI);
+      gLongitude      = midCN87.lng + 0.7 * gridWidthDegrees * sin(secondHand / timeScale * 2.0 * PI);
       break;
     }
   }
