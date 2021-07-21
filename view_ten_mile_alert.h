@@ -174,8 +174,8 @@ protected:
     float theta = atan2(diffLat, diffLong);   // returns angle in radians
 
     // draw new arrow inside compass circle
-    float xStart = xCenter - (radius - 3) * cos(theta);
-    float yStart = yCenter + (radius - 3) * sin(theta);
+    float xStart = xCenter - (radius - 4) * cos(theta);
+    float yStart = yCenter + (radius - 4) * sin(theta);
 
     float xEnd = xCenter + (radius - 4) * cos(theta);
     float yEnd = yCenter - (radius - 4) * sin(theta);
@@ -227,36 +227,41 @@ protected:
     txtTenMileAlert[eDistance].print(dist, digits);
   }
 
-  const char *names[8] = {"N", "NE", "E", "SE", "S", "SW", "W", "NW"};
-
   void updateDirectionName(float theta) {
     // show N, NNW, NW, WNW, W, ...
     // input: direction in radians
-    int degrees = theta * (-1.0) * DEGREES_PER_RADIAN;   // radians ccw, degrees clockwise
-    degrees += 90;                                       // 0 radians = 90 degrees = East
-    if (degrees < 0) {
-      degrees += 360;
+    int unitCircleDegrees = theta * (-1.0) * DEGREES_PER_RADIAN;   // use "-1" because radians ccw, degrees clockwise
+
+    int compassDegrees = unitCircleDegrees + 90;   // rotate "90 degrees" because zero radians = 90 degrees = East
+    if (compassDegrees < 0) {                      // degrees on compass must be 0..360
+      compassDegrees += 360;
     }
 
-    int index = (degrees + 45) / 45;
-    Serial.print("Heading ");
-    Serial.print(theta, 2);
-    Serial.print(" radians, ");
-    Serial.print(degrees);
-    Serial.print(" degrees, index ");
-    Serial.print(index);
-    Serial.print(", ");
-    if (0 <= index && index < 8) {
-      Serial.print(names[index]);
-    } else {
-      Serial.print("?");
-    }
-    Serial.println();
-
-    if (0 <= index && index < 8) {
+    int index            = (compassDegrees + 45 / 2) / 45;
+    const char *names[9] = {"North", "NE", "East", "SE", "South", "SW", "West", "NW", "North"};
+    if (0 <= index && index < 9) {
       txtTenMileAlert[eDirectionName].print(names[index]);
     } else {
       txtTenMileAlert[eDirectionName].print("?");
+    }
+
+    // purely for debug in the console
+    static int prevDegrees;
+    if (compassDegrees != prevDegrees) {
+      Serial.print("Heading ");
+      Serial.print(theta, 3);
+      Serial.print(" radians, ");
+      Serial.print(compassDegrees);
+      Serial.print(" degrees, index ");
+      Serial.print(index);
+      Serial.print(", ");
+      if (0 <= index && index < 9) {
+        Serial.print(names[index]);
+      } else {
+        Serial.print("?");
+      }
+      Serial.println();
+      prevDegrees = compassDegrees;
     }
   }
 
@@ -295,7 +300,7 @@ void ViewTenMileAlert::updateScreen() {
 
   float deltaLat  = model->gLatitude - startLat;
   float deltaLong = model->gLongitude - startLong;
-  if (dist > 0.005) {
+  if (dist > 0.001) {
     // GPS will drift while you're stationary, so pick a small circle around
     // the Set point to keep the noise down
     // "0.01" miles is 52 feet
@@ -359,7 +364,7 @@ void ViewTenMileAlert::endScreen() {
   // We save our settings here instead of on each button press
   // because writing to NVR is slow (0.5 sec) and would delay the user
   // while trying to press a button many times in a row.
-  //saveConfig(); todo
+  saveConfig();
 }
 
 bool ViewTenMileAlert::onTouch(Point touch) {
@@ -390,36 +395,47 @@ bool ViewTenMileAlert::onTouch(Point touch) {
 }   // end onTouch()
 
 // ========== load/save config setting =========================
-// the user's sea level pressure is saved here instead of the model, to keep the
-// screen responsive. Otherwise it's slow to save the whole GPS model.
-//#define ALTIMETER_CONFIG_FILE    CONFIG_FOLDER "/altimetr.cfg" // must be 8.3 filename
-//#define CONFIG_ALTIMETER_VERSION "Altimeter v01"               // <-- always change this when changing data saved
+// Save the starting point lat/long that the user selected
+// Save it here instead of the model, to keep the screen responsive.
+// Otherwise it's slow to save the whole GPS model.
+const char TEN_MILE_START[25]   = CONFIG_FOLDER "/ten_mile.cfg";   // must be 8.3 filename
+const char TEN_MILE_VERSION[15] = "Ten Mile v01";                  // <-- always change version when changing model data
+
+// ----- save user's starting point to non-volatile memory -----
+void ViewTenMileAlert::saveConfig() {
+  SaveRestore config(TEN_MILE_START, TEN_MILE_VERSION);
+  int rc = config.writeConfig((byte *)this, sizeof(ViewTenMileAlert));
+  if (rc) {
+    Serial.println("Success, Ten-Mile Alert object stored to SDRAM");
+  } else {
+    Serial.println("ERROR! Failed to save Ten Mile Alert object to SDRAM");
+  }
+  Serial.print("Finished with rc = ");
+  Serial.println(rc);   // debug
+}
 
 // ----- load from SDRAM -----
 void ViewTenMileAlert::loadConfig() {
-  // Load altimeter settings from NVR
+  // Load "Microwave Rover" settings from NVR
 
-  // todo
+  SaveRestore config(TEN_MILE_START, TEN_MILE_VERSION);
+  ViewTenMileAlert temp(tft, 0);
+  int rc = config.readConfig((byte *)&temp, sizeof(temp));
+  if (rc) {
+    // warning: this can corrupt our object's data if something failed
+    // so we blob the bytes to a work area and copy individual values
+    Serial.println(". Success, settings restored from SDRAM");
 
-  /*
-  SaveRestore config(ALTIMETER_CONFIG_FILE, CONFIG_ALTIMETER_VERSION);
-  float tempPressure;
-  int result = config.readConfig( (byte*) &tempPressure, sizeof(tempPressure) );
-  if (result) {
-    
-    this->sealevelPa = tempPressure;
-    Serial.print("Loaded sea level pressure: "); Serial.println(this->sealevelPa, 1);
+    // pick'n pluck values from the restored instance
+    this->startLat  = temp.startLat;
+    this->startLong = temp.startLong;
+    Serial.print("Loaded starting point (");
+    Serial.print(this->startLat, 4);
+    Serial.print(", ");
+    Serial.print(this->startLong, 4);
+    Serial.println(")");
   } else {
-    Serial.println("Failed to load sea level pressure, re-initializing config file");
+    Serial.println("Failed to load Ten Mile Alert settings, re-initializing config file");
     saveConfig();
   }
-  */
-}
-// ----- save to SDRAM -----
-void ViewTenMileAlert::saveConfig() {
-  /* todo 
-  SaveRestore config(ALTIMETER_CONFIG_FILE, CONFIG_ALTIMETER_VERSION);
-  int rc = config.writeConfig( (byte*) &sealevelPa, sizeof(sealevelPa) );
-  Serial.print("Finished with rc = "); Serial.println(rc);  // debug
-  */
 }

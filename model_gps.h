@@ -69,13 +69,15 @@ public:
                       // because saving entire model is slow, ~1 second
   }
 
-  // save current GPS state to non-volatile memory
+  // ========== load/save config setting =========================
   const char MODEL_FILE[25] = "/Griduino/gpsmodel.cfg";   // CONFIG_FOLDER
   const char MODEL_VERS[15] = "GPS Model v08";            // <-- always change version when changing model data
+
+  // ----- save user's GPS state to non-volatile memory -----
   int save() {
     SaveRestore sdram(MODEL_FILE, MODEL_VERS);
     if (sdram.writeConfig((byte *)this, sizeof(Model))) {
-      //Serial.println("Success, GPS Model stored to SDRAM");
+      //Serial.println("Success, GPS Model object stored to SDRAM");
     } else {
       Serial.println("ERROR! Failed to save GPS Model object to SDRAM");
       return 0;   // return failure
@@ -83,8 +85,9 @@ public:
     return 1;   // return success
   }
 
-  // restore current GPS state from non-volatile memory
+  // ----- load from SDRAM -----
   int restore() {
+    // restore current GPS state from non-volatile memory
     SaveRestore sdram(MODEL_FILE, MODEL_VERS);
     Model tempModel;
     if (sdram.readConfig((byte *)&tempModel, sizeof(Model))) {
@@ -101,7 +104,7 @@ public:
     return 1;   // return success
   }
 
-  // pick'n pluck values from another "Model" instance
+  // pick'n pluck values from the restored instance
   void copyFrom(const Model from) {
     //return;   // debug
 
