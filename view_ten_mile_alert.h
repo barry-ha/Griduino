@@ -232,17 +232,17 @@ protected:
   void updateDirectionName(float theta) {
     // show N, NNW, NW, WNW, W, ...
     // input: direction in radians
-    int degr = theta * (-1.0) * DEGREES_PER_RADIAN;   // radians ccw, degrees clockwise
-    degr += 90;                                       // 0 radians = 90 degrees = East
-    if (degr < 0) {
-      degr += 360;
+    int degrees = theta * (-1.0) * DEGREES_PER_RADIAN;   // radians ccw, degrees clockwise
+    degrees += 90;                                       // 0 radians = 90 degrees = East
+    if (degrees < 0) {
+      degrees += 360;
     }
 
-    int index = (degr + 45) / 45;
+    int index = (degrees + 45) / 45;
     Serial.print("Heading ");
     Serial.print(theta, 2);
     Serial.print(" radians, ");
-    Serial.print(degr);
+    Serial.print(degrees);
     Serial.print(" degrees, index ");
     Serial.print(index);
     Serial.print(", ");

@@ -303,7 +303,7 @@ void plotRoute(Location* marker, const int numMarkers, const PointGPS origin) {
           // let's try constructing the perpendicular and drawing a 3-pixel long line
           // y = mx+b, where m is the slope, b is the y-intercept
           /* 
-           * Result: the below is fugly because it uses fine details that are not 
+           * Result: the below is ugly because it uses fine details that are not 
            * smooth nor anti-aliased. It works but it's commented out.
            */
           /*
