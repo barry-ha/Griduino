@@ -79,9 +79,9 @@ protected:
   const int col3  = col2 + 124;   // left-adjusted unit names
 
   // compass size and placement
-  const int xCenter = (col1 + col2) / 2 - 8;   // pixels
+  const int xCenter = (col1 + col2) / 2 - 7;   // pixels
   const int yCenter = yRow3;                   // pixels
-  const int radius  = 36;                      // pixels
+  const int radius  = 37;                      // pixels
 
   const float DEG2RAD            = PI / 180.0f;
   const float DEGREES_PER_RADIAN = 180.0f / PI;
@@ -110,10 +110,10 @@ protected:
       {"NNE", -1, yRow4, cVALUE, ALIGNCENTER, eFONTSMALL},               // [eDirectionName]
                                                                          //
       {"Start:", col1, yRow1, cLABEL, ALIGNLEFT, eFONTSMALL},            // [eStartLabel]
-      {"CN87us", col2, yRow1, cTEXTCOLOR, ALIGNLEFT, eFONTBIG},          // [eStartValue]
+      {"CN87us", col2-14, yRow1, cTEXTCOLOR, ALIGNLEFT, eFONTBIG},          // [eStartValue]
                                                                          //
       {"Here:", col1, yRow2, cLABEL, ALIGNLEFT, eFONTSMALL},             // [eCurrentLabel]
-      {"CN87vv", col2, yRow2, cTEXTCOLOR, ALIGNLEFT, eFONTBIG},          // [eCurrentValue]
+      {"CN87vv", col2-14, yRow2, cTEXTCOLOR, ALIGNLEFT, eFONTBIG},          // [eCurrentValue]
   };
 
   enum buttonID {
@@ -126,9 +126,9 @@ protected:
       //
       // 3.2" display is 320 x 240 pixels, landscape, (y=239 reserved for activity bar)
       //
-      // label            origin   size      touch-target
-      // text              x,y      w,h      x,y      w,h    radius  color     functionID
-      {"", 290, 96, 29, 84, {210, 108, 109, 128}, 4, cTEXTCOLOR, eSetStart},
+      //   origin   size       touch-target
+      // txt x,y     w,h       x,y      w,h     radius  color    functionID
+      {"", 292, 96, 29, 84, {210, 108, 109, 128}, 4, cTEXTCOLOR, eSetStart},
   };
 
   // ======== helpers =========================================
@@ -224,6 +224,7 @@ protected:
     } else {
       digits = 0;
     }
+    //txtTenMileAlert[eDistance].print(dist, digits);
     txtTenMileAlert[eDistance].print(dist, digits);
   }
 
@@ -279,6 +280,7 @@ void ViewTenMileAlert::updateScreen() {
   char grid6[7];
   calcLocator(grid6, startLat, startLong, 6);
   txtTenMileAlert[eStartValue].print(grid6);
+  //txtTenMileAlert[eStartValue].print("DM03ww");  // debug long string for Dave Glen N6TEP
 
   calcLocator(grid6, model->gLatitude, model->gLongitude, 6);
   txtTenMileAlert[eCurrentValue].print(grid6);
