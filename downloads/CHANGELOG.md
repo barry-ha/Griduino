@@ -8,11 +8,17 @@ Version numbers correspond to [Downloads](https://github.com/barry-ha/Griduino/t
 
 The changelog format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and the Griduino project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+**v1.05** &nbsp; 2021-08-07
+
+Fix: The "set" button on the Ten Mile Alert screen did not always save the location.
+
+New: The Ten-Mile Alert screen is slightly changed to highlight "Here" and improve visual focus.
+
 **v1.04** &nbsp; 2021-07-21
 
-New feature: Ten Mile Alert screen for microwave rovers. This lets you set a pushpin at your current location and then report straight-line distance and direction while you drive around. It's designed for ARRL microwave contests that require moving at least ten miles (16 km) before contacting the same station again.
+New: Ten Mile Alert screen for microwave rovers. This lets you set a pushpin at your current location and then report straight-line distance and direction while you drive around. It's designed for ARRL microwave contests that require moving at least ten miles (16 km) before contacting the same station again.
 
-Fixed how it saved the offset from GMT to the local time. Now it will remember your local timezone through a power cycle.
+Fix: Now it will remember your local timezone through a power cycle.
 
 **v1.03** &nbsp; 2021-07-10
 

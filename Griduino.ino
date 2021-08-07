@@ -562,9 +562,9 @@ bool isDateValid(int yy, int mm, int dd) {
   }
   if (!valid) {
     // debug - issue message to console to help track down timing problem in Baroduino view
-    char msg[120];
-    snprintf(msg, sizeof(msg), "Date ymd not valid: %d-%d-%d");
-    Serial.println(msg);
+    //char msg[120];
+    //snprintf(msg, sizeof(msg), "Date ymd not valid: %d-%d-%d");
+    //Serial.println(msg);
   }
   return valid;
 }

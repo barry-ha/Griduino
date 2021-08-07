@@ -19,8 +19,8 @@
             |   \     /                               |
             |    \---/                                |
             |                                       S |
-            |     Start:   CN87aa                   E |
-            |     Here:    CN87bb                   T |
+            |     Here:    CN87bb                   E |
+            |     Start:   CN87aa                   T |
             |                                         |
             +-----------------------------------------+
               |     |            | |
@@ -93,10 +93,10 @@ protected:
     eDistance,
     eUnits,           // miles, km
     eDirectionName,   // N, S, E, W, ...
-    eStartLabel,
-    eStartValue,
     eCurrentLabel,
     eCurrentValue,
+    eStartLabel,
+    eStartValue,
   };
 
 #define nTextTenMileAlert 9
@@ -109,11 +109,11 @@ protected:
       {"miles", col3, yRow3, cVALUE, ALIGNLEFT, eFONTSMALL},             // [eUnits]
       {"NNE", -1, yRow4, cVALUE, ALIGNCENTER, eFONTSMALL},               // [eDirectionName]
                                                                          //
-      {"Start:", col1, yRow1, cLABEL, ALIGNLEFT, eFONTSMALL},            // [eStartLabel]
-      {"CN87us", col2-14, yRow1, cTEXTCOLOR, ALIGNLEFT, eFONTBIG},          // [eStartValue]
+      {"Here:", col1, yRow1, cLABEL, ALIGNLEFT, eFONTSMALL},             // [eCurrentLabel]
+      {"CN87vv", col2-14, yRow1, cTEXTCOLOR, ALIGNLEFT, eFONTBIG},       // [eCurrentValue]
                                                                          //
-      {"Here:", col1, yRow2, cLABEL, ALIGNLEFT, eFONTSMALL},             // [eCurrentLabel]
-      {"CN87vv", col2-14, yRow2, cTEXTCOLOR, ALIGNLEFT, eFONTBIG},          // [eCurrentValue]
+      {"Start:", col1, yRow2, cLABEL, ALIGNLEFT, eFONTSMALL},            // [eStartLabel]
+      {"CN87us", col2-14, yRow2, cFAINTER, ALIGNLEFT, eFONTBIG},         // [eStartValue]
   };
 
   enum buttonID {
@@ -143,7 +143,8 @@ protected:
 
     startCompass();
     clearDirectionName();
-  }
+    saveConfig();
+}
 
   void clearDirectionName() {
     txtTenMileAlert[eDirectionName].print("");
@@ -161,12 +162,12 @@ protected:
     tft->drawCircle(xCenter, yCenter, radius, cHIGHLIGHT);
 
     // tick marks
-    /* commented out, it's just visual clutter
+    /* commented out, it's just visual clutter */
     tft->drawLine(xCenter, yCenter - radius - 3, xCenter, yCenter - radius, cHIGHLIGHT);   // N
     tft->drawLine(xCenter, yCenter + radius + 3, xCenter, yCenter + radius, cHIGHLIGHT);   // S
     tft->drawLine(xCenter - radius - 3, yCenter, xCenter - radius, yCenter, cHIGHLIGHT);   // W
     tft->drawLine(xCenter + radius + 3, yCenter, xCenter + radius, yCenter, cHIGHLIGHT);   // E
-    */
+    /* */
   }
 
   float updateCompass(double diffLat, double diffLong, uint16_t color) {
@@ -401,7 +402,7 @@ bool ViewTenMileAlert::onTouch(Point touch) {
 // Save it here instead of the model, to keep the screen responsive.
 // Otherwise it's slow to save the whole GPS model.
 const char TEN_MILE_START[25]   = CONFIG_FOLDER "/ten_mile.cfg";   // must be 8.3 filename
-const char TEN_MILE_VERSION[15] = "Ten Mile v01";                  // <-- always change version when changing model data
+const char TEN_MILE_VERSION[15] = "Ten Mile v02";                  // <-- always change version when changing model data
 
 // ----- save user's starting point to non-volatile memory -----
 void ViewTenMileAlert::saveConfig() {

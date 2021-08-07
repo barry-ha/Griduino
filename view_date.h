@@ -73,12 +73,23 @@ struct DefinedEvent {
   int countup;     // DAYS_SINCE | COUNTDOWN_TO
   bool show_HMS;   // SHOW_HMS | HIDE_HMS
   char line1[24];
-  char line2[24];
+  char line2[26];
   char line3[26];
   TimeElements eventGMT;
 };
 
 // ======= some interesting target events for count up/down display ========
+
+DefinedEvent aug_microwave{
+    // Time until August ARRL 10 HGz & Up Contest
+    COUNTDOWN_TO,
+    SHOW_HMS,
+    "Countdown to",
+    "Aug 21, 2021, 6 am local",
+    "ARRL 10 GHz & Up Contest",
+    //s,m,h, dow, dd, mm, yy
+    {0, 0, 13, 1, 21,  8, 2021 - 1970},
+};
 
 DefinedEvent sept_vhf{
     // Time until Sept VHF Contest
@@ -148,6 +159,8 @@ DefinedEvent valentines{
 
 // ---- list of target events
 DefinedEvent eventList[] = {
+    aug_microwave,
+    sept_vhf,
     sept_vhf,
     june_vhf,
     groundhog,
