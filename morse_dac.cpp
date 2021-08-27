@@ -110,8 +110,8 @@ struct t_mtab morsetable[] = {
 // Replacement 'dtostrf()' so we can print floating point varables
 // From: https://forum.arduino.cc/index.php?topic=349764.15
 // input: val = floating point number to format
-//        width = minimum width
-//        prec = precision
+//        width = minimum field width of the output string
+//        prec = precision, number of digits after the decimal point
 //        sout = output string
 // todo:  replace this "dtostrf" with "floatToCharArray" in Griduino.ino
 char *dtostrf(double val, signed char width, unsigned char prec, char *sout) {
