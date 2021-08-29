@@ -85,10 +85,10 @@ DefinedEvent aug_microwave{
     COUNTDOWN_TO,
     SHOW_HMS,
     "Countdown to",
-    "Aug 21, 2021, 6 am local",
+    "Sept 18, 2021, 6 am local",
     "ARRL 10 GHz & Up Contest",
     //s,m,h, dow, dd, mm, yy
-    {0, 0, 13, 1, 21,  8, 2021 - 1970},
+    {0, 0, 13, 1, 18, 9, 2021 - 1970},
 };
 
 DefinedEvent sept_vhf{
@@ -99,7 +99,7 @@ DefinedEvent sept_vhf{
     "Sept 11, 2021 at 1800z",
     "ARRL Sept VHF Contest",
     //s,m,h, dow, dd, mm, yy
-    {0, 0, 18, 1, 11,  9, 2021 - 1970},
+    {0, 0, 18, 1, 11, 9, 2021 - 1970},
 };
 
 DefinedEvent june_vhf{
@@ -109,8 +109,8 @@ DefinedEvent june_vhf{
     "Countdown to",
     "June 11, 2022 at 1800z",
     "ARRL June VHF Contest",
-    //s,m,h, dow, dd, mm, yy
-    {0, 0, 18, 1, 11,  6, 2022 - 1970},
+    //s,m,h, dow, dd, mm, yy GMT
+    {0, 0, 18, 1, 11, 6, 2022 - 1970},
 };
 
 DefinedEvent groundhog{
@@ -121,7 +121,7 @@ DefinedEvent groundhog{
     "Sunday, Feb 2, 2020",
     "Groundhog Day",
     //s,m,h, dow, dd, mm, yy
-    {0, 0, 7, 1,   1,  2, 2020 - 1970},   // Use the day before Feb 2, so the counter includes "Groundhog Day #1" on 2/2/2020
+    {0, 0, 7, 1, 1, 2, 2020 - 1970},   // Use the day before Feb 2, so the counter includes "Groundhog Day #1" on 2/2/2020
 };
 
 DefinedEvent halloween{
@@ -387,13 +387,13 @@ void ViewDate::startScreen() {
   // ----- draw text vertically onto  "More" button
   // for vertical text, temporarily rotate TFT screen into portrait mode
   int savedRotation = tft->getRotation();
-  int newRotation = (savedRotation + 3) % 4;
-  tft->setRotation(newRotation);      // set portrait mode
+  int newRotation   = (savedRotation + 3) % 4;
+  tft->setRotation(newRotation);   // set portrait mode
   const int xx = tft->width() / 2 - 30;
   const int yy = tft->height() - 10;
   TextField sync("More", xx, yy, cFAINT);
   sync.print();
-  tft->setRotation(savedRotation);    // restore screen orientation
+  tft->setRotation(savedRotation);   // restore screen orientation
 
   updateScreen();   // update UI immediately, don't wait for laggy mainline loop
 }   // end startScreen()
