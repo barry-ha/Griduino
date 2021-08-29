@@ -81,6 +81,7 @@ public:
   int bmp_cs;              // Chip Select for BMP388 / BMP390 hardware
   float gPressure;         // pressure in Pascals
   float inchesHg;          // same pressure in inHg
+  float celsius;           // internal case temperature
 
 #define maxReadings 384                          // 384 = (4 readings/hour)*(24 hours/day)*(4 days)
 #define lastIndex   (maxReadings - 1)            // index to the last element in pressure array
@@ -158,10 +159,18 @@ public:
     return baro->readAltitude(sealevelPa / 100.0);
   }
 
+  float getTemperature() {
+    // updates: celsius (public class var)
+    // query temperature from the C++ object, Celsius, not the hardware
+    // note: the C++ object is updated only by "performReading()"
+    celsius = baro->readTemperature();
+    return celsius;
+  }
+
   float getBaroPressure() {
     // returns: float Pascals
-    // updates: gPressure (class var)
-    //          inchesHg  (class var)
+    // updates: gPressure (public class var)
+    //          inchesHg  (public class var)
     if (!baro->performReading()) {
       Serial.println("Error, failed to read barometer");
     }
