@@ -16,7 +16,7 @@
   | 61.2 |          us                 | 37.1 |
   |      |                             |      |
   |   47 +-----------------------------+      |
-  | 123' :         CN86  39.0 mi       :      |...gBottomGridY
+  | 123' :         CN86  39.0 mi       :  75° |...gBottomGridY
   | 47.5644, -122.0378                 :   5# |...gMessageRowY
   +------:---------:-------------------:------+
          :         :                   :
@@ -27,12 +27,14 @@
 #include <Adafruit_ILI9341.h>         // TFT color display library
 #include "constants.h"                // Griduino constants and colors
 #include "model_gps.h"                // Model of a GPS for model-view-controller
+#include "model_baro.h"               // Model of a barometer that measures temperature
 #include "TextField.h"                // Optimize TFT display text for proportional fonts
 #include "view.h"                     // Base class for all views
 
 // ========== extern ===========================================
 extern Adafruit_ILI9341 tft;          // Griduino.ino
 extern Model* model;                  // "model" portion of model-view-controller
+extern BarometerModel baroModel;      // singleton instance of the barometer model
 
 extern void showDefaultTouchTargets();  // Griduino.ino
 extern void setFontSize(int font);      // TextField.cpp
@@ -64,7 +66,7 @@ void drawGridOutline() {
 
 // these are names for the array indexes for readability, must be named in same order as below
 enum txtIndex {
-  GRID4=0, GRID6, LATLONG, ALTITUDE, NUMSAT,
+  GRID4=0, GRID6, LATLONG, ALTITUDE, NUMSAT, TEMPERATURE,
   N_COMPASS,  S_COMPASS,  E_COMPASS,  W_COMPASS,
   N_DISTANCE, S_DISTANCE, E_DISTANCE, W_DISTANCE,
   N_GRIDNAME, S_GRIDNAME, E_GRIDNAME, W_GRIDNAME,
@@ -79,6 +81,7 @@ TextField txtGrid[] = {
   TextField("47.1234,-123.4567", 4,223, cSTATUS), // LATLONG: left-adj on bottom row
   TextField("123'",   62,196,  cSTATUS, ALIGNRIGHT),  // ALTITUDE: just above bottom row
   TextField("99#",   313,221,  cSTATUS, ALIGNRIGHT),  // NUMSAT: lower right corner
+  TextField("75F",   313,196,  cSTATUS, ALIGNRIGHT),  // TEMPERATURE
   TextField( "N",    156, 47,  cCOMPASS ),      // N_COMPASS: centered left-right
   TextField( "S",    156,181,  cCOMPASS ),      // S_COMPASS
   TextField( "E",    232,114,  cCOMPASS ),      // E_COMPASS: centered top-bottom
@@ -126,6 +129,28 @@ void drawPositionLL(double fLat, double fLong) {
   }
   txtGrid[LATLONG].print(sTemp);      // latitude-longitude
 
+}
+
+void drawTemperature(float celsius) {
+  setFontSize(0);
+  float temperature; 
+  char units[2] = "?";
+  if (model->gMetric) {
+    temperature = celsius;
+    units[0] = 'c';
+  } else {
+    temperature = celsius * 9/5 + 32;
+    units[0] = 'F';
+  }
+  if (celsius < 43) {   // 43C = 110F. Try this awhile and see how it goes.
+    txtGrid[TEMPERATURE].color = cSTATUS; // normal temperature
+  } else {
+    txtGrid[TEMPERATURE].color = cWARN; // internal case temperature warning
+  }
+  char sFloat[8];    // strlen("123F") = 4
+  floatToCharArray(sFloat, sizeof(sFloat)-sizeof(units), temperature, 0);
+  strcat(sFloat, units);
+  txtGrid[TEMPERATURE].print(sFloat);   // Griduino's internal temperature
 }
 
 void drawNumSatellites() {
@@ -401,6 +426,7 @@ void ViewGrid::updateScreen() {
   drawGridName(grid6);                // huge letters centered on screen
   drawAltitude();                     // height above sea level
   drawNumSatellites();
+  drawTemperature(baroModel.getTemperature()); // query temperature from the C++ object, which is updated only by "performReading()"
   drawPositionLL(model->gLatitude, model->gLongitude);  // lat-long of current position
   //drawCompassPoints();              // show N-S-E-W compass points (disabled, it makes the screen too busy)
   //drawBoxLatLong();                 // show coordinates of box (disabled, it makes the screen too busy)
@@ -421,7 +447,6 @@ void ViewGrid::startScreen() {
   Serial.print(minLong,6); Serial.print(" degrees = "); 
   Serial.print(lngMiles,2); Serial.println(" miles");
 
-  //Serial.print("@fencepost: view_grid.cpp line "); Serial.println(__LINE__);  // debug
   double latMiles = model->calcDistanceLat(0.0, minLat);
   Serial.print("Minimum visible N-S movement y=lat="); 
   Serial.print(minLat,6); Serial.print(" degrees = "); 

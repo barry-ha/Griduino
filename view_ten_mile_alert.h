@@ -113,7 +113,7 @@ protected:
       {"CN87vv", col2-14, yRow1, cTEXTCOLOR, ALIGNLEFT, eFONTBIG},       // [eCurrentValue]
                                                                          //
       {"Start:", col1, yRow2, cLABEL, ALIGNLEFT, eFONTSMALL},            // [eStartLabel]
-      {"CN87us", col2-14, yRow2, cFAINTER, ALIGNLEFT, eFONTBIG},         // [eStartValue]
+      {"CN87us", col2-14, yRow2, cFAINT, ALIGNLEFT, eFONTBIG},           // [eStartValue]
   };
 
   enum buttonID {
