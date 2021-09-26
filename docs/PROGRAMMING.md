@@ -30,9 +30,10 @@ Follow these steps to obtain the Griduino binary file and update the software.
    - The Griduino screen will blank out, and most Windows computers will sound an audible "drive ready" chime.
    - In Windows, open the **File Explorer**.
    - Find the new drive, e.g. "**FEATHERBOOT (F:)**"
+   - If the USB device name is CIRCUITPY, then double-click the Reset button again until you get FEATHERBOOT. 
 
 1. **Install Griduino Software on Feather M4 Express**<br/>
-   - Drag the .UF2 file that you downloaded and drop it on the new drive. Or you can copy/paste it on the new drive.
+   - Drag the .UF2 file that you downloaded and drop it on the new FEATHERBOOT drive. Or you can copy/paste it to the new drive.
    - The Griduino screen will blank and it will begin running the new software.
    - First it shows an animation, then it shows a credits screen with the program name and version number.
    - Tap the top half of the display to advance to the Settings screen. This includes the version number and compiled date on the bottom line.
