@@ -455,6 +455,24 @@ void floatToCharArray(char* result, int maxlen, double fValue, int decimalPlaces
   temp.toCharArray(result, maxlen);
 }
 
+void pinwheel(int x0, int y0, uint16_t color) {
+  // draw a starburst with arbitrary origin x0,y0
+  // and evenly-spaced lines
+  int w2 = tft.width() * tft.width();      // width squared
+  int h2 = tft.height() * tft.height();    // height squared
+  int r = sqrt(w2 + h2);  // radius is the diagonal measure of the display
+
+  float angle = 0.0;
+  const int steps = 80;       // number of lines to draw within the circle
+  const float delta = 2.0 * PI / steps;
+  for (angle=0.0; angle<(2*PI); angle+=delta) {
+    int x = (int)(x0 + r*cos(angle));
+    int y = (int)(y0 + r*sin(angle));
+    tft.drawLine(x0, y0, x, y, color);
+  }
+  return;
+}
+
 // ----- console Serial port helper
 void waitForSerial(int howLong) {
   // Adafruit Feather M4 Express takes awhile to restore its USB connection to the PC
@@ -467,10 +485,22 @@ void waitForSerial(int howLong) {
   int h = gScreenHeight;
   bool done = false;
   tft.fillScreen(ILI9341_BLACK);      // (cBACKGROUND)
+
+  uint16_t color[] = { ILI9341_GREEN, ILI9341_YELLOW, ILI9341_CYAN, ILI9341_RED };
   
+  int ii = 0;
   while (millis() < targetTime) {
     if (Serial) break;
     if (done) break;
+
+    tft.fillScreen(ILI9341_BLACK);      // (cBACKGROUND)
+    pinwheel(random(0, w/2),  random(0, h/2),  ILI9341_RED);    // ul
+    pinwheel(random(w/2, w),  random(0, h/2),  ILI9341_GREEN);  // ur
+    pinwheel(random(w/2, w),  random(h/2, h),  ILI9341_YELLOW); // lr
+    pinwheel(random(0, w/2),  random(h/2, h),  ILI9341_CYAN);   // ll
+    delay(1500);
+
+    /* 2021-10-11 'time tunnel' replaced by pinwheel()...
     tft.drawRect(x, y, w, h, cLABEL); // look busy
     x += 2;
     y += 2;
@@ -480,10 +510,13 @@ void waitForSerial(int howLong) {
       x = y = 0;
       w = gScreenWidth;
       h = gScreenHeight;
+      uint16_t c = color[ii];
       tft.fillScreen(ILI9341_BLACK);  // (cBACKGROUND)
       done = true;
     }
     delay(15);
+    ii = (ii + 1) % sizeof(color);
+    **** */
   }
 }
 

@@ -75,7 +75,7 @@ const int HALFBR    = 20;    // = half of tolerably bright
 const int OFF       = 0;     // = turned off
 
 // ----- Griduino color scheme
-// RGB 565 color code: http://www.barth-dev.de/online/rgb565-color-picker/
+// RGB 565 true color: https://chrishewett.com/blog/true-rgb565-colour-picker/
 #define BACKGROUND     0x00A            // a little darker than ILI9341_NAVY
 #define cBACKGROUND    0x00A            // 0,   0,  10 = darker than ILI9341_NAVY, but not black
 #define cGRIDNAME      ILI9341_GREEN    //
