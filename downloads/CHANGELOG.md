@@ -8,6 +8,12 @@ Version numbers correspond to [Downloads](https://github.com/barry-ha/Griduino/t
 
 The changelog format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and the Griduino project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+**v1.06** &nbsp; 2021-10-11
+
+New: Added the "internal case temperature" to the main screen display in the lower right corner, right above the number-of-satellites-received indicator. This will help people in hot climates recognize if Griduino running too hot (above 150F).
+
+New: Opening animation shows colorful starbursts instead of the green time tunnel, just for fun.
+
 **v1.05** &nbsp; 2021-08-07
 
 Fix: The "set" button on the Ten Mile Alert screen did not always save the location.
@@ -68,6 +74,7 @@ Get this download and try it out! Recommended for all users.
 **v0.34** &nbsp; 2021-02-11
 
 Improved the Altimeter view usability. This is a work in progress.
+
 
 **v0.33** &nbsp; 2021-02-09
 
