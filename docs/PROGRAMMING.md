@@ -110,7 +110,7 @@ Run the Python conversion script (author https://github.com/microsoft/uf2):
 If you want to compile Griduino source code or work with its example files (and we hope you do) then here's everything you need to setup the workbench.
 
 1. **Download and Run Arduino IDE**<br/>
-The Arduino IDE (integrated development environment) is the main workbench for writing, compiling and testing Arduino programs. As of October 2020, the latest version is Arduino IDE v1.8.13 
+The Arduino IDE (integrated development environment) is the main workbench for writing, compiling and testing Arduino programs. As of September 2021, the latest version is Arduino IDE v1.8.51 
 <ul>
 <li>Visit www.arduino.cc and find the **Software Downloads** section.</li>
 <li>Scroll down to the **Download the Arduino IDE** section.</li>
@@ -137,7 +137,7 @@ In the Arduino IDE menu bar, go to **Tools > Board > Boards Manager**. It will d
 <ul>
 <li>Arduino AVR Boards, Built-In by Arduino: v1.8.3</li>
 <li>Arduino SAMD Boards (32-bits ARM Cortex-M0+): v1.8.11</li>
-<li>Adafruit SAMD Boards: v1.6.6</li>
+<li>Adafruit SAMD Boards: v1.7.5</li>
 </ul>
 
 1. **Select Board**<br/>
@@ -154,7 +154,7 @@ In the Arduino IDE menu bar, go to **Tools > Manage Libraries**. Install the lat
    - AudioZero v1.1.1
    - SD v1.2.4
    - TFT v1.0.6
-   - Adafruit BMP3XX Library v2.0.2
+   - Adafruit BMP3XX Library v2.1.0
    - Adafruit GFX Library v1.10.7
    - Adafruit GPS Library v1.5.4
    - Adafruit ILI9341 v1.5.6
