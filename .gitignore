@@ -10,6 +10,7 @@
 *.bin 
 *.psd 
 *.xlsx
+datasheets/
 docs_mfr/
 orders/
 work_in_progress/
