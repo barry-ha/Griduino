@@ -280,12 +280,12 @@ void colorTunnel(int howLong, uint16_t color[], int numColors) {
 void pinwheel(int x0, int y0, uint16_t color) {
   // draws a starburst with arbitrary origin x0,y0
   // and evenly-spaced lines
-  int w2 = tft.width() * tft.width();
-  int h2 = tft.height() * tft.height();
+  int w2 = tft.width() * tft.width();      // width squared
+  int h2 = tft.height() * tft.height();    // height squared
   int r = sqrt(w2 + h2);  // radius is the diagonal measure of the display
 
   float angle = 0.0;
-  const int steps = 80;   // number of lines to draw within the circle
+  const int steps = 80;       // number of lines to draw within the circle
   const float delta = 2.0 * PI / steps;
   for (angle=0.0; angle<(2*PI); angle+=delta) {
     int x = (int)(x0 + r*cos(angle));
