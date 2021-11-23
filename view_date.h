@@ -82,28 +82,34 @@ struct DefinedEvent {
 
 DefinedEvent aug_microwave{
     // Time until August ARRL 10 HGz & Up Contest
+    // "Third full weekend of August and September"
+    // http://www.arrl.org/10-ghz-up
     COUNTDOWN_TO,
     SHOW_HMS,
     "Countdown to",
-    "Sept 18, 2021, 6 am local",
+    "Aug 13, 2022, 6 am local",
     "ARRL 10 GHz & Up Contest",
     //s,m,h, dow, dd, mm, yy
-    {0, 0, 13, 1, 18, 9, 2021 - 1970},
+    {0, 0, 13, 1, 21, 8, 2022 - 1970},
 };
 
 DefinedEvent sept_vhf{
     // Time until Sept VHF Contest
+    // "Second full weekend in September"
+    // http://www.arrl.org/september-vhf
     COUNTDOWN_TO,
     SHOW_HMS,
     "Countdown to",
-    "Sept 11, 2021 at 1800z",
+    "Sept 10, 2022 at 1800z",
     "ARRL Sept VHF Contest",
     //s,m,h, dow, dd, mm, yy
-    {0, 0, 18, 1, 11, 9, 2021 - 1970},
+    {0, 0, 18, 1, 10, 9, 2022 - 1970},
 };
 
 DefinedEvent june_vhf{
     // Time until June VHF Contest
+    // "Second full weekend in June"
+    // http://www.arrl.org/june-vhf
     COUNTDOWN_TO,
     SHOW_HMS,
     "Countdown to",
@@ -132,7 +138,7 @@ DefinedEvent halloween{
     "Halloween 6pm",
     "Days til Trick'r Treaters",
     //s,m,h,     dow, dd, mm, yy
-    {0, 0, 7 + 18, 1, 31, 10, 2021 - 1970},   // 6pm Halloween in Pacific time (encoded in GMT by adding 7 hours)
+    {0, 0, 7 + 18, 1, 31, 10, 2022 - 1970},   // 6pm Halloween in Pacific time (encoded in GMT by adding 7 hours)
 };
 
 DefinedEvent christmas{
