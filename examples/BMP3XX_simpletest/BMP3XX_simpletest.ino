@@ -1,13 +1,14 @@
+// Please format this file with clang before check-in to GitHub
 /*
   This is an example program for the BMP3XX temperature & pressure sensor
   updated for Griduino hardware.
 
   Designed specifically to work with either Adafruit breakout board:
-  * BMP388   http://www.adafruit.com/products/3966   +/- 8 Pascals (0.5 meters altitude)
-  * BMP390L  https://www.adafruit.com/product/4816   +/- 3 Pascals (0.25 meters altitude)
+  * BMP388     http://www.adafruit.com/products/3966   +/- 8 Pascals (0.5 meters altitude)
+  * BMP390L    https://www.adafruit.com/product/4816   +/- 3 Pascals (0.25 meters altitude)
           ^- the "L" is "long product support life"
 
-  This example has been updated to use SPI pins as defined for Griduino.
+  This example uses SPI pins as defined for Griduino.
 
   Adafruit invests time and resources providing this open source code,
   please support Adafruit and open-source hardware by purchasing products
@@ -34,43 +35,45 @@
 */
 
 #include <Wire.h>
-#include <SPI.h>                      // Serial Peripheral Interface
-#include <Adafruit_Sensor.h>          // Adafruit sensor library
-#include "Adafruit_BMP3XX.h"          // Precision barometric and temperature sensor
+#include <SPI.h>               // Serial Peripheral Interface
+#include <Adafruit_Sensor.h>   // Adafruit sensor library
+#include "Adafruit_BMP3XX.h"   // Precision barometric and temperature sensor
 
 // ------- Identity for splash screen and console --------
-#define PROGRAM_TITLE   "BMP388 /BMP390 Test"
-#define PROGRAM_VERSION "v0.31"
-#define PROGRAM_LINE1   "Barry K7BWH"
-#define PROGRAM_LINE2   "John KM7O"
+#define PROGRAM_TITLE    "BMP388 /BMP390 Test"
+#define PROGRAM_VERSION  "v1.07"
+#define PROGRAM_LINE1    "Barry K7BWH"
+#define PROGRAM_LINE2    "John KM7O"
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
 
 // ---------- Hardware Wiring ----------
-#define BMP_CS  13                    // BMP388 sensor, chip select
+#define BMP_CS 13   // BMP388 sensor, chip select
 
 // ------------ definitions
-#define FEET_PER_METER 3.28084
-#define SEA_LEVEL_PRESSURE_HPA (1013.25)
-// In Seattle, get current barometric readings from
+#define INCHES_MERCURY_PER_MILLIBAR (0.02953)
+#define FEET_PER_METER              (3.28084)
+#define SEA_LEVEL_PRESSURE_HPA      (1013.25)
+
+// Developer: Look up your current local sea level pressure on google
+//    In Seattle, get current barometric readings from
 //    https://forecast.weather.gov/data/obhistory/KSEA.html
 //    At my home, it results in altimeter readings of 16.9 - 18.1 feet ASL over 5-minute interval
 
 // ---------- Barometric and Temperature Sensor
 Adafruit_BMP3XX bmp;
 
-#define SEALEVELPRESSURE_HPA (1016.5) // at 6am PST Mar 6, 2020
-
 //=========== setup ============================================
 void setup() {
 
   // ----- init serial monitor
-  Serial.begin(115200);               // init for debuggging in the Arduino IDE
-  while (!Serial);
+  Serial.begin(115200);   // init for debuggging in the Arduino IDE
+  while (!Serial)
+    ;
 
   // now that Serial is ready and connected (or we gave up)...
-  Serial.println(PROGRAM_TITLE " " PROGRAM_VERSION);  // Report our program name to console
-  Serial.println("Compiled " PROGRAM_COMPILED);       // Report our compiled date
-  Serial.println(__FILE__);                           // Report our source code file name
+  Serial.println(PROGRAM_TITLE " " PROGRAM_VERSION);   // Report our program name to console
+  Serial.println("Compiled " PROGRAM_COMPILED);        // Report our compiled date
+  Serial.println(__FILE__);                            // Report our source code file name
 
   // ----- init BMP388 or BMP390 barometer
   if (bmp.begin_SPI(BMP_CS)) {
@@ -78,7 +81,8 @@ void setup() {
   } else {
     // failed to initialize hardware
     Serial.println("Error, unable to initialize BMP388, check your wiring");
-    while (1);
+    while (1)
+      ;
   }
 
   // Set up oversampling and filter initialization
@@ -94,30 +98,33 @@ void setup() {
 
 void loop() {
   // Read all sensors in the BMP3XX in blocking mode
-  if (! bmp.performReading()) {
+  if (!bmp.performReading()) {
     Serial.println("Error, failed to get reading from barometric sensor");
     return;
   }
-  float temperature = bmp.temperature;  // celsius
-  float pressure = bmp.pressure / 100.0;  // hectoPascal
-  float altitude = bmp.readAltitude(SEALEVELPRESSURE_HPA);  // meters
-  
+  float temperature = bmp.temperature;                            // celsius
+  float pressure    = bmp.pressure / 100.0;                       // hectoPascal
+  float altitude    = bmp.readAltitude(SEA_LEVEL_PRESSURE_HPA);   // meters
+
+  // ---- Print Readings: Console ----------------
   Serial.println();
   Serial.print("Temperature = ");
   Serial.print(temperature, 1);
   Serial.print(" C = ");
-  Serial.print(temperature*9/5+32, 1);
+  Serial.print(temperature * 9 / 5 + 32, 1);
   Serial.println(" F");
 
   Serial.print("Pressure = ");
   Serial.print(pressure / 100.0);
-  Serial.println(" hPa");
+  Serial.print(" hPa = ");
+  Serial.print(pressure * INCHES_MERCURY_PER_MILLIBAR);
+  Serial.println(" inHg");
 
   Serial.print("Apprx Altitude = ");
   Serial.print(altitude);
   Serial.print(" m = ");
-  Serial.print(altitude*3.28084, 1);
+  Serial.print(altitude * 3.28084, 1);
   Serial.println(" ft");
-  
+
   delay(2500);
 }
