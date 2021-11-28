@@ -33,10 +33,11 @@
 
   Real Time Clock:
          The real time clock in the Adafruit Ultimate GPS is not directly readable nor 
-         accessible from the Arduino. It's definitely not writeable. It's only internal to the GPS. 
-         Once the battery is installed, and the GPS gets its first data reception from satellites 
-         it will set the internal RTC. Then as long as the battery is installed, you can read the 
-         time from the GPS as normal. Even without a current "gps fix" the time will be correct.
+         accessible from the Arduino. It's definitely not writeable. It's only internal 
+         to the GPS. Once the battery is installed, and the GPS gets its first data 
+         reception from satellites it will set the internal RTC. Then as long as the 
+         battery is installed, this program can read the time from the GPS as normal. 
+         Even without a current "gps fix" the time will be correct.
          The RTC timezone cannot be changed, it is always UTC.
 
   Tested with:
@@ -171,6 +172,22 @@ On-board lights:
 // create an instance of the TFT Display
 Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 
+// to select a different SPI bus speed, use this instead:
+// -----------------------------------------------
+//    #include <Adafruit_SPIDevice.h>           // from library Adafruit_BusIO, file Adafruit_SPIDevice.h
+//    #define SPL06_DEFAULT_SPIFREQ (1000000)   // clock speed, default is spi_dev =
+//    Adafruit_SPIDevice mySPI = 
+//        Adafruit_SPIDevice(TFT_CS,                  // chip select
+//                           SPL06_DEFAULT_SPIFREQ,   // frequency
+//                           SPI_BITORDER_MSBFIRST,   // bit order
+//                           SPI_MODE0,               // data mode
+//                           theSPI);
+//    if (!spi_dev->begin()) {
+//      return false;
+//    }
+//    Adafruit_ILI9341(mySPI, TFT_DC, TFT_CS);
+// -----------------------------------------------
+
 // ---------- neopixel
 #define NUMPIXELS 1         // Feather M4 has one NeoPixel on board
 Adafruit_NeoPixel pixel = Adafruit_NeoPixel(NUMPIXELS, PIN_NEOPIXEL, NEO_GRB + NEO_KHZ800);
@@ -226,8 +243,13 @@ Adafruit_GPS GPS(&Serial1);
 
 // Adafruit Feather M4 Express pin definitions
 #define PIN_VCS      A1               // volume chip select
-#define PIN_VINC      6               // volume increment
+//#define PIN_VINC      6             // volume increment, Feather M4 Express
+#define PIN_VINC      2               // volume increment, ItsyBitsy M4 Express
 #define PIN_VUD      A2               // volume up/down
+
+// Adafruit ItsyBitsy M4 Express pin definitions
+#if defined(ADAFRUIT_ITSYBITSY_M4_EXPRESS)
+#endif
 
 // ctor         DS1804( ChipSel pin, Incr pin,  U/D pin,  maxResistance (K) )
 DS1804 volume = DS1804( PIN_VCS,     PIN_VINC,  PIN_VUD,  DS1804_TEN );
@@ -486,8 +508,7 @@ void waitForSerial(int howLong) {
   bool done = false;
   tft.fillScreen(ILI9341_BLACK);      // (cBACKGROUND)
 
-  uint16_t color[] = { ILI9341_GREEN, ILI9341_YELLOW, ILI9341_CYAN, ILI9341_RED };
-  
+  randomSeed(analogRead(1));          // different display each power-up (pin 1 is unconnected)
   int ii = 0;
   while (millis() < targetTime) {
     if (Serial) break;
