@@ -1,11 +1,18 @@
+// Please format this file with clang before check-in to GitHub
 /*
-  Serial_Read_Command - use serial console to send commands to Arduino
-  2021-11-29 created
+  Serial_Read_Command - example to read and process commands sent via USB port
 
+  Usage:
+  1. Open the Arduino IDE
+  2. Compile and load this sketch onto almost any Arduino
+  3. Use the Arduino IDE to open the monitor window (Tools > Serial Monitor)
+  4. Type commands into the serial monitor's top bar, e.g.:
+     help     (Arduino replies with "Available commands are: help, version, send, data, dump")
+     version  (Arduino replies with its program name, version and compile date)
+
+  Created:  2021-11-29
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
-
-  Based on: https://www.norwegiancreations.com/2017/12/arduino-tutorial-serial-inputs/
 */
 
 // ------- Identity for splash screen and console --------
@@ -29,7 +36,7 @@ void waitForSerial(int howLong) {
   }
 }
 
-// ----- commands
+// ----- table of commands
 typedef void (*Function)();   // ptr to function with no arguments, void return
 
 struct Command {
@@ -41,10 +48,11 @@ Command cmdList[] = {
     {"version", version},
     {"send", send_message},
     {"data", get_data},
-    {"reboot", reboot},
+    {"dump", dump},
 };
 const int numCmds = sizeof(cmdList) / sizeof(cmdList[0]);
 
+// ----- functions to implement commands
 void help() {
   Serial.print("Available commands are: ");
   for (int ii = 0; ii < numCmds; ii++) {
@@ -62,13 +70,13 @@ void version() {
   Serial.println(__FILE__);
 }
 void send_message() {
-  Serial.println("send_message");
+  Serial.println("send_message()");
 }
 void get_data() {
-  Serial.println("get_data");
+  Serial.println("get_data()");
 }
-void reboot() {
-  Serial.println("reboot");
+void dump() {
+  Serial.println("dump()");
 }
 
 //=========== setup ============================================
@@ -93,18 +101,18 @@ void loop() {
   if (Serial.available()) {
     digitalWrite(LED_BUILTIN, HIGH);   // indicate time waiting for string
     String command = Serial.readStringUntil('\n');
-    delay(100);
-    digitalWrite(LED_BUILTIN, LOW);
+    delay(100);                       // watch the red LED...
+    digitalWrite(LED_BUILTIN, LOW);   // ...if it stays ON a long time then the mainline loop is delayed
 
-    char cmd[24];   // it's safer to use character array instead of "String"
-    command.toCharArray(cmd, sizeof(cmd));
+    char cmd[24];                            // convert "String" type to character array
+    command.toCharArray(cmd, sizeof(cmd));   // because it's generally safer programming
     Serial.print(cmd);
     Serial.print(": ");
 
     bool found = false;
-    for (int ii = 0; ii < numCmds; ii++) {   // loop through table of commands
-      if (strcmp(cmd, cmdList[ii].text) == 0) {
-        cmdList[ii].function();   // found it! call the subroutine
+    for (int ii = 0; ii < numCmds; ii++) {        // loop through table of commands
+      if (strcmp(cmd, cmdList[ii].text) == 0) {   // look for it
+        cmdList[ii].function();                   // found it! call the subroutine
         found = true;
         break;
       }

@@ -1,5 +1,6 @@
 {
   "cSpell.words": [
     "quectel"
-  ]
+  ],
+  "cmake.configureOnOpen": true
 }
