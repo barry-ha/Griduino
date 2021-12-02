@@ -434,6 +434,41 @@ void mapTouchToScreen(TSPoint touch, Point* screen) {
   return;
 }
 
+// ============== USB port helpers =============================
+// ----- table of commands
+struct Command {
+  char text[20];
+  simpleFunction function;
+};
+Command cmdList[] = {
+    {"help", help},
+    {"version", version},
+    {"dump gps history", dump_gps_history},
+};
+const int numCmds = sizeof(cmdList) / sizeof(cmdList[0]);
+
+// ----- functions to implement commands
+void help() {
+  Serial.print("Available commands are: ");
+  for (int ii = 0; ii < numCmds; ii++) {
+    if (ii > 0) {
+      Serial.print(", ");
+    }
+    Serial.print(cmdList[ii].text);
+  }
+  Serial.println();
+}
+void version() {
+  Serial.println(PROGRAM_TITLE " " PROGRAM_VERSION);
+  Serial.println("Compiled " PROGRAM_COMPILED);
+  Serial.println(PROGRAM_LINE1);
+  Serial.println(__FILE__);
+}
+void dump_gps_history() {
+  Serial.println("dump_gps_history()");
+  model->dumpHistory();
+}
+
 // ============== grid helpers =================================
 void calcLocator(char* result, double lat, double lon, int precision) {
   // Converts from lat/long to Maidenhead Grid Locator
@@ -500,7 +535,7 @@ void waitForSerial(int howLong) {
   // Adafruit Feather M4 Express takes awhile to restore its USB connection to the PC
   // and the operator takes awhile to restart the console (Tools > Serial Monitor)
   // so give them a few seconds for this to settle before sending messages to IDE
-  unsigned long targetTime = millis() + howLong*1000;
+  unsigned long targetTime = millis() + howLong * 1000;
   int x = 0;
   int y = 0;
   int w = gScreenWidth;
@@ -1220,6 +1255,28 @@ void loop() {
       } else {
         // nothing to do
       }
+    }
+  }
+
+  // if there's text from the USB port, handle it
+  if (Serial.available()) {
+    String command = Serial.readStringUntil('\n');
+
+    char cmd[24];                            // convert "String" type to character array
+    command.toCharArray(cmd, sizeof(cmd));   // because it's generally safer programming
+    Serial.print(cmd);
+    Serial.print(": ");
+
+    bool found = false;
+    for (int ii = 0; ii < numCmds; ii++) {        // loop through table of commands
+      if (strcmp(cmd, cmdList[ii].text) == 0) {   // look for it
+        cmdList[ii].function();                   // found it! call the subroutine
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
+      Serial.println("Unsupported");
     }
   }
 

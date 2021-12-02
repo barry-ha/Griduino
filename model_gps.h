@@ -203,10 +203,10 @@ public:
     }
   }
   void dumpHistory() {
-    Serial.println("History review........");
-    Serial.print("Number of items = ");
+    Serial.print("Number of saved GPS records = ");
     Serial.println(numHistory);
-    for (int ii = 0; ii < 5 /*numHistory*/; ii++) {
+    int ii;
+    for (ii = 0; ii < 100 /*numHistory*/; ii++) {
       Location item = history[ii];
       Serial.print(ii);
       Serial.print(". GPS(");
@@ -214,7 +214,7 @@ public:
       Serial.print(",");
       Serial.print(item.loc.lng, 3);
       Serial.print(") ");
-      Serial.print("Time(");
+      Serial.print("GMT(");
       Serial.print(item.hh);
       Serial.print(":");
       Serial.print(item.mm);
@@ -223,6 +223,10 @@ public:
       Serial.print(")");
       Serial.println(" ");
     }
+    int remaining = numHistory - ii;
+    Serial.print("... and ");
+    Serial.print(remaining);
+    Serial.println(" more");
   }
   // grid-crossing detector
   bool enteredNewGrid() {
