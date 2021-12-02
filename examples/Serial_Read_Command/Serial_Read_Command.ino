@@ -36,12 +36,13 @@ void waitForSerial(int howLong) {
   }
 }
 
+// ============== USB port helpers =============================
 // ----- table of commands
-typedef void (*Function)();   // ptr to function with no arguments, void return
+typedef void (*simpleFunction)();   // ptr to function with no arguments, void return
 
 struct Command {
-  char text[8];
-  Function function;
+  char text[20];
+  simpleFunction function;
 };
 Command cmdList[] = {
     {"help", help},
@@ -83,8 +84,8 @@ void dump() {
 void setup() {
   pinMode(LED_BUILTIN, OUTPUT);   // initialize the onboard LED so we can flash it
 
-  // ----- init serial monitor
-  Serial.begin(115200);           // init for debuggging in the Arduino IDE
+  // ----- init serial monitor (do not "Serial.print" before this, it won't show up in console)
+  Serial.begin(115200);           // init for debugging in the Arduino IDE
   waitForSerial(howLongToWait);   // wait for developer to connect debugging console
 
   // now that Serial is ready and connected (or we gave up)...
@@ -98,6 +99,7 @@ void setup() {
 
 //=========== main work loop ===================================
 void loop() {
+  // if there's text from the USB port, handle it
   if (Serial.available()) {
     digitalWrite(LED_BUILTIN, HIGH);   // indicate time waiting for string
     String command = Serial.readStringUntil('\n');
