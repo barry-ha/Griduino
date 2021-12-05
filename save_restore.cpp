@@ -79,8 +79,8 @@ int SaveRestore::readConfig(byte *pData, const int sizeData) {
   // Echo metadata about the file:
   Serial.print(". Total file size (bytes): ");
   Serial.println(readFile.size(), DEC);
-  Serial.print(". Current position in file: ");
-  Serial.println(readFile.position(), DEC);
+  //Serial.print(". Current position in file: ");
+  //Serial.println(readFile.position(), DEC);
   //Serial.print(". Available data remaining to read: "); Serial.println(readFile.available(), DEC);
 
   // read first field (filename) from config file...
@@ -112,8 +112,10 @@ int SaveRestore::readConfig(byte *pData, const int sizeData) {
   }
   // verify second field (version string) stored in file exactly matches expected
   if (strcmp(temp, this->sVersion) != 0) {
-    Serial.print("Error, unexpected version (");
+    Serial.print("Error, unexpected version, got (");
     Serial.print(temp);
+    Serial.print(") and expected (");
+    Serial.print(this->sVersion);
     Serial.println(")");
     return 0;
   }

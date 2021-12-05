@@ -202,6 +202,86 @@ public:
       }
     }
   }
+
+// Beginning/end of each KML file
+#define KML_PREFIX "\
+<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\
+<kml xmlns=\"http://www.opengis.net/kml/2.2\"\
+ xmlns:gx=\"http://www.google.com/kml/ext/2.2\"\
+ xmlns:kml=\"http://www.opengis.net/kml/2.2\"\
+ xmlns:atom=\"http://www.w3.org/2005/Atom\">\r\n\
+<Document>\r\n\
+\t<name>Griduino Track</name>\r\n\
+\t<Style id=\"gstyle\"><LineStyle><color>ffff00ff</color><width>5</width></LineStyle></Style>\r\n\
+\t<Style id=\"gstyle1\"><LineStyle><color>ffff00ff</color><width>5</width></LineStyle></Style>\r\n\
+\t<StyleMap id=\"gstyle0\">\r\n\
+\t\t<Pair><key>normal</key><styleUrl>#gstyle1</styleUrl></Pair>\r\n\
+\t\t<Pair><key>highlight</key><styleUrl>#gstyle</styleUrl></Pair>\r\n\
+\t</StyleMap>\r\n"
+
+const int temp1 = 0;
+
+#define KML_SUFFIX "\
+</Document>\r\n\
+</kml>\r\n"
+
+// Beginning/end of a line for a track within KML file
+#define PLACEMARK_TRACK_PREFIX "\
+\t<Placemark>\r\n\
+\t\t<name>Griduino Track</name>\r\n\
+\t\t<styleUrl>#gstyle0</styleUrl>\r\n\
+\t\t<LineString>\r\n\
+\t\t\t<tessellate>1</tessellate>\r\n\
+\t\t\t<coordinates>\r\n"
+
+#define PLACEMARK_TRACK_SUFFIX "\r\n\
+\t\t\t</coordinates>\r\n\
+\t\t</LineString>\r\n\
+\t</Placemark>\r\n"
+
+// Beginning/end of a pushpin in a KML file
+#define PUSHPIN_PREFIX "\
+\t<Placemark>\r\n\
+\t\t<name>Start</name>\r\n\
+\t\t<styleUrl>#m_ylw-pushpin0</styleUrl>\r\n\
+\t\t<Point>\r\n\
+\t\t\t<gx:drawOrder>1</gx:drawOrder>\r\n\
+\t\t\t<coordinates>"
+
+#define PUSHPIN_SUFFIX "</coordinates>\r\n\
+\t\t</Point>\r\n\
+\t</Placemark>\r\n"
+
+  void dumpHistoryKML() {
+    Serial.print(KML_PREFIX); // begin KML file
+    Serial.print(PLACEMARK_TRACK_PREFIX); // begin tracking route
+    int startIndex = 0;
+    bool startFound = false;
+    for (int ii=0; ii<numHistory; ii++) {
+      Location item = history[ii];
+      if ((item.loc.lat != 0) || (item.loc.lng !=0)) {
+        if (!startFound) {
+          // remember the first non-empty lat/long for a "Start" pushpin
+          startIndex = ii;
+          startFound = true;
+        }
+        Serial.print(item.loc.lng, 4);
+        Serial.print(",");
+        Serial.print(item.loc.lat, 4);
+        Serial.print(",0 ");
+      }
+    }
+    Serial.print(PLACEMARK_TRACK_SUFFIX); // end tracking route
+    if (startFound) { // begin pushpin at start of route
+      Serial.print(PUSHPIN_PREFIX);
+      Location start = history[startIndex];
+      Serial.print(start.loc.lng, 4);
+      Serial.print(",");
+      Serial.print(start.loc.lat, 4);
+      Serial.print(PUSHPIN_SUFFIX); // end pushpin at start of route
+    }
+    Serial.print(KML_SUFFIX); // end KML file
+  }
   void dumpHistory() {
     Serial.print("Number of saved GPS records = ");
     Serial.println(numHistory);
