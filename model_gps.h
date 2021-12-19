@@ -212,14 +212,28 @@ public:
  xmlns:atom=\"http://www.w3.org/2005/Atom\">\r\n\
 <Document>\r\n\
 \t<name>Griduino Track</name>\r\n\
-\t<Style id=\"gstyle\"><LineStyle><color>ffff00ff</color><width>5</width></LineStyle></Style>\r\n\
-\t<Style id=\"gstyle1\"><LineStyle><color>ffff00ff</color><width>5</width></LineStyle></Style>\r\n\
+\t<Style id=\"gstyle\">\r\n\
+\t\t<LineStyle>\r\n\
+\t\t\t<color>ffffff00</color>\r\n\
+\t\t\t<width>4</width>\r\n\
+\t\t</LineStyle>\r\n\
+\t</Style>\r\n\
 \t<StyleMap id=\"gstyle0\">\r\n\
-\t\t<Pair><key>normal</key><styleUrl>#gstyle1</styleUrl></Pair>\r\n\
-\t\t<Pair><key>highlight</key><styleUrl>#gstyle</styleUrl></Pair>\r\n\
-\t</StyleMap>\r\n"
-
-const int temp1 = 0;
+\t\t<Pair>\r\n\
+\t\t\t<key>normal</key>\r\n\
+\t\t\t<styleUrl>#gstyle1</styleUrl>\r\n\
+\t\t</Pair>\r\n\
+\t\t<Pair>\r\n\
+\t\t\t<key>highlight</key>\r\n\
+\t\t\t<styleUrl>#gstyle</styleUrl>\r\n\
+\t\t</Pair>\r\n\
+\t</StyleMap>\r\n\
+\t<Style id=\"gstyle1\">\r\n\
+\t\t<LineStyle>\r\n\
+\t\t\t<color>ffffff00</color>\r\n\
+\t\t\t<width>4</width>\r\n\
+\t\t</LineStyle>\r\n\
+\t</Style>\r\n"
 
 #define KML_SUFFIX "\
 </Document>\r\n\
@@ -255,14 +269,17 @@ const int temp1 = 0;
   void dumpHistoryKML() {
     Serial.print(KML_PREFIX); // begin KML file
     Serial.print(PLACEMARK_TRACK_PREFIX); // begin tracking route
-    int startIndex = 0;
+    int startIndex = nextHistoryItem + 1;
     bool startFound = false;
+
+    int index = nextHistoryItem;   // start at oldest location in circular buffer
+
     for (int ii=0; ii<numHistory; ii++) {
-      Location item = history[ii];
+      Location item = history[index];
       if ((item.loc.lat != 0) || (item.loc.lng !=0)) {
         if (!startFound) {
           // remember the first non-empty lat/long for a "Start" pushpin
-          startIndex = ii;
+          startIndex = index;
           startFound = true;
         }
         Serial.print(item.loc.lng, 4);
@@ -270,38 +287,37 @@ const int temp1 = 0;
         Serial.print(item.loc.lat, 4);
         Serial.print(",0 ");
       }
+      index = (index + 1) % numHistory;
     }
     Serial.print(PLACEMARK_TRACK_SUFFIX); // end tracking route
     if (startFound) { // begin pushpin at start of route
       Serial.print(PUSHPIN_PREFIX);
       Location start = history[startIndex];
-      Serial.print(start.loc.lng, 4);
+      Serial.print(start.loc.lng, 4);   // KML demands longitude first
       Serial.print(",");
       Serial.print(start.loc.lat, 4);
+      Serial.print(",0");
       Serial.print(PUSHPIN_SUFFIX); // end pushpin at start of route
     }
     Serial.print(KML_SUFFIX); // end KML file
   }
-  void dumpHistory() {
+  void dumpHistoryGPS() {
     Serial.print("Number of saved GPS records = ");
     Serial.println(numHistory);
+    Serial.print("Next record to be written = ");
+    Serial.println(nextHistoryItem);
     int ii;
-    for (ii = 0; ii < 100 /*numHistory*/; ii++) {
+    for (ii = 0; ii < numHistory; ii++) {
       Location item = history[ii];
       Serial.print(ii);
       Serial.print(". GPS(");
-      Serial.print(item.loc.lat, 3);
+      Serial.print(item.loc.lat, 4);    // we prefer to see latitude first
       Serial.print(",");
-      Serial.print(item.loc.lng, 3);
+      Serial.print(item.loc.lng, 4);
       Serial.print(") ");
-      Serial.print("GMT(");
-      Serial.print(item.hh);
-      Serial.print(":");
-      Serial.print(item.mm);
-      Serial.print(":");
-      Serial.print(item.ss);
-      Serial.print(")");
-      Serial.println(" ");
+      char msg[17];
+      snprintf(msg, sizeof(msg), "GMT(%2d-%2d-%2d at %2d:%2d:%2d)", item.mon, item.dd, item.yy, item.hh, item.mm, item.ss);
+      Serial.println(msg);
     }
     int remaining = numHistory - ii;
     Serial.print("... and ");

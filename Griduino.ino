@@ -443,6 +443,7 @@ struct Command {
 Command cmdList[] = {
     {"help", help},
     {"version", version},
+    {"dump kml", dump_kml},
     {"dump gps history", dump_gps_history},
 };
 const int numCmds = sizeof(cmdList) / sizeof(cmdList[0]);
@@ -464,9 +465,13 @@ void version() {
   Serial.println(PROGRAM_LINE1);
   Serial.println(__FILE__);
 }
+void dump_kml() {
+  Serial.println("dump_kml()");
+  model->dumpHistoryKML();
+}
 void dump_gps_history() {
   Serial.println("dump_gps_history()");
-  model->dumpHistoryKML();
+  model->dumpHistoryGPS();
 }
 
 // ============== grid helpers =================================
