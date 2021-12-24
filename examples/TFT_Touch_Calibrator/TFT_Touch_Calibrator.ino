@@ -130,7 +130,7 @@ bool newScreenTap(Point* pPoint) {
 
       // convert resistance measurements into screen pixel coords
       mapTouchToScreen(touch, pPoint);
-      Serial.print("Screen touch detected ("); Serial.print(pPoint->x);
+      Serial.print("Screen touched at ("); Serial.print(pPoint->x);
       Serial.print(","); Serial.print(pPoint->y); Serial.println(")");
     }
   }

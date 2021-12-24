@@ -144,10 +144,11 @@ On-board lights:
 // TFT display and SD card share the hardware SPI interface, and have
 // separate 'select' pins to identify the active device on the bus.
 #if defined(SAMD_SERIES)
+
   // Adafruit Feather M4 Express pin definitions
   // To compile for Feather M0/M4, install "additional boards manager"
   // https://learn.adafruit.com/adafruit-feather-m4-express-atsamd51/setup
-  
+
   #define TFT_BL   4                  // TFT backlight
   #define TFT_CS   5                  // TFT chip select pin
   #define TFT_DC  12                  // TFT display/command pin
@@ -253,6 +254,7 @@ Adafruit_GPS GPS(&Serial1);
 
 // ctor         DS1804( ChipSel pin, Incr pin,  U/D pin,  maxResistance (K) )
 DS1804 volume = DS1804( PIN_VCS,     PIN_VINC,  PIN_VUD,  DS1804_TEN );
+
 int gWiper = 15;                      // initial digital potentiometer wiper position, 0..99
 int gFrequency = 1100;                // initial Morse code sidetone pitch
 int gWordsPerMinute = 18;             // initial Morse code sending speed
@@ -302,7 +304,7 @@ bool newScreenTap(Point* pPoint) {
 
       // convert resistance measurements into screen pixel coords
       mapTouchToScreen(touch, pPoint);
-      Serial.print("Screen touch detected ("); Serial.print(pPoint->x);
+      Serial.print("Screen touched at ("); Serial.print(pPoint->x);
       Serial.print(","); Serial.print(pPoint->y); Serial.println(")");
     }
   }
@@ -590,6 +592,7 @@ void waitForSerial(int howLong) {
   tft.fillScreen(ILI9341_BLACK);      // (cBACKGROUND)
 
   randomSeed(analogRead(1));          // different display each power-up (pin 1 is unconnected)
+
   int ii = 0;
   while (millis() < targetTime) {
     if (Serial) break;
