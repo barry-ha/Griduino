@@ -236,7 +236,7 @@ TouchScreen ts = TouchScreen(PIN_XP, PIN_YP, PIN_XM, PIN_YM, XP_XM_OHMS);
 */
 
 // Hardware serial port for GPS
-Adafruit_GPS GPS(&Serial1);
+Adafruit_GPS GPS(&Serial1);           // https://github.com/adafruit/Adafruit_GPS
 
 // ------------ Audio output
 #define DAC_PIN      DAC0             // onboard DAC0 == pin A0
@@ -1267,6 +1267,7 @@ void loop() {
     sendMorseLostSignal();            // announce GPS signal lost by Morse code
   }
 
+  // if GPS enters a new grid, notify the user
   if (model->enteredNewGrid()) {
     pView->startScreen();             // update display so they can see new grid while listening to audible announcement
     pView->updateScreen();
@@ -1313,6 +1314,9 @@ void loop() {
 
     char cmd[24];                            // convert "String" type to character array
     command.toCharArray(cmd, sizeof(cmd));   // because it's generally safer programming
+    for (char* p = cmd; *p != '\0'; ++p) {
+      *p = tolower(*p);
+    }
     Serial.print(cmd);
     Serial.print(": ");
 

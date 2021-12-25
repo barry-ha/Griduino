@@ -183,13 +183,14 @@ struct FunctionButton {
   int functionIndex;   // button identifier
 };
 
+#include <TimeLib.h>   // https://github.com/PaulStoffregen/Time
 class Location {
 public:
-  PointGPS loc;     // has-a lat/long, degrees
-  int hh, mm, ss;   // has-a GMT time
+  PointGPS loc;       // has-a lat/long, degrees
+  time_t timestamp;   // has-a GMT time
   void reset() {
     loc.lat = loc.lng = 0.0;
-    hh = mm = ss = 0;
+    timestamp         = 0;
   }
   bool isEmpty() {
     return (loc.lat == 0.0 && loc.lng == 0.0);

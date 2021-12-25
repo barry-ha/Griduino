@@ -31,6 +31,7 @@ public:
   double gLatitude    = 0;       // GPS position, floating point, decimal degrees
   double gLongitude   = 0;       // GPS position, floating point, decimal degrees
   float gAltitude     = 0;       // Altitude in meters above MSL
+  time_t gTimestamp   = 0;       // date/time of GPS reading
   bool gHaveGPSfix    = false;   // true = GPS.fix() = whether or not gLatitude/gLongitude is valid
   uint8_t gSatellites = 0;       // number of satellites in use
   float gSpeed        = 0.0;     // current speed over ground in MPH
@@ -41,12 +42,14 @@ public:
 
   float gSeaLevelPressure = DEFAULT_SEALEVEL_HPA;   // default starting value, hPa; adjustable by touch in view_altimeter.h
 
-  Location history[600];      // remember a list of GPS coordinates
+  Location history[800];      // remember a list of GPS coordinates
   int nextHistoryItem  = 0;   // index of next item to write
   const int numHistory = sizeof(history) / sizeof(Location);
   // Size of array history: Our goal is to keep track of a good day's travel, at least 250 miles.
   // If 180 pixels horiz = 100 miles, then we need (250*180/100) = 450 entries.
   // If 160 pixels vert = 70 miles, then we need (250*160/70) = 570 entries.
+  // In practice, with drunken-sailor route around the Olympic Peninsula, 
+  // we need 800 entries to capture the 500-mile loop.
 
 protected:
   int gPrevFix       = false;        // previous value of gHaveGPSfix, to help detect "signal lost"
@@ -71,7 +74,7 @@ public:
 
   // ========== load/save config setting =========================
   const char MODEL_FILE[25] = "/Griduino/gpsmodel.cfg";   // CONFIG_FOLDER
-  const char MODEL_VERS[15] = "GPS Model v08";            // <-- always change version when changing model data
+  const char MODEL_VERS[15] = "GPS Model v09";            // <-- always change version when changing model data
 
   // ----- save user's GPS state to non-volatile memory -----
   int save() {
@@ -133,6 +136,10 @@ public:
       gLatitude   = GPS.latitudeDegrees;   // double-precision float
       gLongitude  = GPS.longitudeDegrees;
       gAltitude   = GPS.altitude;
+      // save timestamp as compact 4-byte integer (number of seconds since Jan 1 1970)
+      // using https://github.com/PaulStoffregen/Time
+      TimeElements tm{GPS.seconds, GPS.minute, GPS.hour, 0, GPS.day, GPS.month, GPS.year};
+      gTimestamp   = makeTime(tm);
       gHaveGPSfix = true;
     } else {
       gHaveGPSfix = false;
@@ -150,7 +157,7 @@ public:
     echoGPSinfo();   // send GPS statistics to serial console for debug
 
     PointGPS whereAmI{gLatitude, gLongitude};
-    remember(whereAmI, GPS.hour, GPS.minute, GPS.seconds);
+    remember(whereAmI, gTimestamp);
   }
 
   int getHistoryCount() {
@@ -171,7 +178,7 @@ public:
     }
     nextHistoryItem = 0;
   }
-  void remember(PointGPS vLoc, int vHour, int vMinute, int vSecond) {
+  void remember(PointGPS vLoc, time_t vTimestamp) {
     // save this GPS location and timestamp in internal array
     // so that we can display it as a breadcrumb trail
 
@@ -182,9 +189,7 @@ public:
     PointGPS prevLoc = history[prevIndex].loc;
     if (isVisibleDistance(vLoc, prevLoc)) {
       history[nextHistoryItem].loc = vLoc;
-      history[nextHistoryItem].hh  = vHour;
-      history[nextHistoryItem].mm  = vMinute;
-      history[nextHistoryItem].ss  = vSecond;
+      history[nextHistoryItem].timestamp  = vTimestamp;
 
       nextHistoryItem = (++nextHistoryItem % numHistory);
 
@@ -193,7 +198,7 @@ public:
 #if defined RUN_UNIT_TESTS
       const int SAVE_INTERVAL = 9999;
 #elif defined USE_SIMULATED_GPS
-      const int SAVE_INTERVAL = 29;   // reduce number of erase/write cycles to sdram
+      const int SAVE_INTERVAL = 58;   // reduce number of erase/write cycles to sdram
 #else
       const int SAVE_INTERVAL = 2;
 #endif
@@ -254,9 +259,12 @@ public:
 \t</Placemark>\r\n"
 
 // Beginning/end of a pushpin in a KML file
-#define PUSHPIN_PREFIX "\
+#define PUSHPIN_PREFIX_PART1 "\
 \t<Placemark>\r\n\
-\t\t<name>Start</name>\r\n\
+\t\t<name>Start "
+// PUSHPIN_PREFIX_PART2 contains the date "mm/dd/yy"
+#define PUSHPIN_PREFIX_PART3 "\
+</name>\r\n\
 \t\t<styleUrl>#m_ylw-pushpin0</styleUrl>\r\n\
 \t\t<Point>\r\n\
 \t\t\t<gx:drawOrder>1</gx:drawOrder>\r\n\
@@ -267,6 +275,7 @@ public:
 \t</Placemark>\r\n"
 
   void dumpHistoryKML() {
+    
     Serial.print(KML_PREFIX); // begin KML file
     Serial.print(PLACEMARK_TRACK_PREFIX); // begin tracking route
     int startIndex = nextHistoryItem + 1;
@@ -291,7 +300,14 @@ public:
     }
     Serial.print(PLACEMARK_TRACK_SUFFIX); // end tracking route
     if (startFound) { // begin pushpin at start of route
-      Serial.print(PUSHPIN_PREFIX);
+      char pushpinDate[10];    // strlen("12/24/21") = 9
+      TimeElements time;       // https://github.com/PaulStoffregen/Time
+      breakTime(history[startIndex].timestamp, time);
+      snprintf(pushpinDate, sizeof(pushpinDate), "%02d/%02d/%02d", time.Month, time.Day, time.Year);
+
+      Serial.print(PUSHPIN_PREFIX_PART1);
+      Serial.print(pushpinDate);
+      Serial.print(PUSHPIN_PREFIX_PART3);
       Location start = history[startIndex];
       Serial.print(start.loc.lng, 4);   // KML demands longitude first
       Serial.print(",");
@@ -315,8 +331,11 @@ public:
       Serial.print(",");
       Serial.print(item.loc.lng, 4);
       Serial.print(") ");
-      char msg[17];
-      snprintf(msg, sizeof(msg), "GMT(%2d-%2d-%2d at %2d:%2d:%2d)", item.mon, item.dd, item.yy, item.hh, item.mm, item.ss);
+      char msg[28]; // sizeof("GMT(12-31-21 at 12:34:56") = 25
+      TimeElements time;    // https://github.com/PaulStoffregen/Time
+      breakTime(item.timestamp, time);
+      snprintf(msg, sizeof(msg), "GMT(%02d-%02d-%02d at %02d:%02d:%02d)", 
+                time.Month, time.Day, time.Year, time.Hour, time.Minute, time.Second); 
       Serial.println(msg);
     }
     int remaining = numHistory - ii;
@@ -626,6 +645,7 @@ public:
     gSatellites = GPS.satellites;
     gSpeed      = GPS.speed * mphPerKnots;
     gAngle      = GPS.angle;
+    gTimestamp  = now();
 
     if (startTime == 0) {
       // one-time single initialization
