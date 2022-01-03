@@ -117,7 +117,7 @@ Adafruit_BMP3XX baro;                 // hardware SPI
 */
 
 // Hardware serial port for GPS
-Adafruit_GPS GPS(&Serial1);
+Adafruit_GPS GPS(&Serial1);         // https://github.com/adafruit/Adafruit_GPS
 
 // ------------ typedef's
 struct Point {

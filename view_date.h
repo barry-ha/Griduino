@@ -326,10 +326,10 @@ void ViewDate::updateScreen() {
   }
 
   int elapsedDays = elapsed / SECS_PER_DAY;
-  if (GPS.seconds == 0) {   // debug
-    Serial.print("elapsed time count: ");
-    Serial.println((int)elapsed);   // typecast to int, required by compiler
-  }
+  //if (GPS.seconds == 0) {   // debug
+  //  Serial.print("elapsed time count: ");
+  //  Serial.println((int)elapsed);   // typecast to int, required by compiler
+  //}
   char sTime[24];   // strlen("01:23:45") = 8
   getTimeElapsed(sTime, sizeof(sTime), elapsed);
 
@@ -436,7 +436,7 @@ bool ViewDate::onTouch(Point touch) {
     }
   }
   if (!handled) {
-    Serial.println("No match to my hit targets.");   // debug
+    //Serial.println("No match to my hit targets.");   // debug
   }
   return handled;   // true=handled, false=controller uses default action
 }   // end onTouch()

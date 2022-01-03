@@ -81,6 +81,7 @@
 #include <DS1804.h>                   // DS1804 digital potentiometer library
 #include "save_restore.h"             // save/restore configuration data to SDRAM
 #include "constants.h"                // Griduino constants, colors, typedefs
+#include "logger.h"                   // conditional printing to Serial port
 
 #include "view.h"                     // Griduino screens base class, followed by derived classes in alphabetical order
 #include "view_altimeter.h"           // altimeter
@@ -234,6 +235,9 @@ TouchScreen ts = TouchScreen(PIN_XP, PIN_YP, PIN_XM, PIN_YM, XP_XM_OHMS);
         1-sec blink = searching for satellites
         15-sec blink = position fix found
 */
+
+// Hardware serial port for USB
+Logger logger = Logger();
 
 // Hardware serial port for GPS
 Adafruit_GPS GPS(&Serial1);           // https://github.com/adafruit/Adafruit_GPS
@@ -390,7 +394,7 @@ bool TouchScreen::isTouching(void) {
   uint16_t pres_val = ::myPressure();
 
   if ((button_state == false) && (pres_val > TOUCHPRESSURE)) {
-    Serial.print(". finger pressure = "); Serial.println(pres_val);     // debug
+    //Serial.print(". finger pressure = "); Serial.println(pres_val);     // debug
     button_state = true;
   }
 
@@ -447,6 +451,10 @@ Command cmdList[] = {
     {"version", version},
     {"dump kml", dump_kml},
     {"dump gps history", dump_gps_history},
+    {"start nmea", start_nmea},
+    {"stop nmea", stop_nmea},
+    {"start gmt", start_gmt},
+    {"stop gmt", stop_gmt},
 };
 const int numCmds = sizeof(cmdList) / sizeof(cmdList[0]);
 
@@ -464,16 +472,28 @@ void help() {
 void version() {
   Serial.println(PROGRAM_TITLE " " PROGRAM_VERSION);
   Serial.println("Compiled " PROGRAM_COMPILED);
-  Serial.println(PROGRAM_LINE1);
+  Serial.print(PROGRAM_LINE1);
+  Serial.print("  ");
+  Serial.println(PROGRAM_LINE2);
   Serial.println(__FILE__);
 }
 void dump_kml() {
-  Serial.println("dump_kml()");
   model->dumpHistoryKML();
 }
 void dump_gps_history() {
-  Serial.println("dump_gps_history()");
   model->dumpHistoryGPS();
+}
+void start_nmea() {
+  logger.print_nmea = true;
+}
+void stop_nmea() {
+  logger.print_nmea = false;
+}
+void start_gmt() {
+  logger.print_gmt = true;
+}
+void stop_gmt() {
+  logger.print_gmt = false;
 }
 
 // ============== grid helpers =================================
@@ -1154,6 +1174,7 @@ uint32_t prevTimeGPS = millis();
 uint32_t prevTimeBaro = millis();
 //uint32_t prevTimeMorse = millis();
 uint32_t prevCheckRTC = 0;            // timer to update time-of-day (1 second)
+time_t prevTimeRTC = 0;               // timer to print RTC to serial port (1 second)
 
 //time_t nextShowPressure = 0;        // timer to update displayed value (5 min), init to take a reading soon after startup
 time_t nextSavePressure = 0;          // timer to log pressure reading (15 min)
@@ -1181,7 +1202,7 @@ void loop() {
   //  prevTimeMorse = millis();
   //}
 
-  GPS.read();   // if you can, read the GPS serial port every millisecond in an interrupt
+  GPS.read();   // if you can, read the GPS serial port every millisecond
 
   if (GPS.newNMEAreceived()) {
     // sentence received -- verify checksum, parse it
@@ -1195,9 +1216,7 @@ void loop() {
       // this also sets the newNMEAreceived() flag to false
       return;
     } else {
-      #ifdef ECHO_GPS_SENTENCE
-      Serial.print(GPS.lastNMEA());   // debug
-      #endif
+      logger.nmea(GPS.lastNMEA());
     }
   }
 
@@ -1228,8 +1247,22 @@ void loop() {
       setTime(GPS.hour, GPS.minute, GPS.seconds, GPS.day, GPS.month, GPS.year);
       //adjustTime(offset * SECS_PER_HOUR);  // todo - adjust to local time zone. for now, we only do GMT
     }
+
   }
 
+  // send RTC to a (possible) Windows program, e.g. https://github.com/barry-ha/Laptop-Griduino
+  // as GMT using ISO date/time formatted string: YYYY-MM-DD[*HH[:MM[:SS[.fff[fff]]]][+HH:MM[:SS[.ffffff]]]]
+  // e.g. 2022-01-02 12:34+00:00
+  // Note: do not use the GPS clock, since it might not have sat lock and therefore no reports
+  time_t rtc = now();
+  if (second(rtc) != second(prevTimeRTC)) {    // if RTC has ticked over to the next second
+    char msg[32];      // strlen("2022-01-01 21:49:49+00:00") = 25
+    snprintf(msg, sizeof(msg), "%04d-%02d-%02d %02d:%02d:%02d+00:00\n",
+                         year(rtc), month(rtc), day(rtc), hour(rtc), minute(rtc), second(rtc));
+    logger.gmt(msg);
+    prevTimeRTC = rtc;
+  }
+    
   // every 15 minutes read barometric pressure and save it in nonvolatile RAM
   // synchronize showReadings() on exactly 15-minute marks 
   // so the user can more easily predict when the next update will occur

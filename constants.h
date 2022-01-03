@@ -12,7 +12,6 @@
 //#define FASTBOOT                    // comment out in production, use to skip some startup screen
 //#define USE_SIMULATED_GPS           // comment out to use real GPS, or else it simulates driving around (see model_gps.h)
 //#define ECHO_GPS                    // use this to see GPS detailed info on IDE console for debug
-//#define ECHO_GPS_SENTENCE           // use this to see once-per-second GPS sentences
 //#define SHOW_TOUCH_TARGETS          // use this to outline touchscreen sensitive buttons
 //#define SHOW_SCREEN_BORDER          // use this to outline the screen's displayable area
 //#define SHOW_SCREEN_CENTERLINE      // use this visual aid to help layout the screen
