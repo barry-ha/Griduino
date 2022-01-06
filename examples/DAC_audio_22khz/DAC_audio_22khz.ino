@@ -72,16 +72,16 @@
 
 // ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE   "DAC Audio 22 kHz"
-#define PROGRAM_VERSION "v0.38"
-#define PROGRAM_LINE1   "Barry K7BWH"
-#define PROGRAM_LINE2   "John KM7O"
+#define PROGRAM_VERSION  "v1.07"
+#define PROGRAM_LINE1    "Barry K7BWH"
+#define PROGRAM_LINE2    "John KM7O"
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
 
 // ---------- Hardware Wiring ----------
 /* Same as Griduino platform
 */
 
-// ---------- Touch Screen
+// ------- TFT screen definitions ---------
 #define TFT_BL   4                  // TFT backlight
 #define TFT_CS   5                  // TFT chip select pin
 #define TFT_DC  12                  // TFT display/command pin
@@ -95,8 +95,14 @@ Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 
 // Adafruit Feather M4 Express pin definitions
 #define PIN_VCS      A1               // volume chip select
-#define PIN_VINC      6               // volume increment
 #define PIN_VUD      A2               // volume up/down
+
+// Adafruit ItsyBitsy M4 Express pin definitions
+#if defined(ADAFRUIT_ITSYBITSY_M4_EXPRESS)
+  #define PIN_VINC      2             // volume increment, ItsyBitsy M4 Express
+#else
+  #define PIN_VINC      6             // volume increment, Feather M4 Express
+#endif
 
 // ctor         DS1804( ChipSel pin, Incr pin,  U/D pin,  maxResistance (K) )
 DS1804 volume = DS1804( PIN_VCS,     PIN_VINC,  PIN_VUD,  DS1804_TEN );
@@ -109,14 +115,13 @@ struct Point {
 };
 
 // ----- Griduino color scheme
-// RGB 565 color code: http://www.barth-dev.de/online/rgb565-color-picker/
-#define cBACKGROUND     0x00A           // 0,   0,  10 = darker than ILI9341_NAVY, but not black
-#define cSCALECOLOR     0xF844
-#define cTEXTCOLOR      ILI9341_CYAN    // 0, 255, 255
-#define cLABEL          ILI9341_GREEN
-#define cVALUE          ILI9341_YELLOW  // 255, 255, 0
+// RGB 565 true color: https://chrishewett.com/blog/true-rgb565-colour-picker/
+#define cBACKGROUND    0x00A            // 0,   0,  10 = darker than ILI9341_NAVY, but not black
+#define cLABEL         ILI9341_GREEN    //
+#define cVALUE         ILI9341_YELLOW   // 255, 255, 0
+#define cTEXTCOLOR     0x67FF           // rgb(102,255,255) = hsl(180,100,70%)
 
-// ------------ global scope
+// ------------ definitions
 const int howLongToWait = 5;          // max number of seconds at startup waiting for Serial port to console
 int gLoopCount = 1;
 
@@ -152,7 +157,7 @@ void waitForSerial(int howLong) {
   // Adafruit Feather M4 Express takes awhile to restore its USB connx to the PC
   // and the operator takes awhile to restart the console (Tools > Serial Monitor)
   // so give them a few seconds for this to settle before sending messages to IDE
-  unsigned long targetTime = millis() + howLong*1000;
+  unsigned long targetTime = millis() + howLong * 1000;
   while (millis() < targetTime) {
     if (Serial) break;
   }
@@ -173,8 +178,8 @@ void setup() {
   // ----- announce ourselves
   startSplashScreen();
 
-  // ----- init serial monitor
-  Serial.begin(115200);               // init for debuggging in the Arduino IDE
+  // ----- init serial monitor (do not "Serial.print" before this, it won't show up in console)
+  Serial.begin(115200);               // init for debugging in the Arduino IDE
   waitForSerial(howLongToWait);       // wait for developer to connect debugging console
 
   // now that Serial is ready and connected (or we gave up)...
