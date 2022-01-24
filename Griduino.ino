@@ -139,7 +139,7 @@ Digital potentiometer:
    CS   - volume chip select      - n/a         - A1
 On-board lights:
    LED  - red activity led        - Digital 13  - D13             - reserved for onboard LED
-   NP   - NeoPixel                - n/a         - D8              - reserved for onboard NeoPixel
+   NP   - NeoPixel                - n/a         - D8              - reserved for builtin PIN_NEOPIXEL
 */
 
 // TFT display and SD card share the hardware SPI interface, and have
@@ -450,7 +450,7 @@ Command cmdList[] = {
     {"help", help},
     {"version", version},
     {"dump kml", dump_kml},
-    {"dump gps history", dump_gps_history},
+    {"dump gps", dump_gps_history},
     {"start nmea", start_nmea},
     {"stop nmea", stop_nmea},
     {"start gmt", start_gmt},
@@ -460,7 +460,7 @@ const int numCmds = sizeof(cmdList) / sizeof(cmdList[0]);
 
 // ----- functions to implement commands
 void help() {
-  Serial.print("Available commands are: ");
+  Serial.print("Available commands are:\n");
   for (int ii = 0; ii < numCmds; ii++) {
     if (ii > 0) {
       Serial.print(", ");
@@ -472,10 +472,9 @@ void help() {
 void version() {
   Serial.println(PROGRAM_TITLE " " PROGRAM_VERSION);
   Serial.println("Compiled " PROGRAM_COMPILED);
-  Serial.print(PROGRAM_LINE1);
-  Serial.print("  ");
-  Serial.println(PROGRAM_LINE2);
+  Serial.println(PROGRAM_LINE1 "  " PROGRAM_LINE2);
   Serial.println(__FILE__);
+  Serial.println(PROGRAM_GITHUB);
 }
 void dump_kml() {
   model->dumpHistoryKML();
@@ -484,15 +483,19 @@ void dump_gps_history() {
   model->dumpHistoryGPS();
 }
 void start_nmea() {
+  Serial.println("started");
   logger.print_nmea = true;
 }
 void stop_nmea() {
+  Serial.println("stopped");
   logger.print_nmea = false;
 }
 void start_gmt() {
+  Serial.println("started");
   logger.print_gmt = true;
 }
 void stop_gmt() {
+  Serial.println("stopped");
   logger.print_gmt = false;
 }
 
