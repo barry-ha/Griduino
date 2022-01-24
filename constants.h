@@ -6,6 +6,7 @@
 #define PROGRAM_LINE1    "Barry K7BWH"
 #define PROGRAM_LINE2    "John KM7O"
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
+#define PROGRAM_GITHUB   "https://github.com/barry-ha/Griduino"
 
 // ------- Select testing features ---------
 //#define RUN_UNIT_TESTS              // comment out to save boot-up time
