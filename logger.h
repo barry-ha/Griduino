@@ -52,8 +52,17 @@ public:
   // this is noisy with 1-per-second so by default it's off
   void nmea(const char *pText) {
     if (print_nmea) {
-      // 2022-01-02 for now all we need is $GPRMC not $GPGGA
-      //            because GPRMC includes the date and GPGGA does not
+      // 2022-01-02 for now, all we need is $GPRMC not $GPGGA
+      //
+      //    GPRMC data:       GPGGA data:
+      //    hh:mm:ss          hh:mm:ss
+      //    Sat status        Latitude
+      //    Latitude          Longitude
+      //    Longitude         Fix quality
+      //    Ground speed      No. of sats
+      //    Track angle       Ground speed
+      //    DD:MM:YY          Altitude
+      //
       if (strncmp("$GPRMC", pText, 6) == 0) {
         Serial.print(pText);
       }
