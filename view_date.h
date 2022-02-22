@@ -149,7 +149,7 @@ DefinedEvent christmas{
     "Santa's Arrival",
     "Christmas Eve",
     //s,m,h,    dow, dd, mm, yy
-    {0, 0, 7 + 0, 1, 25, 12, 2021 - 1970},   // Midnight in Pacific time (encoded in GMT by adding 7 hours)
+    {0, 0, 7 + 0, 1, 25, 12, 2022 - 1970},   // Midnight in Pacific time (encoded in GMT by adding 7 hours)
 };
 
 DefinedEvent valentines{
