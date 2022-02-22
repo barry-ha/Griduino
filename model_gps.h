@@ -3,7 +3,7 @@
 /* File:    model_gps.h
    Project: Griduino by Barry K7BWH
 
-   Note: All data must be self-contained so it can be save/restored in 
+   Note: All data must be self-contained so it can be save/restored in
          non-volatile memory; do not use String class because it's on the heap.
 */
 
@@ -48,7 +48,7 @@ public:
   // Size of array history: Our goal is to keep track of a good day's travel, at least 250 miles.
   // If 180 pixels horiz = 100 miles, then we need (250*180/100) = 450 entries.
   // If 160 pixels vert = 70 miles, then we need (250*160/70) = 570 entries.
-  // In practice, with drunken-sailor route around the Olympic Peninsula, 
+  // In practice, with drunken-sailor route around the Olympic Peninsula,
   // we need 800 entries to capture the 500-mile loop.
 
 protected:
@@ -80,7 +80,7 @@ public:
   int save() {
     SaveRestore sdram(MODEL_FILE, MODEL_VERS);
     if (sdram.writeConfig((byte *)this, sizeof(Model))) {
-      //Serial.println("Success, GPS Model object stored to SDRAM");
+      // Serial.println("Success, GPS Model object stored to SDRAM");
     } else {
       Serial.println("ERROR! Failed to save GPS Model object to SDRAM");
       return 0;   // return failure
@@ -109,7 +109,7 @@ public:
 
   // pick'n pluck values from the restored instance
   void copyFrom(const Model from) {
-    //return;   // debug
+    // return;   // debug
 
     gLatitude         = from.gLatitude;           // GPS position, floating point, decimal degrees
     gLongitude        = from.gLongitude;          // GPS position, floating point, decimal degrees
@@ -130,16 +130,16 @@ public:
   }
 
   // read GPS hardware
-  virtual void getGPS() {                  // "virtual" allows derived class MockModel to replace it
-    if (GPS.fix) {                         // DO NOT use "GPS.fix" anywhere else in the program,
-                                           // or the simulated position in MockModel won't work correctly
-      gLatitude   = GPS.latitudeDegrees;   // double-precision float
-      gLongitude  = GPS.longitudeDegrees;
-      gAltitude   = GPS.altitude;
+  virtual void getGPS() {                 // "virtual" allows derived class MockModel to replace it
+    if (GPS.fix) {                        // DO NOT use "GPS.fix" anywhere else in the program,
+                                          // or the simulated position in MockModel won't work correctly
+      gLatitude  = GPS.latitudeDegrees;   // double-precision float
+      gLongitude = GPS.longitudeDegrees;
+      gAltitude  = GPS.altitude;
       // save timestamp as compact 4-byte integer (number of seconds since Jan 1 1970)
       // using https://github.com/PaulStoffregen/Time
       TimeElements tm{GPS.seconds, GPS.minute, GPS.hour, 0, GPS.day, GPS.month, GPS.year};
-      gTimestamp   = makeTime(tm);
+      gTimestamp  = makeTime(tm);
       gHaveGPSfix = true;
     } else {
       gHaveGPSfix = false;
@@ -188,8 +188,8 @@ public:
     }
     PointGPS prevLoc = history[prevIndex].loc;
     if (isVisibleDistance(vLoc, prevLoc)) {
-      history[nextHistoryItem].loc = vLoc;
-      history[nextHistoryItem].timestamp  = vTimestamp;
+      history[nextHistoryItem].loc       = vLoc;
+      history[nextHistoryItem].timestamp = vTimestamp;
 
       nextHistoryItem = (++nextHistoryItem % numHistory);
 
@@ -275,17 +275,17 @@ public:
 \t</Placemark>\r\n"
 
   void dumpHistoryKML() {
-    
-    Serial.print(KML_PREFIX); // begin KML file
-    Serial.print(PLACEMARK_TRACK_PREFIX); // begin tracking route
-    int startIndex = nextHistoryItem + 1;
+
+    Serial.print(KML_PREFIX);               // begin KML file
+    Serial.print(PLACEMARK_TRACK_PREFIX);   // begin tracking route
+    int startIndex  = nextHistoryItem + 1;
     bool startFound = false;
 
     int index = nextHistoryItem;   // start at oldest location in circular buffer
 
-    for (int ii=0; ii<numHistory; ii++) {
+    for (int ii = 0; ii < numHistory; ii++) {
       Location item = history[index];
-      if ((item.loc.lat != 0) || (item.loc.lng !=0)) {
+      if ((item.loc.lat != 0) || (item.loc.lng != 0)) {
         if (!startFound) {
           // remember the first non-empty lat/long for a "Start" pushpin
           startIndex = index;
@@ -298,10 +298,10 @@ public:
       }
       index = (index + 1) % numHistory;
     }
-    Serial.print(PLACEMARK_TRACK_SUFFIX); // end tracking route
-    if (startFound) { // begin pushpin at start of route
-      char pushpinDate[10];    // strlen("12/24/21") = 9
-      TimeElements time;       // https://github.com/PaulStoffregen/Time
+    Serial.print(PLACEMARK_TRACK_SUFFIX);   // end tracking route
+    if (startFound) {                       // begin pushpin at start of route
+      char pushpinDate[10];                 // strlen("12/24/21") = 9
+      TimeElements time;                    // https://github.com/PaulStoffregen/Time
       breakTime(history[startIndex].timestamp, time);
       snprintf(pushpinDate, sizeof(pushpinDate), "%02d/%02d/%02d", time.Month, time.Day, time.Year);
 
@@ -313,9 +313,9 @@ public:
       Serial.print(",");
       Serial.print(start.loc.lat, 4);
       Serial.print(",0");
-      Serial.print(PUSHPIN_SUFFIX); // end pushpin at start of route
+      Serial.print(PUSHPIN_SUFFIX);   // end pushpin at start of route
     }
-    Serial.print(KML_SUFFIX); // end KML file
+    Serial.print(KML_SUFFIX);   // end KML file
   }
   void dumpHistoryGPS() {
     Serial.print("Number of saved GPS records = ");
@@ -327,15 +327,15 @@ public:
       Location item = history[ii];
       Serial.print(ii);
       Serial.print(". GPS(");
-      Serial.print(item.loc.lat, 4);    // we prefer to see latitude first
+      Serial.print(item.loc.lat, 4);   // we prefer to see latitude first
       Serial.print(",");
       Serial.print(item.loc.lng, 4);
       Serial.print(") ");
-      char msg[28]; // sizeof("GMT(12-31-21 at 12:34:56") = 25
-      TimeElements time;    // https://github.com/PaulStoffregen/Time
+      char msg[28];        // sizeof("GMT(12-31-21 at 12:34:56") = 25
+      TimeElements time;   // https://github.com/PaulStoffregen/Time
       breakTime(item.timestamp, time);
-      snprintf(msg, sizeof(msg), "GMT(%02d-%02d-%02d at %02d:%02d:%02d)", 
-                time.Month, time.Day, time.Year, time.Hour, time.Minute, time.Second); 
+      snprintf(msg, sizeof(msg), "GMT(%02d-%02d-%02d at %02d:%02d:%02d)",
+               time.Month, time.Day, time.Year, time.Hour, time.Minute, time.Second);
       Serial.println(msg);
     }
     int remaining = numHistory - ii;
@@ -394,8 +394,8 @@ public:
     // we want SOME indication to not trust the readings
     // but make it low-key to not distract the driver
     // todo - architecturally, it seems like this subroutine should be part of the view (not model)
-    //strncpy(gsLatitude, sizeof(gsLatitude), INIT_LAT);    // GPS position, string
-    //strncpy(gsLongitude, sizeof(gsLongitude), INIT_LONG);
+    // strncpy(gsLatitude, sizeof(gsLatitude), INIT_LAT);    // GPS position, string
+    // strncpy(gsLongitude, sizeof(gsLongitude), INIT_LONG);
   }
 
   //=========== time helpers =================================
@@ -492,7 +492,7 @@ public:
     Serial.println(gTimeZone);
     // don't save to NVR here, "save()" is slow, to the caller
     // should call model->save() when it's able to spend the time
-    //this->save();   // save the new timezone (and model) in non-volatile memory
+    // this->save();   // save the new timezone (and model) in non-volatile memory
   }
   void timeZoneMinus() {
     gTimeZone--;
@@ -503,7 +503,7 @@ public:
     Serial.println(gTimeZone);
     // don't save to NVR here, "save()" is slow, to the caller
     // should call model->save() when it's able to spend the time
-    //this->save();   // save the new timezone (and model) in non-volatile memory
+    // this->save();   // save the new timezone (and model) in non-volatile memory
   }
 
   //=========== distance helpers =============================
@@ -521,6 +521,7 @@ public:
     double distance     = angleRadians * R;
     return distance;
   }
+
   double calcDistanceLong(double lat, double fromLong, double toLong) {
     // calculate distance in E-W direction (degrees)
     // input:   latitudes in degrees
@@ -536,11 +537,12 @@ public:
     double distance     = angleRadians * R;
     return distance;
   }
+
   double calcDistance(double fromLat, double fromLong, double toLat, double toLong) {
     // Note: accurate for short distances, since it ignores curvature of earth
-    double latDist = calcDistanceLat(fromLat, toLat);
+    double latDist  = calcDistanceLat(fromLat, toLat);
     double longDist = calcDistanceLong(fromLat, fromLong, toLong);
-    double total = sqrt(latDist*latDist + longDist*longDist);
+    double total    = sqrt(latDist * latDist + longDist * longDist);
     return total;
   }
 
