@@ -8,6 +8,12 @@ Version numbers correspond to [Downloads](https://github.com/barry-ha/Griduino/t
 
 The changelog format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and the Griduino project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+**Scottish Voice** &nbsp; 2020-02-22
+
+New: Added Scottish female voice speaking NATO alphabet for grid-crossing.
+
+You can install this by over-writing restarting Griduino in "Circuit Python" mode, so that it will become an external USB-attached file system. In this mode you can drag-n-drop the "audio" folder and overwrite the previous "audio" folder with the new voice files. Read the complete instructions in the **doc** folder section **3. Install Audio Files**.
+
 **v1.06** &nbsp; 2021-10-11
 
 New: Added the "internal case temperature" to the main screen display in the lower right corner, right above the number-of-satellites-received indicator. This will help people in hot climates recognize if Griduino running too hot (above 150F).

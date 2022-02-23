@@ -48,16 +48,17 @@ The idea here is to temporarily install CircuitPython which allows the Flash mem
 
 1. **Download "griduino_audio.zip" file from GitHub**<br/>
    - Visit https://github.com/barry-ha/Griduino/tree/master/downloads
-   - Get a copy of **griduino_audio.zip** 
+   - Get a copy of **audio_female.zip** and **audio_male.zip**
+   - Choose the voice you want; Griduino can only work with one voice at a time. To switch to another voice, repeat this process with the other files.
    - If you want to make your own recordings that are compatible with Griduino, see the README document at https://github.com/barry-ha/Audio_QSPI.
    
-1. **Unzip "griduino_audio.zip"**
+1. **Unzip e.g. "audio_female.zip"**
    - Extract this file to a temporary folder. 
    - The result will have a folder named "audio" that contains 26 letters and 10 numbers as short recordings in standard Microsoft WAV format.<br/>![Extracted audio folder](img/audio-folder-unzipped-img0701.jpg)
 
 1. **Download "CircuitPython" binary distribution file**<br/>
    - Get the latest CircuitPython UF2 file for your board (Feather M4 Express) from https://circuitpython.org/downloads.
-   - As of April 2021, the latest version is 6.1.0 and the UF2 file is named "adafruit-circuitpython-feather\_m4\_express-en_US-6.1.0.uf2"<br/>![](img/circuit_python_feather_m4.jpg)
+   - As of February 2022, the latest version is 7.1.1 and the UF2 file is named "adafruit-circuitpython-feather\_m4\_express-en_US-7.1.1.uf2" and will look something like:<br/>![](img/circuit_python_feather_m4.jpg)
 
 1. **Start the bootloader on the Feather board** by double-clicking its Reset button.<br/>
    - After a moment, you should see a "FEATHERBOOT" drive appear on your desktop computer.<br/>![](img/featherboot-img0702.jpg)
