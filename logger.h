@@ -41,15 +41,16 @@ enum {
 class Logger {
 
 public:
-  bool print_nmea    = false;
-  bool print_gmt     = false;
-  bool print_debug   = true;
-  bool print_info    = true;
-  bool print_warning = true;
-  bool print_error   = true;
+  bool print_nmea      = false;
+  bool print_gmt       = false;
+  bool print_fencepost = true;
+  bool print_debug     = true;
+  bool print_info      = true;
+  bool print_warning   = true;
+  bool print_error     = true;
 
   // NMEA messages, such as $GPRMC
-  // this is noisy with 1-per-second so by default it's off
+  // this has frequent output messages (1 per second) so by default it's off
   void nmea(const char *pText) {
     if (print_nmea) {
       // 2022-01-02 for now, all we need is $GPRMC not $GPGGA
@@ -70,35 +71,93 @@ public:
   }
 
   // GMT time reports
-  // this is noisy with 1-per-second so by default it's off
+  // the time reports are frequent (1 per second) so by default it's off
   void gmt(const char *pText) {
     if (print_gmt) {
       Serial.print(pText);
     }
   }
-
-  void info(const char *pText) {
+  void fencepost(const char *pModule, const int lineno) {
+    // example: "Griduino.ino[123] says hi"
+    if (print_fencepost) {
+      Serial.print(pModule);
+      Serial.print("[");
+      Serial.print(lineno);
+      Serial.println("]");
+    }
+  }
+  void fencepost(const char *pModule, const char *pSubroutine, const int lineno) {
+    // example: "----- unit_test.cpp[123] verifyMorseCode()"
+    if (print_fencepost) {
+      Serial.print("----- ");
+      Serial.print(pModule);
+      Serial.print("[");
+      Serial.print(lineno);
+      Serial.print("] ");
+      Serial.println(pSubroutine);
+    }
+  }
+  void info(const char *pText) {   // one string arg
     if (print_info) {
-      Serial.print(pText);
+      Serial.println(pText);
+    }
+  }
+  void info(const char *pText1, const char *pText2) {   // two string args
+    if (print_info) {
+      Serial.print(pText1);
+      Serial.println(pText2);
+    }
+  }
+  void info(const int int1, const char *pText2) {   // linenumber, one string arg
+    if (print_info) {
+      Serial.print(int1);
+      Serial.println(pText2);
+    }
+  }
+  void info(const char *pText1, const char *pText2, const char *pText3) {   // three string args
+    if (print_info) {
+      Serial.print(pText1);
+      Serial.print(pText2);
+      Serial.println(pText3);
+    }
+  }
+  void info(const int int1, const char *pText2, const char *pText3) {   // linenumber, two string args
+    if (print_info) {
+      Serial.print(int1);
+      Serial.print(pText2);
+      Serial.println(pText3);
     }
   }
   void debug(const char *pText) {
     if (print_debug) {
-      Serial.print(pText);
+      Serial.println(pText);
     }
   }
   void warning(const char *pText) {
     if (print_warning) {
-      Serial.print(pText);
+      Serial.println(pText);
     }
   }
-  void error(const char *pText) {
+  void error(const char *pText) {   // one string arg
     if (print_error) {
-      Serial.print(pText);
+      Serial.println(pText);
+    }
+  }
+  void error(const char *pText1, const char *pText2) {   // two string args
+    if (print_error) {
+      Serial.print(pText1);
+      Serial.println(pText2);
+    }
+  }
+  void error(const char *pText1, const char *pText2, const char *pText3) {   // three string args
+    if (print_error) {
+      Serial.print(pText1);
+      Serial.print(pText2);
+      Serial.println(pText3);
     }
   }
 
 protected:
   // nothing yet
-  
+
 };   // end class Logger

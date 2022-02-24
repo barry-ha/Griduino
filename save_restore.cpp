@@ -11,8 +11,8 @@
   Field 3: Data - base class stores an integer which is sufficient for
                   simple things like Volume or TimeZone settings
 
-  There is one config file per C++ object; files are cheap so we don't 
-  share files for different types of settings. Every 'save' operation 
+  There is one config file per C++ object; files are cheap so we don't
+  share files for different types of settings. Every 'save' operation
   will erase and rewrite its associated data file.
 
   'SaveRestore' object is a base class. You can extend it by deriving
@@ -25,6 +25,7 @@
 #include <Arduino.h>
 #include "constants.h"           // Griduino constants and colors
 #include "save_restore.h"        // class definition
+#include "logger.h"              // conditional printing to Serial port
 #include <SPI.h>                 // Serial Peripheral Interface
 #include <SdFat.h>               // SDRAM File Allocation Table filesystem
 #include <Adafruit_SPIFlash.h>   // for FAT filesystems on SPI flash chips.
@@ -36,6 +37,7 @@ int openFlash();
 Adafruit_FlashTransport_QSPI gFlashTransport;
 Adafruit_SPIFlash gFlash(&gFlashTransport);
 FatFileSystem gFatfs;   // file system object from SdFat
+extern Logger logger;   // Griduino.ino
 
 // ========== debug helper ============================
 static void dumpHex(const char *text, char *buff, int len) {
@@ -79,9 +81,9 @@ int SaveRestore::readConfig(byte *pData, const int sizeData) {
   // Echo metadata about the file:
   Serial.print(". Total file size (bytes): ");
   Serial.println(readFile.size(), DEC);
-  //Serial.print(". Current position in file: ");
-  //Serial.println(readFile.position(), DEC);
-  //Serial.print(". Available data remaining to read: "); Serial.println(readFile.available(), DEC);
+  // Serial.print(". Current position in file: ");
+  // Serial.println(readFile.position(), DEC);
+  // Serial.print(". Available data remaining to read: "); Serial.println(readFile.available(), DEC);
 
   // read first field (filename) from config file...
   char temp[sizeof(fqFilename)];   // buffer size is as large as our largest member variable
@@ -135,7 +137,7 @@ int SaveRestore::readConfig(byte *pData, const int sizeData) {
 
   // close files and clean up
   readFile.close();
-  //gFlash.end();             // this causes "undefined reference to 'Adafruit_SPIFlash::end()'
+  // gFlash.end();             // this causes "undefined reference to 'Adafruit_SPIFlash::end()'
 
   return result;
 }
@@ -200,6 +202,156 @@ int SaveRestore::writeConfig(const byte *pData, const int sizeData) {
   return result;
 }
 
+// ========== file management ======================
+// Very basic file management is provided to report on the files
+// stored in SDRAM. This provides an easier way to see where and how
+// the SDRAM file system is being used via USB port, compared to the
+// awkward process of restarting in CircuitPy mode.
+// Example output:
+/*
+ * Directory of /
+ *          0 .Trashes
+ *         22 code.py
+ *            lib  <dir>
+ *        117 boo_out.txt
+ *         70 data.txt
+ *            Griduino  <dir>
+ *          0 main.py
+ *            __pycache__  <dir>
+ *       1240 Griduinoten_mile.cfg
+ *            audio  <dir>
+ *          8 Files 7032 bytes
+ *
+ *  Directory of /lib
+ *        117 boot_out.txt
+ *          1 Files 11 bytes
+ *
+ *  Directory of /Griduino
+ *        100 screen.cfg
+ *        100 volume.cfg
+ *         97 announce.cfg
+ *       6240 barometr.dat
+ *      19416 gpsmodel.cfg
+ *       1240 ten_mile.cfg
+ *          6 Files 2240 bytes
+ *
+ *  Directory of /audio
+ *      20552 0.wav
+ *      15860 1.wav
+ *      15874 2.wav
+ *      16108 3.wav
+ *      27208 a.wav
+ *      22058 b.wav
+ *      23862 c.wav
+ *      23514 d.wav
+ *         36 Files 890402 bytes
+ *
+ *  Total files listed:
+ *    1031247 bytes
+ *         49 Files
+ *          6 Directories
+ *
+ */
+int SaveRestore::listFiles(const char *dirname) {
+  // Open the root folder to list top-level children (files and directories).
+  int rc       = 1;   // assume success
+  File testDir = gFatfs.open(dirname);
+  if (!testDir) {
+    logger.error("Error, failed to open directory ", dirname);
+    rc = 0;
+  }
+  if (!testDir.isDirectory()) {
+    logger.error("Error, expected ", dirname, " to be a directory");
+    rc = 0;
+  } else {
+
+    int count = 1;
+    logger.info("\r\nDirectory of ", dirname);   // announce start of directory listing
+
+    int fileCount = 0;
+    int byteCount = 0;
+    File child    = testDir.openNextFile();
+    while (child && rc > 0) {
+      char filename[64];
+      child.getName(filename, sizeof(filename));
+
+      if (strlen(filename) == 0) {
+        logger.info("Empty filename, so time to return");   // is this ever triggered?
+        rc = 0;
+      } else {
+
+        // Print the file name and mention if it's a directory.
+        if (child.isDirectory()) {
+          showDirectory(filename);
+        } else {
+          int filesize = child.size();
+          showFile("", count, filename, filesize);
+
+          fileCount++;
+          byteCount += filesize;
+        }
+
+        // increment loop counters
+        child = testDir.openNextFile();
+        if (++count > 64) {
+          logger.warning("And many more, but I'm stopping here.");
+          rc = 0;
+        }
+      }
+    }
+
+    char msg[256];   // report summary for the directory
+    snprintf(msg, sizeof(msg), "%12d Files, %d bytes", fileCount, byteCount);
+    logger.info(msg);
+
+    // Now, having listed the FILES, let's loop through again for DIRECTORIES
+    testDir = gFatfs.open(dirname);
+    child   = testDir.openNextFile();
+    while (child && rc > 0) {
+      char filename[64];
+      child.getName(filename, sizeof(filename));
+
+      if (strlen(filename) == 0) {
+        logger.info(__LINE__, "Empty filename, so time to return");   // is this ever triggered?
+        rc = 0;
+      } else {
+        // Descend into the directory and list its files
+        if (child.isDirectory()) {
+          listFiles(filename);   // RECURSION
+        }
+      }
+      child = testDir.openNextFile();   // advance to next file
+    }
+  }
+  return rc;
+}
+// ----- console output formatter
+void SaveRestore::showFile(const char *indent, const int count, const char *filename, const int filesize) {
+  // Example: "        6240 barometr.dat"
+  //          "1...5....0.. filename.ext"
+  char msg[256];
+  snprintf(msg, sizeof(msg), "%12d %s", filesize, filename);
+  logger.info(msg);
+}
+void SaveRestore::showDirectory(const char *dirname) {
+  // Example:  "1...5....0.. Griduino  <dir>"
+  Serial.print("             ");
+  Serial.print(dirname);
+  Serial.println("  <dir>");
+
+  /* --- this code hangs ---
+  char msg[256];
+  const int field = 20;   // total field width including string
+  int w = strlen(dirname);
+  int numBlanks = field - w;
+  for (int ii=0; ii<numBlanks; ii++) {
+    Serial.print(" ");
+  }
+  snprintf(msg, sizeof(msg),
+           "\r\n%sDelectory of %s  <dir>", dirname);
+  logger.info(msg);
+  --- */
+}
 // ----- protected helpers -----
 int SaveRestore::openFlash() {
   // returns 1=success, 0=failure
@@ -209,7 +361,7 @@ int SaveRestore::openFlash() {
     Serial.println("Error, unable to begin using Flash onboard memory.");
     return 0;
   }
-  //Serial.print(". Flash chip JEDEC ID: 0x"); Serial.println(gFlash.getJEDECID(), HEX);
+  // Serial.print(". Flash chip JEDEC ID: 0x"); Serial.println(gFlash.getJEDECID(), HEX);
 
   // First call begin to mount the filesystem.  Check that it returns true
   // to make sure the filesystem was mounted.
@@ -218,7 +370,6 @@ int SaveRestore::openFlash() {
     Serial.println("Was the flash chip formatted with the SdFat_format example?");
     return 0;
   }
-  //Serial.println(". Mounted SPI flash filesystem");
 
   // Check if our config data directory exists and create it if not there.
   // todo - add multilevel folder support, it currently assumes a single folder depth.

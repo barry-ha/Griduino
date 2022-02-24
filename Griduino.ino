@@ -451,6 +451,7 @@ Command cmdList[] = {
     {"version", version},
     {"dump kml", dump_kml},
     {"dump gps", dump_gps_history},
+    {"list", list_files},
     {"start nmea", start_nmea},
     {"stop nmea", stop_nmea},
     {"start gmt", start_gmt},
@@ -481,6 +482,10 @@ void dump_kml() {
 }
 void dump_gps_history() {
   model->dumpHistoryGPS();
+}
+void list_files() {
+  SaveRestore saver("x","y");   // dummy config object, we won't actually save anything
+  saver.listFiles("/");     // list them starting at root
 }
 void start_nmea() {
   Serial.println("started");

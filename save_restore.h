@@ -45,6 +45,11 @@ public:
   int readConfig(byte *pBuffer, const int sizeBuffer);
 
   /*
+   * List files in SDRAM
+   */
+  int listFiles(const char *dirname);
+
+  /*
    * Delete file
    */
   int remove(const char *vFilename) {
@@ -54,4 +59,6 @@ public:
 
 protected:
   int openFlash();   // helper
+  void showFile(const char *indent, const int count, const char *filename, const int filesize);
+  void showDirectory(const char *dirname);
 };
