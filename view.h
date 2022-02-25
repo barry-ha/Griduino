@@ -26,45 +26,45 @@ public:
 
 public:
   /**
-     * Constructor
-     */
-  //View() { }                      // no default ctor (must be told 'tft')
+   * Constructor
+   */
+  // View() { }                      // no default ctor (must be told 'tft')
   View(Adafruit_ILI9341 *vtft, int vid)
       : tft(vtft), screenID(vid), background(0x000)   // default black background
   {
   }
 
   /**
-     * Called on every pass through main()
-     */
+   * Called on every pass through main()
+   */
   virtual void updateScreen() {
   }
 
   /**
-     * Called once each time this view becomes active
-     */
+   * Called once each time this view becomes active
+   */
   virtual void startScreen() {
     // todo - make this pure virtual
   }
 
   /**
-     * Called once each time this view becomes INactive
-     * This is a 'goodbye kiss' for a view handler to do cleanup work, such as saving its settings
-     */
+   * Called once each time this view becomes INactive
+   * This is a 'goodbye kiss' for a view handler to do cleanup work, such as saving its settings
+   */
   virtual void endScreen() {
   }
 
   /**
-     * Called whenever the touchscreen has an event for this view
-     */
+   * Called whenever the touchscreen has an event for this view
+   */
   virtual bool onTouch(Point touch) {
     Serial.println("->->-> Touched screen.");
     return false;   // true=handled, false=controller uses default action
   }
 
   /**
-     * Call to load/save configuration from non-volatile RAM
-     */
+   * Call to load/save configuration from non-volatile RAM
+   */
   virtual void loadConfig() {
     // default: loads nothing
   }
@@ -74,7 +74,7 @@ public:
 
 protected:
   /**
-   *  The One and Only True Clear Screen (TOOTCS) function 
+   *  The One and Only True Clear Screen (TOOTCS) function
    */
   void clearScreen(uint16_t color = cBACKGROUND) {   // clear entire screen
     tft->fillScreen(color);
@@ -112,10 +112,10 @@ protected:
   }
 
   /**
-     * Rotate screen right-side-up / upside-down
-     * 1=landscape, 3=landscape 180-degrees 
-     * This is a "protected" method in base class to ensure *only* the Settings page will set rotation.
-     */
+   * Rotate screen right-side-up / upside-down
+   * 1=landscape, 3=landscape 180-degrees
+   * This is a "protected" method in base class to ensure *only* the Settings page will set rotation.
+   */
   void setScreenRotation(int rot) {
     Serial.print("Rotating screen to: ");
     Serial.println(rot);
@@ -127,8 +127,8 @@ protected:
   }
 
   /**
-     * Some views include function-specific buttons
-     */
+   * Some views include function-specific buttons
+   */
   void showMyTouchTargets(FunctionButton buttons[], int numButtons) {
 #ifdef SHOW_TOUCH_TARGETS
     for (int ii = 0; ii < numButtons; ii++) {
