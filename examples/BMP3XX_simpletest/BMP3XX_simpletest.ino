@@ -16,11 +16,11 @@
 
   Written by Limor Fried & Kevin Townsend for Adafruit Industries.
   BSD license, all text above must be included in any redistribution
-  
+
   From:    https://github.com/adafruit/Adafruit_BMP3XX, see: examples/bmp3xx_simpletest
   Updated: Barry Hansen, K7BWH, barry@k7bwh.com
 
-  Version history: 
+  Version history:
            2021-01-30 - updated for BMP390
            2020-03-05 - adapted for Griduino with BMP388
 
@@ -34,9 +34,7 @@
 
 */
 
-#include <Wire.h>
 #include <SPI.h>               // Serial Peripheral Interface
-#include <Adafruit_Sensor.h>   // Adafruit sensor library
 #include "Adafruit_BMP3XX.h"   // Precision barometric and temperature sensor
 
 // ------- Identity for splash screen and console --------
@@ -91,7 +89,7 @@ void setup() {
   bmp.setTemperatureOversampling(BMP3_OVERSAMPLING_8X);
   bmp.setPressureOversampling(BMP3_OVERSAMPLING_4X);
   bmp.setIIRFilterCoeff(BMP3_IIR_FILTER_COEFF_3);
-  //bmp.setOutputDataRate(BMP3_ODR_50_HZ);
+  // bmp.setOutputDataRate(BMP3_ODR_50_HZ);
 }
 
 //=========== main work loop ===================================

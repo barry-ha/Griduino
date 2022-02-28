@@ -12,6 +12,7 @@
 #include "model_gps.h"              // Class Model (for model-view-controller)
 #include "TextField.h"              // Optimize TFT display text for proportional fonts
 #include "view.h"                   // Base class for all views
+#include "logger.h"                 // conditional printing to Serial port
 
 // ========== extern ==================================
 extern void calcLocator(char* result, double lat, double lon, int precision); // Griduino.ino
@@ -19,10 +20,11 @@ extern void setFontSize(int font);             // TextField.cpp
 extern void clearScreen();                     // Griduino.ino
 
 // ----- globals
-extern Adafruit_ILI9341 tft;
+extern Adafruit_ILI9341 tft;            // Griduino.ino
 extern DACMorseSender dacMorse;         // Morse code
 extern Model* model;
 extern ViewGrid gridView;               // Griduino.ino
+extern Logger logger;                   // Griduino.ino
 
 TextField txtTest("test", 1,21, ILI9341_WHITE);
 
@@ -43,7 +45,7 @@ void testNextGridLineEast(float fExpected, double fLongitude) {
 }
 void testNextGridLineWest(float fExpected, double fLongitude) {
   // unit test helper for finding grid line crossings
-  float result = nextGridLineWest(fLongitude);
+  float result = model->nextGridLineWest(fLongitude);
   Serial.print("Grid Crossing West: given = "); Serial.print(fLongitude);
   Serial.print(", expected = "); Serial.print(fExpected);
   Serial.print(", result = "); Serial.print(result);
@@ -54,10 +56,28 @@ void testNextGridLineWest(float fExpected, double fLongitude) {
     Serial.println(" <-- Unequal");
   }
 }
-void testCalcLocator(const char* sExpected, double lat, double lon) {
+void testCalcLocator6(const char* sExpected, double lat, double lon) {
   // unit test helper function to display results
   char sResult[7];      // strlen("CN87us") = 6
   calcLocator(sResult, lat, lon, 6);
+  Serial.print("Test: given (");
+  Serial.print(lat,4);
+  Serial.print(",");
+  Serial.print(lon,4);
+  Serial.print(") expected = "); Serial.print(sExpected);
+  Serial.print(", gResult = "); Serial.print(sResult);
+  if (strcmp(sResult, sExpected) == 0) {
+    Serial.println("");
+  }
+  else {
+    Serial.println(" <-- Unequal");
+  }
+}
+
+void testCalcLocator8(const char* sExpected, double lat, double lon) {
+  // unit test helper function to display results
+  char sResult[9];      // strlen("CN87us00") = 8
+  calcLocator(sResult, lat, lon, 8);
   Serial.print("Test: expected = "); Serial.print(sExpected);
   Serial.print(", gResult = "); Serial.print(sResult);
   if (strcmp(sResult, sExpected) == 0) {
@@ -91,7 +111,8 @@ void testDistanceLong(double expected, double lat, double fromLong, double toLon
 // =============================================================
 // verify Morse Code
 void verifyMorseCode() {
-  Serial.print("-------- verifyMorseCode() at line "); Serial.println(__LINE__);
+  //Serial.print("-------- verifyMorseCode() at line "); Serial.println(__LINE__);
+  logger.fencepost("unit_test.cpp verifyMorseCode", __LINE__);
   dacMorse.setup();
   dacMorse.dump();
   
@@ -343,12 +364,19 @@ void verifyDerivingGridSquare() {
 
   // Expected values from: https://www.movable-type.co.uk/scripts/latlong.html
   //              expected     lat        long
-  testCalcLocator("CN87us",  47.753000, -122.28470);  // read console log for failure messages
-  testCalcLocator("CN85uk",  45.4231,   -122.2847 );  //
-  testCalcLocator("EM66pd",  36.165926, -86.723285);  // +,-
-  testCalcLocator("OF86cx", -33.014673, 116.230695);  // -,+
-  testCalcLocator("FD54oq", -55.315349, -68.794971);  // -,-
-  testCalcLocator("PM85ge",  35.205535, 136.565790);  // +,+
+  testCalcLocator6("CN87us",  47.753000, -122.28470);  // read console log for failure messages
+  testCalcLocator6("CN85uk",  45.4231,   -122.2847 );  //
+  testCalcLocator6("EM66pd",  36.165926, -86.723285);  // +,-
+  testCalcLocator6("OF86cx", -33.014673, 116.230695);  // -,+
+  testCalcLocator6("FD54oq", -55.315349, -68.794971);  // -,-
+  testCalcLocator6("PM85ge",  35.205535, 136.565790);  // +,+
+  //              expected     lat        long
+  testCalcLocator8("CN87us00",  47.753000, -122.28470);  // read console log for failure messages
+  testCalcLocator8("CN85uk00",  45.4231,   -122.2847 );  //
+  testCalcLocator8("EM66pd00",  36.165926, -86.723285);  // +,-
+  testCalcLocator8("OF86cx00", -33.014673, 116.230695);  // -,+
+  testCalcLocator8("FD54oq00", -55.315349, -68.794971);  // -,-
+  testCalcLocator8("PM85ge00",  35.205535, 136.565790);  // +,+
 }
 // =============================================================
 // verify computing distance
@@ -412,23 +440,23 @@ void runUnitTest() {
   tft.print("  --Open console monitor to see unit test results--");
   delay(1000);
 
-  //verifyMorseCode();                            // verify Morse code
-  verifySaveRestoreVolume();    countDown( 5);  // verify save/restore an integer setting in SDRAM
-  verifySaveRestoreArray();     countDown(10);  // verify save/restore an array in SDRAM
-  verifySaveRestoreGPSModel();  countDown(10);  // verify save/restore GPS model state in SDRAM
+  //verifyMorseCode();                          // verify Morse code
+  verifySaveRestoreVolume();    countDown(5);   // verify save/restore an integer setting in SDRAM
+  verifySaveRestoreArray();     countDown(5);   // verify save/restore an array in SDRAM
+  verifySaveRestoreGPSModel();  countDown(5);   // verify save/restore GPS model state in SDRAM
   //verifyWritingProportionalFont();              // verify writing proportional font
   
   verifyBreadCrumbs();          countDown(5);   // verify pushpins near the four corners
   verifyBreadCrumbTrail1();     countDown(5);   // verify painting the bread crumb trail
-  verifyBreadCrumbTrail2();     countDown(10);  // verify painting the bread crumb trail
-  verifySaveTrail();            countDown(10);  // save GPS route to non-volatile memory
+  verifyBreadCrumbTrail2();     countDown(5);   // verify painting the bread crumb trail
+  verifySaveTrail();            countDown(5);   // save GPS route to non-volatile memory
   verifyRestoreTrail();         countDown(5);   // restore GPS route from non-volatile memory
 
   verifyDerivingGridSquare();   countDown(5);   // verify deriving grid square from lat-long coordinates
   verifyComputingDistance();        // verify computing distance
   verifyComputingGridLines();       // verify finding gridlines on E and W
 
-  countDown(10);                    // give user time to inspect display appearance for unit test problems
+  countDown(5);                     // give user time to inspect display appearance for unit test problems
 
   model->clearHistory();             // clean up our mess after unit test
   Serial.print("-------- End Unit Test at line "); Serial.println(__LINE__);

@@ -42,13 +42,13 @@ public:
 
   float gSeaLevelPressure = DEFAULT_SEALEVEL_HPA;   // default starting value, hPa; adjustable by touch in view_altimeter.h
 
-  Location history[800];      // remember a list of GPS coordinates
+  Location history[1600];     // remember a list of GPS coordinates
   int nextHistoryItem  = 0;   // index of next item to write
   const int numHistory = sizeof(history) / sizeof(Location);
   // Size of array history: Our goal is to keep track of a good day's travel, at least 250 miles.
   // If 180 pixels horiz = 100 miles, then we need (250*180/100) = 450 entries.
   // If 160 pixels vert = 70 miles, then we need (250*160/70) = 570 entries.
-  // In practice, with drunken-sailor route around the Olympic Peninsula,
+  // In reality, with a drunken-sailor route around the Olympic Peninsula,
   // we need 800 entries to capture the 500-mile loop.
 
 protected:
@@ -74,7 +74,7 @@ public:
 
   // ========== load/save config setting =========================
   const char MODEL_FILE[25] = "/Griduino/gpsmodel.cfg";   // CONFIG_FOLDER
-  const char MODEL_VERS[15] = "GPS Model v09";            // <-- always change version when changing model data
+  const char MODEL_VERS[15] = "GPS Model v10";            // <-- always change version when changing model data
 
   // ----- save user's GPS state to non-volatile memory -----
   int save() {
@@ -130,12 +130,12 @@ public:
   }
 
   // read GPS hardware
-  virtual void getGPS() {                 // "virtual" allows derived class MockModel to replace it
-    if (GPS.fix) {                        // DO NOT use "GPS.fix" anywhere else in the program,
-                                          // or the simulated position in MockModel won't work correctly
-      gLatitude  = GPS.latitudeDegrees;   // double-precision float
-      gLongitude = GPS.longitudeDegrees;
-      gAltitude  = GPS.altitude;
+  virtual void getGPS() {                  // "virtual" allows derived class MockModel to replace it
+    if (GPS.fix) {                         // DO NOT use "GPS.fix" anywhere else in the program,
+                                           // or the simulated position in MockModel won't work correctly
+      gLatitude   = GPS.latitudeDegrees;   // double-precision float
+      gLongitude  = GPS.longitudeDegrees;
+      gAltitude   = GPS.altitude;
       // save timestamp as compact 4-byte integer (number of seconds since Jan 1 1970)
       // using https://github.com/PaulStoffregen/Time
       TimeElements tm{GPS.seconds, GPS.minute, GPS.hour, 0, GPS.day, GPS.month, GPS.year};

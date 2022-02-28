@@ -131,6 +131,8 @@ GPS:
    GND  - Ground                  - ground      - ground
    >RX  - data into GPS           - TX1 pin 18  - TX  (J2 Pin 2)  - uses hardware UART
    <TX  - data out of GPS         - RX1 pin 19  - RX  (J2 Pin 3)  - uses hardware UART
+BMP388/BMP390:
+   CS   - barometer chip select   - Digital 13  - D13             - shared with onboard LED
 Audio Out:
    DAC0 - audio signal            - n/a         - A0  (J2 Pin 12) - uses onboard digital-analog converter
 Digital potentiometer:
@@ -248,8 +250,8 @@ Adafruit_GPS GPS(&Serial1);           // https://github.com/adafruit/Adafruit_GP
 
 // Adafruit Feather M4 Express pin definitions
 #define PIN_VCS      A1               // volume chip select
-//#define PIN_VINC      6             // volume increment, Feather M4 Express
-#define PIN_VINC      2               // volume increment, ItsyBitsy M4 Express
+#define PIN_VINC      6               // volume increment, Feather M4 Express
+//#define PIN_VINC    2               // volume increment, ItsyBitsy M4 Express
 #define PIN_VUD      A2               // volume up/down
 
 // Adafruit ItsyBitsy M4 Express pin definitions

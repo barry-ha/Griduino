@@ -193,7 +193,7 @@ void slantWash(int howLong, uint16_t color[], int numColors, float slope) {
 
     // start over when you reach the rhs of the display
     if (xii >= tft.width()) {
-      //delay(1);
+      // delay(1);
       startc = (startc + 2) % numColors;
       cii    = startc;
       xii    = -offset;
@@ -204,6 +204,7 @@ void slantWash(int howLong, uint16_t color[], int numColors, float slope) {
 // ----- slant wave, 1 ----------------------------------
 void slantWaveFastV(uint16_t color[], int numColors, int howLong, int howManyScreenFulls) {
   // Effect: SINGLE wave traverses the screen and moves vertically downward.
+  //
   //         This attempts to move faster then "slantWashFastV" by only
   //         drawing a single wave using an optimized function.
   //         The "background" is the last color in the lookup table.
@@ -222,7 +223,7 @@ void slantWaveFastV(uint16_t color[], int numColors, int howLong, int howManyScr
   int y           = starty;   // y-axis pixel index
   int screenCount = 0;        // how many times we looped through the full screen
   bool done       = false;
-  //while (millis() < targetTime) {
+  // while (millis() < targetTime) {
   while (!done) {
 
     // draw 1 wave
@@ -316,12 +317,11 @@ void slantWashFastH(int howLong, uint16_t color[], int numColors) {
 
 // ----- color tunnel --------------------------------
 void colorTunnel(int howLong, uint16_t color[], int numColors) {
-  unsigned long targetTime;
-  targetTime = millis() + howLong * 1000;
-  int x      = 0;
-  int y      = 0;
-  int w      = tft.width();
-  int h      = tft.height();
+  unsigned long targetTime = millis() + howLong * 1000;
+  int x                    = 0;
+  int y                    = 0;
+  int w                    = tft.width();
+  int h                    = tft.height();
 
   int ii     = 0;
   uint16_t c = color[ii];
@@ -418,7 +418,7 @@ void loop() {
   // RGB 565 true color: https://chrishewett.com/blog/true-rgb565-colour-picker/
   // palette = makePalette(&result[], fromRed, fromGreen, fromBlue, toRed, toGreen, toBlue, numSteps);
   //                from (R  G  B)  to (R  G  B)
-  //makePalette(palette, 31,62,16,     31,23,00, 64);
+  // makePalette(palette, 31,62,16,     31,23,00, 64);
 
   int w = tft.width();
   int h = tft.height();
@@ -451,11 +451,11 @@ void loop() {
   Serial.println("---red---");
   makePalette(palette, 0,0,0, 63,0,0, sizePallette);
   slantWaveFastV(palette, sizePallette, nSeconds, nScreens);
-  
+
   Serial.println("---green---");
   makePalette(palette, 0,0,0, 0,63,0, sizePallette);
   slantWaveFastV(palette, sizePallette, nSeconds, nScreens);
-  
+
   Serial.println("---blue---");
   makePalette(palette, 0,0,0, 0,0,63, sizePallette);
   slantWaveFastV(palette, sizePallette, nSeconds, nScreens);
@@ -463,27 +463,27 @@ void loop() {
   Serial.println("---pinks---");
   makePalette(palette, 0,11,32, 54,11,32, sizePallette);  // from 0xd970 to 0x0170
   slantWaveFastV(palette, sizePallette, nSeconds, nScreens);
-  
+
   Serial.println("---greens---");
   makePalette(palette, 0,8,18, 0,63,18, sizePallette);  // from 0x0fe9 to 0x0909
   slantWaveFastV(palette, sizePallette, nSeconds, nScreens);
-  
+
   Serial.println("---yellowreds---");
   makePalette(palette, 63,9,0, 63,63,0, sizePallette);  // from 0xffe0 to 0xf920
   slantWaveFastV(palette, sizePallette, nSeconds, nScreens);
   */
 
-  /**** 
-  slantWaveFastV(6, greens, numGreens);
-  slantWaveFastV(6, yellowreds, numYellowreds);
-  slantWaveFastV(6, tinyPinks, numTinyPinks);
+  /****
+    slantWaveFastV(6, greens, numGreens);
+    slantWaveFastV(6, yellowreds, numYellowreds);
+    slantWaveFastV(6, tinyPinks, numTinyPinks);
 
-  slantWashFastV(6, yellowreds, numYellowreds);
-  slantWashFastH(6, pinks, numPinks);
-  slantWash(10, greens, numGreens, 1.50);
-  
-  colorTunnel(8, pinks, numPinks);
-  colorTunnel(8, greens, numGreens);
-  colorTunnel(8, yellowreds, numYellowreds);
-/* ****/
+    slantWashFastV(6, yellowreds, numYellowreds);
+    slantWashFastH(6, pinks, numPinks);
+    slantWash(10, greens, numGreens, 1.50);
+
+    colorTunnel(8, pinks, numPinks);
+    colorTunnel(8, greens, numGreens);
+    colorTunnel(8, yellowreds, numYellowreds);
+  /* ****/
 }

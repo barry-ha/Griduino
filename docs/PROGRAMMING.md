@@ -111,46 +111,40 @@ Run the Python conversion script (author https://github.com/microsoft/uf2):
 If you want to compile Griduino source code or work with its example files (and we hope you do) then here's everything you need to setup the workbench.
 
 1. **Download and Run Arduino IDE**<br/>
-The Arduino IDE (integrated development environment) is the main workbench for writing, compiling and testing Arduino programs. As of September 2021, the latest version is Arduino IDE v1.8.51 
-<ul>
-<li>Visit www.arduino.cc and find the **Software Downloads** section.</li>
-<li>Scroll down to the **Download the Arduino IDE** section.</li>
-<li>Find and **run the installer** for your operating system.<br/>For Windows, it is normal for it to open the Microsoft Store and download over 200 MB. Follow the prompts to install the software.</li>
-<li>**Launch the Arduino IDE**.</li>
-</ul>
-
-1. **Add Packages Link to Board Manager**<br/>
+The Arduino IDE (integrated development environment) is the main workbench for writing, compiling and testing Arduino programs. As of February 2022, the latest version is Arduino IDE v1.8.19, which is identified in the Windows Store as v1.8.51.
+  * Visit www.arduino.cc and find the **Software Downloads** section.
+  * Scroll down to the **Download the Arduino IDE** section.
+  * Find and **run the installer** for your operating system. For Windows, it is normal for it to open the Microsoft Store and download over 200 MB. Follow the prompts to install the software.
+  * **Launch the Arduino IDE**.
+  
+2. **Add Packages Link to Board Manager**<br/>
 The IDE can't find the list of SAMD boards unless we add their magic URL to preferences:
-<ul>
-<li>**File** > **Preferences**</li>
-<li>Find the "Additional Boards Manager URLs" section<br/><img src="img/ide-preferences-img7024.jpg" alt="Preferences dialog" title="Preferences dialog"/></li>
-<li>To the right is an icon that when selected will open up a window to add the new URL.</li>
-<li>If the below URL is not visible or a different one is showing, add the following URL using the icon to be able to see the file "Adafruit SAMD Boards v 1.6.3" in the next step.
-</li>
-<li>Add: https://adafruit.github.io/arduino-board-index/package_adafruit_index.json</li>
-<li>It's important to use the icon because if you just type the above in to the URL slot, and select OK it will not store the new URL and be empty when you check it again.</li>
-<li>Click OK</li>
-</ul> 
+  * **File** > **Preferences**
+  * Find the "Additional Boards Manager URLs" section<br/><img src="img/ide-preferences-img7024.jpg" alt="Preferences dialog" title="Preferences dialog"/>
+  * To the right is an icon that when selected will open up a window to add the new URL.
+  * If the below URL is not visible or a different one is showing, add the following URL using the icon to be able to see the file "Adafruit SAMD Boards v 1.6.3" in the next step.
+  * Add: https://adafruit.github.io/arduino-board-index/package_adafruit_index.json
+  * It's important to use the icon because if you just type the above in to the URL slot, and select OK it will not store the new URL and be empty when you check it again.
+  * Click OK
 
-1. **Install Board Support**<br/>
+3. **Install Board Support**<br/>
 In this step, we will install support files needed by Arduino IDE to talk to the Feather M4. Here's how:<br/>
 In the Arduino IDE menu bar, go to **Tools > Board > Boards Manager**. It will display a long list of hardware. Install the latest version of:
-<ul>
-<li>Arduino AVR Boards, Built-In by Arduino: v1.8.3</li>
-<li>Arduino SAMD Boards (32-bits ARM Cortex-M0+): v1.8.11</li>
-<li>Adafruit SAMD Boards: v1.7.5</li>
-</ul>
+  * Arduino AVR Boards, Built-In by Arduino: v1.8.3
+  * Arduino SAMD Boards (32-bits ARM Cortex-M0+): v1.8.11
+  * Adafruit SAMD Boards: v1.7.5
 
-1. **Select Board**<br/>
+
+4. **Select Board**<br/>
 On the Arduino IDE menu bar, select **Tools > Board > Arduino SAMD (32-bits ARM Cortex-M0+ and Cortex-M4) > Adafruit Feather M4 Express**<br/>
 If the option is not available, please review previous step "Install Board Support".
 
-1. **Select Port**<br/>
+5. **Select Port**<br/>
 You'll need to figure out your COM port for this step. Here's how:<br/>
 On Windows, run the **Device Manager** and expand the section for **Ports**. One of the items listed under Ports represents the Griduino device. It is possible for the port assignment to change from day to day, so be prepared to return to the Device Manager as needed.<br/>
 In the Arduino IDE menu bar, go to **Tools > Port** and select the COM port that was given by the Device Manager. If there was more than one port listed, try them one by one.
 
-1. **Install Libraries**</br>
+6. **Install Libraries**</br>
 In the Arduino IDE menu bar, go to **Tools > Manage Libraries**. Install the latest version (and their dependencies) of these libraries:
    - AudioZero v1.1.1
    - SD v1.2.4
