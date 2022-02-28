@@ -1,7 +1,7 @@
 // Please format this file with clang before check-in to GitHub
 /*
   File: Flash_file_directory_list.ino
-  
+
   Lists the contents of Feather M4's onboard 2MB Quad-SPI Flash chip
   This example ignores the MicroSD Card slot on the ILI9341 TFT Display
   and ONLY examines the file system on the 2MB Flash memory.
@@ -17,6 +17,7 @@
          1. Arduino Feather M4 Express (120 MHz SAMD51)
             Spec: https://www.adafruit.com/product/3857
 
+  See file system reference: https://www.arduino.cc/en/Reference/SD
 */
 
 #include <Adafruit_ILI9341.h>    // TFT color display library
@@ -46,6 +47,9 @@ Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 const int chipSelectPin = 7;
 const int chipDetectPin = 8;
 
+// ------------ definitions
+const int howLongToWait = 6;   // max number of seconds at startup waiting for Serial port to console
+
 // ----- Griduino color scheme
 // RGB 565 color code: http://www.barth-dev.de/online/rgb565-color-picker/
 #define cBACKGROUND 0x00A            // 0,   0,  10 = darker than ILI9341_NAVY, but not black
@@ -56,7 +60,6 @@ const int chipDetectPin = 8;
 #define cWARN       0xF844           // brighter than ILI9341_RED but not pink
 
 // ------------ global scope
-const int howLongToWait = 8;                    // max number of seconds at startup waiting for Serial port to console
 Adafruit_FlashTransport_QSPI gFlashTransport;   // Quad-SPI 2MB memory chip
 Adafruit_SPIFlash gFlash(&gFlashTransport);     //
 FatFileSystem gFatfs;                           // file system object from SdFat
@@ -200,7 +203,7 @@ void listLevel2(const char *folder) {
 }
 // ----- iterate files at root level
 int listFiles() {
-  // Open the root folder to list all the children (files and directories).
+  // Open the root folder to list top-level children (files and directories).
   int rc       = 1;   // assume success
   File testDir = gFatfs.open("/");
   if (!testDir) {
