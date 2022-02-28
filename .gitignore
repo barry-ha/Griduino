@@ -12,6 +12,7 @@
 *.xlsx
 datasheets/
 docs_mfr/
+downloads_archived/
 orders/
 work_in_progress/
 
