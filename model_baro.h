@@ -60,9 +60,11 @@
 #include <Adafruit_BMP3XX.h>   // Precision barometric and temperature sensor
 #include <Arduino.h>           //
 #include "constants.h"         // Griduino constants, colors, typedefs
+#include "logger.h"            // conditional printing to Serial port
 
 // ========== extern ===========================================
 extern char *dateToString(char *msg, int len, time_t datetime);   // Griduino/Baroduino.ino
+extern Logger logger;   // Griduino.ino
 
 // ------------ definitions
 #define MILLIBARS_PER_INCHES_MERCURY (0.02953)
@@ -92,9 +94,9 @@ public:
   float elevCorr = 0;   // todo: unused for now, review and change if needed
 
   // Constructor - create and initialize member variables
-  BarometerModel(Adafruit_BMP3XX *vbaro, int vcs) {
-    baro   = vbaro;
-    bmp_cs = vcs;
+  BarometerModel(Adafruit_BMP3XX *vBarometerObject, int vChipSelect) {
+    baro   = vBarometerObject;
+    bmp_cs = vChipSelect;
   }
 
   // init BMP388 or BMP390 barometer
@@ -147,7 +149,7 @@ public:
       }
 
     } else {
-      Serial.println("Error, unable to initialize BMP388 / BMP390, check the wiring");
+      logger.error("Error, unable to initialize BMP388 / BMP390, check the wiring");
       rc = 0;   // return failure
     }
     return rc;
