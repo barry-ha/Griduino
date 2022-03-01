@@ -150,6 +150,7 @@ In the Arduino IDE menu bar, go to **Tools > Manage Libraries**. Install the lat
    - SD v1.2.4
    - TFT v1.0.6
    - Adafruit BMP3XX Library v2.1.0
+   - Adafruit BusIO Library v1.11.0 (a known issue with v1.11.1)
    - Adafruit GFX Library v1.10.7
    - Adafruit GPS Library v1.5.4
    - Adafruit ILI9341 v1.5.6
