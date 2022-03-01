@@ -124,9 +124,9 @@ You can use Griduino in either one of two landscape orientations. This allows yo
 
 ![](img/config5-img7522.jpg)
 
-# 5. Terminal Session
+# 5. Commands in Terminal Session
 
-In version 1.07 or later, you can open a terminal session to Griduino, such as the Serial Monitor in the Arduino IDE. Type a command and Griduino will respond. 
+In version 1.07 or later, you can open a terminal session to Griduino, such as the Serial Monitor in the Arduino IDE. Type a command and Griduino will respond in this interactive window. 
 
 ## help
 
