@@ -149,18 +149,18 @@ In the Arduino IDE menu bar, go to **Tools > Manage Libraries**. Install the lat
    - AudioZero v1.1.1
    - SD v1.2.4
    - TFT v1.0.6
-   - Adafruit BMP3XX Library v2.1.0
+   - Adafruit BMP3XX Library v2.1.2
    - Adafruit BusIO Library v1.11.0 (a known issue with v1.11.1)
-   - Adafruit GFX Library v1.10.7
-   - Adafruit GPS Library v1.5.4
-   - Adafruit ILI9341 v1.5.6
-   - Adafruit ImageReader Library v2.6.1
-   - Adafruit NeoPixel v1.8.0
-   - Adafruit SPIFlash v3.3.6
-   - Adafruit TouchScreen v1.1.1
+   - Adafruit GFX Library v1.10.13
+   - Adafruit GPS Library v1.6.0
+   - Adafruit ILI9341 v1.5.10
+   - Adafruit ImageReader Library v2.7.0
+   - Adafruit NeoPixel v1.10.4
+   - Adafruit SPIFlash v3.9.0
+   - Adafruit TouchScreen v1.1.3
    - elapsedMillis by Paul Stoffregen v1.0.6
-   - SdFat – Adafruit Fork by Bill Greiman v1.2.3 <br>*Note:* Use v1, as we have not tested v2<br> *Note:* There are two libraries with similar names. Be sure to install "SdFat - Adafruit Fork" and not "SdFat" which has an incompatible SdFat.h file
-   - Time by Michael Margolis v1.6.0 <br>*Note:* searching the library manager for the word "time" lists just about every library. Searching for the word "timekeeping" will show the correct library.
+   - SdFat – Adafruit Fork by Bill Greiman v1.5.1 <br>*Note:* Use v1, as we have not tested v2<br> *Note:* There are two libraries with similar names. Be sure to install "SdFat - Adafruit Fork" and not "SdFat" which has an incompatible SdFat.h file
+   - Time by Michael Margolis v1.6.1 <br>*Note:* searching the library manager for the word "time" lists just about every library. Searching for the word "timekeeping" will show the correct library.
 
 These components are outside of Arduino's Library Manager, so follow these links to GitHub and install the latest version:
 
