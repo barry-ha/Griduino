@@ -12,6 +12,7 @@ In contests I want time and distance figures to help me budget my time. I want t
 
 # Project Goals
 For the operator:
+
 1. How far to the next grid line?
 1. What’s my current grid square?
 1. Where am I in relation to the grid I’m occupying?
@@ -21,8 +22,9 @@ For the operator:
 1. Hardware is powered from vehicle
 
 For hobbyist developers:
-1. Make a programmable platform easily adaptable to related projects
+
 1. Publish the software as open source
+1. Make a programmable platform easily adaptable to related projects
 1. Help the rover community build upon the platform.
 1. Hardware should be possible for other hobbyists to duplicate
 1. Hardware should small enough to mount conveniently on vehicle’s dashboard
@@ -30,13 +32,16 @@ For hobbyist developers:
 # 	Griduino Usage
 ## Setup
 Connect power: Griduino can be powered from two sources:
+
 1. Connect USB to a computer for normal operation or programming, or
-1. Attach 10- to 15-vdc source (automotive power) to the 5.5 mm barrel connector. The on-board regulator drops out at 9.8v. It seems to run okay with a 9v transistor battery for 30 minutes or more. 
+1. Attach 10- to 15-vdc source (automotive power) to the 5.5 mm barrel connector. The on-board regulator drops out at 9.8v. It seems to run okay with a 9v transistor battery for 30 minutes or more.
+
 The speaker is louder with automotive power than with USB power, because the audio amplifier uses whichever power source has higher voltage. 
 
 Connect speaker:
+
 1. Connect a small speaker to the 3.5 mm stereo jack.
-It produces one-channel (mono) output. You can use a stereo speaker and both L and R output will have the same signal.
+It produces one-channel (mono) output. If you attach a stereo speaker then both L and R output will have the same signal.
 
 Place Griduino face up, preferably with a view of the sky to improve GPS satellite reception. The GPS receiver is very sensitive and will often work indoors.
 
