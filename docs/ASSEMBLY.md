@@ -58,6 +58,7 @@ Some of Griduino's hardware, such as the connectors and PCB, should be easy to i
 
 To identify the two 8-pin DIPs (dual inline package), inspect the silkscreen label to identify which is which. Then look closely for a notch at one end -- this helps locate Pin 1. The chip's notch must be oriented the same direction as the PCB's semicircle.
 
+
 ![](img/dip-chips-img7038.jpg)
 
 Small 1N4001 diodes are marked with a band on one end for polarity; the band must be oriented the same direction as the band on the PCB.
@@ -379,7 +380,7 @@ Gluing or screwing this with the paper cone *in* toward the case will protect it
 
 Note that additional clarity (less distortion) at high audio volume is available when powering the Griduino from a car’s electrical system with 10-15 vdc, compared to powering it from the 5v USB connector. The higher voltage source reduces clipping at higher volume levels. At lower volume levels, the speaker sounds the same regardless of power source.
 
-<h3 id="power">Step 18: Power Plug
+<h3 id="power">Step 18: Power Plug<h3>
 
 You can optionally power Griduino from a battery or your vehicle:
 
@@ -393,7 +394,7 @@ Using voltage from your car is often called “the power supply from hell” so 
 * A TVS diode (transient voltage suppression) protects Griduino from voltage spikes.
 * There’s no problem if you connect both the power plug and a USB cable at the same time.
 
-Which power source, 12v or USB,  is best? Not much difference, really. Use the one that’s most convenient. There is a minor advantage in running from 12vdc since the additional headroom allows more speaker volume before audio clipping sets in.
+Which power source, 12v or USB, is best? Not much difference, really. Use the one that’s most convenient. There is a minor advantage in running from 12vdc since the additional headroom allows more speaker volume before audio clipping sets in.
 
 ## 5. Before You Use It ##
 
