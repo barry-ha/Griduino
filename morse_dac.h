@@ -37,20 +37,20 @@ private:
   const int dacOffset    = 2048;   // = exactly half of 2^12
                                    // Requirement is: dacOffset +/- dacAmplitude = voltage range of DAC
   // Morse settings
-  float wpm;   // words per minute
-
+  float wpm;            // words per minute
+                        //
   float fDitDuration;   // seconds per dit
   int iDitDuration;     // msec    per dit
-  float letterSpace;    // typ 3x ditDuration (seconds)
-  float wordSpace;      // typ 7x ditDuration (seconds)
-
-  int cyclesPerDit;   // number of waveforms to fill an entire DIT
-  int cyclesPerDah;   // number of waveforms to fill an entire DAH
+  float letterSpace;    // typically 3x ditDuration (seconds)
+  float wordSpace;      // typically 7x ditDuration (seconds)
+                        //
+  int cyclesPerDit;     // number of waveforms to fill an entire DIT
+  int cyclesPerDah;     // number of waveforms to fill an entire DAH
 
 public:
   /**
-	 * Create a sender for the given DAC port, audio frequency, and sending rate.
-	 */
+   * Create a sender for the given DAC port, audio frequency, and sending rate.
+   */
   DACMorseSender(int outputPin, int iFreq, float fWPM) {
     dacPin     = outputPin;
     fFrequency = iFreq;
@@ -58,24 +58,24 @@ public:
   }
 
   /**
-     * To be called during the Arduino setup().
-     * Create the waveform lookup table.
-     */
+   * To be called during the Arduino setup().
+   * Create the waveform lookup table.
+   */
   void setup();
 
   /**
-     * Set the message to be sent.
-     */
+   * Set the message to be sent.
+   */
   void setMessage(const String newMessage);
 
   /**
-     * Send the entirety of the current message before returning.
-     */
+   * Send the entirety of the current message before returning.
+   */
   void sendBlocking();
 
   /**
-     * Deprecated: use these for unit test
-     */
+   * Deprecated: use these for unit test
+   */
   void dump();
   void send_dit();
   void send_dah();
