@@ -3,15 +3,15 @@
   File:    morse_dac.cpp
 
   Date:    2019-12-30 created
-  
+
   Authors: Barry Hansen, barry@k7bwh.com, Seattle, WA
            John Vanderbeck, KM7O, Seattle, WA
 
-  Purpose: Generate Morse Code through a speaker using onboard 
+  Purpose: Generate Morse Code through a speaker using onboard
            DAC (digital to analog converter) that plays a pure
            tone from a waveform table.
 
-           All input should be uppercase. 
+           All input should be uppercase.
            Prosigns (SK, KN, etc) have special character values #defined.
 
   See also:
