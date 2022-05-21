@@ -3,6 +3,7 @@
 
   Version history: 
             2020-11-23 created touch calibrator
+            2022-05-20 updated touch calibration constants X_MIN_OHMS, X_MAX_OHMS, Y_MIN_OHMS, Y_MAX_OHMS
 
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
@@ -12,12 +13,17 @@
             current realtime measurements as you touch the screen.
 
   Usage:    1. Compile and run the program
-            2. Slide a finger gently around the screen edges
-            3. It will plot a scattergram of dots showing how resistance measurements are mapped to screen area
+            2. Tap gently with a stylus around the center, then work your way around the screen edges
+            3. Each tap leaves a dot, showing how resistance measurements are mapped to screen area
             4. Edit source code "Touch configuration parameters" to adjust the mapping
-               a. use larger X value to move apparent screen response left
-               b. use larger Y value to move apparent screen response down
+               a. use larger X ohms to move apparent screen response left
+               b. use larger Y ohms to move apparent screen response down
             5. Recompile and run this again
+            6. Once you're satisifed with the values, you can copy them directly into Griuino.ino
+
+  Coordinate system:
+            X and Y are in terms of the native touchscreen coordinates, which corresponds to
+            native portrait mode (screen rotation 0).
 
   Tested with:
          1. Arduino Feather M4 Express (120 MHz SAMD51)     https://www.adafruit.com/product/3857
@@ -25,10 +31,20 @@
          2. Adafruit 3.2" TFT color LCD display ILI-9341    https://www.adafruit.com/product/1743
             How to:      https://learn.adafruit.com/adafruit-2-dot-8-color-tft-touchscreen-breakout-v2
             SPI Wiring:  https://learn.adafruit.com/adafruit-2-dot-8-color-tft-touchscreen-breakout-v2/spi-wiring-and-test
-            Touchscreen: https://learn.adafruit.com/adafruit-2-dot-8-color-tft-touchscreen-breakout-v2/resistive-touchscreen
+            Touchscreen: https://learn.adafruit.com/adafruiplt-2-dot-8-color-tft-touchscreen-breakout-v2/resistive-touchscreen
 
 */
 
+// ------- TFT 4-Wire Resistive Touch Screen configuration parameters
+// Last adjustment: 202-05-20
+#define TOUCHPRESSURE 200             // Minimum pressure threshhold considered an actual "press"
+#define X_MIN_OHMS    150             // Expected range on touchscreen's X-axis readings
+#define X_MAX_OHMS    880 
+#define Y_MIN_OHMS    110             // Expected range on touchscreen's Y-axis readings
+#define Y_MAX_OHMS    900 
+#define XP_XM_OHMS    295             // Resistance in ohms between X+ and X- to calibrate pressure
+                                      // measure this with an ohmmeter while Griduino turned off
+                                      
 #include <Adafruit_ILI9341.h>         // TFT color display library
 #include <TouchScreen.h>              // Touchscreen built in to 3.2" Adafruit TFT display
 #include "constants.h"                // Griduino constants, colors, typedefs
@@ -37,7 +53,7 @@
 // ------- Identity for splash screen and console --------
 #define PROGRAM_NAME    "TFT Touch Calibrator"
 
-#define SCREEN_ROTATION 1             // 1=landscape, 3=landscape 180-degrees
+#define SCREEN_ROTATION 1             // 0=portrait, 1=landscape, 2=portrait 180-deg, 3=landscape 180-deg
 
 // ---------- Hardware Wiring ----------
 /* Same as Griduino platform
@@ -67,14 +83,6 @@
 // create an instance of the TFT Display
 Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 
-// ------- TFT 4-Wire Resistive Touch Screen configuration parameters
-#define TOUCHPRESSURE 200             // Minimum pressure threshhold considered an actual "press"
-#define X_MIN_OHMS    330             // Expected range on touchscreen's X-axis readings
-#define X_MAX_OHMS    730
-#define Y_MIN_OHMS    240             // Expected range on touchscreen's Y-axis readings
-#define Y_MAX_OHMS    800
-#define XP_XM_OHMS    295             // Resistance in ohms between X+ and X- to calibrate pressure
-                                      // measure this with an ohmmeter while Griduino turned off
 // ---------- Touch Screen
 // For touch point precision, we need to know the resistance
 // between X+ and X- Use any multimeter to read it
@@ -234,6 +242,8 @@ void startSplashScreen() {
   const int yRow3 = yRow2 + 20;       // compiled date
   const int yRow4 = yRow3 + 40;       // author line 1
   const int yRow5 = yRow4 + 20;       // author line 2
+  const int yRow6 = yRow5 + 30;       // instructions line 1
+  const int yRow7 = yRow6 + 20;       // instructions line 2
   
   TextField txtSplash[] = {
     //     text               x,y       color  
@@ -242,6 +252,8 @@ void startSplashScreen() {
     {PROGRAM_COMPILED, x1,yRow3,  cLABEL},     // [2] compiled date
     {PROGRAM_LINE1,    x1,yRow4,  cLABEL},     // [3] credits line 1
     {PROGRAM_LINE2,    x1,yRow5,  cLABEL},     // [4] credits line 2
+    {"Tap screen in the middle,",  x1,yRow6,  cLABEL},   // [5]
+    {"and then toward edges",      x1,yRow7,  cLABEL},   // [6]
   };
   const int numSplashFields = sizeof(txtSplash)/sizeof(TextField);
 
@@ -282,18 +294,20 @@ void showActivityBar(int row, uint16_t foreground, uint16_t background) {
               xul
        yul..+-:-----------------------------------------+
             | Touch Screen Calibrator           800 max | 1
-            | Please touch screen                    :  | 2
-            | normally near edges                    :  | 3
-            |                                        :  | 4
-            | Current pressure = ...            ...  X  | 5
-            | Pressure threshhold = 200              :  | 6
-            |                                        :  | 7
+            | Tap screen in the middle               :  | 2
+            | then toward edges                      :  | 3   ^
+            |                                        :  | 4   |
+            | Current pressure = ...            ...  X  | 5   X-axis
+            | Pressure threshhold = 200              :  | 6   |
+            |                                        :  | 7   v
             |                                        :  | 8
             |                                   240 min | 9
             | 320              ...                  760 | 10
             | min ~ ~ ~ ~ ~ ~ ~ Y ~ ~ ~ ~ ~ ~ ~ ~ ~ max | 11
             +-------------------:--:------------:-----:-+
-                                x1 x2           x3    x4
+        pixel coords:          x1 x2           x3    x4
+
+        touch coords:      <-- Y-axis -->
 */
   const int x1 = gScreenWidth/2-10;   // = 320/2 = 160
   const int x2 = x1 + 10;
@@ -318,32 +332,28 @@ void showActivityBar(int row, uint16_t foreground, uint16_t background) {
     {     PROGRAM_NAME,           xul,row1,  cTEXTCOLOR}, // [0]
     {     X_MAX_OHMS,              x3,row1,  cXGROUP},    // [1]
     {     "max",                   x4,row1,  cXGROUP, ALIGNRIGHT}, // [2]
-    // row 2
-    {     "Please touch screen",  xul,row2,  cLABEL},     // [3]
-    // row 3
-    {     "normally near edges",  xul,row3,  cLABEL},     // [4]
     // row 4
     // row 5
-    {     "Current pressure:",    xul,row5,  cLABEL},     // [5]
-    {     "ppp",                   x2,row5,  cVALUE},     // [6] current pressure value
-    {     "xxx",                   x3,row5,  cVALUE},     // [7] current X value
-    {     "X   ",                  x4,row5,  cXGROUP, ALIGNRIGHT}, // [8]
+    {     "Current pressure:",    xul,row5,  cLABEL},     // [3]
+    {     "ppp",                   x2,row5,  cVALUE},     // [4] current pressure value
+    {     "xxx",                   x3,row5,  cVALUE},     // [5] current X value
+    {     "X   ",                  x4,row5,  cXGROUP, ALIGNRIGHT}, // [6]
     // row 6
-    {     "Threshhold:",          xul,row6,  cLABEL},     // [9]
-    {     TOUCHPRESSURE,           x2,row6,  cLABEL},     // [10]
+    {     "Threshhold:",          xul,row6,  cLABEL},     // [7]
+    {     TOUCHPRESSURE,           x2,row6,  cLABEL},     // [8]
     // row 7
     // row 8
     // row 9
-    {     X_MIN_OHMS,              x3,row9,  cXGROUP},    // [11]
-    {     "min",                   x4,row9,  cXGROUP, ALIGNRIGHT}, // [12]
+    {     X_MIN_OHMS,              x3,row9,  cXGROUP},    // [9]
+    {     "min",                   x4,row9,  cXGROUP, ALIGNRIGHT}, // [10]
     // row 10
-    {     Y_MIN_OHMS,             xul,row10, cYGROUP},    // [13]
-    {     "yyy",                   x1,row10, cVALUE},     // [14] current Y value
-    {     Y_MAX_OHMS,              x4,row10, cYGROUP, ALIGNRIGHT}, // [15]
+    {     Y_MIN_OHMS,             xul,row10, cYGROUP},    // [11]
+    {     "yyy",                   x1,row10, cVALUE},     // [12] current Y value
+    {     Y_MAX_OHMS,              x4,row10, cYGROUP, ALIGNRIGHT}, // [13]
     // row 11
-    {     "min",                  xul,row11, cYGROUP},    // [16]
-    {     "Y",                     x1,row11, cYGROUP},    // [17]
-    {     "max",                   x4,row11, cYGROUP, ALIGNRIGHT}, // [18]
+    {     "min",                  xul,row11, cYGROUP},    // [14]
+    {     "Y",                     x1,row11, cYGROUP},    // [15]
+    {     "max",                   x4,row11, cYGROUP, ALIGNRIGHT}, // [16]
   };
   const int numScreenFields = sizeof(txtScreen)/sizeof(TextField);
 
@@ -361,25 +371,24 @@ void startScreen() {
 }
 void updateScreen(TSPoint tp) {
   if (tp.z > 0) {
-    txtScreen[6].print(tp.z);         // current pressure value
+    txtScreen[4].print(tp.z);         // current pressure value
   }
-  txtScreen[7].print(tp.x);           // current X value
-  txtScreen[14].print(tp.y);          // current Y value
+  txtScreen[5].print(tp.x);           // current X value
+  txtScreen[12].print(tp.y);          // current Y value
 }
 
 void labelAxis() {
   const int xV = x3-4;                // screen X coord of vertical line
   const int yH = row9+10;             // screen Y coord of horizontal line
 
-  #define nLines 2
-  TwoPoints myLines[nLines] = {
-    // x1,y1    x2,y2
-    { xul,yH,   x4,yH,   cYGROUP},    // horiz across bottom row
+  #define nDottedLines 5
+  TwoPoints dottedLines[nDottedLines] = {
+    { xul,yH,   x4,yH,      cYGROUP}, // horiz across bottom row
     {  xV,yul,  xV,row9+10, cXGROUP}, // vert along rhs
   };
 
-  for (int ii=0; ii<nLines; ii++) {
-    TwoPoints item = myLines[ii];
+  for (int ii=0; ii<nDottedLines; ii++) {
+    TwoPoints item = dottedLines[ii];
     if (item.x1 == item.x2) {
       // ----- vertical dotted line -----
       for (int yy=item.y1; yy<item.y2; yy++) {
@@ -395,6 +404,32 @@ void labelAxis() {
         }
       }
     }
+  }
+
+  const int yA = row11-5;             // screen Y coord of left/rht arrow
+  const int xA = x4-16;               // screen X coord of up/down arrow
+  #define nSolidLines 12
+  TwoPoints solidLines[nSolidLines] = {
+    {  x1+30,yA,   x1+50,yA, cYGROUP}, // right arrow
+    {  x1+42,yA-3, x1+50,yA, cYGROUP}, // top arrowhead
+    {  x1+42,yA+3, x1+50,yA, cYGROUP}, // bot arrowhead
+
+    {  x1-20,yA,   x1-40,yA, cYGROUP}, // left arrow
+    {  x1-32,yA-3, x1-40,yA, cYGROUP}, // top arrowhead
+    {  x1-32,yA+3, x1-40,yA, cYGROUP}, // bot arrowhead
+
+    {  xA,row5-30,   xA,row5-50, cXGROUP},  // up arrow
+    {  xA-3,row5-42, xA,row5-50, cXGROUP},
+    {  xA+3,row5-42, xA,row5-50, cXGROUP},
+
+    {  xA,row5+10,   xA,row5+40, cXGROUP},  // down arrow
+    {  xA-3,row5+22, xA,row5+40, cXGROUP},
+    {  xA+3,row5+22, xA,row5+40, cXGROUP},
+  };
+
+  for (int ii=0; ii<nSolidLines; ii++) {
+    TwoPoints item = solidLines[ii];
+    tft.drawLine(item.x1,item.y1, item.x2,item.y2, item.color);
   }
 }
 
