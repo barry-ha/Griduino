@@ -170,9 +170,9 @@ DefinedEvent eventList[] = {
     sept_vhf,
     june_vhf,
     groundhog,
-    halloween,
+    //halloween,
     christmas,
-    valentines,
+    //valentines,
 };
 
 // ----- choose target event
