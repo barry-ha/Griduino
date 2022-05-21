@@ -157,7 +157,7 @@ DefinedEvent valentines{
     COUNTDOWN_TO,
     SHOW_HMS,
     "Countdown to",
-    "Monday, Feb 14, 2022",
+    "Monday, Feb 14, 2023",
     "Valentine's Day",
     //s,m,h,    dow, dd, mm, yy
     {0, 0, 7 + 0, 1, 14, 02, 2022 - 1970},   // Midnight in Pacific time (encoded in GMT by adding 7 hours PDT)

@@ -197,13 +197,20 @@ Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 Adafruit_NeoPixel pixel = Adafruit_NeoPixel(NUMPIXELS, PIN_NEOPIXEL, NEO_GRB + NEO_KHZ800);
 
 // ------- TFT 4-Wire Resistive Touch Screen configuration parameters
-#define TOUCHPRESSURE 200             // Minimum pressure threshhold considered an actual "press"
-#define X_MIN_OHMS    330             // Expected range on touchscreen's X-axis readings
-#define X_MAX_OHMS    730
-#define Y_MIN_OHMS    240             // Expected range on touchscreen's Y-axis readings
-#define Y_MAX_OHMS    800
-#define XP_XM_OHMS    295             // Resistance in ohms between X+ and X- to calibrate pressure
-                                      // measure this with an ohmmeter while Griduino turned off
+#define TOUCHPRESSURE 200   // Minimum pressure threshhold considered an actual "press"
+
+#define X_MIN_OHMS    150   // Expected range on touchscreen's X-axis readings
+#define X_MAX_OHMS    880
+#define Y_MIN_OHMS    110   // Expected range on touchscreen's Y-axis readings
+#define Y_MAX_OHMS    860
+#define XP_XM_OHMS    295   // Resistance in ohms between X+ and X- to calibrate pressure
+                            // measure this with an ohmmeter while Griduino turned off
+                            
+// old  X_MIN_OHMS    330   // these values worked before May 2022
+// old  X_MAX_OHMS    730
+// old  Y_MIN_OHMS    240
+// old  Y_MAX_OHMS    800
+
 // ---------- Touch Screen
 // For touch point precision, we need to know the resistance
 // between X+ and X- Use any multimeter to read it
