@@ -1,6 +1,6 @@
 # Griduino User's Guide
 
-This guide applies to Beta Version 0.27 and above.
+This guide applies to Version 1.0 and above.
 
 # 1. Introduction
 
@@ -252,13 +252,53 @@ https://github.com/barry-ha/Griduino
 
 For hobbyists interested in a deep dive, [docs/PROGRAMMING.md](https://github.com/barry-ha/Griduino/blob/master/docs/PROGRAMMING.md) has complete Arduino IDE setup and programming instructions. 
 
-# 7. Support
+# 7. Files Saved in RAM
+
+Griduino uses the 2 MB Quad SPI RAM chip built onto the Feather M4 board to save its configuration settings (such as audio volume and distance units) and its data logging files (such as GPS track and barometer history).
+
+**View:** There are a few ways to view the Griduino's RAM file system.
+
+1. Run the Griduino main program and, using the serial monitor, type "list" and press Enter.
+1. Run CircuitPython and use Windows file system to examine external drive named ``CIRCUITPY``
+1. Run our example program: ``Flash_file_directory_list``
+
+Our example program shows a few files on the display and sends the complete file listing to the serial monitor. It will re-send the listing periodically. A typical output from this program (May 2022) is:
+
+	Listing files in the root directory:
+	1. System Volume Information  (dir)
+		 IndexerVolumeGuid  76
+		 WPSettings.dat     12
+	2. .fseventsd      (dir)
+	3. code.py         22
+	4. boot_out.txt    117
+	5. data.txt        70
+	6. Griduino        (dir)
+		 screen.cfg      100
+		 volume.cfg      100
+		 announce.cfg    97
+		 barometr.dat    6240
+		 ten_mile.cfg    1240
+		 altimetr.cfg    100
+		 gpsmodel.cfg    38632
+	7. main.py         0
+	8. audio           (dir)
+		 _LICENSE.md     34916
+		 _README.md      1542
+		 0.wav           20552
+		 1.wav           15860
+		 2.wav           15874
+		 3.wav           16108
+	     ...
+
+**Modify:** To edit or delete file in the 2 MB Quad SPI RAM chip, run CircuitPython and use your Windows file system to manage the files on the external drive named ``CIRCUITPY``.
+
+# 8. Support
 
 Please browse our public group forum at [groups.io/g/Griduino/](https://groups.io/g/Griduino/)
 
 Join our group to hear about upgrades, new software, ask questions, share your experience and suggest features.
 
-# 8. Disclaimer
+# 9. Disclaimer
 
 The information provided is for general education and entertainment. We hope you learn from this and enjoy your hobbies in a safe manner with all this new and interesting GPS information available at a glance. We take no responsibility for your assembly and construction, nor for how you use these devices. 
 
