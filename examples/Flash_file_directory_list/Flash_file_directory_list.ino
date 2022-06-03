@@ -26,7 +26,7 @@
 
 // ------- Identity for splash screen and console --------
 #define EXAMPLE_TITLE    "Flash File Directory List"
-#define EXAMPLE_VERSION  "v0.39"
+#define EXAMPLE_VERSION  "v1.08"
 #define PROGRAM_LINE1    "Barry K7BWH"
 #define PROGRAM_LINE2    ""
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
@@ -298,4 +298,19 @@ void setup() {
 
 //=========== main work loop ===================================
 void loop() {
+
+  for (int ii=30; ii--; ii<=0) {
+    Serial.print(ii);
+    Serial.print(" ");
+    delay(1000);
+  }
+  Serial.println(" ");
+  clearScreen();        // note that "begin()" does not clear screen
+  gCurrentY = yRow1;
+
+  // ----- Do The Thing
+  Serial.println("Initializing Flash memory interface...");
+  int result = openFlash();   // open file system
+  result     = listFiles();   // list all files in the file system
+  Serial.println("All done.");
 }
