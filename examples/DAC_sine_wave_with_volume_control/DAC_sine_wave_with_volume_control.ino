@@ -11,8 +11,8 @@
             Including DS1804 digital potentiometer for volume control.
 
             Feather M4 Express has dual DAC (on pins A0 and A1) that 
-            is capable of playing 12-bit stereo audio. 
-            This sketch is a simple monaural program using only A0. 
+            are capable of playing 12-bit stereo audio. 
+            This sketch is a simple monaural sine wave using only A0. 
 
             The DAC on the SAMD51 is a 12-bit output, from 0 - 3.3v.
             The largest 12-bit number is 4,096:
@@ -20,7 +20,7 @@
             * Writing 4096 sets the DAC to maximum (3.3 v) output.
 
             This example program will step through increasing volume over time.
-            It has no user interface controls or inputs.
+            It shows status on display but has no user inputs.
 */
 
 #include <Adafruit_ILI9341.h>         // TFT color display library
@@ -88,7 +88,7 @@ const int gDacVolume = 1200;          // = limit DAC output to a value empirical
 const int gDacOffset = 2048;          // = exactly half of 2^12
                                       // Requirement is: gDacOffset +/- gDacVolume = voltage range of DAC
 //nst int maxVolume = 99;             // maximum allowed wiper position on digital potentiometer is 0..99
-const int maxVolume = 50;             // but the speaker sounds distorted around 26 so we stop at about 30
+const int maxVolume = 40;             // but the speaker sounds distorted around 26 so we stop at about 30-50
 
 // ctor         DS1804( ChipSel pin, Incr pin,  U/D pin,  maxResistance (K) )
 DS1804 volume = DS1804( PIN_VCS,     PIN_VINC,  PIN_VUD,  DS1804_TEN );
@@ -101,7 +101,7 @@ elapsedMicros usec = 0;               //
 
 //=======================================================================
 // Set frequency and granularity
-const float gFrequency = 1500.0;          // desired output frequency, Hz
+const float gFrequency = 800.0;          // desired output frequency, Hz
 const float gSamplesPerWaveform = 25.0;   // desired steps in each cycle
 //=======================================================================
 
@@ -119,6 +119,7 @@ const int yRow3 = yRow2 + 20;         // compiled date
 const int yRow4 = yRow3 + 20;         // author line 1
 const int yRow5 = yRow4 + 20;         // author line 2
 const int yRow6 = yRow5 + 60;         // "Wiper position NN of 99"
+const int yRow7 = yRow6 + 20;         // "Pitch 1200 Hz"
 
 float gfDuration = 1E6 / gFrequency / gSamplesPerWaveform;  // microseconds to hold each output sample
 float gStep = twopi / gSamplesPerWaveform;  // radians to advance around unit circle at each step
@@ -134,6 +135,11 @@ void setVolume(int wiperPosition) {
   tft.print("Wiper position ");
   tft.print(wiperPosition);
   tft.print(" of 0-99  ");
+
+  tft.setCursor(xLabel, yRow7);
+  tft.print("Pitch ");
+  tft.print(gFrequency, 0);
+  tft.print(" Hz");
 }
 void increaseVolume() {
   // send new volume command to DS1804 digital potentiometer
