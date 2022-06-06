@@ -1,4 +1,4 @@
-#pragma once
+#pragma once   // Please format this file with clang before check-in to GitHub
 
 // ---------- Hardware Wiring ----------
 /*                                Arduino       Adafruit
@@ -6,7 +6,7 @@
 TFT Power:
    GND  - Ground                  - ground      - J2 Pin 13
    VIN  - VCC                     - 5v          - Pin 10 J5 Vusb
-TFT SPI: 
+TFT SPI:
    SCK  - SPI Serial Clock        - Digital 52  - SCK (J2 Pin 6)  - uses hardw SPI
    MISO - SPI Master In Slave Out - Digital 50  - MI  (J2 Pin 4)  - uses hardw SPI
    MOSI - SPI Master Out Slave In - Digital 51  - MO  (J2 Pin 5)  - uses hardw SPI
@@ -49,34 +49,50 @@ On-board lights:
 // TFT display and SD card share the hardware SPI interface, and have
 // separate 'select' pins to identify the active device on the bus.
 #if defined(SAMD_SERIES)
-  // Adafruit Feather M4 Express pin definitions
-  // To compile for Feather M0/M4, install "additional boards manager"
-  // https://learn.adafruit.com/adafruit-feather-m4-express-atsamd51/setup
-  
-  #define TFT_BL   4    // TFT backlight
-  #define TFT_CS   5    // TFT chip select pin
-  #define TFT_DC  12    // TFT display/command pin
-  #define BMP_CS  13    // BMP388 sensor, chip select
+// Adafruit Feather M4 Express pin definitions
+// To compile for Feather M0/M4, install "additional boards manager"
+// https://learn.adafruit.com/adafruit-feather-m4-express-atsamd51/setup
 
-  #define SD_CD   10    // SD card detect pin - Feather
-  #define SD_CCS  11    // SD card select pin - Feather
+#define TFT_BL 4    // TFT backlight
+#define TFT_CS 5    // TFT chip select pin
+#define TFT_DC 12   // TFT display/command pin
+#define BMP_CS 13   // BMP388 sensor, chip select
+
+#define SD_CD  10   // SD card detect pin - Feather
+#define SD_CCS 11   // SD card select pin - Feather
 
 #elif defined(ARDUINO_AVR_MEGA2560)
-  #define TFT_BL   6    // TFT backlight
-  #define SD_CCS   7    // SD card select pin - Mega
-  #define SD_CD    8    // SD card detect pin - Mega
-  #define TFT_DC   9    // TFT display/command pin
-  #define TFT_CS  10    // TFT chip select pin
-  #define BMP_CS  13    // BMP388 sensor, chip select
+#define TFT_BL 6    // TFT backlight
+#define SD_CCS 7    // SD card select pin - Mega
+#define SD_CD  8    // SD card detect pin - Mega
+#define TFT_DC 9    // TFT display/command pin
+#define TFT_CS 10   // TFT chip select pin
+#define BMP_CS 13   // BMP388 sensor, chip select
 
 #else
-  #warning You need to define pins for your hardware
+#warning You need to define pins for your hardware
 
 #endif
 
+// ---------- Touch Screen
+#define TOUCHPRESSURE 200   // Minimum pressure threshhold considered an actual "press"
+#define PIN_XP        A3    // Touchscreen X+ can be a digital pin
+#define PIN_XM        A4    // Touchscreen X- must be an analog pin, use "An" notation
+#define PIN_YP        A5    // Touchscreen Y+ must be an analog pin, use "An" notation
+#define PIN_YM        9     // Touchscreen Y- can be a digital pin
+
+// ------- TFT 4-Wire Resistive Touch Screen configuration parameters
+// For touch point precision, we need to know the resistance
+// between X+ and X- Use any multimeter to read it
+#define TOUCHPRESSURE 200   // Minimum pressure threshhold considered an actual "press"
+#define X_MIN_OHMS    240   // Expected range of measured X-axis readings
+#define X_MAX_OHMS    800
+#define Y_MIN_OHMS    320   // Expected range of measured Y-axis readings
+#define Y_MAX_OHMS    760
+#define XP_XM_OHMS    310   // Resistance in ohms between X+ and X- to calibrate touch pressure
+                            // measure this with an ohmmeter while Griduino turned off
+
 // ---------- Feather's onboard lights
-//efine PIN_NEOPIXEL 8      // already defined in Feather's board variant.h
 //efine PIN_LED 13          // already defined in Feather's board variant.h
-
-#define NUMPIXELS 1         // Feather M4 has one NeoPixel on board
-
+//efine PIN_NEOPIXEL 8      // already defined in Feather's board variant.h
+#define NUMPIXELS 1   // Feather M4 has one NeoPixel on board

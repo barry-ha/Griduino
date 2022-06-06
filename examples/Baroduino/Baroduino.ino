@@ -87,8 +87,8 @@
 
 */
 
-#include "Adafruit_GFX.h"             // Core graphics display library
-#include "Adafruit_ILI9341.h"         // TFT color display library
+#include <Adafruit_GFX.h>             // Core graphics display library
+#include <Adafruit_ILI9341.h>         // TFT color display library
 #include "TouchScreen.h"              // Touchscreen built in to 3.2" Adafruit TFT display
 #include "Adafruit_GPS.h"             // Ultimate GPS library
 #include "Adafruit_BMP3XX.h"          // Precision barometric and temperature sensor
@@ -141,7 +141,7 @@ void saveConfigUnits();
 // create an instance of the TFT Display
 Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 
-// ---------- neopixel
+// ---------- Neopixel
 #define NUMPIXELS 1                   // Feather M4 has one NeoPixel on board
 Adafruit_NeoPixel pixel = Adafruit_NeoPixel(NUMPIXELS, PIN_NEOPIXEL, NEO_GRB + NEO_KHZ800);
 
@@ -155,7 +155,7 @@ Adafruit_BMP3XX baro;                 // hardware SPI
 
 // ---------- GPS ----------
 // Hardware serial port for GPS
-Adafruit_GPS GPS(&Serial1);
+Adafruit_GPS GPS(&Serial1);         // https://github.com/adafruit/Adafruit_GPS
 
 // ------------ definitions
 const int howLongToWait = 10;         // max number of seconds at startup waiting for Serial port to console
