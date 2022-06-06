@@ -50,10 +50,11 @@ Digital potentiometer:
 // TFT display and SD card share the hardware SPI interface, and have
 // separate 'select' pins to identify the active device on the bus.
 #if defined(SAMD_SERIES)
+
   // Adafruit Feather M4 Express pin definitions
   // To compile for Feather M0/M4, install "additional boards manager"
   // https://learn.adafruit.com/adafruit-feather-m4-express-atsamd51/setup
-  
+
   #define TFT_BL   4                  // TFT backlight
   #define TFT_CS   5                  // TFT chip select pin
   #define TFT_DC  12                  // TFT display/command pin
@@ -77,7 +78,8 @@ Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 
 // Adafruit Feather M4 Express pin definitions
 #define PIN_VCS      A1               // volume chip select
-#define PIN_VINC      6               // volume increment
+#define PIN_VINC      6               // volume increment, Feather M4 Express
+//#define PIN_VINC    2               // volume increment, ItsyBitsy M4 Express
 #define PIN_VUD      A2               // volume up/down
 
 // ============== constants ====================================
@@ -92,6 +94,7 @@ const int maxVolume = 40;             // but the speaker sounds distorted around
 
 // ctor         DS1804( ChipSel pin, Incr pin,  U/D pin,  maxResistance (K) )
 DS1804 volume = DS1804( PIN_VCS,     PIN_VINC,  PIN_VUD,  DS1804_TEN );
+
 int gVolume = 0;                      // initial digital potentiometer wiper position, 0..99
 
 // ------------ definitions
@@ -128,7 +131,7 @@ float gStep = twopi / gSamplesPerWaveform;  // radians to advance around unit ci
 void setVolume(int wiperPosition) {
   // set digital potentiometer
   // @param wiperPosition = 0..99
-  volume.setWiperPosition( wiperPosition );
+    volume.setWiperPosition(wiperPosition);
   Serial.print("Set wiper position "); Serial.println(wiperPosition);
 
   tft.setCursor(xLabel, yRow6);
