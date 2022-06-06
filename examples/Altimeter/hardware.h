@@ -93,6 +93,6 @@ On-board lights:
                             // measure this with an ohmmeter while Griduino turned off
 
 // ---------- Feather's onboard lights
-//efine PIN_LED 13          // already defined in Feather's board variant.h
-//efine PIN_NEOPIXEL 8      // already defined in Feather's board variant.h
+// efine PIN_LED 13         // already defined in Feather's board variant.h
+// efine PIN_NEOPIXEL 8     // already defined in Feather's board variant.h
 #define NUMPIXELS 1   // Feather M4 has one NeoPixel on board
