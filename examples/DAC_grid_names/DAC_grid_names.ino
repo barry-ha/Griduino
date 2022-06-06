@@ -2,7 +2,9 @@
 /*
   Play spoken words from 2MB QuadSPI memory chip FatFs using DAC audio output
 
-  Date:     2021-03-28 created to announce random grid names
+  Version history:
+            2022-06-05 refactored pin definitions into hardware.h
+            2021-03-28 created to announce random grid names
 
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
@@ -33,16 +35,18 @@
             The largest 12-bit number is 4,096:
             * Writing 0 will set the DAC to minimum (0.0 v) output.
             * Writing 4096 sets the DAC to maximum (3.3 v) output.
+
             This example program has no user inputs.
 */
 
 #include <Adafruit_ILI9341.h>   // TFT color display library
 #include <DS1804.h>             // DS1804 digital potentiometer library
+#include "hardware.h"           // Griduino pin definitions
 #include "audio_qspi.h"         // Play WAV files from Quad-SPI memory chip
 
 // ------- Identity for splash screen and console --------
 #define EXAMPLE_TITLE    "DAC Grid Names"
-#define EXAMPLE_VERSION  "v0.38"
+#define EXAMPLE_VERSION  "v1.08"
 #define PROGRAM_LINE1    "Barry K7BWH"
 #define PROGRAM_LINE2    "John KM7O"
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
@@ -52,30 +56,22 @@ const int SHORT_PAUSE = 300;                // msec between spoken sentences
 const int LONG_PAUSE  = SHORT_PAUSE * 10;   // msec between test cases
 
 // ---------- Hardware Wiring ----------
-// Same as Griduino platform
+// Same as Griduino platform - see hardware.h
 
-// ---------- Touch Screen
-#define TFT_BL 4    // TFT backlight
-#define TFT_CS 5    // TFT chip select pin
-#define TFT_DC 12   // TFT display/command pin
-
-// here's our audio player being demonstrated
-AudioQSPI audio_qspi;
-
-// Griduino hardware can use the TFT Display
+// ---------- TFT Display
 Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 
-// Adafruit Feather M4 Express pin definitions
-#define PIN_VCS  A1   // volume chip select
-#define PIN_VINC 6    // volume increment
-#define PIN_VUD  A2   // volume up/down
-
+// ------------ Audio output
 // ctor         DS1804( ChipSel pin, Incr pin,  U/D pin,  maxResistance (K) )
 DS1804 volume = DS1804(PIN_VCS, PIN_VINC, PIN_VUD, DS1804_TEN);
 int gVolume   = 14;   // initial digital potentiometer wiper position, 0..99
                       // note that speaker distortion begins at wiper=40 when powered by USB
 
+// here's our audio player being demonstrated
+AudioQSPI audio_qspi;
+
 // ----- Griduino color scheme
+// RGB 565 true color: https://chrishewett.com/blog/true-rgb565-colour-picker/
 // RGB 565 color code: http://www.barth-dev.de/online/rgb565-color-picker/
 #define cBACKGROUND 0x00A            // 0,   0,  10 = darker than ILI9341_NAVY, but not black
 #define cSCALECOLOR 0xF844           //
@@ -139,14 +135,14 @@ void setup() {
   // ----- announce ourselves
   startSplashScreen();
 
-  // ----- init serial monitor
+  // ----- init serial monitor (do not "Serial.print" before this, it won't show up in console)
   Serial.begin(115200);           // init for debugging in the Arduino IDE
   waitForSerial(howLongToWait);   // wait for developer to connect debugging console
 
   // now that Serial is ready and connected (or we gave up)...
-  Serial.println(EXAMPLE_TITLE " " EXAMPLE_VERSION);   // Report program name to console
-  Serial.println("Compiled " PROGRAM_COMPILED);        // Report compiled date
-  Serial.println(__FILE__);                            // Report source code file name
+  Serial.println(EXAMPLE_TITLE " " EXAMPLE_VERSION);   // Report our program name to console
+  Serial.println("Compiled " PROGRAM_COMPILED);        // Report our compiled date
+  Serial.println(__FILE__);                            // Report our source code file name
 
   // ----- initialize audio interface and look for memory card
   audio_qspi.begin();
@@ -248,7 +244,6 @@ void sayGrid(const char *name) {
 int gLoopCount = 1;
 
 void loop() {
-
   Serial.print("Loop ");
   Serial.println(gLoopCount);
   showLoopCount(yRow3, gLoopCount);
