@@ -5,6 +5,7 @@
             2021-01-30 added support for BMP390 and latest Adafruit_BMP3XX library
             2020-05-12 updated TouchScreen code
             2020-03-06 created 0.9
+            2022-06-05 refactored pin definitions into hardware.h
 
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
@@ -42,26 +43,16 @@
 
 */
 
-#include <Wire.h>
-#include <SPI.h>                      // Serial Peripheral Interface
 #include <Adafruit_GFX.h>             // Core graphics display library
 #include <Adafruit_ILI9341.h>         // TFT color display library
 #include "TouchScreen.h"              // Touchscreen built in to 3.2" Adafruit TFT display
 #include "Adafruit_GPS.h"             // Ultimate GPS library
 #include "Adafruit_BMP3XX.h"          // Precision barometric and temperature sensor
+#include "hardware.h"                 // Griduino pin definitions 
 
-// ------- TFT 4-Wire Resistive Touch Screen configuration parameters
-#define TOUCHPRESSURE 200             // Minimum pressure threshhold considered an actual "press"
-#define X_MIN_OHMS    240             // Expected range of measured X-axis readings
-#define X_MAX_OHMS    800
-#define Y_MIN_OHMS    320             // Expected range of measured Y-axis readings
-#define Y_MAX_OHMS    760
-#define XP_XM_OHMS    295             // Resistance in ohms between X+ and X- to calibrate pressure
-                                      // measure this with an ohmmeter while Griduino turned off
-                                      
 // ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE   "Griduino Altimeter"
-#define PROGRAM_VERSION "v0.31"
+#define PROGRAM_VERSION "v1.08"
 #define PROGRAM_LINE1   "Barry K7BWH"
 #define PROGRAM_LINE2   "John KM7O"
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
@@ -70,17 +61,6 @@
 
 // ---------- Hardware Wiring ----------
 // Same as Griduino platform - see hardware.h
-
-// TFT display and SD card share the hardware SPI interface, and have
-// separate 'select' pins to identify the active device on the bus.
-// Adafruit Feather M4 Express pin definitions
-// To compile for Feather M0/M4, install "additional boards manager"
-// https://learn.adafruit.com/adafruit-feather-m4-express-atsamd51/setup
-
-#define TFT_BL   4                    // TFT backlight
-#define TFT_CS   5                    // TFT chip select pin
-#define TFT_DC  12                    // TFT display/command pin
-#define BMP_CS  13                    // BMP388 sensor, chip select
 
 // create an instance of the TFT Display
 Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
@@ -91,31 +71,12 @@ Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 // This sketch has only two touch areas to make it easy for operator to select
 // "top half" and "bottom half" without looking. Touch target precision is not essential.
 // "up" on the left, and "down" on the right. Touch target precision is not essential.
-
-// Adafruit Feather M4 Express pin definitions
-#define PIN_XP  A3                    // Touchscreen X+ can be a digital pin
-#define PIN_XM  A4                    // Touchscreen X- must be an analog pin, use "An" notation
-#define PIN_YP  A5                    // Touchscreen Y+ must be an analog pin, use "An" notation
-#define PIN_YM   9                    // Touchscreen Y- can be a digital pin
-
 TouchScreen ts = TouchScreen(PIN_XP, PIN_YP, PIN_XM, PIN_YM, XP_XM_OHMS);
 
 // ---------- Barometric and Temperature Sensor
 Adafruit_BMP3XX baro;                 // hardware SPI
 
-// ---------- Feather's onboard lights
-#define RED_LED 13                    // diagnostics RED LED
-//efine PIN_LED 13                    // already defined in Feather's board variant.h
-
 // ---------- GPS ----------
-/* "Ultimate GPS" pin wiring is connected to a dedicated hardware serial port
-    available on an Arduino Mega, Arduino Feather and others.
-
-    The GPS' LED indicates status:
-        1-sec blink = searching for satellites
-        15-sec blink = position fix found
-*/
-
 // Hardware serial port for GPS
 Adafruit_GPS GPS(&Serial1);         // https://github.com/adafruit/Adafruit_GPS
 
