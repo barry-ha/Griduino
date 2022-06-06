@@ -72,7 +72,7 @@ Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 // For touch point precision, we need to know the resistance
 // between X+ and X- Use any multimeter to read it
 // This sketch has just one touch area that covers the entire screen
-TouchScreen ts = TouchScreen(PIN_XP, PIN_YP, PIN_XM, PIN_YM, 295);
+TouchScreen ts = TouchScreen(PIN_XP, PIN_YP, PIN_XM, PIN_YM, XP_XM_OHMS);
 
 // ---------- Barometric and Temperature Sensor
 Adafruit_BMP3XX baro;                 // hardware SPI
@@ -91,14 +91,6 @@ const uint32_t colorBlue   = pixel.Color(OFF,    OFF,    BRIGHT);
 const uint32_t colorPurple = pixel.Color(HALFBR, OFF,    HALFBR);
 
 // ---------- GPS ----------
-/* "Ultimate GPS" pin wiring is connected to a dedicated hardware serial port
-    available on an Arduino Mega, Arduino Feather and others.
-
-    The GPS' LED indicates status:
-        1-sec blink = searching for satellites
-        15-sec blink = position fix found
-*/
-
 // Hardware serial port for GPS
 Adafruit_GPS GPS(&Serial1);         // https://github.com/adafruit/Adafruit_GPS
 
@@ -106,13 +98,14 @@ Adafruit_GPS GPS(&Serial1);         // https://github.com/adafruit/Adafruit_GPS
 struct Point {
   int x, y;
 };
+
 struct Reading {
   float pressure;   // in millibars, from BMP388 sensor
   int hh, mm, ss;   // in GMT, from realtime clock
 };
 
 // ------------ definitions
-const int howLongToWait = 4;  // max number of seconds at startup waiting for Serial port to console
+const int howLongToWait = 6;          // max number of seconds at startup waiting for Serial port to console
 #define SCREEN_ROTATION 1             // 1=landscape, 3=landscape 180 degrees
 
 #define FEET_PER_METER 3.28084
@@ -217,7 +210,6 @@ uint16_t myPressure(void) {
 // Note - For Griduino, if this function takes longer than 8 msec it can cause erratic GPS readings
 // so we recommend against using https://forum.arduino.cc/index.php?topic=449719.0
 bool TouchScreen::isTouching(void) {
-  #define TOUCHPRESSURE 200           // Minimum pressure we consider true pressing
   static bool button_state = false;
   uint16_t pres_val = ::myPressure();
 
@@ -258,9 +250,9 @@ void mapTouchToScreen(TSPoint touch, Point* screen) {
   // Typical measured pressures=200..549
 
   // setRotation(1) = landscape orientation = x-,y-axis exchanged
-  //          map(value    in_min,in_max, out_min,out_max)
-  screen->x = map(touch.y,  225,825,      0, tft.width());
-  screen->y = map(touch.x,  800,300,      0, tft.height());
+  //          map(value         in_min,in_max,       out_min,out_max)
+  screen->x = map(touch.y,  X_MIN_OHMS,X_MAX_OHMS,    0, tft.width());
+  screen->y = map(touch.x,  Y_MAX_OHMS,Y_MIN_OHMS,    0, tft.height());
   if (SCREEN_ROTATION == 3) {
     // if display is flipped, then also flip both x,y touchscreen coords
     screen->x = tft.width() - screen->x;
@@ -742,7 +734,7 @@ void setup() {
     tft.setCursor(0, yLine1);
     tft.setTextColor(cWARN);
     initFontSizeSmall();
-    tft.println("Error!\n Unable to init\n  BMP388 sensor\n   check wiring");
+    tft.println("Error!\n Unable to init\n  BMP388/390 sensor\n   check wiring");
     delay(4000);
   }
 
@@ -833,7 +825,6 @@ void loop() {
 
     adjustUnits();              // change between "inches mercury" and "millibars" units
   }
-
 
   // make a small progress bar crawl along bottom edge
   // this gives a sense of how frequently the main loop is executing

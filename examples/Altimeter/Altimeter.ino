@@ -2,10 +2,10 @@
   Altimeter -- a functional altimeter with comparison to GPS altitudes
 
   Version history:
+            2022-06-05 refactored pin definitions into hardware.h
             2021-01-30 added support for BMP390 and latest Adafruit_BMP3XX library
             2020-05-12 updated TouchScreen code
             2020-03-06 created 0.9
-            2022-06-05 refactored pin definitions into hardware.h
 
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
@@ -62,7 +62,7 @@
 // ---------- Hardware Wiring ----------
 // Same as Griduino platform - see hardware.h
 
-// create an instance of the TFT Display
+// ---------- TFT Display
 Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 
 // ---------- Touch Screen

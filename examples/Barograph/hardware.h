@@ -44,6 +44,10 @@ On-board lights:
 
 /* "Ultimate GPS" pin wiring is connected to a dedicated hardware serial port
     available on an Arduino Mega, Arduino Feather and others.
+
+    The GPS' LED indicates status:
+        1-sec blink = searching for satellites
+        15-sec blink = position fix found
 */
 
 // TFT display and SD card share the hardware SPI interface, and have
