@@ -2,12 +2,14 @@
 /*
   DAC audio playback from stored program memory
 
-  Date:     2020-03-14 created
+  Version history:
+            2022-06-05 refactored pin definitions into hardware.h
+            2020-03-14 created
 
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
 
-  Purpose:  This sketch is a simple monaural program using only DAC0. 
+  Purpose:  This sketch is a simple monaural program using only DAC0.
             It plays a mono WAV file sampled at 8 kHz.
             Sample audio is stored in program memory.
 
@@ -31,40 +33,28 @@
 #include <Adafruit_ILI9341.h>   // TFT color display library
 #include <DS1804.h>             // DS1804 digital potentiometer library
 #include "elapsedMillis.h"      // short-interval timing functions
+#include "hardware.h"           // Griduino pin definitions
 #include "sample1.h"            // audio clip 1
 #include "sample2.h"            // audio clip 2
 
 // ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE    "DAC Audio in Program Mem"
-#define PROGRAM_VERSION  "v0.31"
+#define PROGRAM_VERSION  "v1.08"
 #define PROGRAM_LINE1    "Barry K7BWH"
 #define PROGRAM_LINE2    "John KM7O"
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
 
 // ---------- Hardware Wiring ----------
-/* Same as Griduino platform
-*/
+// Same as Griduino platform - see hardware.h
 
-// ---------- Touch Screen
-#define TFT_BL 4    // TFT backlight
-#define TFT_CS 5    // TFT chip select pin
-#define TFT_DC 12   // TFT display/command pin
-
-// create an instance of the TFT Display
+// ---------- TFT Display
 Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 
 // ------------ Audio output
-#define DAC_PIN     DAC0   // onboard DAC0 == pin A0
-#define PIN_SPEAKER DAC0   // uses DAC
-
-// Adafruit Feather M4 Express pin definitions
-#define PIN_VCS  A1   // volume chip select
-#define PIN_VINC 6    // volume increment
-#define PIN_VUD  A2   // volume up/down
-
 // ctor         DS1804( ChipSel pin, Incr pin,  U/D pin,  maxResistance (K) )
 DS1804 volume = DS1804(PIN_VCS, PIN_VINC, PIN_VUD, DS1804_TEN);
 int gVolume   = 10;   // initial digital potentiometer wiper position, 0..99
+                      // note that speaker distortion begins at wiper=40 when powered by USB
 
 // ------------ typedef's
 struct Point {
@@ -72,9 +62,10 @@ struct Point {
 };
 
 // ----- Griduino color scheme
+// RGB 565 true color: https://chrishewett.com/blog/true-rgb565-colour-picker/
 // RGB 565 color code: http://www.barth-dev.de/online/rgb565-color-picker/
-#define cBACKGROUND    0x00A   // 0,   0,  10 = darker than ILI9341_NAVY, but not black
-#define cSCALECOLOR    0xF844
+#define cBACKGROUND    0x00A          // 0,   0,  10 = darker than ILI9341_NAVY, but not black
+#define cSCALECOLOR    0xF844         //
 #define cTEXTCOLOR     ILI9341_CYAN   // 0, 255, 255
 #define cLABEL         ILI9341_GREEN
 #define cVALUE         ILI9341_YELLOW   // 255, 255, 0
@@ -86,7 +77,7 @@ struct Point {
 #define cTOUCHTARGET   ILI9341_RED   // outline touch-sensitive areas
 
 // ------------ global scope
-const int howLongToWait = 5;   // max number of seconds before using Serial port to console
+const int howLongToWait = 5;   // max number of seconds at startup waiting for Serial port to console
 int gLoopCount          = 0;
 
 const int gSampleRate = 8000;                // 8 kHz audio file
@@ -148,8 +139,8 @@ void setup() {
   // ----- announce ourselves
   startSplashScreen();
 
-  // ----- init serial monitor
-  Serial.begin(115200);           // init for debuggging in the Arduino IDE
+  // ----- init serial monitor (do not "Serial.print" before this, it won't show up in console)
+  Serial.begin(115200);           // init for debugging in the Arduino IDE
   waitForSerial(howLongToWait);   // wait for developer to connect debugging console
 
   // now that Serial is ready and connected (or we gave up)...
@@ -212,10 +203,10 @@ int volSequence[] = {
 };
 int numVols = sizeof(volSequence) / sizeof(int);
 /*
- * For sake of comparison to Griduino.ino:  
+ * For sake of comparison to Griduino.ino:
    #define numLevels 11
    const int volLevel[numLevels] = {
-      // Digital potentiometer settings, 
+      // Digital potentiometer settings,
       // about  2  dB steps = ratio 1.585
       // about 1.5 dB steps = ratio 1.41253
       0,    // [0] mute, lowest allowed wiper position
