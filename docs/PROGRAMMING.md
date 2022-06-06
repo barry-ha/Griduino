@@ -81,7 +81,21 @@ The idea here is to temporarily install CircuitPython which allows the Flash mem
    - Press the "gear" icon until you see the **Speaker Volume** screen.<br/>Press the up/down buttons to adjust a comfortable volume.<br/>It should play an audio sample on each press.
    - To troubleshoot errors, open the **Arduino IDE** and click **Tools** > **Serial Monitor** to read error messages.
 
-<h2 id="uf2">4. How to Create a Binary File for Distribution</h2>
+<h2 id="format">4. How to Reformat File System</h2>
+
+Normally, you'll never need to reformat Arduino's file system. The memory partition and FAT file system will automatically take care of itself.
+
+The first time you install CircuitPy it will automatically reformat the Flash chip. Subsequently reloading CircuitPy will not affect the Flash chip contents. 
+
+We recommend loading CircuitPy when you first start using a new Feather M4. This ensures that all further file operations are done in a file system that easily shared with CircuitPy. The file system format is compatible with all IDE program that are based on the Adafruit SPI Flash framework ( https://github.com/adafruit/Adafruit_SPIFlash ).
+
+In the rare case you need to start over with a clean file system, here's how. Adafruit provides some reformatting sketches in their ‘examples’ folder of Adafruit_SPIFlash. Open the IDE and use the menu bar to navigate to Files > Examples > Adafruit SPIFlash. Some of the programs are:
+
+* **Flash erase express** - will nuke the file system from orbit to start over. This will completely erase all data on the QSPI flash for “Express” models, ie, processors with on-board QSPI chips such as the Feather M4 Express. This is handy to reset the flash into a known empty state and fix potential filesystem or other corruption issues.
+* **SdFat format** - SPI Flash FatFs formatting example. Use the console (serial monitor) to respond to prompts to confirm the operation. Partitioning and formatting will take about 60 seconds.
+* **Flash speedtest** - measures size and R/W speed of the RAM file system. This will erase the chip but not reformat it. You'll need to install CircuitPy next to format the filesystem.
+
+<h2 id="uf2">5. How to Create a Binary File for Distribution</h2>
 
 It may be useful to know how to create a binary image of a compiled program for Arduino processors in general. If you ever want to distribute your own Arduino program, it is easier for your users to install your binary image than to compile the source code themselves.
 
@@ -106,7 +120,7 @@ Run the Python conversion script (author https://github.com/microsoft/uf2):
    - Run the Python converter script, e.g.:<br/>**py uf2conv.py -c -b 0x4000 -o downloads/griduino.uf2 Griduino.ino.feather_m4.bin**
    - Where "**-c:**" will pass remaining arguments to python script, "**-b 0x4000**" will set start of program, "**-o file.uf2**" is output file, and "**file.bin**" is input file
 
-<h2 id="ide">5. How to Setup the Arduino IDE for Griduino</h2>
+<h2 id="ide">6. How to Setup the Arduino IDE for Griduino</h2>
 
 If you want to compile Griduino source code or work with its example files (and we hope you do) then here's everything you need to setup the workbench.
 
@@ -168,7 +182,7 @@ These components are outside of Arduino's Library Manager, so follow these links
    - https://github.com/barry-ha/Audio_QSPI v1.1.0 - library to play WAV files from Quad-SPI memory chip
 
 
-<h2 id=disclaimer>6. Disclaimer</h2>
+<h2 id=disclaimer>7. Disclaimer</h2>
 
 The information provided is for general education and entertainment. We hope you learn from this and enjoy your hobbies in a safe manner with this new GPS information available at a glance. We take no responsibility for your assembly and construction, nor for how you use these devices. 
 
