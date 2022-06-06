@@ -1,7 +1,8 @@
 /*
   Barograph -- demonstrate BMP388 barometric sensor
 
-  Version history: 
+  Version history:
+            2022-06-05 refactored pin definitions into hardware.h
             2021-01-30 added support for BMP390 and latest Adafruit_BMP3XX library
             2020-05-18 added NeoPixel control to illustrate technique
             2020-05-12 updated TouchScreen code
@@ -29,18 +30,19 @@
 
 */
 
-#include "Adafruit_GFX.h"             // Core graphics display library
-#include "Adafruit_ILI9341.h"         // TFT color display library
+#include <Adafruit_GFX.h>             // Core graphics display library
+#include <Adafruit_ILI9341.h>         // TFT color display library
 #include "TouchScreen.h"              // Touchscreen built in to 3.2" Adafruit TFT display
 #include "TextField.h"                // Optimize TFT display text for proportional fonts
 #include "Adafruit_GPS.h"             // Ultimate GPS library
 #include "Adafruit_BMP3XX.h"          // Precision barometric and temperature sensor
 #include "Adafruit_NeoPixel.h"        // On-board color addressable LED
+#include "hardware.h"                 // Griduino pin definitions 
 #include "bitmaps.h"                  // our definition of graphics displayed
 
 // ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE   "Barograph Demo"
-#define PROGRAM_VERSION "v0.31"
+#define PROGRAM_VERSION "v1.08"
 #define PROGRAM_LINE1   "Barry K7BWH"
 #define PROGRAM_LINE2   "John KM7O"
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
@@ -61,42 +63,21 @@ enum units { eMetric, eEnglish };
 int units = eMetric;                  // units on startup: 0=english=inches mercury, 1=metric=millibars
 
 // ---------- Hardware Wiring ----------
-/* Same as Griduino platform
-*/
+// Same as Griduino platform - see hardware.h
 
-// Adafruit Feather M4 Express pin definitions
-// To compile for Feather M0/M4, install "additional boards manager"
-// https://learn.adafruit.com/adafruit-feather-m4-express-atsamd51/setup
-
-#define TFT_BL   4                  // TFT backlight
-#define TFT_CS   5                  // TFT chip select pin
-#define TFT_DC  12                  // TFT display/command pin
-#define BMP_CS  13                  // BMP388 sensor, chip select
-
-// create an instance of the TFT Display
+// ---------- TFT Display
 Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 
 // ---------- Touch Screen
 // For touch point precision, we need to know the resistance
 // between X+ and X- Use any multimeter to read it
 // This sketch has just one touch area that covers the entire screen
-
-// Adafruit Feather M4 Express pin definitions
-#define PIN_XP  A3                    // Touchscreen X+ can be a digital pin
-#define PIN_XM  A4                    // Touchscreen X- must be an analog pin, use "An" notation
-#define PIN_YP  A5                    // Touchscreen Y+ must be an analog pin, use "An" notation
-#define PIN_YM   9                    // Touchscreen Y- can be a digital pin
-
 TouchScreen ts = TouchScreen(PIN_XP, PIN_YP, PIN_XM, PIN_YM, 295);
 
 // ---------- Barometric and Temperature Sensor
 Adafruit_BMP3XX baro;                 // hardware SPI
 
-// ---------- Feather's onboard lights
-//efine PIN_NEOPIXEL 8                // already defined in Feather's board variant.h
-//efine PIN_LED 13                    // already defined in Feather's board variant.h
-
-#define NUMPIXELS 1                   // Feather M4 has one NeoPixel on board
+// ---------- Feather's onboard light
 Adafruit_NeoPixel pixel = Adafruit_NeoPixel(NUMPIXELS, PIN_NEOPIXEL, NEO_GRB + NEO_KHZ800);
 
 const int MAXBRIGHT = 255;            // = 100% brightness = maximum allowed on individual LED
@@ -119,7 +100,7 @@ const uint32_t colorPurple = pixel.Color(HALFBR, OFF,    HALFBR);
 */
 
 // Hardware serial port for GPS
-Adafruit_GPS GPS(&Serial1);
+Adafruit_GPS GPS(&Serial1);         // https://github.com/adafruit/Adafruit_GPS
 
 // ------------ typedef's
 struct Point {
