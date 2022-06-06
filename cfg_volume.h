@@ -8,7 +8,7 @@
   Purpose:  This is the user interface to increase/decrease/mute speaker volume.
             This "view" module is all about speaker volume.
             As such, the only thing it does is set the DS1804 digital potentiometer.
-            It has nothing to do with the DAC, audio files, Morse code speed/pitch, 
+            It has nothing to do with the DAC, audio files, Morse code speed/pitch,
             or with other playback attributes.
 
             +---------------------------------+
@@ -127,6 +127,10 @@ protected:
     // set digital potentiometer
     // @param volIndex = 0..10
     int wiperPosition = volLevel[volIndex];
+
+#define PIN_VCS A1              // chip select pin for DS1804 volume control
+    pinMode(PIN_VCS, OUTPUT);   // fix bug that somehow forgets this is an output pin
+    volume.unlock();            // enable (set low)
     volume.setWiperPosition(wiperPosition);
 
     char msg[256];

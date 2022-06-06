@@ -1114,6 +1114,7 @@ void setup() {
   //       The realtime clock is not available until after receiving a few NMEA sentences.
 
   // ----- init digital potentiometer, restore volume setting
+  pinMode(PIN_VCS, OUTPUT);           // fix bug that somehow forgets this is an output pin
   volume.unlock();                    // unlock digipot (in case someone else, like an example pgm, has locked it)
   volume.setToZero();                 // set digipot hardware to match its ctor (wiper=0) because the chip cannot be read
                                       // and all "setWiper" commands are really incr/decr pulses. This gets it sync.
