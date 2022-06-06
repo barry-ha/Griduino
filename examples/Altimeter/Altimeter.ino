@@ -118,6 +118,7 @@ const int xLabel = 8;                 // indent labels, slight margin on left ed
 #define yRow6   yRow5 + 42            // value: "1016.2 hPa"
 
 // ----- Griduino color scheme
+// RGB 565 true color: https://chrishewett.com/blog/true-rgb565-colour-picker/
 // RGB 565 color code: http://www.barth-dev.de/online/rgb565-color-picker/
 #define cBACKGROUND     0x00A         // 0,   0,  10 = darker than ILI9341_NAVY, but not black
 #define cSCALECOLOR     0xF844        // color picker: http://www.barth-dev.de/online/rgb565-color-picker/
@@ -474,8 +475,8 @@ void setup() {
   pinMode(TFT_BL, OUTPUT);
   analogWrite(TFT_BL, 255);           // start at full brightness
 
-  // ----- init serial monitor
-  Serial.begin(115200);               // init for debuggging in the Arduino IDE
+  // ----- init serial monitor (do not "Serial.print" before this, it won't show up in console)
+  Serial.begin(115200);               // init for debugging in the Arduino IDE
   waitForSerial(howLongToWait);       // wait for developer to connect debugging console
 
   // now that Serial is ready and connected (or we gave up)...

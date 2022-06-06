@@ -44,6 +44,10 @@ On-board lights:
 
 /* "Ultimate GPS" pin wiring is connected to a dedicated hardware serial port
     available on an Arduino Mega, Arduino Feather and others.
+
+    The GPS' LED indicates status:
+        1-sec blink = searching for satellites
+        15-sec blink = position fix found
 */
 
 // TFT display and SD card share the hardware SPI interface, and have
@@ -81,7 +85,7 @@ On-board lights:
 #define PIN_YP        A5    // Touchscreen Y+ must be an analog pin, use "An" notation
 #define PIN_YM        9     // Touchscreen Y- can be a digital pin
 
-// ------- TFT 4-Wire Resistive Touch Screen configuration parameters
+// ---------- TFT 4-Wire Resistive Touch Screen configuration parameters
 // For touch point precision, we need to know the resistance
 // between X+ and X- Use any multimeter to read it
 #define TOUCHPRESSURE 200   // Minimum pressure threshhold considered an actual "press"
@@ -96,3 +100,18 @@ On-board lights:
 // efine PIN_LED 13         // already defined in Feather's board variant.h
 // efine PIN_NEOPIXEL 8     // already defined in Feather's board variant.h
 #define NUMPIXELS 1   // Feather M4 has one NeoPixel on board
+
+// ---------- Audio output
+#define DAC_PIN     DAC0   // onboard DAC0 == pin A0
+#define PIN_SPEAKER DAC0   // uses DAC
+
+// Adafruit Feather M4 Express pin definitions
+#define PIN_VCS A1   // volume chip select
+#define PIN_VUD A2   // volume up/down
+
+// Adafruit ItsyBitsy M4 Express pin definitions
+#if defined(ADAFRUIT_ITSYBITSY_M4_EXPRESS)
+#define PIN_VINC 2   // volume increment, ItsyBitsy M4 Express
+#else
+#define PIN_VINC 6   // volume increment, Feather M4 Express
+#endif
