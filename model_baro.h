@@ -1,5 +1,4 @@
-#pragma once
-// Please format this file with clang before check-in to GitHub
+#pragma once   // Please format this file with clang before check-in to GitHub
 /*
   File:     model_baro.h
 
@@ -31,29 +30,29 @@
 
   Units of Time:
          This relies on "TimeLib.h" which uses "time_t" to represent time.
-         The basic unit of time (time_t) is the number of seconds since Jan 1, 1970, 
+         The basic unit of time (time_t) is the number of seconds since Jan 1, 1970,
          a compact 4-byte integer.
          https://github.com/PaulStoffregen/Time
 
   Units of Pressure:
-         hPa is the abbreviated name for hectopascal (100 x 1 pascal) pressure 
+         hPa is the abbreviated name for hectopascal (100 x 1 pascal) pressure
          units which are exactly equal to millibar pressure unit (mb or mbar):
 
-         100 Pascals = 1 hPa = 1 millibar. 
-         
-         The hectopascal or millibar is the preferred unit for reporting barometric 
+         100 Pascals = 1 hPa = 1 millibar.
+
+         The hectopascal or millibar is the preferred unit for reporting barometric
          or atmospheric pressure in European and many other countries.
-         The Adafruit BMP388 Precision Barometric Pressure sensor reports pressure 
+         The Adafruit BMP388 Precision Barometric Pressure sensor reports pressure
          in 'float' values of Pascals.
 
-         In the USA and other backward countries that failed to adopt SI units, 
-         barometric pressure is reported as inches-mercury (inHg). 
-         
-         1 pascal = 0.000295333727 inches of mercury, or 
+         In the USA and other backward countries that failed to adopt SI units,
+         barometric pressure is reported as inches-mercury (inHg).
+
+         1 pascal = 0.000295333727 inches of mercury, or
          1 inch Hg = 3386.39 Pascal
          So if you take the Pascal value of say 100734 and divide by 3386.39 you'll get 29.72 inHg.
-         
-         The BMP388 sensor has a relative accuracy of 8 Pascals, which translates to 
+
+         The BMP388 sensor has a relative accuracy of 8 Pascals, which translates to
          about +/- 0.5 meter of altitude.
 */
 
@@ -64,7 +63,7 @@
 
 // ========== extern ===========================================
 extern char *dateToString(char *msg, int len, time_t datetime);   // Griduino/Baroduino.ino
-extern Logger logger;   // Griduino.ino
+extern Logger logger;                                             // Griduino.ino
 
 // ------------ definitions
 #define MILLIBARS_PER_INCHES_MERCURY (0.02953)
@@ -89,8 +88,8 @@ public:
 #define lastIndex   (maxReadings - 1)            // index to the last element in pressure array
   BaroReading pressureStack[maxReadings] = {};   // array to hold pressure data, init filled with zeros
 
-  //float elevCorr = 4241;          // elevation correction in Pascals
-  // use difference between altimeter setting and station pressure: https://www.weather.gov/epz/wxcalc_altimetersetting
+  // float elevCorr = 4241;          // elevation correction in Pascals
+  //  use difference between altimeter setting and station pressure: https://www.weather.gov/epz/wxcalc_altimetersetting
   float elevCorr = 0;   // todo: unused for now, review and change if needed
 
   // Constructor - create and initialize member variables
@@ -102,7 +101,9 @@ public:
   // init BMP388 or BMP390 barometer
   int begin(void) {
     int rc = 1;   // assume success
+    logger.fencepost("model_baro.h", __LINE__);
     if (baro->begin_SPI(bmp_cs)) {
+      logger.fencepost("model_baro.h", __LINE__);
       // Bosch BMP388 datasheet:
       //      https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bmp388-ds001.pdf
       // IIR:
@@ -121,6 +122,7 @@ public:
       baro->setPressureOversampling(BMP3_OVERSAMPLING_4X);
       baro->setIIRFilterCoeff(BMP3_IIR_FILTER_COEFF_7);   // was 3, too busy
       baro->setOutputDataRate(BMP3_ODR_50_HZ);
+      logger.fencepost("model_baro.h", __LINE__);
 
       /*****
         // ----- Settings from Adafruit example
@@ -152,6 +154,7 @@ public:
       logger.error("Error, unable to initialize BMP388 / BMP390, check the wiring");
       rc = 0;   // return failure
     }
+    logger.fencepost("model_baro.h", __LINE__);
     return rc;
   }
 
@@ -178,9 +181,9 @@ public:
     }
     // continue anyway, for demo
     gPressure = baro->pressure + elevCorr;   // Pressure is returned in SI units of Pascals. 100 Pascals = 1 hPa = 1 millibar
-    //hPa = gPressure / 100;
+    // hPa = gPressure / 100;
     inchesHg = gPressure * INCHES_MERCURY_PER_PASCAL;
-    //Serial.print("Barometer: "); Serial.print(gPressure); Serial.print(" Pa [model_baro.h "); Serial.print(__LINE__); Serial.println("]");  // debug
+    // Serial.print("Barometer: "); Serial.print(gPressure); Serial.print(" Pa [model_baro.h "); Serial.print(__LINE__); Serial.println("]");  // debug
     return gPressure;
   }
 
@@ -201,13 +204,14 @@ public:
   const char PRESSURE_HISTORY_FILE[25]    = CONFIG_FOLDER "/barometr.dat";
   const char PRESSURE_HISTORY_VERSION[15] = "Pressure v02";
   int loadHistory() {
+    return true;   // debug!!
     SaveRestore history(PRESSURE_HISTORY_FILE, PRESSURE_HISTORY_VERSION);
     BaroReading tempStack[maxReadings] = {};   // array to hold pressure data, fill with zeros
     int result                         = history.readConfig((byte *)&tempStack, sizeof(tempStack));
     if (result) {
       int numNonZero = 0;
       for (int ii = 0; ii < maxReadings; ii++) {
-        pressureStack[ii] = tempStack[ii];
+        // pressureStack[ii] = tempStack[ii];  // debug!
         if (pressureStack[ii].pressure > 0) {
           numNonZero++;
         }
@@ -250,9 +254,9 @@ protected:
   }
 
   void dumpPressureHistory() {   // debug
-    return;                      // debug debug
-    // format the barometric pressure array and write it to the Serial console log
-    // entire subroutine is for debug purposes
+    // return;                      // debug debug
+    //  format the barometric pressure array and write it to the Serial console log
+    //  entire subroutine is for debug purposes
     Serial.print("Pressure history stack, non-zero values [line ");
     Serial.print(__LINE__);
     Serial.println("]");
@@ -265,7 +269,7 @@ protected:
         Serial.print(item.pressure);
         Serial.print("  ");
         char msg[24];
-        Serial.println(dateToString(msg, sizeof(msg), item.time));
+        Serial.println(dateToString(msg, sizeof(msg), item.time));   // debug
       }
     }
     return;
