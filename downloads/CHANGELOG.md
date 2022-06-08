@@ -8,6 +8,12 @@ Version numbers correspond to [Downloads](https://github.com/barry-ha/Griduino/t
 
 The changelog format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and the Griduino project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+**v1.08** &nbsp; 2022-06-07
+
+Fixed: A rare condition in some Griduinos running v1.07 causes it to hang on the startup Hint screen. This doesn't happen often, but if starts then it will always hang during boot.
+
+Version 1.08 is recommended for all users.
+
 **v1.07** &nbsp; 2022-02-28
 
 New: Added terminal session commands. Now you can open a terminal session to Griduino, such as the Serial Monitor in the Arduino IDE. Type a command and Griduino will respond. 
