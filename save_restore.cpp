@@ -55,7 +55,7 @@ static void dumpHex(const char *text, char *buff, int len) {
 }
 
 // ========== load configuration ======================
-int SaveRestore::readConfig(byte *pData, const int sizeData) {
+int SaveRestore::readConfig(byte *pData, const unsigned int sizeData) {
   // returns 1=success, 0=failure
   int result = 1;   // assume success
   Serial.println("Starting to read config from SDRAM...");
@@ -123,7 +123,7 @@ int SaveRestore::readConfig(byte *pData, const int sizeData) {
   }
   // data looks good, read third field (setting) and use its value
   count = readFile.read(pData, sizeData);
-  dumpHex("pData", (char *)pData, sizeData);   // debug
+  // dumpHex("pData", (char *)pData, sizeData);   // debug
   if (count == -1) {
     Serial.print("Error, failed to read integer value from (");
     Serial.print(fqFilename);
@@ -142,7 +142,7 @@ int SaveRestore::readConfig(byte *pData, const int sizeData) {
   return result;
 }
 // ========== save configuration ======================
-int SaveRestore::writeConfig(const byte *pData, const int sizeData) {
+int SaveRestore::writeConfig(const byte *pData, const unsigned int sizeData) {
   // initialize configuration file in file system, called by setup() if needed
   // assumes this is Feather M4 Express with 2 MB Quad-SPI flash memory
   // returns 1=success, 0=failure

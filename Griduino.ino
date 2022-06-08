@@ -273,7 +273,7 @@ int gFrequency = 1100;                // initial Morse code sidetone pitch
 int gWordsPerMinute = 18;             // initial Morse code sending speed
 
 // ------------ definitions
-const int howLongToWait = 5;          // max number of seconds at startup waiting for Serial port to console
+const int howLongToWait = 6;          // max number of seconds at startup waiting for Serial port to console
 
 // ---------- Morse Code ----------
 #include "morse_dac.h"                // Morse Code using digital-audio converter DAC0

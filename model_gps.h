@@ -42,14 +42,30 @@ public:
 
   float gSeaLevelPressure = DEFAULT_SEALEVEL_HPA;   // default starting value, hPa; adjustable by touch in view_altimeter.h
 
-  Location history[1600];     // remember a list of GPS coordinates
-  int nextHistoryItem  = 0;   // index of next item to write
-  const int numHistory = sizeof(history) / sizeof(Location);
   // Size of array history: Our goal is to keep track of a good day's travel, at least 250 miles.
   // If 180 pixels horiz = 100 miles, then we need (250*180/100) = 450 entries.
   // If 160 pixels vert = 70 miles, then we need (250*160/70) = 570 entries.
   // In reality, with a drunken-sailor route around the Olympic Peninsula,
-  // we need 800 entries to capture the 500-mile loop.
+  // we need at least 800 entries to capture the 500-mile loop.
+  // However, Arduino has memory problems if there history[] array is too large.
+  //
+  // y = mx + b = 24x + 78   where y=total size in bytes, x=number of 'history[]' elements
+  //
+  // history[x]  sizeof(modelGPS)  sizeof(history)  result
+  //   x= 800,     19,336 bytes      .               no trouble found
+  //   x=1300,     31,396            .               ntf
+  //   x=1400,     33,736 > 32767    .               ntf
+  //   x=1500,     36,136 >> 32767   36,000          ntf
+  //   x=1550,     37,336 >> 32767   37,200          ntf
+  //   x=1565,     37,696            37,560          ntf
+  //   x=1573,     37,888            37,752          ntf
+  //   x=1576,     37,960            37,824          hang on startup hint screen
+  //   x=1580,     38,056            37,920          hang on startup hint screen
+  //   x=1600,     38,632            38,400          hang on startup hint screen
+  //   x=3200,     xx                xx              hang on startup product version credits screen
+  Location history[1500];     // remember a list of GPS coordinates -- DO NOT EXCEED 1573!
+  int nextHistoryItem  = 0;   // index of next item to write
+  const int numHistory = sizeof(history) / sizeof(Location);
 
 protected:
   int gPrevFix       = false;        // previous value of gHaveGPSfix, to help detect "signal lost"
@@ -73,8 +89,8 @@ public:
   }
 
   // ========== load/save config setting =========================
-  const char MODEL_FILE[25] = "/Griduino/gpsmodel.cfg";   // CONFIG_FOLDER
-  const char MODEL_VERS[15] = "GPS Model v10";            // <-- always change version when changing model data
+  const char MODEL_FILE[25] = CONFIG_FOLDER "/gpsmodel.cfg";   // CONFIG_FOLDER
+  const char MODEL_VERS[15] = "GPS Model v11";                 // <-- always change version when changing model data
 
   // ----- save user's GPS state to non-volatile memory -----
   int save() {
@@ -92,12 +108,22 @@ public:
   int restore() {
     // restore current GPS state from non-volatile memory
     SaveRestore sdram(MODEL_FILE, MODEL_VERS);
-    Model tempModel;
+
+    extern Model modelGPS;   // debug
+    Model tempModel;         // temp buffer for restoring the "Model" object from RAM file system
+
+    Serial.print(". source: sizeof(tempModel) = ");
+    Serial.println(sizeof(tempModel));
+    Serial.print(". target: sizeof(modelGPS) = ");
+    Serial.println(sizeof(modelGPS));
+    Serial.print(". GPS history buffer, sizeof(history) = ");
+    Serial.println(sizeof(history));
+
     if (sdram.readConfig((byte *)&tempModel, sizeof(Model))) {
       // warning: this can corrupt our object's data if something failed
       // so we blob the bytes to a work area and copy individual values
-      Serial.println("Success, GPS Model restored from SDRAM");
       copyFrom(tempModel);
+      Serial.println("Success, GPS Model restored from SDRAM");
     } else {
       Serial.println("Error, failed to restore GPS Model object to SDRAM");
       return 0;   // return failure
@@ -109,8 +135,6 @@ public:
 
   // pick'n pluck values from the restored instance
   void copyFrom(const Model from) {
-    // return;   // debug
-
     gLatitude         = from.gLatitude;           // GPS position, floating point, decimal degrees
     gLongitude        = from.gLongitude;          // GPS position, floating point, decimal degrees
     gAltitude         = from.gAltitude;           // Altitude in meters above MSL
@@ -123,19 +147,45 @@ public:
     compare4digits    = from.compare4digits;      //
     gSeaLevelPressure = from.gSeaLevelPressure;   // hPa
 
+    Serial.print(". Copying ");
+    Serial.print(numHistory);
+    Serial.println(" items from saved GPS history");
+
     for (int ii = 0; ii < numHistory; ii++) {
-      history[ii] = from.history[ii];
+      // printLocation(ii, from.history[ii]);   // debug
+      history[ii].loc       = from.history[ii].loc;   // copy contents
+      history[ii].timestamp = from.history[ii].timestamp;
     }
+
+    Serial.print(". nextHistoryItem = ");
+    Serial.println(from.nextHistoryItem);
     nextHistoryItem = from.nextHistoryItem;
+    if (nextHistoryItem >= numHistory) {
+      char msg[256];
+      snprintf(msg, sizeof(msg), ". Error! Expected nextHistoryItem < %d but got %d",
+               numHistory, nextHistoryItem);
+      Serial.println(msg);
+      nextHistoryItem = 0;   // reset index, ignore restored erroneous value
+    }
+  }
+
+  // sanity check data from NVR
+  void printLocation(int ii, Location item) {
+    Serial.print(". lat/long[");
+    Serial.print(ii);
+    Serial.print("] = ");
+    Serial.print(item.loc.lat);
+    Serial.print(", ");
+    Serial.println(item.loc.lng);
   }
 
   // read GPS hardware
-  virtual void getGPS() {                  // "virtual" allows derived class MockModel to replace it
-    if (GPS.fix) {                         // DO NOT use "GPS.fix" anywhere else in the program,
-                                           // or the simulated position in MockModel won't work correctly
-      gLatitude   = GPS.latitudeDegrees;   // double-precision float
-      gLongitude  = GPS.longitudeDegrees;
-      gAltitude   = GPS.altitude;
+  virtual void getGPS() {                 // "virtual" allows derived class MockModel to replace it
+    if (GPS.fix) {                        // DO NOT use "GPS.fix" anywhere else in the program,
+                                          // or the simulated position in MockModel won't work correctly
+      gLatitude  = GPS.latitudeDegrees;   // double-precision float
+      gLongitude = GPS.longitudeDegrees;
+      gAltitude  = GPS.altitude;
       // save timestamp as compact 4-byte integer (number of seconds since Jan 1 1970)
       // using https://github.com/PaulStoffregen/Time
       TimeElements tm{GPS.seconds, GPS.minute, GPS.hour, 0, GPS.day, GPS.month, GPS.year};

@@ -37,12 +37,12 @@ public:
   /*
    * Save our class data to SDRAM
    */
-  int writeConfig(const byte *pBuffer, const int sizeBuffer);
+  int writeConfig(const byte *pBuffer, const unsigned int sizeBuffer);
 
   /*
    * Load our class data from SDRAM
    */
-  int readConfig(byte *pBuffer, const int sizeBuffer);
+  int readConfig(byte *pBuffer, const unsigned int sizeBuffer);
 
   /*
    * List files in SDRAM
