@@ -343,7 +343,7 @@ void decreaseSeaLevelPressure() {
   gSeaLevelPressure -= 0.1;
 }
 
-// ========== screen helpers ===================================
+// ========== splash screen ====================================
 void startSplashScreen() {
   tft.setTextSize(2);
 
@@ -374,6 +374,8 @@ void startSplashScreen() {
   tft.setTextColor(cTEXTCOLOR);
   tft.print(PROGRAM_TITLE);
 }
+
+// ========== screen helpers ===================================
 void clearScreen() {
   tft.fillScreen(cBACKGROUND);
 }
@@ -457,9 +459,10 @@ void waitForSerial(int howLong) {
   // Adafruit Feather M4 Express takes awhile to restore its USB connx to the PC
   // and the operator takes awhile to restart the console (Tools > Serial Monitor)
   // so give them a few seconds for this to settle before sending messages to IDE
-  unsigned long targetTime = millis() + howLong*1000;
+  unsigned long targetTime = millis() + howLong * 1000;
   while (millis() < targetTime) {
-    if (Serial) break;
+    if (Serial)
+      break;
   }
 }
 
@@ -469,7 +472,7 @@ void setup() {
   // ----- init TFT display
   tft.begin();                        // initialize TFT display
   tft.setRotation(SCREEN_ROTATION);   // 1=landscape (default is 0=portrait)
-  clearScreen();
+  clearScreen();                      // note that "begin()" does not clear screen 
 
   // ----- init TFT backlight
   pinMode(TFT_BL, OUTPUT);

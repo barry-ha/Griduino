@@ -1,4 +1,4 @@
-#pragma once
+#pragma once   // Please format this with clang before check-in to GitHub
 /*
   File:     model_baro.h
 
