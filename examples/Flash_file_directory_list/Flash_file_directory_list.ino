@@ -2,16 +2,18 @@
 /*
   File: Flash_file_directory_list.ino
 
-  Lists the contents of Feather M4's onboard 2MB Quad-SPI Flash chip
-  This example ignores the MicroSD Card slot on the ILI9341 TFT Display
-  and ONLY examines the file system on the 2MB Flash memory.
-  This is a rather simple program that only reports at root and first folder levels.
-
-  Author:   Barry K7BWH, barry@k7bwh.com, Seattle, WA
-
-  Date:     2021-03-16 created, based on old unfinished Griduino_v9\examples\DAC_play_wav_from_SD_v2
+  Version history:
+            2022-06-05 refactored pin definitions into hardware.h
+            2021-03-16 created, based on old unfinished Griduino_v9\examples\DAC_play_wav_from_SD_v2
             which, in turn, was based on Adafruit's full featured example
             at https://github.com/adafruit/Adafruit_SPIFlash/blob/master/examples/SdFat_full_usage/SdFat_full_usage.ino
+
+  Author:   Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
+
+  Purpose:  Lists the contents of Feather M4's onboard 2MB Quad-SPI Flash chip
+            This example ignores the MicroSD Card slot on the ILI9341 TFT Display
+           and ONLY examines the file system on the 2MB Flash memory.
+           This is a rather simple program that only reports at root and first folder levels.
 
   Tested with:
          1. Arduino Feather M4 Express (120 MHz SAMD51)
@@ -23,6 +25,7 @@
 #include <Adafruit_ILI9341.h>    // TFT color display library
 #include <SdFat.h>               // for FAT file systems on Flash and Micro SD cards
 #include <Adafruit_SPIFlash.h>   // for FAT file systems on SPI flash chips
+#include "hardware.h"            // Griduino pin definitions 
 
 // ------- Identity for splash screen and console --------
 #define EXAMPLE_TITLE    "Flash File Directory List"
@@ -32,14 +35,9 @@
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
 
 // ---------- Hardware Wiring ----------
-// Same as Griduino platform
+// Same as Griduino platform - see hardware.h
 
-// ---------- Touch Screen
-#define TFT_BL 4    // TFT backlight
-#define TFT_CS 5    // TFT chip select pin
-#define TFT_DC 12   // TFT display/command pin
-
-// create an instance of the TFT Display
+// ---------- TFT Display
 Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 
 // SD card share the hardware SPI interface with TFT display, and have
@@ -51,6 +49,7 @@ const int chipDetectPin = 8;
 const int howLongToWait = 6;   // max number of seconds at startup waiting for Serial port to console
 
 // ----- Griduino color scheme
+// RGB 565 true color: https://chrishewett.com/blog/true-rgb565-colour-picker/
 // RGB 565 color code: http://www.barth-dev.de/online/rgb565-color-picker/
 #define cBACKGROUND 0x00A            // 0,   0,  10 = darker than ILI9341_NAVY, but not black
 #define cTEXTCOLOR  ILI9341_CYAN     // 0, 255, 255
@@ -106,6 +105,7 @@ void showFile(const char *indent, const int count, const char *filename, const i
   tft.print(msg);
   gCurrentY += rowHeight;
 }
+
 void showDirectory(const char *indent, const int count, const char *dirname) {
   char msg[256];
   snprintf(msg, sizeof(msg), "%s%d. %-14s  (dir)",
@@ -117,6 +117,7 @@ void showDirectory(const char *indent, const int count, const char *dirname) {
   tft.print(msg);
   gCurrentY += rowHeight;
 }
+
 void showErrorMessage(const char *error) {
   Serial.println(error);
 
