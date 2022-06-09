@@ -2,7 +2,7 @@
 
 <h2 id="intro">1. Introduction</h2>
 
-<img src="../img/griduino-logo-120.png" align="right" alt="Griduino logo" title="Griduino logo"/>Thank you for purchasing a Griduino GPS navigation kit. After [assembling the kit](https://github.com/barry-ha/Griduino/blob/master/ASSEMBLY.md "ASSEMBLY.md"), use this document to program it with the latest Griduino software. 
+<img src="../img/griduino-logo-120.png" align="right" alt="Griduino logo" title="Griduino logo"/>Thank you for purchasing a Griduino GPS navigation kit. After [assembling the kit](https://github.com/barry-ha/Griduino/blob/master/ASSEMBLY.md "ASSEMBLY.md"), use this document to program it with the latest Griduino software.
 
 You can install a pre-compiled binary Griduino program, or set up the Arduino IDE (integrated development environment) to compile the source code yourself. By using the IDE, you can compile our example programs or modify the Griduino program or write all new software.
 
@@ -17,32 +17,31 @@ Follow these steps to obtain the Griduino binary file and update the software.
 
 1. **Download Griduino Binary**<br/>
    - Visit https://github.com/barry-ha/Griduino
-   - Click on **downloads/griduino_v031.uf2** or later version. This will open a new web page for the binary UF2 file.
+   - Click on **downloads/griduino_v108.uf2** or later version. This will open a new web page for the binary UF2 file.
    - Click on the **Download** link. Save this file where you can easily find it for the next step.
 
 1. **Plug in Griduino**<br/>
    - Use a standard USB cable to connect your Griduino hardware to your computer.
-   - Depending on your computer, you should see a message about "setting up device" and possibly "device Feather M4 is ready". 
+   - Depending on your computer, you should see a message about "setting up device" and possibly "device Feather M4 is ready".
    - Get a wooden (must not be metal or conductive) toothpick that can fit in the hole in the front cover. Or remove the cover to expose the "reset" button.
 
 1. **Open Feather as a Drive**<br/>
-   - Press the Feather's "reset" button **twice**, about a half second apart.
-   - The Griduino screen will blank out, and most Windows computers will sound an audible "drive ready" chime.
+   - Press the Feather's "reset" button **twice** rapidly, about a tenth of a second apart.
+   - The Griduino screen will blank out and turn white. Most Windows computers will sound an audible "drive ready" chime.
    - In Windows, open the **File Explorer**.
    - Find the new drive, e.g. "**FEATHERBOOT (F:)**"
-   - If the USB device name is CIRCUITPY, then double-click the Reset button again until you get FEATHERBOOT. 
+   - If the USB device name is CIRCUITPY, then double-click the Reset button again until you get FEATHERBOOT.
 
 1. **Install Griduino Software on Feather M4 Express**<br/>
    - Drag the .UF2 file that you downloaded and drop it on the new FEATHERBOOT drive. Or you can copy/paste it to the new drive.
-   - The Griduino screen will blank and it will begin running the new software.
-   - First it shows an animation, then it shows a credits screen with the program name and version number.
-   - Tap the top half of the display to advance to the Settings screen. This includes the version number and compiled date on the bottom line.
+   - After the copying completes, Griduino will automatically restart with the new software.
+   - First it shows an animation, then it shows a credits screen with the program name and version number, then a hints screen with a visual reminder of the default touch-sensitive areas.
 
 <h2 id="audio">3. Install Audio Files</h2>
 
-Griduino can use speech to announce grid lines. To do so, we must install audio recordings of the letters and numbers. These WAV files are copied onto the Feather separately using a different process than the binary program file. 
+Griduino can use speech to announce grid lines. To do so, we must install audio recordings of the letters and numbers. These WAV files are copied onto the Feather separately using a different process than the binary program file.
 
-You only need to install audio files one time. 
+You only need to install audio files one time.
 
 The idea here is to temporarily install CircuitPython which allows the Flash memory to appear as an external USB drive. Then copy our "audio" folder to Flash and install the Griduino program again. The first time CircuitPython is installed, it automatically formats Flash memory in a way that remains compatible thereafter.
 
@@ -51,7 +50,7 @@ The idea here is to temporarily install CircuitPython which allows the Flash mem
    - Get a copy of **audio_female.zip** and **audio_male.zip**
    - Choose the voice you want; Griduino can only work with one voice at a time. To switch to another voice, repeat this process with the other files.
    - If you want to make your own recordings that are compatible with Griduino, see the README document at https://github.com/barry-ha/Audio_QSPI.
-   
+
 1. **Unzip e.g. "audio_female.zip"**
    - Extract this file to a temporary folder. 
    - The result will have a folder named "audio" that contains 26 letters and 10 numbers as short recordings in standard Microsoft WAV format.<br/>![Extracted audio folder](img/audio-folder-unzipped-img0701.jpg)
@@ -74,7 +73,7 @@ The idea here is to temporarily install CircuitPython which allows the Flash mem
 
 1. **Reboot Feather and re-install Griduino**<br/>
    - Follow the steps (above) in [2. How to Install the Griduino Program](#program) above to run the program.
-   
+
 1. **Test Griduino's audio playback**<br/>
    - Start the Griduino program
    - Press the "gear" icon until you see the **Audio Type** screen.<br/>Select **Spoken Word**.<br/>It should immediately announce your grid square.<br/>If it beeps, then Griduino did not find the audio files.
@@ -126,6 +125,7 @@ If you want to compile Griduino source code or work with its example files (and 
 
 1. **Download and Run Arduino IDE**<br/>
 The Arduino IDE (integrated development environment) is the main workbench for writing, compiling and testing Arduino programs. As of February 2022, the latest version is Arduino IDE v1.8.19, which is identified in the Windows Store as v1.8.51.
+
   * Visit www.arduino.cc and find the **Software Downloads** section.
   * Scroll down to the **Download the Arduino IDE** section.
   * Find and **run the installer** for your operating system. For Windows, it is normal for it to open the Microsoft Store and download over 200 MB. Follow the prompts to install the software.
@@ -133,6 +133,7 @@ The Arduino IDE (integrated development environment) is the main workbench for w
   
 2. **Add Packages Link to Board Manager**<br/>
 The IDE can't find the list of SAMD boards unless we add their magic URL to preferences:
+
   * **File** > **Preferences**
   * Find the "Additional Boards Manager URLs" section<br/><img src="img/ide-preferences-img7024.jpg" alt="Preferences dialog" title="Preferences dialog"/>
   * To the right is an icon that when selected will open up a window to add the new URL.
@@ -144,10 +145,10 @@ The IDE can't find the list of SAMD boards unless we add their magic URL to pref
 3. **Install Board Support**<br/>
 In this step, we will install support files needed by Arduino IDE to talk to the Feather M4. Here's how:<br/>
 In the Arduino IDE menu bar, go to **Tools > Board > Boards Manager**. It will display a long list of hardware. Install the latest version of:
+
   * Arduino AVR Boards, Built-In by Arduino: v1.8.3
   * Arduino SAMD Boards (32-bits ARM Cortex-M0+): v1.8.11
   * Adafruit SAMD Boards: v1.7.5
-
 
 4. **Select Board**<br/>
 On the Arduino IDE menu bar, select **Tools > Board > Arduino SAMD (32-bits ARM Cortex-M0+ and Cortex-M4) > Adafruit Feather M4 Express**<br/>
@@ -178,9 +179,8 @@ In the Arduino IDE menu bar, go to **Tools > Manage Libraries**. Install the lat
 
 These components are outside of Arduino's Library Manager, so follow these links to GitHub and install the latest version:
 
-   - https://github.com/tom-dudman/DS1804 v0.1.1 - library to control DS1804 Digital Potentiometer
-   - https://github.com/barry-ha/Audio_QSPI v1.1.0 - library to play WAV files from Quad-SPI memory chip
-
+- https://github.com/tom-dudman/DS1804 v0.1.1 - library to control DS1804 Digital Potentiometer
+- https://github.com/barry-ha/Audio_QSPI v1.1.0 - library to play WAV files from Quad-SPI memory chip
 
 <h2 id=disclaimer>7. Disclaimer</h2>
 
