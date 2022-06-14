@@ -41,7 +41,7 @@
   Exmples: Adafruit Ultimate GPS
          $GPRMC,193606.305,V,         , ,          , ,0.00,  0.00,021119,,,N*4A
          $GPRMC,194807.000,A,4745.2351,N,12217.0479,W,0.18,210.96,021119,,,A*7A
-          |  |  |          | |         | |          |  |    |     |         | 
+          |  |  |          | |         | |          |  |    |     |         |
           |  |  |          | |         | |          |  |    |     |         checksum
           |  |  |          | |         | |          |  |    |     date DDMMYY
           |  |  |          | |         | |          |  |    compass direction of travel
@@ -49,7 +49,7 @@
           |  |  |          | |         | |          E/W
           |  |  |          | |         | DDMM.MMMM
           |  |  |          | |         N/S
-          |  |  |          | DDMM.MMMM   
+          |  |  |          | DDMM.MMMM
           |  |  |          A = active, lock (V = void, no lock)
           |  |  193606.305 = time GMT, 7:36 pm, 06 seconds, 305 msec
           |  RMC=recommended minimum GNSS data, GGA=global positioning system fix data
@@ -57,7 +57,7 @@
 
   Examples: Quectel LC86L GPS
          $GNRMC,140936.092,V,         , ,          , ,0.00,  0.00,090621, , ,N,V*27
-          |  |  |          | |         | |          |  |    |     |      | |    | 
+          |  |  |          | |         | |          |  |    |     |      | |    |
           |  |  |          | |         | |          |  |    |     |      | |    checksum
           |  |  |          | |         | |          |  |    |     |      | mode A=autonomous, D=differential
           |  |  |          | |         | |          |  |    |     |      magnetic variation
@@ -67,7 +67,7 @@
           |  |  |          | |         | |          E/W
           |  |  |          | |         | DDMM.MMMM
           |  |  |          | |         N/S
-          |  |  |          | DDMM.MMMM   
+          |  |  |          | DDMM.MMMM
           |  |  |          A = active, lock (V = void, no lock)
           |  |  hhmmss.sss
           |  RMC=recommended minimum GNSS data, GGA=global positioning system fix data
@@ -100,7 +100,7 @@
           | | 705 = firmware release
           | MTK=MediaTek protocol
           Talker ID, P=Proprietary
-         
+
 */
 
 #include <SPI.h>                 // Serial Peripheral Interface
@@ -231,7 +231,7 @@ void setup() {
 
   init_Adafruit_GPS();
 
-  //init_Quectel_GPS();   // todo, after we figure out what special init is needed
+  // init_Quectel_GPS();   // todo, after we figure out what special init is needed
 }
 
 //=========== Adafruit Ultimate GPS ============================
@@ -243,10 +243,10 @@ void init_Adafruit_GPS() {
   GPS.sendCommand(PMTK_SET_BAUD_57600);
   delay(50);
   GPS.begin(57600);
-  delay(50);             
+  delay(50);
 
   // init Quectel L86 chip to improve USA satellite acquisition
-  GPS.sendCommand("$PMTK353,1,0,0,0,0*2A");     // search American GPS satellites only (not Russian GLONASS satellites)
+  GPS.sendCommand("$PMTK353,1,0,0,0,0*2A");   // search American GPS satellites only (not Russian GLONASS satellites)
   delay(50);
 
   Serial.print("Turn on RMC (recommended minimum) and GGA (fix data) including altitude: ");
@@ -256,9 +256,9 @@ void init_Adafruit_GPS() {
 
   Serial.print("Set GPS 1 Hz update rate: ");
   Serial.println(PMTK_SET_NMEA_UPDATE_1HZ);
-  //GPS.sendCommand(PMTK_SET_NMEA_UPDATE_5HZ);              // 5 Hz update rate
-  GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);                // 1 Hz
-  //GPS.sendCommand(PMTK_SET_NMEA_UPDATE_200_MILLIHERTZ);   // Every 5 seconds
+  // GPS.sendCommand(PMTK_SET_NMEA_UPDATE_5HZ);              // 5 Hz update rate
+  GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);   // 1 Hz
+  // GPS.sendCommand(PMTK_SET_NMEA_UPDATE_200_MILLIHERTZ);   // Every 5 seconds
   delay(50);
 
   if (0) {   // this command is saved in the GPS chip NVR, so always send one of these cmds
@@ -275,9 +275,9 @@ void init_Adafruit_GPS() {
 
   // ----- query GPS firmware
   Serial.print("Sending command to query GPS Firmware version: ");
-  Serial.println(PMTK_Q_RELEASE);     // Echo query to console
-  GPS.sendCommand(PMTK_Q_RELEASE);    // Send query to GPS unit
-                                      // expected reply: $PMTK705,AXN_2.10...
+  Serial.println(PMTK_Q_RELEASE);    // Echo query to console
+  GPS.sendCommand(PMTK_Q_RELEASE);   // Send query to GPS unit
+                                     // expected reply: $PMTK705,AXN_2.10...
   delay(50);
 }
 
