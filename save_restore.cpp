@@ -1,25 +1,29 @@
 // Please format this file with clang before check-in to GitHub
-/* File: save_restore.cpp
+/*
+  File:     save_restore.cpp
 
-  This module saves configuration data to/from SDRAM.
-  QSPI Flash chip on the Feather M4 breakout board has 2 MB capacity.
+  Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
+  Hardware: John Vanderbeck, KM7O, Seattle, WA
 
-  This design serializes the C++ object by reading and writing a series
-  of fixed-length buffers in the config file:
-  Field 1: File name - stored inside file itself as a sanity check
-  Field 2: File version - sanity check to ensure 'restore' matches 'save'
-  Field 3: Data - base class stores an integer which is sufficient for
-                  simple things like Volume or TimeZone settings
+  Purpose:  This module saves configuration data to/from SDRAM.
+            QSPI Flash chip on the Feather M4 Express breakout board has 2 MB capacity.
 
-  There is one config file per C++ object; files are cheap so we don't
-  share files for different types of settings. Every 'save' operation
-  will erase and rewrite its associated data file.
+            This design serializes the C++ object by reading and writing a series
+            of fixed-length buffers in the config file:
+            Field 1: File name - stored inside file itself as a sanity check
+            Field 2: File version - sanity check to ensure 'restore' matches 'save'
+            Field 3: Data - base class stores an integer which is sufficient for
+                     simple things like Volume or TimeZone settings
 
-  'SaveRestore' object is a base class. You can extend it by deriving
-  another class, calling the base class methods first to read or write data,
-  then adding any more data needed.
+            There is one config file per C++ object; files are cheap so we don't
+            share files for different types of settings. Every 'save' operation
+            will erase and rewrite its associated data file.
 
-  See file system reference: https://www.arduino.cc/en/Reference/SD
+            'SaveRestore' object is a base class. You can extend it by deriving
+            another class, calling the base class methods first to read or write data,
+            then adding any more data needed.
+
+            See file system reference: https://www.arduino.cc/en/Reference/SD
 */
 
 #include <Arduino.h>
@@ -55,6 +59,9 @@ static void dumpHex(const char *text, char *buff, int len) {
 }
 
 // ========== load configuration ======================
+/*
+ * Load our class data from SDRAM
+ */
 int SaveRestore::readConfig(byte *pData, const unsigned int sizeData) {
   // returns 1=success, 0=failure
   int result = 1;   // assume success
@@ -141,7 +148,11 @@ int SaveRestore::readConfig(byte *pData, const unsigned int sizeData) {
 
   return result;
 }
+
 // ========== save configuration ======================
+/*
+ * Save our class data to SDRAM
+ */
 int SaveRestore::writeConfig(const byte *pData, const unsigned int sizeData) {
   // initialize configuration file in file system, called by setup() if needed
   // assumes this is Feather M4 Express with 2 MB Quad-SPI flash memory
@@ -200,6 +211,78 @@ int SaveRestore::writeConfig(const byte *pData, const unsigned int sizeData) {
 
   writeFile.close();
   return result;
+}
+
+// ========== line-by-line string functions ============
+/*
+ * For null-terminated strings to SDRAM
+ * Returns 1=success, 0=failure
+ */
+int SaveRestoreStrings::open(const char *filename, const char *mode) {   // https://cplusplus.com/reference/cstdio/fopen/
+  // returns 1=success, 0=failure
+  logger.info("Opening file system for strings, ", filename);
+
+  int result = openFlash();   // open file system
+  if (!result) {
+    logger.error("Error, failed to open Flash file system");
+    return 0;
+  }
+  gFatfs.remove(filename);   // delete previous file (or else it appends data to the end)
+  switch (mode[0]) {
+  case 'r':
+    handle = gFatfs.open(fqFilename, FILE_READ);
+    if (!handle) {
+      logger.error("Error, failed to open string file for reading");
+      return 0;
+    }
+    break;
+  case 'w':
+    handle = gFatfs.open(fqFilename, FILE_WRITE);
+    if (!handle) {
+      logger.error("Error, failed to open string file for writing");
+      return 0;
+    }
+    break;
+  default:
+    logger.error("Error, unknown file mode, ", mode);
+    break;
+  }
+
+  // Echo metadata about the file:
+  Serial.print(". Total file size (bytes): ");
+  Serial.println(handle.size(), DEC);
+
+  return 1;   // success
+};
+int SaveRestoreStrings::writeLine(char *pBuffer) {   // https://cplusplus.com/reference/cstdio/snprintf/
+  // we chose to always append EOL to encourage reducing the number of writes
+  // QuadSPI ram is slow; reduce writes to maximize speed
+  char msg[256];
+  int len = strlen(pBuffer);
+  if (len > 256) {
+    snprintf(msg, sizeof(msg), "Warning, string length (%d characters) is very long");
+    logger.warning(msg);
+  }
+  int count = handle.print(pBuffer);
+  handle.print("\n");   // write eol
+  if (count == -1) {
+    snprintf(msg, sizeof(msg), "Error, failed to write line into (%s)", fqFilename);
+    logger.error(msg);
+    return 0;   // failure
+  }
+  return count;   // success
+}
+int SaveRestoreStrings::readLine(char *pBuffer, int bufflen) {   // https://cplusplus.com/reference/cstdio/gets/
+  logger.error("Todo: implement readLine()");
+  return 0;   // TODO: (indicate failure, for now)
+}
+void SaveRestoreStrings::close() {
+  // Echo metadata about the file:
+  Serial.print(". Total file size (bytes): ");
+  Serial.println(handle.size(), DEC);
+
+  logger.info("Closing file system for strings");
+  handle.close();
 }
 
 // ========== file management ======================

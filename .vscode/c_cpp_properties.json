@@ -1,0 +1,27 @@
+{
+    "configurations": [
+        {
+            "name": "Win32",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "C:/Users/barry/Documents/Arduino/libraries/Adafruit_GFX_library",
+                "C:/Users/barry/Documents/Arduino/libraries/Adafruit_GPS_library/**",
+                "C:/Users/barry/Documents/Arduino/libraries/Adafruit_ILI9341",
+                "C:/Users/barry/Documents/Arduino/libraries/Adafruit_NeoPixel",
+                "C:/Users/barry/Documents/Arduino/libraries/DS1804/src",
+                "C:/Users/barry/Documents/Arduino/libraries/Time"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE"
+            ],
+            "windowsSdkVersion": "10.0.19041.0",
+            "compilerPath": "C:/Program Files (x86)/Microsoft Visual Studio/2019/BuildTools/VC/Tools/MSVC/14.29.30133/bin/Hostx64/x64/cl.exe",
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "windows-msvc-x64"
+        }
+    ],
+    "version": 4
+}

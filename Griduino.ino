@@ -17,11 +17,11 @@
             |              CN88  30.1 mi            |
             |      +-------------------------+      |
             |      |                      *  |      |
-            | CN77 |      CN87               | CN97 |
+            | CN77 |       CN87              | CN97 |
             | 61.2 |                         | 37.1 |
             |      |                         |      |
             |      +-------------------------+      |
-            |               CN86  39.0 mi           |
+            |              CN86  39.0 mi            |
             |            47.5644, -122.0378         |
             +---------------------------------------+
 
@@ -706,6 +706,29 @@ int fGetDataSource() {
   }
 }
 
+// Size of GPS breadcrumb trail:
+// Our goal is to keep track of at least one long day's travel, 500 miles or more.
+// If 180 pixels horiz = 100 miles, then we need (500*180/100) = 900 entries.
+// If 160 pixels vert = 70 miles, then we need (500*160/70) = 1,140 entries.
+// In reality, with a drunken-sailor route around the Olympic Peninsula,
+// we need at least 800 entries to capture the whole out-and-back 500-mile loop.
+//
+// 2022-06 Arduino had memory corruption if the history array is too large.
+// history[x]  sizeof(modelGPS)  sizeof(history)  result
+//   x= 800,     19,336 bytes      .               no trouble found
+//   x=1300,     31,396            .               ntf
+//   x=1400,     33,736 > 32767    .               ntf
+//   x=1500,     36,136 >> 32767   36,000          hang on startup hint screen
+//   x=1550,     37,336 >> 32767   37,200          ntf
+//   x=1565,     37,696            37,560          ntf
+//   x=1573,     37,888            37,752          ntf
+//   x=1576,     37,960            37,824          hang on startup hint screen
+//   x=1580,     38,056            37,920          hang on startup hint screen
+//   x=1600,     38,632            38,400          hang on startup hint screen
+//   x=3200,     xx                xx              hang on startup product version credits screen
+Location history[1500];     // remember a list of GPS coordinates
+const int numHistory = sizeof(history) / sizeof(Location);
+
 // ======== date time helpers =================================
 char* dateToString(char* msg, int len, time_t datetime) {
   // utility function to format date:  "2020-9-27 at 11:22:33"
@@ -1102,7 +1125,7 @@ void setup() {
   Serial.println("Large resources:");
   snprintf(temp, sizeof(temp), 
           ". Model.history[%d] uses %d bytes/entry = %d bytes total",
-             model->numHistory, sizeof(Location), sizeof(model->history));
+             numHistory, sizeof(Location), sizeof(history));
   Serial.println(temp);
   snprintf(temp, sizeof(temp),
           ". baroModel.pressureStack[%d] uses %d bytes/entry = %d bytes total",

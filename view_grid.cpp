@@ -36,6 +36,9 @@ extern Adafruit_ILI9341 tft;          // Griduino.ino
 extern Model* model;                  // "model" portion of model-view-controller
 extern BarometerModel baroModel;      // singleton instance of the barometer model
 
+extern Location history[];            // GPS breadcrumb trail (Griduino.ino)
+extern const int numHistory;          // Griduino.ino
+
 extern void showDefaultTouchTargets();  // Griduino.ino
 extern void setFontSize(int font);      // TextField.cpp
 extern void floatToCharArray(char* result, int maxlen, double fValue, int decimalPlaces);  // Griduino.ino
@@ -433,7 +436,7 @@ void ViewGrid::updateScreen() {
   drawNeighborGridNames();            // show 4-digit names of nearby squares
   drawNeighborDistances();            // this is the main goal of the whole project
   plotCurrentPosition(myLocation, gridOrigin);    // show current pushpin
-  plotRoute(model->history, model->numHistory, gridOrigin);   // show route track
+  plotRoute(history, numHistory, gridOrigin);   // show route track
 }
 
 void ViewGrid::startScreen() {

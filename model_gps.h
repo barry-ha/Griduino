@@ -1,7 +1,8 @@
-#pragma once
-// Please format this file with clang before check-in to GitHub
-/* File:    model_gps.h
-   Project: Griduino by Barry K7BWH
+#pragma once   // Please format this file with clang before check-in to GitHub
+/*
+  File:     model_gps.h
+  Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
+  Hardware: John Vanderbeck, KM7O, Seattle, WA
 
    Note: All data must be self-contained so it can be save/restored in
          non-volatile memory; do not use String class because it's on the heap.
@@ -11,9 +12,14 @@
 #include <Adafruit_GPS.h>   // Ultimate GPS library
 #include "constants.h"      // Griduino constants and colors
 #include "save_restore.h"   // Configuration data in nonvolatile RAM
+#include "logger.h"         // conditional printing to Serial port
 
 // ========== extern ===========================================
 extern Adafruit_GPS GPS;
+extern Location history[];     // GPS breadcrumb trail (Griduino.ino)
+extern const int numHistory;   // Griduino.ino
+extern Logger logger;          // Griduino.ino
+
 void calcLocator(char *result, double lat, double lon, int precision);               // Griduino.ino
 void floatToCharArray(char *result, int maxlen, double fValue, int decimalPlaces);   // Griduino.ino
 bool isVisibleDistance(const PointGPS from, const PointGPS to);                      // view_grid.cpp
@@ -42,30 +48,8 @@ public:
 
   float gSeaLevelPressure = DEFAULT_SEALEVEL_HPA;   // default starting value, hPa; adjustable by touch in view_altimeter.h
 
-  // Size of array history: Our goal is to keep track of a good day's travel, at least 250 miles.
-  // If 180 pixels horiz = 100 miles, then we need (250*180/100) = 450 entries.
-  // If 160 pixels vert = 70 miles, then we need (250*160/70) = 570 entries.
-  // In reality, with a drunken-sailor route around the Olympic Peninsula,
-  // we need at least 800 entries to capture the 500-mile loop.
-  // However, Arduino has memory problems if there history[] array is too large.
-  //
-  // y = mx + b = 24x + 78   where y=total size in bytes, x=number of 'history[]' elements
-  //
-  // history[x]  sizeof(modelGPS)  sizeof(history)  result
-  //   x= 800,     19,336 bytes      .               no trouble found
-  //   x=1300,     31,396            .               ntf
-  //   x=1400,     33,736 > 32767    .               ntf
-  //   x=1500,     36,136 >> 32767   36,000          ntf
-  //   x=1550,     37,336 >> 32767   37,200          ntf
-  //   x=1565,     37,696            37,560          ntf
-  //   x=1573,     37,888            37,752          ntf
-  //   x=1576,     37,960            37,824          hang on startup hint screen
-  //   x=1580,     38,056            37,920          hang on startup hint screen
-  //   x=1600,     38,632            38,400          hang on startup hint screen
-  //   x=3200,     xx                xx              hang on startup product version credits screen
-  Location history[1500];     // remember a list of GPS coordinates -- DO NOT EXCEED 1573!
-  int nextHistoryItem  = 0;   // index of next item to write
-  const int numHistory = sizeof(history) / sizeof(Location);
+  // Location history[1500];     // 2022-06 the GPS breadcrumb trail moved to Griduino.ino
+  int nextHistoryItem = 0;   // index of next item to write
 
 protected:
   int gPrevFix       = false;        // previous value of gHaveGPSfix, to help detect "signal lost"
@@ -90,7 +74,10 @@ public:
 
   // ========== load/save config setting =========================
   const char MODEL_FILE[25] = CONFIG_FOLDER "/gpsmodel.cfg";   // CONFIG_FOLDER
-  const char MODEL_VERS[15] = "GPS Model v11";                 // <-- always change version when changing model data
+  const char MODEL_VERS[15] = "GPS Model v12";                 // <-- always change version when changing model data
+
+  const char HISTORY_FILE[25]    = CONFIG_FOLDER "/history.csv";   // CONFIG_FOLDER
+  const char HISTORY_VERSION[25] = "Breadcrumb Trail v1";          // <-- always change version when changing data format
 
   // ----- save user's GPS state to non-volatile memory -----
   int save() {
@@ -101,7 +88,78 @@ public:
       Serial.println("ERROR! Failed to save GPS Model object to SDRAM");
       return 0;   // return failure
     }
+    saveGPSBreadcrumbTrail();
     return 1;   // return success
+  }
+
+  int saveGPSBreadcrumbTrail() {   // TODO: save history[] array
+    // save history[] to CSV file
+    // dumpHistoryGPS();   // debug
+
+    // delete old file and open new file
+    SaveRestoreStrings config(HISTORY_FILE, HISTORY_VERSION);
+    config.open(HISTORY_FILE, "w");
+
+    // line 1,2,3,4: filename, data format, version, compiled
+    char msg[256];
+    snprintf(msg, sizeof(msg), "File:,%s\nFormat:,%s\nGriduino:,%s\nCompiled:,%s",
+             HISTORY_FILE, HISTORY_VERSION, PROGRAM_VERSION, PROGRAM_COMPILED);
+    config.writeLine(msg);
+
+// line 2: column headings
+#define COLUMN_HEADINGS "Date, Latitude, Longitude"
+    snprintf(msg, sizeof(msg), "%s", "GMT Date,GMT Time,Latitude,Longitude");
+    config.writeLine(msg);
+
+    // line 3..x: date-time, latitude, longitude
+    int count = 0;
+    for (uint ii = 0; ii < numHistory; ii++) {
+      if (!history[ii].isEmpty()) {
+        count++;
+        int yy = year(history[ii].timestamp);
+        int mm = month(history[ii].timestamp);
+        int dd = day(history[ii].timestamp);
+        char sDate[12];
+        snprintf(sDate, sizeof(sDate), "%4d/%02d/%02d", yy, mm, dd);
+
+        int hh = hour(history[ii].timestamp);
+        int nn = minute(history[ii].timestamp);
+        int ss = second(history[ii].timestamp);
+        char sTime[12];
+        snprintf(sTime, sizeof(sTime), "%02d:%02d:%02d", hh, nn, ss);
+
+        float lat = history[ii].loc.lat;
+        float lng = history[ii].loc.lng;
+        char sLat[12], sLng[12];
+        floatToCharArray(sLat, sizeof(sLat), history[ii].loc.lat, 5);
+        floatToCharArray(sLng, sizeof(sLng), history[ii].loc.lng, 5);
+
+        snprintf(msg, sizeof(msg), "%s,%s,%f,%f", sDate, sTime, sLat, sLng);
+        config.writeLine(msg);
+      }
+    }
+    logger.info(". Wrote %d entries to GPS log", count);
+
+    // close file
+    config.close();
+
+    return 1;   // success
+  }
+
+  int restoreGPSBreadcrumbTrail() {   // TODO: restore history[] array
+    // clear current trail
+    for (uint ii = 0; ii < numHistory; ii++) {
+      history[ii].reset();
+    }
+    // open file
+    // check line 1 (file name)
+    // check line 2 (version)
+    // skip line 3 (column headers)
+    // loop through file
+    // close file
+    SaveRestoreStrings config(HISTORY_FILE, HISTORY_VERSION);
+    logger.error("Todo: implement restoreGPSBreadcrumbTrail()");
+    return 0;   // TODO (indicate failure, for now)
   }
 
   // ----- load from SDRAM -----
@@ -117,7 +175,7 @@ public:
     Serial.print(". target: sizeof(modelGPS) = ");
     Serial.println(sizeof(modelGPS));
     Serial.print(". GPS history buffer, sizeof(history) = ");
-    Serial.println(sizeof(history));
+    Serial.println(numHistory * sizeof(Location));
 
     if (sdram.readConfig((byte *)&tempModel, sizeof(Model))) {
       // warning: this can corrupt our object's data if something failed
@@ -147,26 +205,28 @@ public:
     compare4digits    = from.compare4digits;      //
     gSeaLevelPressure = from.gSeaLevelPressure;   // hPa
 
-    Serial.print(". Copying ");
-    Serial.print(numHistory);
-    Serial.println(" items from saved GPS history");
+    /******************* TODO: rewrite for CSV
+        Serial.print(". Copying ");
+        Serial.print(numHistory);
+        Serial.println(" items from saved GPS history");
 
-    for (int ii = 0; ii < numHistory; ii++) {
-      // printLocation(ii, from.history[ii]);   // debug
-      history[ii].loc       = from.history[ii].loc;   // copy contents
-      history[ii].timestamp = from.history[ii].timestamp;
-    }
+        for (int ii = 0; ii < numHistory; ii++) {   // todo: rewrite for CSV file
+          // printLocation(ii, from.history[ii]);   // debug
+          history[ii].loc       = from.history[ii].loc;   // copy contents
+          history[ii].timestamp = from.history[ii].timestamp;
+        }
 
-    Serial.print(". nextHistoryItem = ");
-    Serial.println(from.nextHistoryItem);
-    nextHistoryItem = from.nextHistoryItem;
-    if (nextHistoryItem >= numHistory) {
-      char msg[256];
-      snprintf(msg, sizeof(msg), ". Error! Expected nextHistoryItem < %d but got %d",
-               numHistory, nextHistoryItem);
-      Serial.println(msg);
-      nextHistoryItem = 0;   // reset index, ignore restored erroneous value
-    }
+        Serial.print(". nextHistoryItem = ");
+        Serial.println(from.nextHistoryItem);
+        nextHistoryItem = from.nextHistoryItem;
+        if (nextHistoryItem >= numHistory) {
+          char msg[256];
+          snprintf(msg, sizeof(msg), ". Error! Expected nextHistoryItem < %d but got %d",
+                   numHistory, nextHistoryItem);
+          Serial.println(msg);
+          nextHistoryItem = 0;   // reset index, ignore restored erroneous value
+        }
+    ******************** end TODO */
   }
 
   // sanity check data from NVR
@@ -678,7 +738,7 @@ protected:
   const double lngDegreesPerPixel = gridWidthDegrees / gBoxWidth;     // grid square = 2.0 degrees wide E-W
   const double latDegreesPerPixel = gridHeightDegrees / gBoxHeight;   // grid square = 1.0 degrees high N-S
 
-  const PointGPS midCN87{47.50, -123.00};   // center of CN874
+  const PointGPS midCN87{47.50, -123.00};   // center of CN87
   const PointGPS llCN87{47.40, -123.35};    // lower left of CN87
   unsigned long startTime = 0;
 

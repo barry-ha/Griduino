@@ -102,6 +102,13 @@ public:
       Serial.println(pText);
     }
   }
+  void info(const char *pText, const int value) {    // one format string containing %d, one number
+    if (print_info) {
+      char msg[256];
+      snprintf(msg, sizeof(msg), pText, value);
+      Serial.println(msg);
+    }
+  }
   void info(const char *pText1, const char *pText2) {   // two string args
     if (print_info) {
       Serial.print(pText1);
