@@ -15,8 +15,8 @@
 #include "logger.h"         // conditional printing to Serial port
 
 // ========== extern ===========================================
-extern Adafruit_GPS GPS;
-extern Location history[];     // GPS breadcrumb trail (Griduino.ino)
+extern Adafruit_GPS GPS;       // Griduino.ino
+extern Location history[];     // Griduino.ino GPS breadcrumb trail
 extern const int numHistory;   // Griduino.ino
 extern Logger logger;          // Griduino.ino
 
@@ -76,8 +76,8 @@ public:
   const char MODEL_FILE[25] = CONFIG_FOLDER "/gpsmodel.cfg";   // CONFIG_FOLDER
   const char MODEL_VERS[15] = "GPS Model v12";                 // <-- always change version when changing model data
 
-  const char HISTORY_FILE[25]    = CONFIG_FOLDER "/history.csv";   // CONFIG_FOLDER
-  const char HISTORY_VERSION[25] = "Breadcrumb Trail v1";          // <-- always change version when changing data format
+  const char HISTORY_FILE[25]    = CONFIG_FOLDER "/gpshistory.csv";   // CONFIG_FOLDER
+  const char HISTORY_VERSION[25] = "GPS Breadcrumb Trail v1";         // <-- always change version when changing data format
 
   // ----- save user's GPS state to non-volatile memory -----
   int save() {
@@ -102,16 +102,16 @@ public:
 
     // line 1,2,3,4: filename, data format, version, compiled
     char msg[256];
-    snprintf(msg, sizeof(msg), "File:,%s\nFormat:,%s\nGriduino:,%s\nCompiled:,%s",
+    snprintf(msg, sizeof(msg), "File:,%s\nData Format:,%s\nGriduino:,%s\nCompiled:,%s",
              HISTORY_FILE, HISTORY_VERSION, PROGRAM_VERSION, PROGRAM_COMPILED);
     config.writeLine(msg);
 
-// line 2: column headings
+// line 5: column headings
 #define COLUMN_HEADINGS "Date, Latitude, Longitude"
     snprintf(msg, sizeof(msg), "%s", "GMT Date,GMT Time,Latitude,Longitude");
     config.writeLine(msg);
 
-    // line 3..x: date-time, latitude, longitude
+    // line 6..x: date-time, latitude, longitude
     int count = 0;
     for (uint ii = 0; ii < numHistory; ii++) {
       if (!history[ii].isEmpty()) {
@@ -128,13 +128,11 @@ public:
         char sTime[12];
         snprintf(sTime, sizeof(sTime), "%02d:%02d:%02d", hh, nn, ss);
 
-        float lat = history[ii].loc.lat;
-        float lng = history[ii].loc.lng;
         char sLat[12], sLng[12];
         floatToCharArray(sLat, sizeof(sLat), history[ii].loc.lat, 5);
         floatToCharArray(sLng, sizeof(sLng), history[ii].loc.lng, 5);
 
-        snprintf(msg, sizeof(msg), "%s,%s,%f,%f", sDate, sTime, sLat, sLng);
+        snprintf(msg, sizeof(msg), "%s,%s,%s,%s", sDate, sTime, sLat, sLng);
         config.writeLine(msg);
       }
     }
