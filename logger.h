@@ -109,6 +109,13 @@ public:
       Serial.println(msg);
     }
   }
+  void info(const char *pText, const int value1, const int value2) {    // one format string, two numbers
+    if (print_info) {
+      char msg[256];
+      snprintf(msg, sizeof(msg), pText, value1, value2);
+      Serial.println(msg);
+    }
+  }
   void info(const char *pText1, const char *pText2) {   // two string args
     if (print_info) {
       Serial.print(pText1);
@@ -154,6 +161,13 @@ public:
     if (print_error) {
       Serial.print(pText1);
       Serial.println(pText2);
+    }
+  }
+  void error(const char *pFormatString, const int value) {   // format string, one number
+    if (print_error) {
+      char msg[256];
+      snprintf(msg, sizeof(msg), pFormatString, value);
+      Serial.println(msg);
     }
   }
   void error(const char *pText1, const char *pText2, const char *pText3) {   // three string args
