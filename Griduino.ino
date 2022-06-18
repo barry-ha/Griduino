@@ -712,21 +712,7 @@ int fGetDataSource() {
 // If 160 pixels vert = 70 miles, then we need (500*160/70) = 1,140 entries.
 // In reality, with a drunken-sailor route around the Olympic Peninsula,
 // we need at least 800 entries to capture the whole out-and-back 500-mile loop.
-//
-// 2022-06 Arduino had memory corruption if the history array is too large.
-// history[x]  sizeof(modelGPS)  sizeof(history)  result
-//   x= 800,     19,336 bytes      .               no trouble found
-//   x=1300,     31,396            .               ntf
-//   x=1400,     33,736 > 32767    .               ntf
-//   x=1500,     36,136 >> 32767   36,000          hang on startup hint screen
-//   x=1550,     37,336 >> 32767   37,200          ntf
-//   x=1565,     37,696            37,560          ntf
-//   x=1573,     37,888            37,752          ntf
-//   x=1576,     37,960            37,824          hang on startup hint screen
-//   x=1580,     38,056            37,920          hang on startup hint screen
-//   x=1600,     38,632            38,400          hang on startup hint screen
-//   x=3200,     xx                xx              hang on startup product version credits screen
-Location history[1500];     // remember a list of GPS coordinates
+Location history[3000];     // remember a list of GPS coordinates
 const int numHistory = sizeof(history) / sizeof(Location);
 
 // ======== date time helpers =================================
@@ -1171,7 +1157,8 @@ void setup() {
 #endif
 
   // ----- restore GPS driving track breadcrumb history
-  model->restore();                   // this takes noticeable time (~0.2 sec) 
+  model->restore();                   // this takes noticeable time (~0.2 sec)
+  model->restoreGPSBreadcrumbTrail(); // 
   model->gHaveGPSfix = false;         // assume no satellite signal yet
   model->gSatellites = 0;
 
@@ -1271,7 +1258,7 @@ void loop() {
     waitingForRTC = false;
 
     char msg[128];                    // debug
-    Serial.println("Received first correct date/time from GPS");  // debug
+    Serial.println("Received first valid date/time from GPS");  // debug
     snprintf(msg, sizeof(msg), ". GPS time %d-%02d-%02d at %02d:%02d:%02d",
                                   GPS.year,GPS.month,GPS.day, 
                                   GPS.hour,GPS.minute,GPS.seconds);
