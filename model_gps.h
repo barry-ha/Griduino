@@ -74,12 +74,12 @@ public:
 
   // ========== load/save config setting =========================
   const char MODEL_FILE[25] = CONFIG_FOLDER "/gpsmodel.cfg";   // CONFIG_FOLDER
-  const char MODEL_VERS[15] = "GPS Model v12";                 // <-- always change version when changing model data
+  const char MODEL_VERS[15] = "GPS Data v1";                   // <-- always change version when changing model data
 
   const char HISTORY_FILE[25]    = CONFIG_FOLDER "/gpshistory.csv";   // CONFIG_FOLDER
   const char HISTORY_VERSION[25] = "GPS Breadcrumb Trail v1";         // <-- always change version when changing data format
 
-  // ----- save user's GPS state to non-volatile memory -----
+  // ----- save entire GPS state to non-volatile memory -----
   int save() {
     SaveRestore sdram(MODEL_FILE, MODEL_VERS);
     if (sdram.writeConfig((byte *)this, sizeof(Model))) {
@@ -92,7 +92,7 @@ public:
     return 1;   // return success
   }
 
-  int saveGPSBreadcrumbTrail() {   // TODO: save history[] array
+  int saveGPSBreadcrumbTrail() {
     // save history[] to CSV file
     // dumpHistoryGPS();   // debug
 
@@ -102,14 +102,12 @@ public:
 
     // line 1,2,3,4: filename, data format, version, compiled
     char msg[256];
-    snprintf(msg, sizeof(msg), "File:,%s\nData Format:,%s\nGriduino:,%s\nCompiled:,%s",
-             HISTORY_FILE, HISTORY_VERSION, PROGRAM_VERSION, PROGRAM_COMPILED);
+    snprintf(msg, sizeof(msg), "File:,%s\nData format:,%s\nGriduino:,%s\nCompiled:,%s",
+             MODEL_FILE, MODEL_VERS, PROGRAM_VERSION, PROGRAM_COMPILED);
     config.writeLine(msg);
 
-// line 5: column headings
-#define COLUMN_HEADINGS "Date, Latitude, Longitude"
-    snprintf(msg, sizeof(msg), "%s", "GMT Date,GMT Time,Latitude,Longitude");
-    config.writeLine(msg);
+    // line 5: column headings
+    config.writeLine("GMT Date, GMT Time, Latitude, Longitude");
 
     // line 6..x: date-time, latitude, longitude
     int count = 0;
@@ -145,19 +143,85 @@ public:
   }
 
   int restoreGPSBreadcrumbTrail() {   // TODO: restore history[] array
-    // clear current trail
+    // clear breadcrumb memory
+    nextHistoryItem = 0;
     for (uint ii = 0; ii < numHistory; ii++) {
       history[ii].reset();
     }
     // open file
-    // check line 1 (file name)
-    // check line 2 (version)
-    // skip line 3 (column headers)
-    // loop through file
-    // close file
     SaveRestoreStrings config(HISTORY_FILE, HISTORY_VERSION);
-    logger.error("Todo: implement restoreGPSBreadcrumbTrail()");
-    return 0;   // TODO (indicate failure, for now)
+    config.open(HISTORY_FILE, "r");
+
+    // read file line-by-line, ignoring lines we don't understand
+    // for maximum compatibility across versions, there's no "version check"
+    // example of CSV line: "2022/06/16,15:44:01,48.09667,-122.85268"
+    int csv_line_number = 0;
+    int items_restored  = 0;
+    char csv_line[256], original_line[256];
+    const char delimiter[] = ",/:";
+    int count;
+    while (count = config.readLine(csv_line, sizeof(csv_line)) && nextHistoryItem < numHistory) {
+      // save for possible console messages because 'strtok' will modify buffer
+      strncpy(original_line, csv_line, sizeof(original_line));  
+      char msg[256];
+      if (count == 0) {
+        logger.info(". EOF");
+        break;
+      } else if (count < 0) {
+        int err = config.getError();
+        logger.error(". File error %d", err);   // 1=write, 2=read
+        break;
+      } else {
+        // snprintf(msg, sizeof(msg), ". CSV string[%2d] = \"%s\"", 
+        //                               csv_line_number, csv_line); // debug
+        // logger.info(msg);  // debug
+        int iYear4        = atoi(strtok(csv_line, delimiter));   // YYYY: calendar year
+        uint8_t iYear2    = CalendarYrToTm(iYear4);              // YY: offset from 1970
+        uint8_t iMonth    = atoi(strtok(NULL, delimiter));
+        uint8_t iDay      = atoi(strtok(NULL, delimiter));
+        uint8_t iHour     = atoi(strtok(NULL, delimiter));
+        uint8_t iMinute   = atoi(strtok(NULL, delimiter));
+        uint8_t iSecond   = atoi(strtok(NULL, delimiter));
+        double fLatitude  = atof(strtok(NULL, delimiter));
+        double fLongitude = atof(strtok(NULL, delimiter));
+
+        // save this return value into history[]
+        // https://cplusplus.com/reference/cstring/
+        if (iYear2 > 0 && fLatitude != 0.0 && fLongitude != 0.0) {
+          // echo info for debug
+          // char msg[256];
+          // snprintf(msg, sizeof(msg), ".       Internal =  %d-%d-%d, %02d:%02d:%02d",
+          //         iYear4, iMonth, iDay, iHour, iMinute, iSecond);
+          // logger.info(msg);
+          // Serial.print(fLatitude, 5);    // todo: replace with 'printLocation(index,Location item)'
+          // Serial.print(", ");
+          // Serial.println(fLongitude, 5);
+
+          // save values in the history[] array
+          TimeElements tm{iSecond, iMinute, iHour, 0, iDay, iMonth, iYear2};
+          history[nextHistoryItem].timestamp = makeTime(tm);   // convert time elements into time_t
+          history[nextHistoryItem].loc.lat   = fLatitude;
+          history[nextHistoryItem].loc.lng   = fLongitude;
+
+          // adjust loop variables
+          nextHistoryItem++;
+          items_restored++;
+        } else {
+          snprintf(msg, sizeof(msg), ". CSV string[%2d] = \"%s\" - ignored", 
+                                       csv_line_number, original_line); // debug
+          logger.warning(msg);  // debug
+        }
+      }
+      csv_line[0] = 0;
+      csv_line_number++;
+    }
+    logger.info(". Restored %d breadcrumbs from %d lines in CSV file", items_restored, csv_line_number);
+    // logger.info(". Oldest date ", oldest_date);
+    // logger.info(". Newest date ", most_recent_date);
+
+    // close file
+    config.close();
+    return 1;   // success
   }
 
   // ----- load from SDRAM -----
@@ -168,20 +232,17 @@ public:
     extern Model modelGPS;   // debug
     Model tempModel;         // temp buffer for restoring the "Model" object from RAM file system
 
-    Serial.print(". source: sizeof(tempModel) = ");
-    Serial.println(sizeof(tempModel));
-    Serial.print(". target: sizeof(modelGPS) = ");
-    Serial.println(sizeof(modelGPS));
-    Serial.print(". GPS history buffer, sizeof(history) = ");
-    Serial.println(numHistory * sizeof(Location));
+    logger.info(". source: sizeof(tempModel) = %d", sizeof(tempModel));
+    logger.info(". target: sizeof(modelGPS) = %d", sizeof(modelGPS));
+    logger.info(". GPS history buffer, sizeof(history) = %d", numHistory * sizeof(Location));
 
     if (sdram.readConfig((byte *)&tempModel, sizeof(Model))) {
       // warning: this can corrupt our object's data if something failed
       // so we blob the bytes to a work area and copy individual values
       copyFrom(tempModel);
-      Serial.println("Success, GPS Model restored from SDRAM");
+      logger.info("Success, GPS Model restored from SDRAM");
     } else {
-      Serial.println("Error, failed to restore GPS Model object to SDRAM");
+      logger.error("Error, failed to restore GPS Model object to SDRAM");
       return 0;   // return failure
     }
     // note: the caller is responsible for fixups to the model,
@@ -204,9 +265,7 @@ public:
     gSeaLevelPressure = from.gSeaLevelPressure;   // hPa
 
     /******************* TODO: rewrite for CSV
-        Serial.print(". Copying ");
-        Serial.print(numHistory);
-        Serial.println(" items from saved GPS history");
+        logger.info(". Copying %d items from saved GPS history", numHistory);
 
         for (int ii = 0; ii < numHistory; ii++) {   // todo: rewrite for CSV file
           // printLocation(ii, from.history[ii]);   // debug
@@ -214,14 +273,13 @@ public:
           history[ii].timestamp = from.history[ii].timestamp;
         }
 
-        Serial.print(". nextHistoryItem = ");
-        Serial.println(from.nextHistoryItem);
+        logger.info(". nextHistoryItem = ", from.nextHistoryItem);
         nextHistoryItem = from.nextHistoryItem;
         if (nextHistoryItem >= numHistory) {
           char msg[256];
           snprintf(msg, sizeof(msg), ". Error! Expected nextHistoryItem < %d but got %d",
                    numHistory, nextHistoryItem);
-          Serial.println(msg);
+          logger.error(msg);
           nextHistoryItem = 0;   // reset index, ignore restored erroneous value
         }
     ******************** end TODO */

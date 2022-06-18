@@ -65,58 +65,46 @@ static void dumpHex(const char *text, char *buff, int len) {
 int SaveRestore::readConfig(byte *pData, const unsigned int sizeData) {
   // returns 1=success, 0=failure
   int result = 1;   // assume success
-  Serial.println("Starting to read config from SDRAM...");
-  Serial.print(". fqFilename (");
-  Serial.print(fqFilename);
-  Serial.println(")");
+  logger.info("Starting to read config from SDRAM...");
+  logger.info(". ", fqFilename);
 
-  result = openFlash();   // open file system
+  result = openFlash();   // open file system and report errors
   if (!result) {
-    Serial.print("error, failed to open Flash file system");
     return 0;
   }
 
   // open config file
   File readFile = gFatfs.open(fqFilename, FILE_READ);
   if (!readFile) {
-    Serial.print("Error, failed to open config file for reading (");
-    Serial.print(fqFilename);
-    Serial.println(")");
+    logger.error("Error, failed to open config file for reading, ", fqFilename);
     return 0;
   }
 
   // Echo metadata about the file:
-  Serial.print(". Total file size (bytes): ");
-  Serial.println(readFile.size(), DEC);
-  // Serial.print(". Current position in file: ");
-  // Serial.println(readFile.position(), DEC);
-  // Serial.print(". Available data remaining to read: "); Serial.println(readFile.available(), DEC);
+  logger.info(". Total file size (bytes): %d", readFile.size());
+  // logger.info(". Current position in file: %d", readFile.position());
+  // logger.info(". Available data remaining to read: %d", readFile.available());
 
   // read first field (filename) from config file...
   char temp[sizeof(fqFilename)];   // buffer size is as large as our largest member variable
   int count = readFile.read(temp, sizeof(fqFilename));
-  dumpHex("fqFilename", temp, sizeof(fqFilename));   // debug
+  // dumpHex("fqFilename", temp, sizeof(fqFilename));   // debug
   if (count == -1) {
-    Serial.print("Error, failed to read first field from (");
-    Serial.print(fqFilename);
-    Serial.println(")");
+    logger.error("Error, failed to read first field, ", fqFilename);
     return 0;
   }
+
   // verify first field (filename) stored inside file exactly matches expected
   if (strcmp(temp, this->fqFilename) != 0) {
-    Serial.print("Error, unexpected filename (");
-    Serial.print(temp);
-    Serial.println(")");
+    logger.error("Error, unexpected filename, ", temp);
     return 0;
   }
 
   // read second field (version string) from config file...
   count = readFile.read(temp, sizeof(sVersion));
-  dumpHex("sVersion", temp, sizeof(sVersion));   // debug
+  // dumpHex("sVersion", temp, sizeof(sVersion));   // debug
   if (count == -1) {
-    Serial.print("Error, failed to read version number from (");
-    Serial.print(fqFilename);
-    Serial.println(")");
+    logger.error("Error, failed to read version number, ", fqFilename);
     return 0;
   }
   // verify second field (version string) stored in file exactly matches expected
@@ -132,15 +120,11 @@ int SaveRestore::readConfig(byte *pData, const unsigned int sizeData) {
   count = readFile.read(pData, sizeData);
   // dumpHex("pData", (char *)pData, sizeData);   // debug
   if (count == -1) {
-    Serial.print("Error, failed to read integer value from (");
-    Serial.print(fqFilename);
-    Serial.println(")");
+    logger.error("Error, failed to read integer value from ", fqFilename);
     return 0;
   }
 
-  Serial.print(". Data length (");
-  Serial.print(sizeData);
-  Serial.println(")");
+  logger.info(". Data length: %d", sizeData);
 
   // close files and clean up
   readFile.close();
@@ -157,10 +141,9 @@ int SaveRestore::writeConfig(const byte *pData, const unsigned int sizeData) {
   // initialize configuration file in file system, called by setup() if needed
   // assumes this is Feather M4 Express with 2 MB Quad-SPI flash memory
   // returns 1=success, 0=failure
-  int result = 1;   // assume success
-  Serial.println("Starting to write config to SDRAM...");
+  logger.info("Starting to write config to SDRAM...");
 
-  result = openFlash();   // open file system
+  int result = openFlash();   // open file system and report errors
   if (!result) {
     return 0;
   }
@@ -169,48 +152,34 @@ int SaveRestore::writeConfig(const byte *pData, const unsigned int sizeData) {
   gFatfs.remove(fqFilename);                              // delete old file (or else it would append data to the end)
   File writeFile = gFatfs.open(fqFilename, FILE_WRITE);   //
   if (!writeFile) {
-    Serial.print("Error, failed to open config file for writing (");
-    Serial.print(fqFilename);
-    Serial.println(")");
+    logger.error("Error, failed to open config file for writing, ", fqFilename);
     return 0;
   }
 
-  Serial.print(". fqFilename (");
-  Serial.print(fqFilename);
-  Serial.println(")");
-  Serial.print(". sVersion (");
-  Serial.print(sVersion);
-  Serial.println(")");
-  Serial.print(". Data length (");
-  Serial.print(sizeData);
-  Serial.println(")");
+  logger.info(". fqFilename ", fqFilename);
+  logger.info(". sVersion ", sVersion);
+  logger.info(". Data length ", sizeData);
 
   // write config data to file...
   int count;
   count = writeFile.write(fqFilename, sizeof(fqFilename));
   if (count == -1) {
-    Serial.print("Error, failed to write filename into (");
-    Serial.print(fqFilename);
-    Serial.println(")");
+    logger.error("Error, failed to write filename into ", fqFilename);
     return 0;
   }
   count = writeFile.write(sVersion, sizeof(sVersion));
   if (count == -1) {
-    Serial.print("Error, failed to write version number into (");
-    Serial.print(fqFilename);
-    Serial.println(")");
+    logger.error("Error, failed to write version number into ", fqFilename);
     return 0;
   }
   count = writeFile.write(pData, sizeData);
   if (count == -1) {
-    Serial.print("Error, failed to write setting into (");
-    Serial.print(fqFilename);
-    Serial.println(")");
+    logger.error("Error, failed to write setting into ", fqFilename);
     return 0;
   }
 
   writeFile.close();
-  return result;
+  return 1;   // success
 }
 
 // ========== line-by-line string functions ============
@@ -218,25 +187,33 @@ int SaveRestore::writeConfig(const byte *pData, const unsigned int sizeData) {
  * For null-terminated strings to SDRAM
  * Returns 1=success, 0=failure
  */
-int SaveRestoreStrings::open(const char *filename, const char *mode) {   // https://cplusplus.com/reference/cstdio/fopen/
+int SaveRestoreStrings::open(const char *fqFilename, const char *mode) {   // https://cplusplus.com/reference/cstdio/fopen/
   // returns 1=success, 0=failure
-  logger.info("Opening file system for strings, ", filename);
+  logger.info("Opening text file system, ", fqFilename);
 
-  int result = openFlash();   // open file system
+  int result = openFlash();   // open file system and report errors
   if (!result) {
-    logger.error("Error, failed to open Flash file system");
     return 0;
   }
-  gFatfs.remove(filename);   // delete previous file (or else it appends data to the end)
   switch (mode[0]) {
   case 'r':
+    if (!gFatfs.exists(fqFilename)) {
+      logger.error("File does not exist, ", fqFilename);
+      return 0;
+    }
+
     handle = gFatfs.open(fqFilename, FILE_READ);
     if (!handle) {
+      // failed
       logger.error("Error, failed to open string file for reading");
       return 0;
     }
+
+    // success
+    logger.info(". Total file size (bytes): %d", handle.size());
     break;
   case 'w':
+    gFatfs.remove(fqFilename);   // delete previous file (or else it appends data to the end)
     handle = gFatfs.open(fqFilename, FILE_WRITE);
     if (!handle) {
       logger.error("Error, failed to open string file for writing");
@@ -248,15 +225,11 @@ int SaveRestoreStrings::open(const char *filename, const char *mode) {   // http
     break;
   }
 
-  // Echo metadata about the file:
-  Serial.print(". Total file size (bytes): ");
-  Serial.println(handle.size(), DEC);
-
   return 1;   // success
 };
-int SaveRestoreStrings::writeLine(char *pBuffer) {   // https://cplusplus.com/reference/cstdio/snprintf/
+int SaveRestoreStrings::writeLine(const char *pBuffer) {   // https://cplusplus.com/reference/cstdio/snprintf/
   // we chose to always append EOL to encourage reducing the number of writes
-  // QuadSPI ram is slow; reduce writes to maximize speed
+  // QuadSPI ram is slow; you should reduce writes to maximize speed
   char msg[256];
   int len = strlen(pBuffer);
   if (len > 256) {
@@ -273,15 +246,25 @@ int SaveRestoreStrings::writeLine(char *pBuffer) {   // https://cplusplus.com/re
   return count;   // success
 }
 int SaveRestoreStrings::readLine(char *pBuffer, int bufflen) {   // https://cplusplus.com/reference/cstdio/gets/
-  logger.error("Todo: implement readLine()");
-  return 0;   // TODO: (indicate failure, for now)
+  // returns count = number of bytes read
+  //         count = 0 = EOF
+  //         count = -1 = error, ref: SDFat_-_Adafruit_fork / src / FatLib / FatFile.h
+  int count = handle.fgets(pBuffer, bufflen);
+
+  // remove LF from the string
+  // (the CR has already been removed but we'll check anyway)
+  char key[] = "\r\n";
+  char *pch  = strpbrk(pBuffer, key);
+  while (pch != NULL) {
+    *pch = ' ';
+    pch  = strpbrk(pch + 1, key);
+  }
+  return count;
 }
 void SaveRestoreStrings::close() {
   // Echo metadata about the file:
-  Serial.print(". Total file size (bytes): ");
-  Serial.println(handle.size(), DEC);
-
-  logger.info("Closing file system for strings");
+  logger.info(". Total file size (bytes): %d", handle.size());
+  logger.info("Closing text file system");
   handle.close();
 }
 
@@ -441,7 +424,7 @@ int SaveRestore::openFlash() {
 
   // Initialize flash library and check its chip ID.
   if (!gFlash.begin()) {
-    Serial.println("Error, unable to begin using Flash onboard memory.");
+    logger.error("Error, unable to begin using Flash onboard memory");
     return 0;
   }
   // Serial.print(". Flash chip JEDEC ID: 0x"); Serial.println(gFlash.getJEDECID(), HEX);
@@ -449,8 +432,8 @@ int SaveRestore::openFlash() {
   // First call begin to mount the filesystem.  Check that it returns true
   // to make sure the filesystem was mounted.
   if (!gFatfs.begin(&gFlash)) {
-    Serial.println("Error, failed to mount filesystem!");
-    Serial.println("Was the flash chip formatted with the SdFat_format example?");
+    logger.error("Error, failed to mount filesystem.");
+    logger.error("Was the flash chip formatted with the SdFat_format example?");
     return 0;
   }
 
@@ -459,17 +442,15 @@ int SaveRestore::openFlash() {
   // Note you should _not_ add a trailing slash (like '/test/') to directory names.
   // You can use the exists() function to check for the existence of a file.
   if (!gFatfs.exists(CONFIG_FOLDER)) {
-    Serial.println(". Configuration directory not found, creating...");
+    logger.info(". Configuration directory not found, creating...");
     gFatfs.mkdir(CONFIG_FOLDER);   // Use mkdir to create directory (note you should _not_ have a trailing slash)
 
     if (!gFatfs.exists(CONFIG_FOLDER)) {
-      Serial.print("Error, failed to create directory (");
+      logger.error("Error, failed to create directory ", CONFIG_FOLDER);
       return 0;
     } else {
-      Serial.print(". Created directory (");
+      logger.info(". Created directory ", CONFIG_FOLDER);
     }
-    Serial.print(CONFIG_FOLDER);
-    Serial.println(")");
   }
   return 1;   // indicate success
 }
