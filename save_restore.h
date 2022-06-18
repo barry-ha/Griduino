@@ -114,8 +114,11 @@ public:
   ~SaveRestoreStrings() {}
 
   int open(const char *filename, const char *mode);   // https://cplusplus.com/reference/cstdio/fopen/
-  int writeLine(char *pBuffer);                       // https://cplusplus.com/reference/cstdio/snprintf/
+  int writeLine(const char *pBuffer);                 // https://cplusplus.com/reference/cstdio/snprintf/
   int readLine(char *pBuffer, int bufflen);           // https://cplusplus.com/reference/cstdio/gets/
+  uint8_t getError() {
+    return handle.getError();
+   }
   void close();
 
 protected:
