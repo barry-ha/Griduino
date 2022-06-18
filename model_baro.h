@@ -101,18 +101,18 @@ public:
   // init BMP388 or BMP390 barometer
   int begin(void) {
     int rc = 1;   // assume success
-    //logger.fencepost("model_baro.h", __LINE__);
+    // logger.fencepost("model_baro.h", __LINE__);
     if (baro->begin_SPI(bmp_cs)) {
-      //logger.fencepost("model_baro.h", __LINE__);
-      // Bosch BMP388 datasheet:
-      //      https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bmp388-ds001.pdf
-      // IIR:
-      //      An "infinite impulse response" filter intended to remove short-term
-      //      fluctuations in pressure, e.g. caused by slamming a door or wind blowing
-      //      on the sensor.
-      // Oversampling:
-      //      Each oversampling step reduces noise and increases output resolution
-      //      by one bit.
+      // logger.fencepost("model_baro.h", __LINE__);
+      //  Bosch BMP388 datasheet:
+      //       https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bmp388-ds001.pdf
+      //  IIR:
+      //       An "infinite impulse response" filter intended to remove short-term
+      //       fluctuations in pressure, e.g. caused by slamming a door or wind blowing
+      //       on the sensor.
+      //  Oversampling:
+      //       Each oversampling step reduces noise and increases output resolution
+      //       by one bit.
       //
 
       // ----- Settings recommended by Bosch based on use case for "handheld device dynamic"
@@ -122,7 +122,7 @@ public:
       baro->setPressureOversampling(BMP3_OVERSAMPLING_4X);
       baro->setIIRFilterCoeff(BMP3_IIR_FILTER_COEFF_7);   // was 3, too busy
       baro->setOutputDataRate(BMP3_ODR_50_HZ);
-      //logger.fencepost("model_baro.h", __LINE__);
+      // logger.fencepost("model_baro.h", __LINE__);
 
       /*****
         // ----- Settings from Adafruit example
@@ -154,7 +154,7 @@ public:
       logger.error("Error, unable to initialize BMP388 / BMP390, check the wiring");
       rc = 0;   // return failure
     }
-    //logger.fencepost("model_baro.h", __LINE__);
+    // logger.fencepost("model_baro.h", __LINE__);
     return rc;
   }
 

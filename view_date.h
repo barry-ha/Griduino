@@ -5,27 +5,27 @@
   Special Event Calendar Count - "How many days since Groundhog Day 2020"
             or "How many days until June VHF Contest"
 
-  Version history: 
-            2021-06-24 added multiple choices of count-down-to-date 
+  Version history:
+            2021-06-24 added multiple choices of count-down-to-date
             2020-10-15 refactored from .cpp to .h
             2020-10-02 created
 
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
 
-  Purpose:  This is a frivolous calendar display showing the number 
-            of days in a row that we've celebrated some special event. 
-            I happen to be amused by wishing people "Happy Groundhog Day" 
-            during the pandemic and self-isolation. This is a reference to 
-            the film "Groundhog Day," a 1993 comedy starring Bill Murray who 
-            is caught in a time loop and relives February 2 repeatedly. 
+  Purpose:  This is a frivolous calendar display showing the number
+            of days in a row that we've celebrated some special event.
+            I happen to be amused by wishing people "Happy Groundhog Day"
+            during the pandemic and self-isolation. This is a reference to
+            the film "Groundhog Day," a 1993 comedy starring Bill Murray who
+            is caught in a time loop and relives February 2 repeatedly.
             The first cases of covid-19 were reported near the end of January
             in Washington State near where I live. So Feb 2 is a reasonable
             stand-in for the start of the pandemic.
 
             This is "total days spanned" and not "days since the event".
             The difference is whether or not the first day is included in the count.
-            I want Feb 2 as "Groundhog Day #1" and Feb 3 as "Groundhog Day #2." 
+            I want Feb 2 as "Groundhog Day #1" and Feb 3 as "Groundhog Day #2."
             In contrast, calculating "days since" would show Feb 3 as Day #1.
 
   Inspired by: https://days.to/groundhog-day/2020
@@ -46,10 +46,10 @@
             |               Today is                  |
             | -7h          Oct 2, 2020             6# |
             +-----------------------------------------+
-   
+
   Units of Time:
          This relies on "TimeLib.h" which uses "time_t" to represent time.
-         The basic unit of time (time_t) is the number of seconds since Jan 1, 1970, 
+         The basic unit of time (time_t) is the number of seconds since Jan 1, 1970,
          a compact 4-byte integer.
          https://github.com/PaulStoffregen/Time
 
@@ -89,7 +89,7 @@ DefinedEvent aug_microwave{
     "Countdown to",
     "Aug 13, 2022, 6 am local",
     "ARRL 10 GHz & Up Contest",
-    //s,m,h, dow, dd, mm, yy
+    // s,m,h, dow, dd, mm, yy
     {0, 0, 13, 1, 21, 8, 2022 - 1970},
 };
 
@@ -102,7 +102,7 @@ DefinedEvent sept_vhf{
     "Countdown to",
     "Sept 10, 2022 at 1800z",
     "ARRL Sept VHF Contest",
-    //s,m,h, dow, dd, mm, yy
+    // s,m,h, dow, dd, mm, yy
     {0, 0, 18, 1, 10, 9, 2022 - 1970},
 };
 
@@ -115,7 +115,7 @@ DefinedEvent june_vhf{
     "Countdown to",
     "June 11, 2022 at 1800z",
     "ARRL June VHF Contest",
-    //s,m,h, dow, dd, mm, yy GMT
+    // s,m,h, dow, dd, mm, yy GMT
     {0, 0, 18, 1, 11, 6, 2022 - 1970},
 };
 
@@ -126,7 +126,7 @@ DefinedEvent groundhog{
     "Total days including",
     "Sunday, Feb 2, 2020",
     "Groundhog Day",
-    //s,m,h, dow, dd, mm, yy
+    // s,m,h, dow, dd, mm, yy
     {0, 0, 7, 1, 1, 2, 2020 - 1970},   // Use the day before Feb 2, so the counter includes "Groundhog Day #1" on 2/2/2020
 };
 
@@ -137,7 +137,7 @@ DefinedEvent halloween{
     "Countdown to",
     "Halloween 6pm",
     "Days til Trick'r Treaters",
-    //s,m,h,     dow, dd, mm, yy
+    // s,m,h,     dow, dd, mm, yy
     {0, 0, 7 + 18, 1, 31, 10, 2022 - 1970},   // 6pm Halloween in Pacific time (encoded in GMT by adding 7 hours)
 };
 
@@ -148,7 +148,7 @@ DefinedEvent christmas{
     "Countdown to",
     "Santa's Arrival",
     "Christmas Eve",
-    //s,m,h,    dow, dd, mm, yy
+    // s,m,h,    dow, dd, mm, yy
     {0, 0, 7 + 0, 1, 25, 12, 2022 - 1970},   // Midnight in Pacific time (encoded in GMT by adding 7 hours)
 };
 
@@ -159,7 +159,7 @@ DefinedEvent valentines{
     "Countdown to",
     "Monday, Feb 14, 2023",
     "Valentine's Day",
-    //s,m,h,    dow, dd, mm, yy
+    // s,m,h,    dow, dd, mm, yy
     {0, 0, 7 + 0, 1, 14, 02, 2022 - 1970},   // Midnight in Pacific time (encoded in GMT by adding 7 hours PDT)
 };
 
@@ -170,9 +170,9 @@ DefinedEvent eventList[] = {
     sept_vhf,
     june_vhf,
     groundhog,
-    //halloween,
+    // halloween,
     christmas,
-    //valentines,
+    // valentines,
 };
 
 // ----- choose target event
@@ -195,8 +195,8 @@ public:
   void startScreen();
   void endScreen();
   bool onTouch(Point touch);
-  //void loadConfig();
-  //void saveConfig();
+  // void loadConfig();
+  // void saveConfig();
 
 protected:
   // ---------- local data for this derived class ----------
@@ -307,9 +307,9 @@ void ViewDate::updateScreen() {
   }
 
   //                       s,m,h, dow, d,m,y
-  //TimeElements eventGMT{ 1,1,1,  1,  2,2,2020-1970};    // GMT Groundhog Day
-  //meElements todaysDate{ 1,1,1,  1,  2,2,2020-1970};    // debug: verify the first Groundhog Day is "day #1"
-  //meElements todaysDate{ 1,1,1,  1,  2,10,2020-1970};   // debug: verify Oct 2nd is "day #244" i.e. one more than shown on https://days.to/groundhog-day/2020
+  // TimeElements eventGMT{ 1,1,1,  1,  2,2,2020-1970};    // GMT Groundhog Day
+  // meElements todaysDate{ 1,1,1,  1,  2,2,2020-1970};    // debug: verify the first Groundhog Day is "day #1"
+  // meElements todaysDate{ 1,1,1,  1,  2,10,2020-1970};   // debug: verify Oct 2nd is "day #244" i.e. one more than shown on https://days.to/groundhog-day/2020
   TimeElements todaysDate{GPS.seconds, GPS.minute, GPS.hour,
                           1, GPS.day, GPS.month, (byte)(2000 - 1970 + GPS.year)};   // GMT current date/time
 
@@ -326,10 +326,10 @@ void ViewDate::updateScreen() {
   }
 
   int elapsedDays = elapsed / SECS_PER_DAY;
-  //if (GPS.seconds == 0) {   // debug
-  //  Serial.print("elapsed time count: ");
-  //  Serial.println((int)elapsed);   // typecast to int, required by compiler
-  //}
+  // if (GPS.seconds == 0) {   // debug
+  //   Serial.print("elapsed time count: ");
+  //   Serial.println((int)elapsed);   // typecast to int, required by compiler
+  // }
   char sTime[24];   // strlen("01:23:45") = 8
   getTimeElapsed(sTime, sizeof(sTime), elapsed);
 
@@ -358,7 +358,7 @@ void ViewDate::updateScreen() {
   // change colors by number of birds
   txtDate[NUMSATS].color = (model->gSatellites < 1) ? cWARN : cFAINT;
   txtDate[NUMSATS].print(sBirds);
-  //txtDate[NUMSATS].dump();          // debug
+  // txtDate[NUMSATS].dump();          // debug
 }
 
 void ViewDate::startScreen() {
@@ -410,7 +410,7 @@ void ViewDate::endScreen() {
   // For the altimeter view, save our settings here instead of on each
   // button press because writing to NVR is slow (0.5 sec) and would delay the user
   // while trying to press a button many times in a row.
-  //saveConfig();   // todo - save/restore which of several count-down displays is active
+  // saveConfig();   // todo - save/restore which of several count-down displays is active
 }
 
 bool ViewDate::onTouch(Point touch) {
@@ -436,7 +436,7 @@ bool ViewDate::onTouch(Point touch) {
     }
   }
   if (!handled) {
-    //Serial.println("No match to my hit targets.");   // debug
+    // Serial.println("No match to my hit targets.");   // debug
   }
   return handled;   // true=handled, false=controller uses default action
 }   // end onTouch()

@@ -162,7 +162,7 @@ public:
     int count;
     while (count = config.readLine(csv_line, sizeof(csv_line)) && nextHistoryItem < numHistory) {
       // save for possible console messages because 'strtok' will modify buffer
-      strncpy(original_line, csv_line, sizeof(original_line));  
+      strncpy(original_line, csv_line, sizeof(original_line));
       char msg[256];
       if (count == 0) {
         logger.info(". EOF");
@@ -172,7 +172,7 @@ public:
         logger.error(". File error %d", err);   // 1=write, 2=read
         break;
       } else {
-        // snprintf(msg, sizeof(msg), ". CSV string[%2d] = \"%s\"", 
+        // snprintf(msg, sizeof(msg), ". CSV string[%2d] = \"%s\"",
         //                               csv_line_number, csv_line); // debug
         // logger.info(msg);  // debug
         int iYear4        = atoi(strtok(csv_line, delimiter));   // YYYY: calendar year
@@ -207,9 +207,9 @@ public:
           nextHistoryItem++;
           items_restored++;
         } else {
-          snprintf(msg, sizeof(msg), ". CSV string[%2d] = \"%s\" - ignored", 
-                                       csv_line_number, original_line); // debug
-          logger.warning(msg);  // debug
+          snprintf(msg, sizeof(msg), ". CSV string[%2d] = \"%s\" - ignored",
+                   csv_line_number, original_line);   // debug
+          logger.warning(msg);                        // debug
         }
       }
       csv_line[0] = 0;

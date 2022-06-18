@@ -1,8 +1,8 @@
 // Please format this file with clang before check-in to GitHub
 /*
   File:     view_altimeter.h
-  
-  Version history: 
+
+  Version history:
             2021-02-06 merged from examples/altimeter into a Griduino view
             2021-01-30 added support for BMP390 and latest Adafruit_BMP3XX library
             2020-05-12 updated TouchScreen code
@@ -11,7 +11,7 @@
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
 
-  Purpose:  Display altimeter readings on a 3.2" display. 
+  Purpose:  Display altimeter readings on a 3.2" display.
             Show comparison of Barometric result to GPS result.
             - Barometer reading requires frequent calibration with a known altitude or sea level pressure.
             - GPS result can vary by a few hundred feet depending on satellites overhead.
@@ -282,15 +282,15 @@ void ViewAltimeter::updateScreen() {
 
   // read altitude from barometer and GPS, and display everything
   float pascals = baroModel.getBaroPressure();   // get pressure, causing BMP3XX to take a fresh reading from sensor
-  //Serial.print("Altimeter: "); Serial.print(pascals); Serial.print(" Pa [view_altimeter.h "); Serial.print(__LINE__); Serial.println("]"); // debug
+  // Serial.print("Altimeter: "); Serial.print(pascals); Serial.print(" Pa [view_altimeter.h "); Serial.print(__LINE__); Serial.println("]"); // debug
 
   char msg[16];   // strlen("12,345.6 meters") = 15
 
   float altMeters = baroModel.getAltitude(sealevelPa);
   float altFeet   = altMeters * feetPerMeters;
-  //altMeters += 2000;              // debug, helps test layout with large numbers
-  //altFeet += 2000;                // debug
-  //Serial.print("Altimeter: "); Serial.print(altFeet); Serial.print(" ft [viewaltimeter.h "); Serial.print(__LINE__); Serial.println("]"); // debug
+  // altMeters += 2000;              // debug, helps test layout with large numbers
+  // altFeet += 2000;                // debug
+  // Serial.print("Altimeter: "); Serial.print(altFeet); Serial.print(" ft [viewaltimeter.h "); Serial.print(__LINE__); Serial.println("]"); // debug
   if (model->gMetric) {
     int precision = (abs(altMeters) < 10) ? 1 : 0;
     txtAltimeter[eBaroValue].print(altMeters, precision);
@@ -326,7 +326,7 @@ void ViewAltimeter::updateScreen() {
 void ViewAltimeter::startScreen() {
   // called once each time this view becomes active
   loadConfig();   // restore our settings from NVR
-  //this->sealevelPa = DEFAULT_SEALEVEL_PASCALS;  // debug: one-time override NVR
+  // this->sealevelPa = DEFAULT_SEALEVEL_PASCALS;  // debug: one-time override NVR
   this->clearScreen(this->background);                     // clear screen
   txtAltimeter[0].setBackground(this->background);         // set background for all TextFields in this view
   TextField::setTextDirty(txtAltimeter, nTextAltimeter);   // make sure all fields get re-printed on screen change

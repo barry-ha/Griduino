@@ -4,7 +4,7 @@
 
   GMT_clock - bright colorful Greenwich Mean Time based on GPS
 
-  Version history: 
+  Version history:
             2021-07-11 fixed saving local time zone offset
             2020-10-15 refactored from .cpp to .h
             2020-04-22 created
@@ -18,7 +18,7 @@
   Hardware: John Vanderbeck, KM7O, Seattle, WA
 
   Purpose:  This is a bright colorful GMT clock for your shack
-            or dashboard. After all, once a rover arrives at a 
+            or dashboard. After all, once a rover arrives at a
             destination they no longer need grid square navigation.
 
             +-----------------------------------------+
@@ -36,7 +36,7 @@
             +-------+                         +-------+
             | +1 hr |    Local: HH:MM:SS      | -1 hr |
             +-------+-------------------------+-------+
-   
+
 */
 
 #include <Adafruit_ILI9341.h>   // TFT color display library
@@ -65,8 +65,8 @@ public:
   void startScreen();
   void endScreen();
   bool onTouch(Point touch);
-  //void loadConfig();
-  //void saveConfig();
+  // void loadConfig();
+  // void saveConfig();
 
 protected:
   // ---------- local data for this derived class ----------
@@ -190,7 +190,7 @@ void ViewTime::updateScreen() {
   // change colors by number of birds
   txtClock[NUMSATS].color = (model->gSatellites < 1) ? cWARN : cFAINT;
   txtClock[NUMSATS].print(sBirds);
-  //txtClock[NUMSATS].dump();         // debug
+  // txtClock[NUMSATS].dump();         // debug
 }   // end updateScreen
 
 void ViewTime::startScreen() {
