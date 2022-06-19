@@ -287,26 +287,6 @@ public:
     gTimeZone         = from.gTimeZone;           // offset from GMT to local time
     compare4digits    = from.compare4digits;      //
     gSeaLevelPressure = from.gSeaLevelPressure;   // hPa
-
-    /******************* TODO: rewrite for CSV
-        logger.info(". Copying %d items from saved GPS history", numHistory);
-
-        for (int ii = 0; ii < numHistory; ii++) {   // todo: rewrite for CSV file
-          // printLocation(ii, from.history[ii]);   // debug
-          history[ii].loc       = from.history[ii].loc;   // copy contents
-          history[ii].timestamp = from.history[ii].timestamp;
-        }
-
-        logger.info(". nextHistoryItem = ", from.nextHistoryItem);
-        nextHistoryItem = from.nextHistoryItem;
-        if (nextHistoryItem >= numHistory) {
-          char msg[256];
-          snprintf(msg, sizeof(msg), ". Error! Expected nextHistoryItem < %d but got %d",
-                   numHistory, nextHistoryItem);
-          logger.error(msg);
-          nextHistoryItem = 0;   // reset index, ignore restored erroneous value
-        }
-    ******************** end TODO */
   }
 
   // sanity check data from NVR
