@@ -16,8 +16,8 @@
 
 // ========== extern ===========================================
 extern Adafruit_GPS GPS;       // Griduino.ino
-extern Location history[];     // Griduino.ino GPS breadcrumb trail
-extern const int numHistory;   // Griduino.ino
+extern Location history[];     // Griduino.ino, GPS breadcrumb trail
+extern const int numHistory;   // Griduino.ino, number of elements in history[]
 extern Logger logger;          // Griduino.ino
 
 void calcLocator(char *result, double lat, double lon, int precision);               // Griduino.ino
@@ -80,7 +80,7 @@ public:
   const char HISTORY_VERSION[25] = "GPS Breadcrumb Trail v1";         // <-- always change version when changing data format
 
   // ----- save entire GPS state to non-volatile memory -----
-  int save() {
+  int save() {   // returns 1=success, 0=failure
     SaveRestore sdram(MODEL_FILE, MODEL_VERS);
     if (sdram.writeConfig((byte *)this, sizeof(Model))) {
       // Serial.println("Success, GPS Model object stored to SDRAM");
@@ -92,7 +92,7 @@ public:
     return 1;   // return success
   }
 
-  int saveGPSBreadcrumbTrail() {
+  int saveGPSBreadcrumbTrail() {   // returns 1=success, 0=failure
     // save history[] to CSV file
     // dumpHistoryGPS();   // debug
 
@@ -142,7 +142,7 @@ public:
     return 1;   // success
   }
 
-  int restoreGPSBreadcrumbTrail() {   // TODO: restore history[] array
+  int restoreGPSBreadcrumbTrail() {   // returns 1=success, 0=failure
     // clear breadcrumb memory
     nextHistoryItem = 0;
     for (uint ii = 0; ii < numHistory; ii++) {
@@ -150,7 +150,13 @@ public:
     }
     // open file
     SaveRestoreStrings config(HISTORY_FILE, HISTORY_VERSION);
-    config.open(HISTORY_FILE, "r");
+    if (!config.open(HISTORY_FILE, "r")) {
+      logger.error("SaveRestoreStrings::open() failed to open ", HISTORY_FILE);
+
+      // most likely error is 'file not found' so create a new one for next time
+      saveGPSBreadcrumbTrail();
+      return 0;
+    }
 
     // read file line-by-line, ignoring lines we don't understand
     // for maximum compatibility across versions, there's no "version check"
@@ -160,16 +166,21 @@ public:
     char csv_line[256], original_line[256];
     const char delimiter[] = ",/:";
     int count;
-    while (count = config.readLine(csv_line, sizeof(csv_line)) && nextHistoryItem < numHistory) {
-      // save for possible console messages because 'strtok' will modify buffer
+    bool done = false;
+    while (count = config.readLine(csv_line, sizeof(csv_line)) && !done) {
+      // save line for possible console messages because 'strtok' will modify buffer
       strncpy(original_line, csv_line, sizeof(original_line));
+
+      // process line according to # bytes read
       char msg[256];
       if (count == 0) {
         logger.info(". EOF");
+        done = true;
         break;
       } else if (count < 0) {
         int err = config.getError();
         logger.error(". File error %d", err);   // 1=write, 2=read
+        done = true;
         break;
       } else {
         // snprintf(msg, sizeof(msg), ". CSV string[%2d] = \"%s\"",
@@ -214,10 +225,23 @@ public:
       }
       csv_line[0] = 0;
       csv_line_number++;
+      if (nextHistoryItem >= numHistory) {
+        done = true;
+      }
     }
     logger.info(". Restored %d breadcrumbs from %d lines in CSV file", items_restored, csv_line_number);
     // logger.info(". Oldest date ", oldest_date);
     // logger.info(". Newest date ", most_recent_date);
+
+    // This "restore" design will always fill the history[] from 0..N.
+    // So make sure the /next/ GPS point logged goes into the next open slot
+    // and doesn't overwrite any of the existing data
+    if (nextHistoryItem < numHistory) {
+      nextHistoryItem = items_restored;
+    } else {
+      // TODO: find the oldest item and start overwriting there
+      nextHistoryItem = 0;
+    }
 
     // close file
     config.close();
@@ -804,7 +828,7 @@ public:
     gHaveGPSfix = true;   // indicate 'fix' whether the GPS hardware sees
                           // any satellites or not, so the simulator can work
                           // indoors all the time for everybody
-    // set initial condx, just in case following code does not
+    // set initial conditions, just in case following code does not
     gLatitude  = llCN87.lat;
     gLongitude = llCN87.lng;
     gAltitude  = GPS.altitude;
@@ -819,7 +843,7 @@ public:
       // one-time single initialization
       startTime = millis();
     }
-    float secondHand = (millis() - startTime) / 1000.0;   // count seconds since bootup
+    float secondHand = (millis() - startTime) / 1000.0;   // count seconds since start-up
 
     switch (4) {
     // Simulated GPS readings

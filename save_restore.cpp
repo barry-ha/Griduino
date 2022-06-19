@@ -47,12 +47,12 @@ extern Logger logger;   // Griduino.ino
 static void dumpHex(const char *text, char *buff, int len) {
 // debug helper to put data on console
 #ifdef RUN_UNIT_TESTS
-  char sout[128];
-  snprintf(sout, sizeof(sout), ". %s [%d] : '%s' : ", text, len, buff);
-  Serial.print(sout);
+  char out[128];
+  snprintf(out, sizeof(out), ". %s [%d] : '%s' : ", text, len, buff);
+  Serial.print(out);
   for (int i = 0; i < len; i++) {
-    sprintf(sout, "%02x ", buff[i]);
-    Serial.print(sout);
+    sprintf(out, "%02x ", buff[i]);
+    Serial.print(out);
   }
   Serial.println("");
 #endif
