@@ -41,7 +41,7 @@ enum {
 class Logger {
 
 public:
-  bool print_nmea      = false;
+  bool print_nmea      = true;    // set TRUE for NmeaTime2 by www.visualgps.net
   bool print_gmt       = false;
   bool print_fencepost = true;
   bool print_debug     = true;
@@ -65,6 +65,10 @@ public:
       //    DD:MM:YY          Altitude
       //
       if (strncmp("$GPRMC", pText, 6) == 0) {
+        Serial.print(pText);
+      }
+      // to support NMEATime2 by www.visualgps, we also need $GPGGA
+      if (strncmp("$GPGGA", pText, 6) == 0) {
         Serial.print(pText);
       }
     }
