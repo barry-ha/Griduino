@@ -8,22 +8,30 @@ Version numbers correspond to [Downloads](https://github.com/barry-ha/Griduino/t
 
 The changelog format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and the Griduino project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+**v1.09 beta** &nbsp; 2022-06-21
+
+Fixed: Hang on Hint screen (If this has any problems, please run v1.06 instead.)
+
+New: Doubled the size of the GPS bread crumb trail. It'll retain about 1,500 miles of GPS history before overwriting the oldest spot in its circular buffer.
+
+New: Griduino can automatically and continually update your computer's time of day. It requires you to install NMEATime2, available from www.visualgps.com and is free for 30 days then purchased for about $20. Please try it out and send me comments about this beta test.
+
 **v1.08** &nbsp; 2022-06-07
 
-Fixed: A rare condition in some Griduinos running v1.07 causes it to hang on the startup Hint screen. This doesn't happen often, but if starts then it will always hang during boot.
+Not Quite Fixed: A rare condition in some Griduinos running v1.07 causes it to hang on the startup Hint screen. This doesn't happen often, but if starts then it will always hang during boot. The problem tends to occur after driving for some distance, perhaps about a hundred miles.
 
-Version 1.08 is recommended for all users.
+Version 1.08 is not recommended for any users.
 
 **v1.07** &nbsp; 2022-02-28
 
 New: Added terminal session commands. Now you can open a terminal session to Griduino, such as the Serial Monitor in the Arduino IDE. Type a command and Griduino will respond. 
 
-**help** command will list all supported commands:
+**help** - list all supported commands:
 
     10:06:08.730 -> help: Available commands are:
     10:06:08.730 -> help, version, dump kml, dump gps, list, start nmea, stop nmea, start gmt, stop gmt
 
-**version** command will report build information:
+**version** - report build information:
 
     10:06:11.636 -> version: Griduino v1.07
     10:06:11.636 -> Compiled Feb 28 2022 10:04:39
@@ -31,7 +39,7 @@ New: Added terminal session commands. Now you can open a terminal session to Gri
     10:06:11.636 -> C:\Users\barry\Documents\Arduino\Griduino\Griduino.ino
     10:06:11.636 -> https://github.com/barry-ha/Griduino
 
-**dump kml** command will list all the recorded GPS readings in text that is compatible with KML (keyhole markup language) for Google Earth and other mapping programs. This is intended for the Griduino Desktop program; to use it independently you can copy/paste this into a text file. For example:
+**dump kml** - list all the recorded GPS readings in text that is compatible with KML (keyhole markup language) for Google Earth and other mapping programs. This is intended for the Griduino Desktop program; to use it independently you can copy/paste this into a text file. For example:
 
     10:13:19.195 -> dump kml: <?xml version="1.0" encoding="UTF-8"?>
     10:13:19.195 -> <kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2" xmlns:kml="http://www.opengis.net/kml/2.2" xmlns:atom="http://www.w3.org/2005/Atom">
@@ -80,7 +88,7 @@ New: Added terminal session commands. Now you can open a terminal session to Gri
     10:13:19.195 -> </Document>
     10:13:19.195 -> </kml>
 
-**start nmea** and  **stop nmea** commands will echo raw NMEA sentences to the console. This is intended for the Griduino Desktop program. For example:
+**start nmea** and  **stop nmea** - echo raw NMEA sentences to the console. This is intended for the Griduino Desktop program and for NMEATime2 by www.visualgps.com. For example:
 
     10:17:33.996 -> start nmea: started
     10:17:34.463 -> $GPRMC,181734.000,A,4745.1831,N,12217.0822,W,0.28,31.44,280222,,,A*42
@@ -89,7 +97,7 @@ New: Added terminal session commands. Now you can open a terminal session to Gri
     10:17:37.491 -> $GPRMC,181737.000,A,4745.1833,N,12217.0823,W,0.47,81.89,280222,,,A*41
     10:17:38.465 -> $GPRMC,181738.000,A,4745.1833,N,12217.0821,W,0.36,93.99,280222,,,A*48
 
-**start gmt** and **stop gmt** commands will echo the Griduino RTC (real time clock) to the console. This is intended for the Griduino Desktop program. For example:
+**start gmt** and **stop gmt** - echo the Griduino RTC (real time clock) to the console. This is intended for the Griduino Desktop program. For example:
 
     10:18:59.871 -> start gmt: started
     10:19:00.271 -> 2022-02-28 18:18:59+00:00
@@ -97,7 +105,7 @@ New: Added terminal session commands. Now you can open a terminal session to Gri
     10:19:02.276 -> 2022-02-28 18:19:01+00:00
     10:19:03.272 -> 2022-02-28 18:19:02+00:00
 
-**list** command will report SDRAM usage. This is mainly for debugging file problems, such as when the 2 MB file system is nearly full:
+**list** - report SDRAM usage. This is mainly for debugging file problems, such as when the 2 MB file system is nearly full:
 
     10:06:12.937 -> list: 
     10:06:12.937 -> Directory of Griduino
@@ -105,7 +113,8 @@ New: Added terminal session commands. Now you can open a terminal session to Gri
     10:06:12.937 ->          100 volume.cfg
     10:06:12.937 ->           97 announce.cfg
     10:06:12.937 ->         6240 barometr.dat
-    10:06:12.937 ->        19416 gpsmodel.cfg
+    10:06:12.937 ->          280 gpsmodel.cfg
+    10:06:12.937 ->         1421 gpshistory.csv
     10:06:12.937 ->         1240 ten_mile.cfg
     10:06:12.937 ->          100 barogrph.cfg
     10:06:12.937 ->            7 Files, 27293 bytes
