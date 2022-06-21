@@ -230,18 +230,45 @@ public:
       }
     }
     logger.info(". Restored %d breadcrumbs from %d lines in CSV file", items_restored, csv_line_number);
-    // logger.info(". Oldest date ", oldest_date);
-    // logger.info(". Newest date ", most_recent_date);
 
-    // This "restore" design will always fill the history[] from 0..N.
-    // So make sure the /next/ GPS point logged goes into the next open slot
-    // and doesn't overwrite any of the existing data
-    if (nextHistoryItem < numHistory) {
-      nextHistoryItem = items_restored;
-    } else {
-      // TODO: find the oldest item and start overwriting there
-      nextHistoryItem = 0;
+    // This "restore" design always fills history[] from 0..N.
+    // Make sure the /next/ GPS point logged goes into the next open slot
+    // and doesn't overwrite any historical data.
+    int indexOldest = 0;                             // default to start
+    TimeElements future{59, 59, 23, 0, 1, 1, 255};   // maximum date = year(1970 + 255) = 2,225
+    time_t oldest = makeTime(future);
+
+    int indexNewest = 0;                      // default to start
+    TimeElements past{0, 0, 0, 0, 0, 0, 0};   // minimum date = Jan 1, 1970
+    time_t newest = makeTime(past);
+
+    // find the oldest item (unused slots contain zero and are automatically the oldest)
+    for (int ii = 0; ii < numHistory; ii++) {
+      time_t tm = history[ii].timestamp;
+      if (tm < oldest) {
+        // keep track of oldest GPS bread crumb
+        indexOldest = ii;
+        oldest      = tm;
+      }
+      if (tm > newest) {
+        // keep track of most recent GPS bread crumb, out of curiosity
+        indexNewest = ii;
+        newest      = tm;
+      }
     }
+    // here's the real meat of the potato
+    nextHistoryItem = indexOldest;   
+
+    // report statistics for a visible sanity check to aid debug
+    char sOldest[24], sNewest[24];
+    dateToString(sOldest, sizeof(sOldest), oldest);
+    dateToString(sNewest, sizeof(sNewest), newest);
+
+    char msg1[256], msg2[256];   
+    snprintf(msg1, sizeof(msg1), ". Oldest date = history[%d] = %s", indexOldest, sOldest);
+    snprintf(msg2, sizeof(msg2), ". Newest date = history[%d] = %s", indexNewest, sNewest);
+    logger.info(msg1);
+    logger.info(msg2);
 
     // close file
     config.close();
