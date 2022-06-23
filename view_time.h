@@ -1,6 +1,6 @@
-// Please format this file with clang before check-in to GitHub
+#pragma once   // Please format this file with clang before check-in to GitHub
 /*
-  File:     view_time.cpp
+  File:     view_time.h
 
   GMT_clock - bright colorful Greenwich Mean Time based on GPS
 
@@ -41,13 +41,15 @@
 
 #include <Adafruit_ILI9341.h>   // TFT color display library
 #include "constants.h"          // Griduino constants and colors
+#include "logger.h"             // conditional printing to Serial port
 #include "model_gps.h"          // Model of a GPS for model-view-controller
 #include "save_restore.h"       // Save configuration in non-volatile RAM
 #include "TextField.h"          // Optimize TFT display text for proportional fonts
 #include "view.h"               // Base class for all views
 
 // ========== extern ===========================================
-extern Model *model;   // "model" portion of model-view-controller
+extern Logger logger;   // Griduino.ino
+extern Model *model;    // "model" portion of model-view-controller
 
 extern void showDefaultTouchTargets();           // Griduino.ino
 extern void getDate(char *result, int maxlen);   // model_gps.h
@@ -121,33 +123,6 @@ protected:
       {"+", 66, 204, 36, 30, {30, 180, 110, 59}, 4, cTEXTCOLOR, etimeZonePlus},      // Up
       {"-", 226, 204, 36, 30, {190, 180, 110, 59}, 4, cTEXTCOLOR, etimeZoneMinus},   // Down
   };
-
-  // ----- helpers -----
-  /* 2020-10-15 bwh - moved this into model_gps.h since it's used by multiple views
-    #define TIME_FOLDER  "/GMTclock"     // 8.3 names
-    #define TIME_FILE    TIME_FOLDER "/AddHours.cfg"
-    #define TIME_VERSION "v01"
-
-    void timeZonePlus() {
-      model->gTimeZone++;
-      if (gTimeZone > 12) {
-        gTimeZone = -11;
-      }
-      Serial.print("Time zone changed to "); Serial.println(gTimeZone);
-      //SaveRestore myconfig = SaveRestore(TIME_FOLDER, TIME_FILE, TIME_VERSION, gTimeZone);  // todo
-      //myconfig.writeConfig(); // todo
-    }
-
-    void timeZoneMinus() {
-      gTimeZone--;
-      if (gTimeZone < -12) {
-        gTimeZone = 11;
-      }
-      Serial.print("Time zone changed to "); Serial.println(gTimeZone);
-      //SaveRestore myconfig = SaveRestore(TIME_FOLDER, TIME_FILE, TIME_VERSION, gTimeZone);  // todo
-      //myconfig.writeConfig(); // todo
-    }
-    */
 
 };   // end class ViewTime
 
@@ -249,7 +224,7 @@ void ViewTime::endScreen() {
 }
 
 bool ViewTime::onTouch(Point touch) {
-  Serial.println("->->-> Touched time screen.");
+  logger.info("->->-> Touched time screen.");
 
   bool handled = false;   // assume a touch target was not hit
   for (int ii = 0; ii < nTimeButtons; ii++) {
@@ -265,8 +240,7 @@ bool ViewTime::onTouch(Point touch) {
         model->timeZoneMinus();
         break;
       default:
-        Serial.print("Error, unknown function ");
-        Serial.println(item.functionIndex);
+        logger.error("Error, unknown function ", item.functionIndex);
         break;
       }
       updateScreen();   // show the result

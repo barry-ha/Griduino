@@ -1,37 +1,39 @@
 /*
-  File: view_grid_screen.cpp
+  File:     view_grid.cpp
 
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
 
-  Purpose:  This sketch runs a GPS display for your vehicle's dashboard to
+  Purpose:  This is a GPS display for your vehicle's dashboard to
             show your position in the Maidenhead Grid Square, with distances
             to nearby squares. This is intended for ham radio rovers.
 
-  +-------------------------------------------+
-  |    -124        CN88  30.1 mi     -122     |...gTopRowY
-  |   48 +-----------------------------+......|...gMarginY
-  |      |                          *  |      |
-  | CN77 |         CN87                | CN97 |...gMiddleRowY
-  | 61.2 |          us                 | 37.1 |
-  |      |                             |      |
-  |   47 +-----------------------------+      |
-  | 123' :         CN86  39.0 mi       :  75° |...gBottomGridY
-  | 47.5644, -122.0378                 :   5# |...gMessageRowY
-  +------:---------:-------------------:------+
-         :         :                   :
-       +gMarginX  gIndentX          -gMarginX
+            +-------------------------------------------+
+            |    -124        CN88  30.1 mi     -122     |...gTopRowY
+            |   48 +-----------------------------+......|...gMarginY
+            |      |                          *  |      |
+            | CN77 |         CN87                | CN97 |...gMiddleRowY
+            | 61.2 |          us                 | 37.1 |
+            |      |                             |      |
+            |   47 +-----------------------------+      |
+            | 123' :         CN86  39.0 mi       :  75° |...gBottomGridY
+            | 47.5644, -122.0378                 :   5# |...gMessageRowY
+            +------:---------:-------------------:------+
+                   :         :                   :
+                 +gMarginX  gIndentX          -gMarginX
 */
 
 #include <Arduino.h>
 #include <Adafruit_ILI9341.h>         // TFT color display library
 #include "constants.h"                // Griduino constants and colors
+#include "logger.h"                   // conditional printing to Serial port
 #include "model_gps.h"                // Model of a GPS for model-view-controller
 #include "model_baro.h"               // Model of a barometer that measures temperature
 #include "TextField.h"                // Optimize TFT display text for proportional fonts
 #include "view.h"                     // Base class for all views
 
 // ========== extern ===========================================
+extern Logger logger;                 // Griduino.ino
 extern Adafruit_ILI9341 tft;          // Griduino.ino
 extern Model* model;                  // "model" portion of model-view-controller
 extern BarometerModel baroModel;      // singleton instance of the barometer model
@@ -465,6 +467,6 @@ void ViewGrid::startScreen() {
 }
 
 bool ViewGrid::onTouch(Point touch) {
-  Serial.println("->->-> Touched grid detail screen.");
+  logger.info("->->-> Touched grid detail screen.");
   return false;                       // true=handled, false=controller uses default action
 }

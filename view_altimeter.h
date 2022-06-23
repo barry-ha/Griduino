@@ -1,4 +1,4 @@
-// Please format this file with clang before check-in to GitHub
+#pragma once   // Please format this file with clang before check-in to GitHub
 /*
   File:     view_altimeter.h
 
@@ -38,12 +38,14 @@
 #include <Adafruit_ILI9341.h>   // TFT color display library
 #include <TimeLib.h>            // BorisNeubert / Time (who forked it from PaulStoffregen / Time)
 #include "constants.h"          // Griduino constants and colors
+#include "logger.h"             // conditional printing to Serial port
 #include "model_gps.h"          // Model of a GPS for model-view-controller
 #include "model_baro.h"         // Model of a barometer that stores 3-day history
 #include "TextField.h"          // Optimize TFT display text for proportional fonts
 #include "view.h"               // Base class for all views
 
 // ========== extern ===========================================
+extern Logger logger;              // Griduino.ino
 extern Model *model;               // "model" portion of model-view-controller
 extern BarometerModel baroModel;   // singleton instance of the barometer model
 
@@ -282,7 +284,6 @@ void ViewAltimeter::updateScreen() {
 
   // read altitude from barometer and GPS, and display everything
   float pascals = baroModel.getBaroPressure();   // get pressure, causing BMP3XX to take a fresh reading from sensor
-  // Serial.print("Altimeter: "); Serial.print(pascals); Serial.print(" Pa [view_altimeter.h "); Serial.print(__LINE__); Serial.println("]"); // debug
 
   char msg[16];   // strlen("12,345.6 meters") = 15
 
@@ -290,7 +291,8 @@ void ViewAltimeter::updateScreen() {
   float altFeet   = altMeters * feetPerMeters;
   // altMeters += 2000;              // debug, helps test layout with large numbers
   // altFeet += 2000;                // debug
-  // Serial.print("Altimeter: "); Serial.print(altFeet); Serial.print(" ft [viewaltimeter.h "); Serial.print(__LINE__); Serial.println("]"); // debug
+  // Serial.print("Altimeter: "); Serial.print(altFeet); Serial.print(" ft [viewaltimeter.h ");
+  // Serial.print(__LINE__); Serial.println("]"); // debug
   if (model->gMetric) {
     int precision = (abs(altMeters) < 10) ? 1 : 0;
     txtAltimeter[eBaroValue].print(altMeters, precision);
@@ -394,7 +396,7 @@ void ViewAltimeter::endScreen() {
 }
 
 bool ViewAltimeter::onTouch(Point touch) {
-  Serial.println("->->-> Touched altimeter screen.");
+  logger.info("->->-> Touched altimeter screen.");
 
   bool handled = false;   // assume a touch target was not hit
   for (int ii = 0; ii < nPressureButtons; ii++) {
@@ -415,15 +417,14 @@ bool ViewAltimeter::onTouch(Point touch) {
         handled = true;
         break;
       default:
-        Serial.print("Error, unknown function ");
-        Serial.println(item.functionIndex);
+        logger.error("Error, unknown function ", item.functionIndex);
         break;
       }
       updateScreen();   // update UI immediately, don't wait for laggy mainline loop
     }
   }
   if (!handled) {
-    Serial.println("No match to my hit targets.");   // debug
+    logger.info("No match to my hit targets.");   // debug
   }
   return handled;   // true=handled, false=controller uses default action
 }   // end onTouch()
@@ -448,7 +449,7 @@ void ViewAltimeter::loadConfig() {
     Serial.print("Loaded sea level pressure: ");
     Serial.println(this->sealevelPa, 1);
   } else {
-    Serial.println("Failed to load sea level pressure, re-initializing config file");
+    logger.error("Failed to load sea level pressure, re-initializing config file");
     saveConfig();
   }
 }
@@ -456,6 +457,4 @@ void ViewAltimeter::loadConfig() {
 void ViewAltimeter::saveConfig() {
   SaveRestore config(ALTIMETER_CONFIG_FILE, CONFIG_ALTIMETER_VERSION);
   int rc = config.writeConfig((byte *)&sealevelPa, sizeof(sealevelPa));
-  Serial.print("Finished with rc = ");
-  Serial.println(rc);   // debug
 }

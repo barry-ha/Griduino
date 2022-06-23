@@ -31,12 +31,14 @@
 #include <DS1804.h>             // DS1804 digital potentiometer library
 #include <Audio_QSPI.h>         // Audio playback library for Arduino, https://github.com/barry-ha/Audio_QSPI
 #include "constants.h"          // Griduino constants and colors
+#include "logger.h"             // conditional printing to Serial port
 #include "model_gps.h"          // Model of a GPS for model-view-controller
 #include "morse_dac.h"          // morse code
 #include "TextField.h"          // Optimize TFT display text for proportional fonts
 #include "view.h"               // Base class for all views
 
 // ========== extern ===========================================
+extern Logger logger;                                 // Griduino.ino
 extern void announceGrid(String gridName, int len);   // Griduino.ino
 extern DACMorseSender dacMorse;                       // morse code (so we can send audio sample)
 extern AudioQSPI dacSpeech;                           // spoken word (so we can play speech sample)
@@ -262,7 +264,7 @@ void ViewVolume::endScreen() {
 }
 
 bool ViewVolume::onTouch(Point touch) {
-  Serial.println("->->-> Touched volume screen.");
+  logger.info("->->-> Touched volume screen.");
   bool handled = false;   // assume a touch target was not hit
   for (int ii = 0; ii < nVolButtons; ii++) {
     FunctionButton item = volButtons[ii];
@@ -280,8 +282,7 @@ bool ViewVolume::onTouch(Point touch) {
         volumeMute();
         break;
       default:
-        Serial.print("Error, unknown function ");
-        Serial.println(item.functionIndex);
+        logger.error("Error, unknown function ", item.functionIndex);
         break;
       }
       updateScreen();   // update UI immediately, don't wait for laggy mainline loop
@@ -318,10 +319,9 @@ void ViewVolume::loadConfig() {
   if (result) {
     gVolIndex = constrain(tempVolIndex, 0, 10);   // global volume index
     setVolume(gVolIndex);                         // set the hardware to this volume index
-    Serial.print("Loaded volume setting from NVR: ");
-    Serial.println(gVolIndex);
+    logger.info("Loaded volume setting from NVR: ", gVolIndex);
   } else {
-    Serial.println("Failed to load Volume control settings, re-initializing config file");
+    logger.error("Failed to load Volume control settings, re-initializing config file");
     saveConfig();
   }
 }

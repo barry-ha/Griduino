@@ -1,4 +1,4 @@
-// Please format this file with clang before check-in to GitHub
+#pragma once   // Please format this file with clang before check-in to GitHub
 /*
   File:     cfg_rotation.h
 
@@ -25,12 +25,14 @@
 #include <Arduino.h>            //
 #include <Adafruit_ILI9341.h>   // TFT color display library
 #include "constants.h"          // Griduino constants and colors
+#include "logger.h"             // conditional printing to Serial port
 #include "model_gps.h"          // Model of a GPS for model-view-controller
 #include "TextField.h"          // Optimize TFT display text for proportional fonts
 #include "view.h"               // Base class for all views
 
 // ========== extern ===========================================
-extern Model *model;   // "model" portion of model-view-controller
+extern Logger logger;   // Griduino.ino
+extern Model *model;    // "model" portion of model-view-controller
 
 extern void showDefaultTouchTargets();   // Griduino.ino
 
@@ -109,7 +111,7 @@ protected:
 
   // ---------- local functions for this derived class ----------
   void fRotateScreen() {
-    Serial.println("->->-> Clicked OTHER EDGE UP button.");
+    logger.info("->->-> Clicked OTHER EDGE UP button.");
     if (this->screenRotation == eSCREEN_ROTATE_0) {
       this->setScreenRotation(eSCREEN_ROTATE_180);
     } else {
@@ -194,7 +196,7 @@ void ViewCfgRotation::startScreen() {
 }   // end startScreen()
 
 bool ViewCfgRotation::onTouch(Point touch) {
-  Serial.println("->->-> Touched settings screen.");
+  logger.info("->->-> Touched settings screen.");
   bool handled = false;   // assume a touch target was not hit
   for (int ii = 0; ii < nButtons; ii++) {
     FunctionButton item = myButtons[ii];
@@ -210,8 +212,7 @@ bool ViewCfgRotation::onTouch(Point touch) {
         fRotateScreen();
         break;
       default:
-        Serial.print("Error, unknown function ");
-        Serial.println(item.functionIndex);
+        logger.error("Error, unknown function ", item.functionIndex);
         break;
       }
       updateScreen();       // update UI immediately, don't wait for laggy mainline loop
@@ -247,17 +248,17 @@ void ViewCfgRotation::loadConfig() {
       break;
     default:
       // should not happen unless config file is corrupt
-      Serial.print(SCREEN_CONFIG_FILE);
-      Serial.print(" has unexpected screen orientation: ");
-      Serial.println(tempRotation);
+      char msg[256];
+      snprintf(msg, sizeof(msg), "%s has unexpected screen orientation: %d",
+               SCREEN_CONFIG_FILE, tempRotation);
+      logger.error(msg);
       this->screenRotation = eSCREEN_ROTATE_0;
       break;
     }
     tft->setRotation(this->screenRotation);   // 0=portrait (default), 1=landscape, 3=180 degrees
-    Serial.print("Loaded screen orientation: ");
-    Serial.println(this->screenRotation);
+    logger.info("Loaded screen orientation: ", this->screenRotation);
   } else {
-    Serial.println("Failed to load screen orientation, re-initializing config file\n");
+    logger.error("Failed to load screen orientation, re-initializing config file");
     this->screenRotation = eSCREEN_ROTATE_0;
     saveConfig();
   }
@@ -266,6 +267,5 @@ void ViewCfgRotation::loadConfig() {
 void ViewCfgRotation::saveConfig() {
   SaveRestore config(SCREEN_CONFIG_FILE, CONFIG_SCREEN_VERSION);
   int rc = config.writeConfig((byte *)&screenRotation, sizeof(screenRotation));
-  Serial.print("Finished ViewCfgRotation::saveConfig() with rc = ");
-  Serial.println(rc);   // debug
+  logger.info("Finished ViewCfgRotation::saveConfig() with rc = ", rc);   // debug
 }

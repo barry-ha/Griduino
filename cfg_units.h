@@ -1,4 +1,4 @@
-// Please format this file with clang before check-in to GitHub
+#pragma once   // Please format this file with clang before check-in to GitHub
 /*
   File:     cfg_units.h
 
@@ -6,7 +6,7 @@
   Hardware: John Vanderbeck, KM7O, Seattle, WA
 
   Purpose:  This is the 'control panel' for one-time Griduino setup.
-            Since it's not intended for a driver in motion, we can use 
+            Since it's not intended for a driver in motion, we can use
             a smaller font and cram more stuff onto the screen.
 
             +-----------------------------------------+
@@ -25,12 +25,14 @@
 #include <Arduino.h>
 #include <Adafruit_ILI9341.h>   // TFT color display library
 #include "constants.h"          // Griduino constants and colors
+#include "logger.h"             // conditional printing to Serial port
 #include "model_gps.h"          // Model of a GPS for model-view-controller
 #include "TextField.h"          // Optimize TFT display text for proportional fonts
 #include "view.h"               // Base class for all views
 
 // ========== extern ===========================================
-extern Model *model;   // "model" portion of model-view-controller
+extern Logger logger;   // Griduino.ino
+extern Model *model;    // "model" portion of model-view-controller
 
 extern void showDefaultTouchTargets();   // Griduino.ino
 
@@ -92,11 +94,11 @@ protected:
 
   // ---------- local functions for this derived class ----------
   void setEnglish() {
-    Serial.println("->->-> Clicked ENGLISH UNITS button.");
+    logger.info("->->-> Clicked ENGLISH UNITS button.");
     model->setEnglish();
   }
   void setMetric() {
-    Serial.println("->->-> Clicked METRIC UNITS button.");
+    logger.info("->->-> Clicked METRIC UNITS button.");
     model->setMetric();
   }
 
@@ -185,7 +187,7 @@ void ViewCfgUnits::endScreen() {
 }
 
 bool ViewCfgUnits::onTouch(Point touch) {
-  Serial.println("->->-> Touched settings screen.");
+  logger.info("->->-> Touched settings screen.");
   bool handled = false;   // assume a touch target was not hit
   for (int ii = 0; ii < nButtonsUnits; ii++) {
     FunctionButton item = settings3Buttons[ii];
@@ -200,8 +202,7 @@ bool ViewCfgUnits::onTouch(Point touch) {
         setMetric();
         break;
       default:
-        Serial.print("Error, unknown function ");
-        Serial.println(item.functionIndex);
+        logger.error("Error, unknown function ", item.functionIndex);
         break;
       }
       updateScreen();   // update UI immediately, don't wait for laggy mainline loop

@@ -1,6 +1,6 @@
-// Please format this file with clang before check-in to GitHub
+#pragma once   // Please format this file with clang before check-in to GitHub
 /*
-  File:     view_date.cpp
+  File:     view_date.h
 
   Special Event Calendar Count - "How many days since Groundhog Day 2020"
             or "How many days until June VHF Contest"
@@ -58,6 +58,7 @@
 #include <Adafruit_ILI9341.h>   // TFT color display library
 #include <TimeLib.h>            // BorisNeubert / Time (who forked it from PaulStoffregen / Time)
 #include "constants.h"          // Griduino constants and colors
+#include "logger.h"             // conditional printing to Serial port
 #include "model_gps.h"          // Model of a GPS for model-view-controller
 #include "TextField.h"          // Optimize TFT display text for proportional fonts
 #include "view.h"               // Base class for all views
@@ -179,7 +180,9 @@ DefinedEvent eventList[] = {
 DefinedEvent target = eventList[0];
 
 // ========== extern ===========================================
-extern Model *model;                     // "model" portion of model-view-controller
+extern Logger logger;   // Griduino.ino
+extern Model *model;    // "model" portion of model-view-controller
+
 extern void showDefaultTouchTargets();   // Griduino.ino
 
 // ========== class ViewDate ===================================
@@ -265,10 +268,7 @@ protected:
   void nextDateEvent() {
     whichEvent = (whichEvent + 1) % (sizeof(eventList) / sizeof(eventList[0]));
     target     = eventList[whichEvent];
-    Serial.print(". Changed event to #");
-    Serial.print(whichEvent);
-    Serial.print(", ");
-    Serial.println(eventList[whichEvent].line3);
+    //logger.info(". Changed event to #%d, %d", whichEvent, eventList[whichEvent].line3);
   }
 
   // Formatted elapsed time
@@ -289,21 +289,12 @@ protected:
 // ============== implement public interface ================
 void ViewDate::updateScreen() {
   // called on every pass through main()
-
-  // GMT Time
-  char sHour[8], sMinute[8], sSeconds[8];
-  snprintf(sHour, sizeof(sHour), "%02d", GPS.hour);
-  snprintf(sMinute, sizeof(sMinute), "%02d", GPS.minute);
-  snprintf(sSeconds, sizeof(sSeconds), "%02d", GPS.seconds);
-
   if (GPS.seconds == 0) {
     // report GMT to console, but not too often
-    Serial.print(sHour);
-    Serial.print(":");
-    Serial.print(sMinute);
-    Serial.print(":");
-    Serial.print(sSeconds);
-    Serial.println(" GMT");
+    char msg[128];
+    snprintf(msg, sizeof(msg), "%02d:%02d:%02d GMT",
+             GPS.hour, GPS.minute, GPS.seconds);
+    logger.info(msg);
   }
 
   //                       s,m,h, dow, d,m,y
@@ -327,8 +318,7 @@ void ViewDate::updateScreen() {
 
   int elapsedDays = elapsed / SECS_PER_DAY;
   // if (GPS.seconds == 0) {   // debug
-  //   Serial.print("elapsed time count: ");
-  //   Serial.println((int)elapsed);   // typecast to int, required by compiler
+  //   logger.info("elapsed time count: ", (int)elapsed);   // typecast to int, required by compiler
   // }
   char sTime[24];   // strlen("01:23:45") = 8
   getTimeElapsed(sTime, sizeof(sTime), elapsed);
@@ -414,7 +404,7 @@ void ViewDate::endScreen() {
 }
 
 bool ViewDate::onTouch(Point touch) {
-  Serial.println("->->-> Touched date screen.");
+  logger.info("->->-> Touched date screen.");
 
   bool handled = false;   // assume a touch target was not hit
   for (int ii = 0; ii < nDateButtons; ii++) {
@@ -427,8 +417,7 @@ bool ViewDate::onTouch(Point touch) {
         handled = true;
         break;
       default:
-        Serial.print("Error, unknown function ");
-        Serial.println(item.functionIndex);
+        logger.error("Error, unknown function ", item.functionIndex);
         break;
       }
       startScreen();
@@ -436,7 +425,7 @@ bool ViewDate::onTouch(Point touch) {
     }
   }
   if (!handled) {
-    // Serial.println("No match to my hit targets.");   // debug
+    // logger.info("No match to my hit targets.");   // debug
   }
   return handled;   // true=handled, false=controller uses default action
 }   // end onTouch()

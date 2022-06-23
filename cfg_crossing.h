@@ -1,4 +1,4 @@
-// Please format this file with clang before check-in to GitHub
+#pragma once   // Please format this file with clang before check-in to GitHub
 /*
   File:     cfg_crossing.h
 
@@ -6,7 +6,7 @@
   Hardware: John Vanderbeck, KM7O, Seattle, WA
 
   Purpose:  This is one of the 'control panel' screens for Griduino setup.
-            Since it's not intended for a driver in motion, we can use 
+            Since it's not intended for a driver in motion, we can use
             a smaller font and cram more stuff onto the screen.
 
             +-----------------------------------------+
@@ -23,14 +23,16 @@
             +-----------------------------------------+
 */
 
-#include <Arduino.h>
+#include <Arduino.h>            //
 #include <Adafruit_ILI9341.h>   // TFT color display library
 #include "constants.h"          // Griduino constants and colors
+#include "logger.h"             // conditional printing to Serial port
 #include "TextField.h"          // Optimize TFT display text for proportional fonts
 #include "view.h"               // Base class for all views
 
 // ========== extern ===========================================
-extern Model *model;   // "model" portion of model-view-controller
+extern Logger logger;   // Griduino.ino
+extern Model *model;    // "model" portion of model-view-controller
 
 extern void showDefaultTouchTargets();                // Griduino.ino
 extern void announceGrid(String gridName, int len);   // Griduino.ino
@@ -86,7 +88,7 @@ protected:
 
   // ---------- local functions for this derived class ----------
   void f4Digit() {
-    Serial.println("->->-> Clicked 4-DIGIT button.");
+    logger.info("->->-> Clicked 4-DIGIT button.");
     model->compare4digits = true;
     this->updateScreen();   // update UI before starting the slow morse code
 
@@ -96,7 +98,7 @@ protected:
     announceGrid(newGrid4, 4);   // announce 4-digit grid by Morse code
   }
   void f6Digit() {
-    Serial.println("->->-> Clicked 6-DIGIT button.");
+    logger.info("->->-> Clicked 6-DIGIT button.");
     model->compare4digits = false;
     this->updateScreen();   // update UI before starting the slow morse code
 
@@ -200,7 +202,7 @@ void ViewCfgCrossing::startScreen() {
 }   // end startScreen()
 
 bool ViewCfgCrossing::onTouch(Point touch) {
-  Serial.println("->->-> Touched settings screen.");
+  logger.info("->->-> Touched settings screen.");
   bool handled = false;   // assume a touch target was not hit
   for (int ii = 0; ii < nButtonsDigits; ii++) {
     FunctionButton item = myButtons[ii];
@@ -215,8 +217,7 @@ bool ViewCfgCrossing::onTouch(Point touch) {
         f6Digit();
         break;
       default:
-        Serial.print("Error, unknown function ");
-        Serial.println(item.functionIndex);
+        logger.error("Error, unknown function ", item.functionIndex);
         break;
       }
       this->saveConfig();   // after UI is updated, save setting to nvr

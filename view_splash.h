@@ -1,4 +1,4 @@
-// Please format this file with clang before check-in to GitHub
+#pragma once   // Please format this file with clang before check-in to GitHub
 /*
   File:     view_splash.h
 
@@ -22,8 +22,12 @@
 #include <Arduino.h>
 #include <Adafruit_ILI9341.h>   // TFT color display library
 #include "constants.h"          // Griduino constants and colors
+#include "logger.h"             // conditional printing to Serial port
 #include "TextField.h"          // Optimize TFT display text for proportional fonts
 #include "view.h"               // Base class for all views
+
+// ========== extern ===========================================
+extern Logger logger;   // Griduino.ino
 
 // ========== class ViewSplash =================================
 class ViewSplash : public View {
@@ -74,20 +78,20 @@ void ViewSplash::startScreen() {
   updateScreen();   // fill in values immediately, don't wait for the main loop to eventually get around to it
 
 #ifdef SHOW_SCREEN_CENTERLINE
-      // show centerline at      x1,y1              x2,y2             color
+                    // show centerline at      x1,y1              x2,y2             color
   tft->drawLine(tft->width() / 2, 0, tft->width() / 2, tft->height(), cWARN);   // debug
 #endif
 
 #ifdef USE_MORSE_CODE
   // ----- announce in Morse code, so vehicle's driver doesn't have to look at the screen
   spkrMorse.setMessage(String(" de k7bwh  "));   // lowercase is required
-  //spkrMorse.startSending();       // non-blocking (TODO: does not send evenly)
+  // spkrMorse.startSending();       // non-blocking (TODO: does not send evenly)
   spkrMorse.sendBlocking();   // blocking
 #endif
 }
 
 bool ViewSplash::onTouch(Point touch) {
   // do nothing - this screen does not respond to buttons
-  Serial.println("->->-> Touched splash screen.");
+  logger.info("->->-> Touched splash screen.");
   return false;   // true=handled, false=controller uses default action
 }   // end onTouch()

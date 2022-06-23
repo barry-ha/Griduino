@@ -8,11 +8,11 @@
          non-volatile memory; do not use String class because it's on the heap.
 */
 
-#include <Arduino.h>
+#include <Arduino.h>        //
 #include <Adafruit_GPS.h>   // Ultimate GPS library
 #include "constants.h"      // Griduino constants and colors
-#include "save_restore.h"   // Configuration data in nonvolatile RAM
 #include "logger.h"         // conditional printing to Serial port
+#include "save_restore.h"   // Configuration data in nonvolatile RAM
 
 // ========== extern ===========================================
 extern Adafruit_GPS GPS;       // Griduino.ino

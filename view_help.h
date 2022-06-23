@@ -1,4 +1,4 @@
-// Please format this file with clang before check-in to GitHub
+#pragma once   // Please format this file with clang before check-in to GitHub
 /*
   File:     view_help.h
 
@@ -24,10 +24,12 @@
 #include <Arduino.h>
 #include <Adafruit_ILI9341.h>   // TFT color display library
 #include "constants.h"          // Griduino constants and colors
+#include "logger.h"             // conditional printing to Serial port
 #include "TextField.h"          // Optimize TFT display text for proportional fonts
 #include "view.h"               // Base class for all views
 
 // ========== extern ===========================================
+extern Logger logger;                    // Griduino.ino
 extern void showDefaultTouchTargets();   // Griduino.ino
 
 // ========== class ViewHelp ===================================
@@ -55,14 +57,14 @@ protected:
     VIEWNAME,
   };
 
-//const int cl = gScreenWidth/2;
+// const int cl = gScreenWidth/2;
 #define nHelpButtons 3
   Button helpButtons[nHelpButtons] = {
       //       text                x,y             w,h      r      color
       {"Settings", margin, margin, 98, 105, radius, cBUTTONLABEL},                   //[SETTINGS]
       {"Tap for next view", margin + 108, margin, 192, 105, radius, cBUTTONLABEL},   //[NEXTVIEW]
       {"Tap for brightness", margin, 126, 300, 105, radius, cBUTTONLABEL},           //[BRIGHTNESS]
-      //{"Hint",             cl-38,4,            76,26, radius/2, cHIGHLIGHT }, //[VIEWNAME]
+                                                                                     //{"Hint",             cl-38,4,            76,26, radius/2, cHIGHLIGHT }, //[VIEWNAME]
   };
 
 };   // end class ViewHelp
@@ -107,7 +109,7 @@ void ViewHelp::startScreen() {
 
 bool ViewHelp::onTouch(Point touch) {
   // do nothing - this screen does not respond to buttons
-  Serial.println("->->-> Touched help screen.");
+  logger.info("->->-> Touched help screen.");
   return false;   // true=handled, false=controller uses default action
 
 }   // end onTouch()

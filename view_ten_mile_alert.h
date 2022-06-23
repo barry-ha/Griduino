@@ -1,14 +1,14 @@
-// Please format this file with clang before check-in to GitHub
+#pragma once   // Please format this file with clang before check-in to GitHub
 /*
   File:     view_ten_mile_alert.h
-  
-  Version history: 
+
+  Version history:
             2021-07-12 created 1.04
 
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
 
-  Purpose:  
+  Purpose:
 
             +-----------------------------------------+
             | *          Microwave Rover            > |
@@ -30,12 +30,14 @@
 #include <Adafruit_ILI9341.h>   // TFT color display library
 #include <TimeLib.h>            // BorisNeubert / Time (who forked it from PaulStoffregen / Time)
 #include "constants.h"          // Griduino constants and colors
+#include "logger.h"             // conditional printing to Serial port
 #include "model_gps.h"          // Model of a GPS for model-view-controller
 #include "TextField.h"          // Optimize TFT display text for proportional fonts
 #include "view.h"               // Base class for all views
 
 // ========== extern ===========================================
-extern Model *model;   // "model" portion of model-view-controller
+extern Logger logger;   // Griduino.ino
+extern Model *model;    // "model" portion of model-view-controller
 
 extern void showDefaultTouchTargets();   // Griduino.ino
 
@@ -110,10 +112,10 @@ protected:
       {"NNE", -1, yRow4, cVALUE, ALIGNCENTER, eFONTSMALL},               // [eDirectionName]
                                                                          //
       {"Here:", col1, yRow1, cLABEL, ALIGNLEFT, eFONTSMALL},             // [eCurrentLabel]
-      {"CN87vv", col2-14, yRow1, cTEXTCOLOR, ALIGNLEFT, eFONTBIG},       // [eCurrentValue]
+      {"CN87vv", col2 - 14, yRow1, cTEXTCOLOR, ALIGNLEFT, eFONTBIG},     // [eCurrentValue]
                                                                          //
       {"Start:", col1, yRow2, cLABEL, ALIGNLEFT, eFONTSMALL},            // [eStartLabel]
-      {"CN87us", col2-14, yRow2, cFAINT, ALIGNLEFT, eFONTBIG},           // [eStartValue]
+      {"CN87us", col2 - 14, yRow2, cFAINT, ALIGNLEFT, eFONTBIG},         // [eStartValue]
   };
 
   enum buttonID {
@@ -144,7 +146,7 @@ protected:
     startCompass();
     clearDirectionName();
     saveConfig();
-}
+  }
 
   void clearDirectionName() {
     txtTenMileAlert[eDirectionName].print("");
@@ -225,7 +227,7 @@ protected:
     } else {
       digits = 0;
     }
-    //txtTenMileAlert[eDistance].print(dist, digits);
+    // txtTenMileAlert[eDistance].print(dist, digits);
     txtTenMileAlert[eDistance].print(dist, digits);
   }
 
@@ -281,7 +283,7 @@ void ViewTenMileAlert::updateScreen() {
   char grid6[7];
   calcLocator(grid6, startLat, startLong, 6);
   txtTenMileAlert[eStartValue].print(grid6);
-  //txtTenMileAlert[eStartValue].print("DM03ww");  // debug long string for Dave Glen N6TEP
+  // txtTenMileAlert[eStartValue].print("DM03ww");  // debug long string for Dave Glen N6TEP
 
   calcLocator(grid6, model->gLatitude, model->gLongitude, 6);
   txtTenMileAlert[eCurrentValue].print(grid6);
@@ -291,15 +293,15 @@ void ViewTenMileAlert::updateScreen() {
   //             To       CN87vv58  47.912052, -122.204514
   //             Distance 11.62 miles
   //             Bearing  19.43 degrees
-  //float deltaLat  = (47.912052 - 47.752581);   // CN87vv58 - CN87us50
-  //float deltaLong = (-122.284038 - (-122.204514));
+  // float deltaLat  = (47.912052 - 47.752581);   // CN87vv58 - CN87us50
+  // float deltaLong = (-122.284038 - (-122.204514));
 
   // test data:  From     DN08pu    48.855186, -118.698004
   //             To       CN87us    47.772743, -122.287847
   //             Distance 181.05 miles
   //             Bearing  246.9 degrees
-  //float deltaLat  = (47.772743 - 48.855186);   // CN87vv58 - CN87us50
-  //float deltaLong = (-118.698004 - (-122.287847));
+  // float deltaLat  = (47.772743 - 48.855186);   // CN87vv58 - CN87us50
+  // float deltaLong = (-118.698004 - (-122.287847));
 
   float deltaLat  = model->gLatitude - startLat;
   float deltaLong = model->gLongitude - startLong;
@@ -371,7 +373,7 @@ void ViewTenMileAlert::endScreen() {
 }
 
 bool ViewTenMileAlert::onTouch(Point touch) {
-  Serial.println("->->-> Touched 10-mile alert screen.");
+  logger.info("->->-> Touched 10-mile alert screen.");
 
   bool handled = false;   // assume a touch target was not hit
   for (int ii = 0; ii < nTenMileAlertButtons; ii++) {
@@ -384,15 +386,14 @@ bool ViewTenMileAlert::onTouch(Point touch) {
         handled = true;
         break;
       default:
-        Serial.print("Error, unknown function ");
-        Serial.println(item.functionIndex);
+        logger.error("Error, unknown function ", item.functionIndex);
         break;
       }
       updateScreen();   // update UI immediately, don't wait for laggy mainline loop
     }
   }
   if (!handled) {
-    Serial.println("No match to my hit targets.");   // debug
+    logger.info("No match to my hit targets.");   // debug
   }
   return handled;   // true=handled, false=controller uses default action
 }   // end onTouch()
@@ -409,12 +410,10 @@ void ViewTenMileAlert::saveConfig() {
   SaveRestore config(TEN_MILE_START, TEN_MILE_VERSION);
   int rc = config.writeConfig((byte *)this, sizeof(ViewTenMileAlert));
   if (rc) {
-    Serial.println("Success, Ten-Mile Alert object stored to SDRAM");
+    logger.info("Success, Ten-Mile Alert object stored to SDRAM");
   } else {
-    Serial.println("ERROR! Failed to save Ten Mile Alert object to SDRAM");
+    logger.error("Error, failed to save Ten Mile Alert object to SDRAM");
   }
-  Serial.print("Finished with rc = ");
-  Serial.println(rc);   // debug
 }
 
 // ----- load from SDRAM -----
@@ -438,7 +437,7 @@ void ViewTenMileAlert::loadConfig() {
     Serial.print(this->startLong, 4);
     Serial.println(")");
   } else {
-    Serial.println("Failed to load Ten Mile Alert settings, re-initializing config file");
+    logger.error("Failed to load Ten Mile Alert settings, re-initializing config file");
     saveConfig();
   }
 }

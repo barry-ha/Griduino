@@ -6,7 +6,7 @@
   Hardware: John Vanderbeck, KM7O, Seattle, WA
 
   Purpose:  This selects the audio output type: Morse code or speech.
-            Since it's not intended for a driver in motion, we can use 
+            Since it's not intended for a driver in motion, we can use
             a smaller font and cram more stuff onto the screen.
 
             +-----------------------------------------+
@@ -22,15 +22,17 @@
             +-----------------------------------------+
 */
 
-#include <Arduino.h>            //
+#include <Arduino.h>
 #include <Adafruit_ILI9341.h>   // TFT color display library
 #include "constants.h"          // Griduino constants and colors
+#include "logger.h"             // conditional printing to Serial port
 #include "model_gps.h"          // Model of a GPS for model-view-controller
 #include "TextField.h"          // Optimize TFT display text for proportional fonts
 #include "view.h"               // Base class for all views
 
 // ========== extern ===========================================
-extern Model *model;   // "model" portion of model-view-controller
+extern Logger logger;   // Griduino.ino
+extern Model *model;    // "model" portion of model-view-controller
 
 extern void showDefaultTouchTargets();                // Griduino.ino
 extern void announceGrid(String gridName, int len);   // Griduino.ino
@@ -101,7 +103,7 @@ protected:
 
   // ---------- local functions for this derived class ----------
   void setMorse() {
-    Serial.println("->->-> Clicked MORSE CODE button.");
+    logger.info("->->-> Clicked MORSE CODE button.");
     selectedAudio = MORSE;
     updateScreen();   // update UI before the long pause to send sample audio
 
@@ -214,7 +216,7 @@ void ViewCfgAudioType::endScreen() {
 }
 
 bool ViewCfgAudioType::onTouch(Point touch) {
-  Serial.println("->->-> Touched settings screen.");
+  logger.info("->->-> Touched settings screen.");
   bool handled = false;   // assume a touch target was not hit
   for (int ii = 0; ii < nButtonsAudio; ii++) {
     FunctionButton item = myButtons[ii];
@@ -232,8 +234,7 @@ bool ViewCfgAudioType::onTouch(Point touch) {
         setNone();
         break;
       default:
-        Serial.print("Error, unknown function ");
-        Serial.println(item.functionIndex);
+        logger.error("Error, unknown function ", item.functionIndex);
         break;
       }
     }
@@ -252,10 +253,9 @@ void ViewCfgAudioType::loadConfig() {
   int result = config.readConfig((byte *)&tempAudioOutputType, sizeof(tempAudioOutputType));
   if (result) {
     this->selectedAudio = tempAudioOutputType;
-    Serial.print("Loaded audio output type: ");
-    Serial.println(this->selectedAudio);
+    logger.info("Loaded audio output type: ", this->selectedAudio);
   } else {
-    Serial.println("Failed to load Audio Output Type, re-initializing config file");
+    logger.warning("Failed to load Audio Output Type, re-initializing config file");
     saveConfig();
   }
 }

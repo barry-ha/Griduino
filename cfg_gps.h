@@ -1,4 +1,4 @@
-// Please format this file with clang before check-in to GitHub
+#pragma once   // Please format this file with clang before check-in to GitHub
 /*
   File:     cfg_gps.h
 
@@ -6,7 +6,7 @@
   Hardware: John Vanderbeck, KM7O, Seattle, WA
 
   Purpose:  This is the 'control panel' for one-time Griduino setup.
-            Since it's not intended for a driver in motion, we can use 
+            Since it's not intended for a driver in motion, we can use
             a smaller font and cram more stuff onto the screen.
 
             +-----------------------------------------+
@@ -26,12 +26,14 @@
 #include <Arduino.h>
 #include <Adafruit_ILI9341.h>   // TFT color display library
 #include "constants.h"          // Griduino constants and colors
+#include "logger.h"             // conditional printing to Serial port
 #include "model_gps.h"          // Model of a GPS for model-view-controller
 #include "TextField.h"          // Optimize TFT display text for proportional fonts
 #include "view.h"               // Base class for all views
 
 // ========== extern ===========================================
-extern Model *model;   // "model" portion of model-view-controller
+extern Logger logger;   // Griduino.ino
+extern Model *model;    // "model" portion of model-view-controller
 
 extern void showDefaultTouchTargets();   // Griduino.ino
 extern void fSetReceiver();              // Griduino.ino
@@ -103,23 +105,23 @@ protected:
 
   // ---------- local functions for this derived class ----------
   void fClear() {
-    Serial.println("->->-> Clicked CLEAR button.");
+    logger.info("->->-> Clicked CLEAR button.");
     model->clearHistory();
     model->save();
   }
   void fReceiver() {
     // select GPS receiver data
-    Serial.println("->->-> Clicked GPS RECEIVER button.");
+    logger.info("->->-> Clicked GPS RECEIVER button.");
     fSetReceiver();   // use "class Model" for GPS receiver hardware
   }
   void fSimulated() {
     // simulate satellite track
-    Serial.println("->->-> Clicked GPS SIMULATOR button.");
+    logger.info("->->-> Clicked GPS SIMULATOR button.");
     fSetSimulated();   // use "class MockModel" for simulated track
   }
   void fFactoryReset() {
     // todo: clear all settings, erase all saved files
-    Serial.println("->->-> Clicked FACTORY RESET button.");
+    logger.info("->->-> Clicked FACTORY RESET button.");
   }
 
 };   // end class ViewCfgGPS
@@ -204,7 +206,7 @@ void ViewCfgGPS::startScreen() {
 }
 
 bool ViewCfgGPS::onTouch(Point touch) {
-  Serial.println("->->-> Touched settings screen.");
+  logger.info("->->-> Touched settings screen.");
   bool handled = false;   // assume a touch target was not hit
   for (int ii = 0; ii < nButtonsGPS; ii++) {
     FunctionButton item = settings2Buttons[ii];
@@ -222,8 +224,7 @@ bool ViewCfgGPS::onTouch(Point touch) {
         fSimulated();
         break;
       default:
-        Serial.print("Error, unknown function ");
-        Serial.println(item.functionIndex);
+        logger.error("Error, unknown function ", item.functionIndex);
         break;
       }
     }

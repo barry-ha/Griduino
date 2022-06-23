@@ -1,6 +1,6 @@
-// Please format this file with clang before check-in to GitHub
+#pragma once   // Please format this file with clang before check-in to GitHub
 /*
-  File: view.h
+  File:     view.h
 
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
@@ -9,13 +9,14 @@
             Contains default implementation for common functions
             and for templates to be used in derived classes.
 */
-#pragma once
 
 #include <Arduino.h>
 #include <Adafruit_ILI9341.h>   // TFT color display library
 #include "constants.h"          // Griduino constants and colors
+#include "logger.h"             // conditional printing to Serial port
 #include "icons.h"              // bitmaps for icons
 
+// ========== abstract base class ViewCfgAudioType ================
 class View {
 public:
   // public member variables go here
@@ -58,7 +59,7 @@ public:
    * Called whenever the touchscreen has an event for this view
    */
   virtual bool onTouch(Point touch) {
-    Serial.println("->->-> Touched screen.");
+    logger.info("->->-> Touched screen.");
     return false;   // true=handled, false=controller uses default action
   }
 
@@ -117,8 +118,6 @@ protected:
    * This is a "protected" method in base class to ensure *only* the Settings page will set rotation.
    */
   void setScreenRotation(int rot) {
-    Serial.print("Rotating screen to: ");
-    Serial.println(rot);
     this->screenRotation = rot;
     tft->setRotation(rot);   // 0=portrait (default), 1=landscape, 3=180 degrees
     clearScreen();           // todo - necessary?

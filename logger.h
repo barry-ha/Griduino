@@ -1,33 +1,31 @@
 #pragma once   // Please format this file with clang before check-in to GitHub
-//------------------------------------------------------------------------------
-//  File name: Logger.h
-//
-//  Description: "class Logger" prints to the USB port and allows the
-//               listener at the other end to select what messages are sent.
-//
-//------------------------------------------------------------------------------
-//  The MIT License (MIT)
-//
-//  Copyright (c) 2022 Barry Hansen K7BWH
-//
-//  Permission is hereby granted, free of charge, to any person obtaining a copy
-//  of this software and associated documentation files (the "Software"), to deal
-//  in the Software without restriction, including without limitation the rights
-//  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-//  copies of the Software, and to permit persons to whom the Software is
-//  furnished to do so, subject to the following conditions:
-//
-//  The above copyright notice and this permission notice shall be included in
-//  all copies or substantial portions of the Software.
-//
-//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-//  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-//  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-//  THE SOFTWARE.
-//------------------------------------------------------------------------------
+/*
+  File:     logger.h
+
+  Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
+  Hardware: John Vanderbeck, KM7O, Seattle, WA
+
+  Purpose:  "class Logger" prints to the USB port and allows the
+            listener at the other end to select what messages are sent.
+
+ ******************************************************************************
+  Licensed under the GNU General Public License v3.0
+ 
+  Permissions of this strong copyleft license are conditioned on making available 
+  complete source code of licensed works and modifications, which include larger 
+  works using a licensed work, under the same license. Copyright and license 
+  notices must be preserved. Contributors provide an express grant of patent rights.
+ 
+  You may obtain a copy of the License at
+      https://docs.github.com/articles/licensing-a-repository/#disclaimer
+ 
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+*/
+
 /*
 enum {
   NMEA = 1,
@@ -38,14 +36,16 @@ enum {
 }
 */
 
+#include "logger.h"             // conditional printing to Serial port
+
 class Logger {
 
 public:
-  bool print_nmea      = true;    // set TRUE for NmeaTime2 by www.visualgps.net
+  bool print_nmea      = true;   // set TRUE for NmeaTime2 by www.visualgps.net
   bool print_gmt       = false;
   bool print_fencepost = true;
   bool print_debug     = true;
-  bool print_info      = true;
+  bool print_info      = false;   // set FALSE for NmeaTime2 by www.visualgps.net
   bool print_warning   = true;
   bool print_error     = true;
 
@@ -106,14 +106,14 @@ public:
       Serial.println(pText);
     }
   }
-  void info(const char *pText, const int value) {    // one format string containing %d, one number
+  void info(const char *pText, const int value) {   // one format string containing %d, one number
     if (print_info) {
       char msg[256];
       snprintf(msg, sizeof(msg), pText, value);
       Serial.println(msg);
     }
   }
-  void info(const char *pText, const int value1, const int value2) {    // one format string, two numbers
+  void info(const char *pText, const int value1, const int value2) {   // one format string, two numbers
     if (print_info) {
       char msg[256];
       snprintf(msg, sizeof(msg), pText, value1, value2);

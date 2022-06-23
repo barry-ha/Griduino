@@ -1,12 +1,12 @@
-// Please format this file with clang before check-in to GitHub
+#pragma once   // Please format this file with clang before check-in to GitHub
 /*
-   File:    view_status.cpp
+   File:    view_status.h
 
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
 
-  Purpose:  Show the grid square's characteritics and how it is
-            displayed on the screen. It gives the user a sense of 
+  Purpose:  Show the grid square's attributes and how it is
+            displayed on the screen. It gives the user a sense of
             how to interpret the bread crumb trail, and how far to
             to within a 6-digit grid square.
 
@@ -26,11 +26,13 @@
 #include <Arduino.h>
 #include <Adafruit_ILI9341.h>   // TFT color display library
 #include "constants.h"          // Griduino constants and colors
-#include "model_gps.h"          // "Model" portion of model-view-controller
+#include "logger.h"             // conditional printing to Serial port
+#include "model_gps.h"          // Model of a GPS for model-view-controller
 #include "TextField.h"          // Optimize TFT display text for proportional fonts
 #include "view.h"               // Base class for all views
 
 // ========== extern ===========================================
+extern Logger logger;                                                                // Griduino.ino
 extern Model *model;                                                                 // "model" portion of model-view-controller
 void floatToCharArray(char *result, int maxlen, double fValue, int decimalPlaces);   // Griduino.ino
 extern void showDefaultTouchTargets();                                               // Griduino.ino
@@ -189,12 +191,12 @@ void ViewStatus::startScreen() {
   updateScreen();   // fill in values immediately, don't wait for the main loop to eventually get around to it
 
 #ifdef SHOW_SCREEN_CENTERLINE
-      // show centerline at      x1,y1              x2,y2             color
+                    // show centerline at      x1,y1              x2,y2             color
   tft->drawLine(tft->width() / 2, 0, tft->width() / 2, tft->height(), cWARN);   // debug
 #endif
 }
 
 bool ViewStatus::onTouch(Point touch) {
-  Serial.println("->->-> Touched status screen.");
+  logger.info("->->-> Touched status screen.");
   return false;   // true=handled, false=controller uses default action
 }   // end onTouch()
