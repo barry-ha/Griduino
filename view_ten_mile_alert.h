@@ -426,16 +426,18 @@ void ViewTenMileAlert::loadConfig() {
   if (rc) {
     // warning: this can corrupt our object's data if something failed
     // so we blob the bytes to a work area and copy individual values
-    Serial.println(". Success, settings restored from SDRAM");
+    logger.info(". Success, settings restored from SDRAM");
 
     // pick'n pluck values from the restored instance
     this->startLat  = temp.startLat;
     this->startLong = temp.startLong;
-    Serial.print("Loaded starting point (");
-    Serial.print(this->startLat, 4);
-    Serial.print(", ");
-    Serial.print(this->startLong, 4);
-    Serial.println(")");
+    if (logger.print_info) {
+      Serial.print("Loaded starting point (");
+      Serial.print(this->startLat, 4);
+      Serial.print(", ");
+      Serial.print(this->startLong, 4);
+      Serial.println(")");
+    }
   } else {
     logger.error("Failed to load Ten Mile Alert settings, re-initializing config file");
     saveConfig();

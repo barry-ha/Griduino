@@ -137,7 +137,7 @@ protected:
 
     char msg[256];
     snprintf(msg, 256, "Set volume index %d, wiper position %d", volIndex, wiperPosition);   // debug
-    Serial.println(msg);
+    logger.info(msg);
   }
   void changeVolume(int diff) {
     gVolIndex += diff;

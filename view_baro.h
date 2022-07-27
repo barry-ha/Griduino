@@ -309,20 +309,20 @@ protected:
     fMinHg = (int)(lowestHg / HG_RES) * HG_RES;
     fMaxHg = (int)((highestHg / HG_RES) + 1) * HG_RES;
 
-    /* */
-    Serial.print(": Minimum and maximum reported pressure = ");
-    printTwoFloats(lowestPa, highestPa);
-    Serial.println(" Pa");   // debug
-    Serial.print(": Minimum and maximum vertical scale = ");
-    printTwoFloats(fMinPa, fMaxPa);
-    Serial.println(" Pa");   // debug
-    Serial.print(": Minimum and maximum reported pressure = ");
-    printTwoFloats(lowestHg, highestHg);
-    Serial.println(" inHg");   // debug
-    Serial.print(": Minimum and maximum vertical scale = ");
-    printTwoFloats(fMinHg, fMaxHg);
-    Serial.println(" inHg");   // debug
-    /* */
+    if (logger.print_info) {
+      Serial.print(": Minimum and maximum reported pressure = ");
+      printTwoFloats(lowestPa, highestPa);
+      Serial.println(" Pa");   // debug
+      Serial.print(": Minimum and maximum vertical scale = ");
+      printTwoFloats(fMinPa, fMaxPa);
+      Serial.println(" Pa");   // debug
+      Serial.print(": Minimum and maximum reported pressure = ");
+      printTwoFloats(lowestHg, highestHg);
+      Serial.println(" inHg");   // debug
+      Serial.print(": Minimum and maximum vertical scale = ");
+      printTwoFloats(fMinHg, fMaxHg);
+      Serial.println(" inHg");   // debug
+    }
   }
 
   void scaleMarks(int p, int len) {
@@ -446,32 +446,34 @@ protected:
     snprintf(msg, sizeof(msg), ". Right now is %d-%d-%d at %02d:%02d:%02d",
              year(today), month(today), day(today),
              hour(today), minute(today), second(today));
-    Serial.println(msg);   // debug
+    logger.info(msg);   // debug
     snprintf(msg, sizeof(msg), ". Leftmost graph minTime = %d-%02d-%02d at %02d:%02d:%02d (x=%d)",
              year(minTime), month(minTime), day(minTime),
              hour(minTime), minute(minTime), second(minTime),
              xDay1);
-    Serial.println(msg);   // debug
+    logger.info(msg);   // debug
     snprintf(msg, sizeof(msg), ". Rightmost graph maxTime = %d-%02d-%02d at %02d:%02d:%02d (x=%d)",
              year(maxTime), month(maxTime), day(maxTime),
              hour(maxTime), minute(maxTime), second(maxTime),
              xRight);
-    Serial.println(msg);   // debug
+    logger.info(msg);   // debug
 
     float yTopPa = (model->gMetric) ? fMaxPa : (fMaxHg * PASCALS_PER_INCHES_MERCURY);
     float yBotPa = (model->gMetric) ? fMinPa : (fMinHg * PASCALS_PER_INCHES_MERCURY);
 
-    Serial.print(". Top graph pressure = ");
-    Serial.print(yTopPa, 1);
-    Serial.println(" Pa");   // debug
-    Serial.print(". Bottom graph pressure = ");
-    Serial.print(yBotPa, 1);
-    Serial.println(" Pa");   // debug
-    Serial.print(". Saving ");
-    Serial.print(sizeof(baroModel.pressureStack));
-    Serial.print(" bytes, ");   // debug
-    Serial.print(sizeof(baroModel.pressureStack) / sizeof(baroModel.pressureStack[0]));
-    Serial.println(" readings");   // debug
+    if (logger.print_info) {
+      Serial.print(". Top graph pressure = ");
+      Serial.print(yTopPa, 1);
+      Serial.println(" Pa");   // debug
+      Serial.print(". Bottom graph pressure = ");
+      Serial.print(yBotPa, 1);
+      Serial.println(" Pa");   // debug
+      Serial.print(". Saving ");
+      Serial.print(sizeof(baroModel.pressureStack));
+      Serial.print(" bytes, ");   // debug
+      Serial.print(sizeof(baroModel.pressureStack) / sizeof(baroModel.pressureStack[0]));
+      Serial.println(" readings");   // debug
+    }
 
     // loop through entire saved array of pressure readings
     // each reading is one point, i.e., one pixel (we don't draw lines connecting the dots)

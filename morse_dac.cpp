@@ -1,32 +1,37 @@
 // Please format this file with clang before check-in to GitHub
 /*
-  File:    morse_dac.cpp
+  File:     morse_dac.cpp
 
-  Date:    2019-12-30 created
+  Date:     2019-12-30 created
 
-  Authors: Barry Hansen, barry@k7bwh.com, Seattle, WA
-           John Vanderbeck, KM7O, Seattle, WA
+  Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
+  Hardware: John Vanderbeck, KM7O, Seattle, WA
 
-  Purpose: Generate Morse Code through a speaker using onboard
-           DAC (digital to analog converter) that plays a pure
-           tone from a waveform table.
+  Purpose:  Generate Morse Code through a speaker using onboard
+            DAC (digital to analog converter) that plays a pure
+            tone from a waveform table.
 
-           All input should be uppercase.
-           Prosigns (SK, KN, etc) have special character values #defined.
+            All input should be uppercase.
+            Prosigns (SK, KN, etc) have special character values #defined.
 
   See also:
-           Non-blocking Morse by Mark Fickett, KB3JCY
+            Non-blocking Morse by Mark Fickett, KB3JCY
                 https://github.com/markfickett/arduinomorse
-           Morse decoder (using binary tree):
+            Morse decoder (using binary tree):
                 http://www.arduino.cc/cgi-bin/yabb2/YaBB.pl?num=1289074596/15
-           Generator (on playground):
+            Generator (on playground):
                 http://www.arduino.cc/playground/Code/Morse
- */
+*/
 
 #include <Arduino.h>     // for max() function
 #include <stdlib.h>      // for dtostrf() function
+#include "logger.h"      // conditional printing to Serial port
 #include "morse_dac.h"   // Morse sending class
 
+// ========== extern ===========================================
+extern Logger logger;   // Griduino.ino
+
+// ------------ definitions
 #define N_MORSE (sizeof(morsetable) / sizeof(morsetable[0]))
 
 // Set granularity of waveform
@@ -256,13 +261,15 @@ void DACMorseSender::setMessage(const String newMessage) {
 }
 
 void DACMorseSender::sendBlocking() {
-  Serial.print("Sending morse ");
-  Serial.print(wpm, 1);
-  Serial.print(" wpm: ");
-  Serial.println(message);
+  if (logger.print_info) {
+    Serial.print("Sending morse ");
+    Serial.print(wpm, 1);
+    Serial.print(" wpm: ");
+    Serial.println(message);
+  }
   if (dacSampleTime < 1) {
     // note "delayMicroseconds()" only works reliably down to 3 usec
-    Serial.println("!!! DAC dacSampleTime < 1 usec. Did you call setup()?");
+    logger.error("!!! DAC dacSampleTime < 1 usec. Did you call setup()?");
   }
 
   for (int ii = 0; ii < message.length(); ii++) {

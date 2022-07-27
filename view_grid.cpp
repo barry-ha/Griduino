@@ -448,14 +448,16 @@ void ViewGrid::startScreen() {
   TextField::setTextDirty( txtGrid, numTextGrid );
 
   double lngMiles = model->calcDistanceLong(model->gLatitude, 0.0, minLong);
-  Serial.print("Minimum visible E-W movement x=long="); 
-  Serial.print(minLong,6); Serial.print(" degrees = "); 
-  Serial.print(lngMiles,2); Serial.println(" miles");
-
-  double latMiles = model->calcDistanceLat(0.0, minLat);
-  Serial.print("Minimum visible N-S movement y=lat="); 
-  Serial.print(minLat,6); Serial.print(" degrees = "); 
-  Serial.print(latMiles,2); Serial.println(" miles");
+  if (logger.print_info) {
+    Serial.print("Minimum visible E-W movement x=long="); 
+    Serial.print(minLong,6); Serial.print(" degrees = "); 
+    Serial.print(lngMiles,2); Serial.println(" miles");
+  
+    double latMiles = model->calcDistanceLat(0.0, minLat);
+    Serial.print("Minimum visible N-S movement y=lat="); 
+    Serial.print(minLat,6); Serial.print(" degrees = "); 
+    Serial.print(latMiles,2); Serial.println(" miles");
+  }
 
   setFontSize(12);
   drawGridOutline();                  // box outline around grid

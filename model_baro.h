@@ -177,7 +177,7 @@ public:
     // updates: gPressure (public class var)
     //          inchesHg  (public class var)
     if (!baro->performReading()) {
-      Serial.println("Error, failed to read barometer");
+      logger.error("Error, failed to read barometer hardware");
     }
     // continue anyway, for demo
     gPressure = baro->pressure + elevCorr;   // Pressure is returned in SI units of Pascals. 100 Pascals = 1 hPa = 1 millibar
@@ -190,11 +190,13 @@ public:
   // the schedule is determined by the Controller
   // controller should call this every 15 minutes
   void logPressure(time_t rightnow) {
-    float pressure = getBaroPressure();     // read
-    rememberPressure(pressure, rightnow);   // push onto stack
-    Serial.print("logPressure( ");          // debug
-    Serial.print(pressure, 1);              // debug
-    Serial.println(" )");                   // debug
+    if (logger.print_info) {
+      float pressure = getBaroPressure();     // read
+      rememberPressure(pressure, rightnow);   // push onto stack
+      Serial.print("logPressure( ");          // debug
+      Serial.print(pressure, 1);              // debug
+      Serial.println(" )");                   // debug
+    }
     saveHistory();                          // write stack to NVR
   }
 
@@ -217,9 +219,7 @@ public:
         }
       }
 
-      Serial.print(". Loaded barometric pressure history file, ");
-      Serial.print(numNonZero);
-      Serial.println(" readings found");
+      logger.info(". Loaded barometric pressure history file, %d readings", numNonZero);
     }
     dumpPressureHistory();   // debug
     return result;
@@ -228,9 +228,7 @@ public:
   void saveHistory() {
     SaveRestore history(PRESSURE_HISTORY_FILE, PRESSURE_HISTORY_VERSION);
     history.writeConfig((byte *)&pressureStack, sizeof(pressureStack));
-    Serial.print("Saved the pressure history to non-volatile memory [line ");   // debug
-    Serial.print(__LINE__);                                                     // debug
-    Serial.println("]");                                                        // debug
+    logger.info("Saved pressure history to non-volatile memory");
   }
 
 #ifdef RUN_UNIT_TESTS
@@ -257,19 +255,19 @@ protected:
     // return;                      // debug debug
     //  format the barometric pressure array and write it to the Serial console log
     //  entire subroutine is for debug purposes
-    Serial.print("Pressure history stack, non-zero values [line ");
-    Serial.print(__LINE__);
-    Serial.println("]");
-    for (int ii = 0; ii < maxReadings; ii++) {
-      BaroReading item = pressureStack[ii];
-      if (item.pressure > 0) {
-        Serial.print("Stack[");
-        Serial.print(ii);
-        Serial.print("] = ");
-        Serial.print(item.pressure);
-        Serial.print("  ");
-        char msg[24];
-        Serial.println(dateToString(msg, sizeof(msg), item.time));   // debug
+    logger.info("Pressure history stack, non-zero values [line %d]", __LINE__);
+    if (logger.print_info) {
+      for (int ii = 0; ii < maxReadings; ii++) {
+        BaroReading item = pressureStack[ii];
+        if (item.pressure > 0) {
+          Serial.print("Stack[");
+          Serial.print(ii);
+          Serial.print("] = ");
+          Serial.print(item.pressure);
+          Serial.print("  ");
+          char msg[24];
+          Serial.println(dateToString(msg, sizeof(msg), item.time));   // debug
+        }
       }
     }
     return;

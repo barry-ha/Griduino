@@ -446,8 +446,10 @@ void ViewAltimeter::loadConfig() {
   if (result) {
 
     this->sealevelPa = tempPressure;
-    Serial.print("Loaded sea level pressure: ");
-    Serial.println(this->sealevelPa, 1);
+    if (logger.print_info) {
+      Serial.print("Loaded sea level pressure: ");
+      Serial.println(this->sealevelPa, 1);
+    }
   } else {
     logger.error("Failed to load sea level pressure, re-initializing config file");
     saveConfig();

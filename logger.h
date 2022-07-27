@@ -42,7 +42,7 @@ class Logger {
 
 public:
   bool print_nmea      = true;   // set TRUE for NmeaTime2 by www.visualgps.net
-  bool print_gmt       = false;
+  bool print_gmt       = false;  // the time reports are frequent (1 per second) so by default it's off
   bool print_fencepost = true;
   bool print_debug     = true;
   bool print_info      = false;   // set FALSE for NmeaTime2 by www.visualgps.net
@@ -53,9 +53,8 @@ public:
   // this has frequent output messages (1 per second) so by default it's off
   void nmea(const char *pText) {
     if (print_nmea) {
-      // 2022-01-02 for now, all we need is $GPRMC not $GPGGA
       //
-      //    GPRMC data:       GPGGA data:
+      //    ---GPRMC---       ---GPGGA---
       //    hh:mm:ss          hh:mm:ss
       //    Sat status        Latitude
       //    Latitude          Longitude
@@ -64,18 +63,21 @@ public:
       //    Track angle       Ground speed
       //    DD:MM:YY          Altitude
       //
-      if (strncmp("$GPRMC", pText, 6) == 0) {
+      // this GPS info is required by NMEATime2 by www.visualgps
+      const char haystack[] = "$GPRMC $GPGGA $GPGSA $GPGSV ";
+      char needle[7];
+      strncpy(needle, pText, 6);
+      needle[6] = 0;   // null terminated
+      //if (strstr(haystack, needle)) {
         Serial.print(pText);
-      }
-      // to support NMEATime2 by www.visualgps, we also need $GPGGA
-      if (strncmp("$GPGGA", pText, 6) == 0) {
-        Serial.print(pText);
+      //}
+      if (strstr("$GPRMC", needle)) {
+        Serial.println();
       }
     }
   }
 
   // GMT time reports
-  // the time reports are frequent (1 per second) so by default it's off
   void gmt(const char *pText) {
     if (print_gmt) {
       Serial.print(pText);

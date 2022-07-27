@@ -547,10 +547,9 @@ public:
       char newGrid4[5];   // strlen("CN87") = 4
       calcLocator(newGrid4, gLatitude, gLongitude, 4);
       if (strcmp(newGrid4, sPrevGrid4) != 0) {
-        Serial.print("Prev grid: ");
-        Serial.print(sPrevGrid4);
-        Serial.print(" New grid: ");
-        Serial.println(newGrid4);
+        char msg[128];
+        snprintf(msg, sizeof(msg), "Prev grid: %s New grid: %s", sPrevGrid4, sPrevGrid4);
+        logger.warning(msg);
         strncpy(sPrevGrid4, newGrid4, sizeof(sPrevGrid4));
         return true;
       } else {
@@ -579,9 +578,9 @@ public:
     if (gPrevFix && !gHaveGPSfix) {
       lostFix     = true;
       gHaveGPSfix = false;
-      Serial.println("Lost GPS positioning");
+      logger.warning("Lost GPS positioning");
     } else if (!gPrevFix && gHaveGPSfix) {
-      Serial.println("Acquired GPS position lock");
+      logger.warning("Acquired GPS position lock");
     }
     gPrevFix = gHaveGPSfix;
     return lostFix;
