@@ -317,8 +317,7 @@ bool newScreenTap(Point* pPoint) {
 
       // convert resistance measurements into screen pixel coords
       mapTouchToScreen(touch, pPoint);
-      Serial.print("Screen touched at ("); Serial.print(pPoint->x);
-      Serial.print(","); Serial.print(pPoint->y); Serial.println(")");
+      logger.info("Screen touched at (%d,%d)", pPoint->x, pPoint->y);
     }
   }
   //delay(10);   // no delay: code above completely handles debounce without blocking the loop
@@ -885,8 +884,7 @@ void selectNewView(int cmd) {
       default:             nextView = CFG_VOLUME; break;
     }
   }
-  Serial.print("selectNewView() from "); Serial.print(currentView);
-  Serial.print(" to "); Serial.println(nextView);
+  logger.info("selectNewView() from %d to %d", currentView, nextView);
   pView->endScreen();                   // a goodbye-kiss to the departing view
   pView = viewTable[ nextView ];
 
@@ -1067,17 +1065,18 @@ void setup() {
 #endif
 
   // ----- init GPS
-  GPS.begin(9600);                              // 9600 NMEA is the default baud rate for Adafruit MTK GPS's
-  delay(50);                                    // is delay really needed?
+  GPS.begin(9600);   // 9600 NMEA is the default baud rate for Adafruit MTK GPS's
+  delay(50);         // is delay really needed?
+
   Serial.print("Set GPS baud rate to 57600: ");
   Serial.println(PMTK_SET_BAUD_57600);
   GPS.sendCommand(PMTK_SET_BAUD_57600);
   delay(50);
   GPS.begin(57600);
-  delay(50);             
+  delay(50);
 
   // init Quectel L86 chip to improve USA satellite acquisition
-  GPS.sendCommand("$PMTK353,1,0,0,0,0*2A");     // search American GPS satellites only (not Russian GLONASS satellites)
+  GPS.sendCommand("$PMTK353,1,0,0,0,0*2A");   // search American GPS satellites only (not Russian GLONASS satellites)
   delay(50);
 
   Serial.print("Turn on RMC (recommended minimum) and GGA (fix data) including altitude: ");
@@ -1092,18 +1091,37 @@ void setup() {
   //GPS.sendCommand(PMTK_SET_NMEA_UPDATE_200_MILLIHERTZ);   // Every 5 seconds
   delay(50);
 
-  // todo - figure out how to make Quectel GPS _not_ send ext antenna status
-  //Serial.print("Request antenna status: ");
-  //Serial.println(PGCMD_ANTENNA);    // echo command to console log
-  //GPS.sendCommand(PGCMD_ANTENNA);   // Request antenna status (comment out to keep quiet)
+  if (0) {   // this command is saved in the GPS chip NVR, so always send one of these cmds
+    Serial.print("Request antenna status: ");
+    Serial.println(PGCMD_ANTENNA);    // echo command to console log
+    GPS.sendCommand(PGCMD_ANTENNA);   // tell GPS to send us antenna status
                                       // expected reply: $PGTOP,11,...
-  //delay(50);
+  } else {
+    Serial.print("Request to NOT send antenna status: ");
+    Serial.println(PGCMD_NOANTENNA);    // echo command to console log
+    GPS.sendCommand(PGCMD_NOANTENNA);   // tell GPS to NOT send us antena status
+  }
+  delay(50);
 
   // ----- query GPS firmware
   Serial.print("Sending command to query GPS Firmware version: ");
-  Serial.println(PMTK_Q_RELEASE);     // Echo query to console
-  GPS.sendCommand(PMTK_Q_RELEASE);    // Send query to GPS unit
-                                      // expected reply: $PMTK705,AXN_2.10...
+  Serial.println(PMTK_Q_RELEASE);    // Echo query to console
+  GPS.sendCommand(PMTK_Q_RELEASE);   // Send query to GPS unit
+                                     // expected reply: $PMTK705,AXN_2.10...
+  delay(50);
+
+// ----- turn on additional satellite reporting to support NMEATime2
+// You can tinker with this in sandbox: \Griduino\examples\GPS_Demo_Loopback\GPS_Demo_Loopback.ino
+//                                          GPGLL           Geographic Latitude longitude
+//                                          | GPRMC         Recommended Minimum Coordinates
+//                                          | | GPVTG       Velocity Over Ground
+//                                          | | | GPGGA     GPS Fix Data
+//                                          | | | | GPGSA   GPS Satellites Active
+//                                          | | | | | GPGSV GPS Satellites in View
+#define PMTK_SENTENCE_FREQUENCIES "$PMTK314,0,1,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0*28"
+  Serial.print("Sending command to set sentence output frequencies: ");
+  Serial.println(PMTK_SENTENCE_FREQUENCIES);    // Echo command to console
+  GPS.sendCommand(PMTK_SENTENCE_FREQUENCIES);   // Send command to GPS unit
   delay(50);
 
   // ----- report on our memory hogs
@@ -1164,9 +1182,9 @@ void setup() {
 
   // ----- restore barometric pressure history
   if (baroModel.loadHistory()) {
-    Serial.println("Successfully restored barometric pressure history");
+    logger.info("Successfully restored barometric pressure history");
   } else {
-    Serial.println("Failed to load barometric pressure history, re-initializing config file");
+    logger.error("Failed to load barometric pressure history, re-initializing config file");
     baroModel.saveHistory();
   }
 
@@ -1233,6 +1251,10 @@ void loop() {
   GPS.read();   // if you can, read the GPS serial port every millisecond
 
   if (GPS.newNMEAreceived()) {
+    // optionally send NMEA sentences to Serial port, possibly for NMEATime2
+    // Note: Adafruit parser doesn't handle $GPGSV (satellites in vieW) so we send all sentences regardless of content
+    logger.nmea(GPS.lastNMEA());
+
     // sentence received -- verify checksum, parse it
     // a tricky thing here is if we print the NMEA sentence, or data
     // we end up not listening and thereby might miss other sentences
@@ -1243,8 +1265,6 @@ void loop() {
       // parsing failed -- restart main loop to wait for another sentence
       // this also sets the newNMEAreceived() flag to false
       return;
-    } else {
-      logger.nmea(GPS.lastNMEA());
     }
   }
 

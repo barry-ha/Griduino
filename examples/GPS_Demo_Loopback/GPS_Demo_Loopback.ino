@@ -101,6 +101,27 @@
           | MTK=MediaTek protocol
           Talker ID, P=Proprietary
 
+         $PMTK314,1,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0*29
+          | | |   | | | | | | |                       | checksum
+          | | |   | | | | | | |                       PMTKCHN interval – GPS channel status
+          | | |   | | | | | | Reserved
+          | | |   | | | | | GPGSV interval - GNSS Satellites in View
+          | | |   | | | | GPGSA interval - GNSS DOPS and Active Satellites
+          | | |   | | | GPGGA interval - GPS Fix Data
+          | | |   | | GPVTG interval - Course over Ground and Ground Speed
+          | | |   | GPRMC interval - Recommended Minimum Specific GNSS Sentence
+          | | |   GPGLL interval - Geographic Position - Latitude longitude
+          | | 314 = Set NMEA sentence output frequencies
+          | MTK=MediaTek protocol
+          Talker ID, P=Proprietary
+          Supported frequency settings are:
+            0 - Disabled or not supported sentence
+            1 - Output once every one position fix
+            2 - Output once every two position fixes
+            3 - Output once every three position fixes
+            4 - Output once every four position fixes
+            5 - Output once every five position fixes
+
 */
 
 #include <SPI.h>                 // Serial Peripheral Interface
@@ -112,7 +133,7 @@
 
 // ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE    "GPS Demo Loopback"
-#define PROGRAM_VERSION  "v1.02"
+#define PROGRAM_VERSION  "v1.03"
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
 
 #define SCREEN_ROTATION 1   // 1=landscape, 3=landscape 180-degrees
@@ -155,9 +176,9 @@ const int howLongToWait = 8;   // max number of seconds at startup waiting for S
 #define indent 10
 #define yRow1  18           // program title & version
 #define yRow2  yRow1 + 22   // message line 1
-#define yRow3  yRow2 + 22   // message line 2
-#define yRow4  yRow3 + 36   // echo GPS sentence, even
-#define yRow5  yRow4 + 60   // echo GPS sentence, odd
+
+#define yRow4 yRow2 + 36   // echo GPS sentence, even
+#define yRow5 yRow4 + 60   // echo GPS sentence, odd
 
 void clearScreen(int color = cBACKGROUND) {
   tft.fillScreen(color);
@@ -172,8 +193,6 @@ void startSplashScreen() {
   tft.print(PROGRAM_VERSION);
   tft.setCursor(indent, yRow2);
   tft.print("See IDE console monitor");
-  tft.setCursor(indent, yRow3);
-  tft.print("for status and results");
 }
 
 // ----- console Serial port helper
@@ -256,9 +275,9 @@ void init_Adafruit_GPS() {
 
   Serial.print("Set GPS 1 Hz update rate: ");
   Serial.println(PMTK_SET_NMEA_UPDATE_1HZ);
-  // GPS.sendCommand(PMTK_SET_NMEA_UPDATE_5HZ);              // 5 Hz update rate
+  //GPS.sendCommand(PMTK_SET_NMEA_UPDATE_5HZ);              // 5 Hz update rate
   GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);   // 1 Hz
-  // GPS.sendCommand(PMTK_SET_NMEA_UPDATE_200_MILLIHERTZ);   // Every 5 seconds
+  //GPS.sendCommand(PMTK_SET_NMEA_UPDATE_200_MILLIHERTZ);   // Every 5 seconds
   delay(50);
 
   if (0) {   // this command is saved in the GPS chip NVR, so always send one of these cmds
@@ -279,7 +298,30 @@ void init_Adafruit_GPS() {
   GPS.sendCommand(PMTK_Q_RELEASE);   // Send query to GPS unit
                                      // expected reply: $PMTK705,AXN_2.10...
   delay(50);
+
+// ----- turn on additional satellite reporting to support NMEATime2
+//                                          GPGLL           Geographic Latitude longitude
+//                                          | GPRMC         Recommended Minimum Coordinates
+//                                          | | GPVTG       Velocity Over Ground
+//                                          | | | GPGGA     GPS Fix Data
+//                                          | | | | GPGSA   GPS Satellites Active
+//                                          | | | | | GPGSV GPS Satellites in View
+#define PMTK_SENTENCE_FREQUENCIES "$PMTK314,0,1,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0*28"
+  Serial.print("Sending command to set sentence output frequencies: ");
+  Serial.println(PMTK_SENTENCE_FREQUENCIES);    // Echo command to console
+  GPS.sendCommand(PMTK_SENTENCE_FREQUENCIES);   // Send command to GPS unit
+  delay(50);
 }
+
+/* Example: Typical output from Adafruit Ultimate GPS
+ *  This works fine with NMEATime2
+  $GPGGA,160619.000,4745.1791,N,12217.0746,W,1,06,1.87,27.7,M,-17.2,M,,*6A
+  $GPGSA,A,3,11,20,02,25,12,29,,,,,,,2.11,1.87,0.97*0F
+  $GPGSV,3,1,11,02,73,065,18,25,68,273,20,11,60,062,21,12,59,161,13*70
+  $GPGSV,3,2,11,20,46,117,21,29,38,282,17,51,33,160,,05,25,155,*72
+  $GPGSV,3,3,11,06,23,051,13,31,18,315,,18,01,227,*4B
+  $GPRMC,160619.000,A,4745.1791,N,12217.0746,W,0.27,28.81,260722,,,A*4E
+*/
 
 //=========== main work loop ===================================
 int count = 0;   // number of NMEA sentences received
