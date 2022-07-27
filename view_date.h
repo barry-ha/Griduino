@@ -114,10 +114,10 @@ DefinedEvent june_vhf{
     COUNTDOWN_TO,
     SHOW_HMS,
     "Countdown to",
-    "June 11, 2022 at 1800z",
+    "June 10, 2023 at 1800z",
     "ARRL June VHF Contest",
     // s,m,h, dow, dd, mm, yy GMT
-    {0, 0, 18, 1, 11, 6, 2022 - 1970},
+    {0, 0, 18, 1, 10, 6, 2023 - 1970},
 };
 
 DefinedEvent groundhog{
