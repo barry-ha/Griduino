@@ -197,7 +197,7 @@ public:
       Serial.print(pressure, 1);              // debug
       Serial.println(" )");                   // debug
     }
-    saveHistory();                          // write stack to NVR
+    saveHistory();   // write stack to NVR
   }
 
   // ========== load/save barometer pressure history =============

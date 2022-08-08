@@ -12,7 +12,7 @@
   Purpose:  This sketch speaks grid names, e.g. "CN87" as "Charlie November Eight Seven"
             Example data (750 KB) includes Barry's recorded voice sampled at 16 khz mono.
             Sample audio is stored and played using the 2MB Flash chip.
-            WAV files are stored in the chip by temporarily loading CircuitPy and 
+            WAV files are stored in the chip by temporarily loading CircuitPy and
             then drag'n drop files from within Windows, then loading our sketch again.
             This sketch is used in Griduino at https://github.com/barry-ha/Griduino
 
@@ -22,7 +22,7 @@
             2. Open a project, e.g. \Documents\Arduino\Griduino\work_in_progress\Spoken Word Originals\Barry
             3. Select "Project rate" of 16000 Hz
             4. Select an audio fragment, such as "Charlie"
-            5. Menu bar > Effect > Normalize 
+            5. Menu bar > Effect > Normalize
                a. Remove DC offset
                b. Normalize peaks -1.0 dB
             5. Menu bar > File > Export > Export as WAV

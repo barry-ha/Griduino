@@ -88,19 +88,19 @@ Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 // For touch point precision, we need to know the resistance
 // between X+ and X- Use any multimeter to read it
 #if defined(SAMD_SERIES)
-  // Adafruit Feather M4 Express pin definitions
-  #define PIN_XP A3   // Touchscreen X+ can be a digital pin
-  #define PIN_XM A4   // Touchscreen X- must be an analog pin, use "An" notation
-  #define PIN_YP A5   // Touchscreen Y+ must be an analog pin, use "An" notation
-  #define PIN_YM 9    // Touchscreen Y- can be a digital pin
+// Adafruit Feather M4 Express pin definitions
+#define PIN_XP A3   // Touchscreen X+ can be a digital pin
+#define PIN_XM A4   // Touchscreen X- must be an analog pin, use "An" notation
+#define PIN_YP A5   // Touchscreen Y+ must be an analog pin, use "An" notation
+#define PIN_YM 9    // Touchscreen Y- can be a digital pin
 #elif defined(ARDUINO_AVR_MEGA2560)
-  // Arduino Mega 2560 and others
-  #define PIN_XP 4    // Touchscreen X+ can be a digital pin
-  #define PIN_XM A3   // Touchscreen X- must be an analog pin, use "An" notation
-  #define PIN_YP A2   // Touchscreen Y+ must be an analog pin, use "An" notation
-  #define PIN_YM 5    // Touchscreen Y- can be a digital pin
+// Arduino Mega 2560 and others
+#define PIN_XP 4    // Touchscreen X+ can be a digital pin
+#define PIN_XM A3   // Touchscreen X- must be an analog pin, use "An" notation
+#define PIN_YP A2   // Touchscreen Y+ must be an analog pin, use "An" notation
+#define PIN_YM 5    // Touchscreen Y- can be a digital pin
 #else
-  #warning You need to define pins for your hardware
+#warning You need to define pins for your hardware
 #endif
 TouchScreen ts = TouchScreen(PIN_XP, PIN_YP, PIN_XM, PIN_YM, XP_XM_OHMS);
 
@@ -230,12 +230,12 @@ void waitForSerial(int howLong) {
   // and the operator takes awhile to restart the console (Tools > Serial Monitor)
   // so give them a few seconds for this to settle before sending messages to IDE
   unsigned long targetTime = millis() + howLong * 1000;
-  
-  int x                    = 0;
-  int y                    = 0;
-  int w                    = gScreenWidth;
-  int h                    = gScreenHeight;
-  bool done                = false;
+
+  int x     = 0;
+  int y     = 0;
+  int w     = gScreenWidth;
+  int h     = gScreenHeight;
+  bool done = false;
 
   while (millis() < targetTime) {
     if (Serial)

@@ -257,14 +257,14 @@ public:
       }
     }
     // here's the real meat of the potato
-    nextHistoryItem = indexOldest;   
+    nextHistoryItem = indexOldest;
 
     // report statistics for a visible sanity check to aid debug
     char sOldest[24], sNewest[24];
     dateToString(sOldest, sizeof(sOldest), oldest);
     dateToString(sNewest, sizeof(sNewest), newest);
 
-    char msg1[256], msg2[256];   
+    char msg1[256], msg2[256];
     snprintf(msg1, sizeof(msg1), ". Oldest date = history[%d] = %s", indexOldest, sOldest);
     snprintf(msg2, sizeof(msg2), ". Newest date = history[%d] = %s", indexNewest, sNewest);
     logger.info(msg1);

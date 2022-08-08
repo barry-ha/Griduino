@@ -118,7 +118,7 @@ public:
   int readLine(char *pBuffer, int bufflen);           // https://cplusplus.com/reference/cstdio/gets/
   uint8_t getError() {
     return handle.getError();
-   }
+  }
   void close();
 
 protected:

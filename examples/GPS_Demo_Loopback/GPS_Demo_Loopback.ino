@@ -275,9 +275,9 @@ void init_Adafruit_GPS() {
 
   Serial.print("Set GPS 1 Hz update rate: ");
   Serial.println(PMTK_SET_NMEA_UPDATE_1HZ);
-  //GPS.sendCommand(PMTK_SET_NMEA_UPDATE_5HZ);              // 5 Hz update rate
+  // GPS.sendCommand(PMTK_SET_NMEA_UPDATE_5HZ);              // 5 Hz update rate
   GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);   // 1 Hz
-  //GPS.sendCommand(PMTK_SET_NMEA_UPDATE_200_MILLIHERTZ);   // Every 5 seconds
+  // GPS.sendCommand(PMTK_SET_NMEA_UPDATE_200_MILLIHERTZ);   // Every 5 seconds
   delay(50);
 
   if (0) {   // this command is saved in the GPS chip NVR, so always send one of these cmds

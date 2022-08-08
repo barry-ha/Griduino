@@ -268,7 +268,7 @@ protected:
   void nextDateEvent() {
     whichEvent = (whichEvent + 1) % (sizeof(eventList) / sizeof(eventList[0]));
     target     = eventList[whichEvent];
-    //logger.info(". Changed event to #%d, %d", whichEvent, eventList[whichEvent].line3);
+    // logger.info(". Changed event to #%d, %d", whichEvent, eventList[whichEvent].line3);
   }
 
   // Formatted elapsed time

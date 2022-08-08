@@ -25,7 +25,7 @@
 #include <Adafruit_ILI9341.h>    // TFT color display library
 #include <SdFat.h>               // for FAT file systems on Flash and Micro SD cards
 #include <Adafruit_SPIFlash.h>   // for FAT file systems on SPI flash chips
-#include "hardware.h"            // Griduino pin definitions 
+#include "hardware.h"            // Griduino pin definitions
 
 // ------- Identity for splash screen and console --------
 #define EXAMPLE_TITLE    "Flash File Directory List"
@@ -300,13 +300,13 @@ void setup() {
 //=========== main work loop ===================================
 void loop() {
 
-  for (int ii=30; ii--; ii<=0) {
+  for (int ii = 30; ii--; ii <= 0) {
     Serial.print(ii);
     Serial.print(" ");
     delay(1000);
   }
   Serial.println(" ");
-  clearScreen();        // note that "begin()" does not clear screen
+  clearScreen();   // note that "begin()" does not clear screen
   gCurrentY = yRow1;
 
   // ----- Do The Thing

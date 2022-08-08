@@ -1,22 +1,22 @@
 // Please format this file with clang before check-in to GitHub
 /*
-  File:     audio_qspi.h 
+  File:     audio_qspi.h
 
   Purpose:  Open and play Microsoft WAV files from Quad-SPI memory chip on Feather M4 Express
 
-            This project documents everything needed for the whole process from 
-            adjusting audio in Audacity, creating the WAV file, transferring your 
-            WAV file to the QSPI chip on a Feather M4 board, opening the file in FatSd, 
-            and playing the sampled audio on the DAC output. 
+            This project documents everything needed for the whole process from
+            adjusting audio in Audacity, creating the WAV file, transferring your
+            WAV file to the QSPI chip on a Feather M4 board, opening the file in FatSd,
+            and playing the sampled audio on the DAC output.
 
-            The SAMD51 on the Feather M4 Express has large program space, but 
-            it's not nearly enough to hold more than a few total seconds of 
-            precompiled audio. Hence, I developed this interface to play audio 
+            The SAMD51 on the Feather M4 Express has large program space, but
+            it's not nearly enough to hold more than a few total seconds of
+            precompiled audio. Hence, I developed this interface to play audio
             clips from the 2MB Quad-SPI memory chip.
 
-            "Express" boards from Adafruit indicate it carries a memory chip alongside 
-            the processor. It is accessed via SPI interface; it is not part of the instruction set 
-            memory space. 
+            "Express" boards from Adafruit indicate it carries a memory chip alongside
+            the processor. It is accessed via SPI interface; it is not part of the instruction set
+            memory space.
 
   Preparing audio files:
             Prepare your WAV file to 16 kHz mono:
@@ -24,7 +24,7 @@
             2. Open a project, e.g. \Documents\Arduino\Griduino\work_in_progress\Spoken Word Originals\Barry
             3. Select "Project rate" of 16000 Hz
             4. Select an audio fragment, such as "Charlie"
-            5. Menu bar > Effect > Normalize 
+            5. Menu bar > Effect > Normalize
                a. Remove DC offset
                b. Normalize peaks -1.0 dB
             5. Menu bar > File > Export > Export as WAV

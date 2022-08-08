@@ -19,7 +19,7 @@ uint16_t TextField::cBackground;   // background color
 void TextField::eraseOld() {
   // we remember the area to erase from the previous print()
   tft.fillRect(xPrev, yPrev, wPrev, hPrev, cBackground);   // erase the requested width of old text
-  //tft.drawRect(xPrev-2, yPrev-2, wPrev+4, hPrev+4, ILI9341_RED); // debug: show what area was erased
+  // tft.drawRect(xPrev-2, yPrev-2, wPrev+4, hPrev+4, ILI9341_RED); // debug: show what area was erased
 }
 void TextField::printNew(const char *pText) {
   int16_t x1, y1;

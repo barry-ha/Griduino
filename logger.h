@@ -10,15 +10,15 @@
 
  ******************************************************************************
   Licensed under the GNU General Public License v3.0
- 
-  Permissions of this strong copyleft license are conditioned on making available 
-  complete source code of licensed works and modifications, which include larger 
-  works using a licensed work, under the same license. Copyright and license 
+
+  Permissions of this strong copyleft license are conditioned on making available
+  complete source code of licensed works and modifications, which include larger
+  works using a licensed work, under the same license. Copyright and license
   notices must be preserved. Contributors provide an express grant of patent rights.
- 
+
   You may obtain a copy of the License at
       https://docs.github.com/articles/licensing-a-repository/#disclaimer
- 
+
   Unless required by applicable law or agreed to in writing, software
   distributed under the License is distributed on an "AS IS" BASIS,
   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -36,13 +36,13 @@ enum {
 }
 */
 
-#include "logger.h"             // conditional printing to Serial port
+#include "logger.h"   // conditional printing to Serial port
 
 class Logger {
 
 public:
-  bool print_nmea      = true;   // set TRUE for NmeaTime2 by www.visualgps.net
-  bool print_gmt       = false;  // the time reports are frequent (1 per second) so by default it's off
+  bool print_nmea      = true;    // set TRUE for NmeaTime2 by www.visualgps.net
+  bool print_gmt       = false;   // the time reports are frequent (1 per second) so by default it's off
   bool print_fencepost = true;
   bool print_debug     = true;
   bool print_info      = false;   // set FALSE for NmeaTime2 by www.visualgps.net
@@ -68,9 +68,7 @@ public:
       char needle[7];
       strncpy(needle, pText, 6);
       needle[6] = 0;   // null terminated
-      //if (strstr(haystack, needle)) {
-        Serial.print(pText);
-      //}
+      Serial.print(pText);
       if (strstr("$GPRMC", needle)) {
         Serial.println();
       }
@@ -84,7 +82,7 @@ public:
     }
   }
   void fencepost(const char *pModule, const int lineno) {
-    // example: "Griduino.ino[123] says hi"
+    // example output: "Griduino.ino[123] says hi"
     if (print_fencepost) {
       Serial.print(pModule);
       Serial.print("[");
@@ -93,7 +91,7 @@ public:
     }
   }
   void fencepost(const char *pModule, const char *pSubroutine, const int lineno) {
-    // example: "----- unit_test.cpp[123] verifyMorseCode()"
+    // example output: "----- unit_test.cpp[123] verifyMorseCode()"
     if (print_fencepost) {
       Serial.print("----- ");
       Serial.print(pModule);
