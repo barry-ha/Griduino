@@ -8,6 +8,12 @@ Version numbers correspond to [Downloads](https://github.com/barry-ha/Griduino/t
 
 The changelog format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and the Griduino project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+**v1.10** &nbsp; 2022-08-05
+
+New: Supports the "GPS Status" panel of NMEATime2, showing the satellite signal strength and sky location of GPS satellites.
+
+![screen showing NMEATime2](img/NMEATime2-screenshot.PNG "Title")
+
 **v1.09 beta** &nbsp; 2022-06-21
 
 Fixed: Hang on Hint screen (If this has any problems, please run v1.06 instead.)
