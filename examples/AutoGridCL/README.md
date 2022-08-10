@@ -8,7 +8,6 @@ Install Python
 
 * Download and Install Python https://www.python.org/downloads/
 * Add Python to PATH https://datatofish.com/add-python-to-windows-path/
-* Verify Python works by ... 
 
 Get AutoGridCL files into a local folder
 
@@ -23,10 +22,10 @@ Get AutoGridCL files into a local folder
 ## Set up WSJT-X for multicast
 
 Run WSJT-X and configure File > Settings > Reporting:
-* *UDP Server: 224.0.0.1* <br/>*224.0.0.1 is the most compatible with JTAlert, GridTracker, etc and is not routed on your LAN*<br/>*127.0.0.1 can be used if you use WSJT only with AutoGridCL and no other programs*
-* *UDP Server port number: 2237* <br/>*2237 is the default*
-* *Outgoing interfaces: loopback_0* <br/>*a loopback interface is required*
-* *Multicast TTL: 1* <br/>*this is a packet's Time-To-Live, a small number of seconds*
+* <b>UDP Server: 224.0.0.1</b> <br/>*224.0.0.1 is the most compatible with JTAlert, GridTracker, HRD, etc and these packets are not routed outboard onto your LAN*<br/>*127.0.0.1 can be used if you use WSJT only with AutoGridCL and no other programs*
+* <b>UDP Server port number: 2237</b> <br/>*2237 is the default*
+* <b>Outgoing interfaces: loopback_0</b> <br/>*a loopback interface is required*
+* <b>Multicast TTL: 1</b> <br/>*this is a packet's Time-To-Live, a small number of seconds*
  
 ## Set up AutoGridCL
 
@@ -62,8 +61,8 @@ Error reporting is very crude in this prototype program. Some resourcefulness is
 Here are some suggestions that might help.
 * If a command-line window does not appear after starting AutoGridCL.py, then it might have an exception and have ended right away. To see messages, open a command window, change to the directory where the file is located, and type 'python AutoGridCL.py'
 * If you don't see NMEA messages from Griduino, reboot it and watch the screen to see the version number. Griduino software version must be 1.10 or later.
-* Close any programs using Griduino before starting AutoGridCL. Since the USB port cannot be shared, we cannot run NMEA Time2 or the Arduino workbench monitor at the same time.
-* Tell Barry other problems you run into so he can add it to this list: barry@k7bwh.com.
+* If this program can't connect to Griduino, close any programs using it (such as NMEA Time2 or the Arduino workbench) before starting AutoGridCL. Note that the USB port cannot be shared, so only one program at a time can listen to Griduino. For extra fun, note that NMEA Time2 is a background service and cannot be closed; you must configure its GPS setting to 'Off' to disconnect it from the serial port.
+* Tell Barry about problems you run into so he can add it to this list: barry@k7bwh.com.
 
 ## Credit
 Thanks goes to:
