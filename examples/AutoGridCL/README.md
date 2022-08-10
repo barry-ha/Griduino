@@ -1,6 +1,6 @@
 # AutoGridCL
 
-This is a command-line program to update WSJT-X from Griduino or a GPS.
+This is a command-line program to update the grid square in WSJT-X from Griduino in real time.
 
 ## Install Software
 
@@ -29,7 +29,7 @@ Run WSJT-X and configure File > Settings > Reporting:
  
 ## Set up AutoGridCL
 
-You need to modify the file 'AutoGridCL.py' so it can read NMEA sentences from Griduino and UDP packets from WSJT-X.
+You need to modify the file 'AutoGridCL.py' so it can read NMEA sentences from Griduino and send UDP packets to and from WSJT-X.
 
 Using a text editor (e.g. Notepad or Visual Studio Code), modify 'AutoGridCL.py': 
 
@@ -56,7 +56,9 @@ When you end AutoGridCL, its last grid will linger until you change it, or resta
 
 ## Troubleshooting
 
-Error reporting is very crude in this prototype program. Some resourcefulness is required to troubleshoot at this early stage. 
+Error reporting is very crude in this prototype program. You will need to have some resourcefulness to troubleshoot problems at this early stage.
+
+In theory, this program should work with several different USB-attached GPS pucks. As long as the GPS sends standard NMEA data with lat/long position in $GPGGA or $GPGLL sentences, this will automatically decode them.
 
 Here are some suggestions that might help.
 * If a command-line window does not appear after starting AutoGridCL.py, then it might have an exception and have ended right away. To see messages, open a command window, change to the directory where the file is located, and type 'python AutoGridCL.py'
