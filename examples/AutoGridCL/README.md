@@ -23,16 +23,16 @@ Get AutoGridCL files into a local folder
 ## Set up WSJT-X for multicast
 
 Run WSJT-X and configure File > Settings > Reporting:
-* UDP Server: 224.0.0.1 <br/>*224.0.0.1 is the most compatible with JTAlert, GridTracker, etc and is not routed on your LAN*<br/>*127.0.0.1 can be specified if you use WSJT only with AutoGridCL and no other programs*
-* UDP Server port number: 2237 <br/>*2237 is the default*
-* Outgoing interfaces: loopback_0 <br/>*a loopback interface is required*
-* Multicast TTL: 1 <br/>*this is Time-To-Live, a small number*
+* *UDP Server: 224.0.0.1* <br/>*224.0.0.1 is the most compatible with JTAlert, GridTracker, etc and is not routed on your LAN*<br/>*127.0.0.1 can be used if you use WSJT only with AutoGridCL and no other programs*
+* *UDP Server port number: 2237* <br/>*2237 is the default*
+* *Outgoing interfaces: loopback_0* <br/>*a loopback interface is required*
+* *Multicast TTL: 1* <br/>*this is a packet's Time-To-Live, a small number of seconds*
  
 ## Set up AutoGridCL
 
 You need to modify the file 'AutoGridCL.py' so it can read NMEA sentences from Griduino and UDP packets from WSJT-X.
 
-Using a text editor (e.g. Notepad or Visual Studio Code), make the following edits to 'AutoGridCL.py' 
+Using a text editor (e.g. Notepad or Visual Studio Code), modify 'AutoGridCL.py': 
 
 * line 7: <b>GPS_PORT = "COM53"</b> <br/>*must match that of your Griduino or GPS*
 * line 8: <b>GPS_RATE = 115200</b> <br/>*Griduino always runs at 115200 baud. Other GPS devices often use 9600 baud.*
@@ -41,9 +41,9 @@ Using a text editor (e.g. Notepad or Visual Studio Code), make the following edi
 
 ## Running AutoGridCL
 
-Start WSJT-X and set your grid using File>Settings>General to a grid different than the grid you are in and check the box to enable Autogrid. Save settings.
-
 WSJT-X must be started before AutoGridCL.py.
+
+Start WSJT-X and set your grid using File>Settings>General to a grid different than the grid you are in and check the box to enable Autogrid.
 
 Run AutoGridCL.py by double-clicking it in your File Explorer.
 
@@ -62,7 +62,8 @@ Error reporting is very crude in this prototype program. Some resourcefulness is
 Here are some suggestions that might help.
 * If a command-line window does not appear after starting AutoGridCL.py, then it might have an exception and have ended right away. To see messages, open a command window, change to the directory where the file is located, and type 'python AutoGridCL.py'
 * If you don't see NMEA messages from Griduino, reboot it and watch the screen to see the version number. Griduino software version must be 1.10 or later.
-* Ask Barry questions: barry@k7bwh.com.
+* Close any programs using Griduino before starting AutoGridCL. Since the USB port cannot be shared, we cannot run NMEA Time2 or the Arduino workbench monitor at the same time.
+* Tell Barry other problems you run into so he can add it to this list: barry@k7bwh.com.
 
 ## Credit
 Thanks goes to:
