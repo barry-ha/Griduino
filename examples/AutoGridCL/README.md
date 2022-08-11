@@ -14,10 +14,7 @@ Get AutoGridCL files into a local folder
 * Visit GitHub at https://github.com/barry-ha/Griduino
 * Fetch the files in the 'examples/AutoGridCL' folder, currently:
   * AutoGridCL.py
-  * pywsjtx/__init__.py
-  * pywsjtx/latlong_to_grid_square.py
-  * pywsjtx/simple_server.py
-  * pywsjtx/wsjtx_packets.py
+  * README.md
  
 ## Set up WSJT-X for multicast
 
