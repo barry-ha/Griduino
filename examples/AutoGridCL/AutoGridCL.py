@@ -2,6 +2,7 @@
 #   A command-line program to update the grid square in WSJT-X from Griduino in real time.
 #   Barry Hansen K7BWH, barry@k7bwh.com
 #   
+#  This work is based on https://github.com/bmo/py-wsjtx, by Brian Moran N9ADG
 
 # ---------- Start: manual edit ---------------------------------------
 # Windows communications port for Griduino or GPS hardware
