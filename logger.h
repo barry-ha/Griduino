@@ -17,7 +17,7 @@
   notices must be preserved. Contributors provide an express grant of patent rights.
 
   You may obtain a copy of the License at
-      https://docs.github.com/articles/licensing-a-repository/#disclaimer
+      https://www.gnu.org/licenses/gpl-3.0.en.html
 
   Unless required by applicable law or agreed to in writing, software
   distributed under the License is distributed on an "AS IS" BASIS,
