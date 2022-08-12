@@ -8,14 +8,14 @@ Install Python
 
 * Download and Install Python https://www.python.org/downloads/
 * Add Python to PATH https://datatofish.com/add-python-to-windows-path/
-![python download](img/python-download-img0817.jpg)
+<br/>![python download](img/python-download-img0817.jpg)
 
 Get AutoGridCL files into a local folder
 
-* Visit GitHub at https://github.com/barry-ha/Griduino ![GitHub example folder](img/github-autogridcl-img0818.jpg)
+* Visit GitHub at https://github.com/barry-ha/Griduino <br/>![GitHub example folder](img/github-autogridcl-img0818.jpg)
 * Fetch the files in the 'examples/AutoGridCL' folder, currently:
   * AutoGridCL.py
-  * README.md ![autogrid folder](img/autogrid-folder-img0819.jpg)
+  * README.md <br/>![autogrid folder](img/autogrid-folder-img0819.jpg)
  
 ## Configure WSJT-X for multicast
 
