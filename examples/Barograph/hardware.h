@@ -4,19 +4,19 @@
 /*                                Arduino       Adafruit
   ___Label__Description______________Mega_______Feather M4__________Resource____
 TFT Power:
-   GND  - Ground                  - ground      - J2 Pin 13
-   VIN  - VCC                     - 5v          - Pin 10 J5 Vusb
+   GND  - Ground                  - ground      - Gnd  (J2 Pin 13)
+   VIN  - VCC                     - 5v          - Vusb (J5 Pin 10)
 TFT SPI:
-   SCK  - SPI Serial Clock        - Digital 52  - SCK (J2 Pin 6)  - uses hardw SPI
-   MISO - SPI Master In Slave Out - Digital 50  - MI  (J2 Pin 4)  - uses hardw SPI
-   MOSI - SPI Master Out Slave In - Digital 51  - MO  (J2 Pin 5)  - uses hardw SPI
+   SCK  - SPI Serial Clock        - Digital 52  - SCK (J2 Pin 6)  - uses hardware SPI
+   MISO - SPI Master In Slave Out - Digital 50  - MI  (J2 Pin 4)  - uses hardware SPI
+   MOSI - SPI Master Out Slave In - Digital 51  - MO  (J2 Pin 5)  - uses hardware SPI
    CS   - SPI Chip Select         - Digital 10  - D5  (Pin 3 J5)
    D/C  - SPI Data/Command        - Digital  9  - D12 (Pin 8 J5)
 TFT MicroSD:
    CD   - SD Card Detection       - Digital  8  - D10 (Pin 6 J5)
    CCS  - SD Card Chip Select     - Digital  7  - D11 (Pin 7 J5)
 TFT Backlight:
-   BL   - Backlight               - Digital 12  - D4  (J2 Pin 1)  - uses hardw PWM
+   BL   - Backlight               - Digital 12  - D4  (J2 Pin 1)  - uses hardware PWM
 TFT Resistive touch:
    X+   - Touch Horizontal axis   - Digital  4  - A3  (Pin 4 J5)
    X-   - Touch Horizontal        - Analog  A3  - A4  (J2 Pin 8)  - uses analog A/D
@@ -31,6 +31,8 @@ GPS:
    GND  - Ground                  - ground      - ground
    >RX  - data into GPS           - TX1 pin 18  - TX  (J2 Pin 2)  - uses hardware UART
    <TX  - data out of GPS         - RX1 pin 19  - RX  (J2 Pin 3)  - uses hardware UART
+BMP388/BMP390:
+   CS   - barometer chip select   - Digital 13  - D13             - shared with onboard LED
 Audio Out:
    DAC0 - audio signal            - n/a         - A0  (J2 Pin 12) - uses onboard digital-analog converter
 Digital potentiometer:
@@ -45,7 +47,7 @@ On-board lights:
 /* "Ultimate GPS" pin wiring is connected to a dedicated hardware serial port
     available on an Arduino Mega, Arduino Feather and others.
 
-    The GPS' LED indicates status:
+    The "Ultimate GPS" LED indicates status:
         1-sec blink = searching for satellites
         15-sec blink = position fix found
 */
@@ -74,42 +76,46 @@ On-board lights:
 #define BMP_CS 13   // BMP388 sensor, chip select
 
 #else
-#warning You need to define pins for your hardware
-
+#warning You need to define pins for your SPI bus hardware
 #endif
 
-// ---------- Touch Screen
-#define TOUCHPRESSURE 200   // Minimum pressure threshhold considered an actual "press"
-#define PIN_XP        A3    // Touchscreen X+ can be a digital pin
-#define PIN_XM        A4    // Touchscreen X- must be an analog pin, use "An" notation
-#define PIN_YP        A5    // Touchscreen Y+ must be an analog pin, use "An" notation
-#define PIN_YM        9     // Touchscreen Y- can be a digital pin
-
-// ---------- TFT 4-Wire Resistive Touch Screen configuration parameters
+// ------- TFT 4-Wire Resistive Touch Screen configuration parameters
 // For touch point precision, we need to know the resistance
 // between X+ and X- Use any multimeter to read it
+#define XP_XM_OHMS 295   // Resistance in ohms between X+ and X- to calibrate touch pressure
+                         // measure this with an ohmmeter while Griduino turned off
+
 #define TOUCHPRESSURE 200   // Minimum pressure threshhold considered an actual "press"
-#define X_MIN_OHMS    240   // Expected range of measured X-axis readings
-#define X_MAX_OHMS    800
-#define Y_MIN_OHMS    320   // Expected range of measured Y-axis readings
-#define Y_MAX_OHMS    760
-#define XP_XM_OHMS    310   // Resistance in ohms between X+ and X- to calibrate touch pressure
-                            // measure this with an ohmmeter while Griduino turned off
+
+#define X_MIN_OHMS 150   // Expected range on touchscreen's X-axis readings
+#define X_MAX_OHMS 880
+#define Y_MIN_OHMS 110   // Expected range on touchscreen's Y-axis readings
+#define Y_MAX_OHMS 860
+
+// ---------- Touch Screen
+#define PIN_XP A3   // Touchscreen X+ can be a digital pin
+#define PIN_XM A4   // Touchscreen X- must be an analog pin, use "An" notation
+#define PIN_YP A5   // Touchscreen Y+ must be an analog pin, use "An" notation
+#define PIN_YM 9    // Touchscreen Y- can be a digital pin
 
 // ---------- Feather's onboard lights
-// efine PIN_LED 13         // already defined in Feather's board variant.h
-// efine PIN_NEOPIXEL 8     // already defined in Feather's board variant.h
+#define RED_LED 13   // diagnostics RED LED
+// define PIN_LED 13                    // already defined in Feather's board variant.h
+
+// ---------- neopixel
 #define NUMPIXELS 1   // Feather M4 has one NeoPixel on board
+// efine PIN_NEOPIXEL 8     // already defined in Feather's board variant.h
 
 // ---------- Audio output
 #define DAC_PIN     DAC0   // onboard DAC0 == pin A0
 #define PIN_SPEAKER DAC0   // uses DAC
 
+// ---------- Digital potentiometer
 // Adafruit Feather M4 Express pin definitions
 #define PIN_VCS A1   // volume chip select
 #define PIN_VUD A2   // volume up/down
 
-// Adafruit ItsyBitsy M4 Express pin definitions
+// Adafruit ItsyBitsy M4 Express potentiometer wiring
 #if defined(ADAFRUIT_ITSYBITSY_M4_EXPRESS)
 #define PIN_VINC 2   // volume increment, ItsyBitsy M4 Express
 #else

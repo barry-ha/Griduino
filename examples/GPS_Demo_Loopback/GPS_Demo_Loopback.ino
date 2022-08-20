@@ -130,10 +130,11 @@
 #include <TouchScreen.h>         // Touchscreen built in to 3.2" Adafruit TFT display
 #include <Adafruit_GPS.h>        // Ultimate GPS library
 #include <Adafruit_NeoPixel.h>   // On-board color addressable LED
+#include "hardware.h"            // Griduino pin definitions
 
 // ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE    "GPS Demo Loopback"
-#define PROGRAM_VERSION  "v1.03"
+#define PROGRAM_VERSION  "v1.09"
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
 
 #define SCREEN_ROTATION 1   // 1=landscape, 3=landscape 180-degrees
@@ -141,15 +142,10 @@
 // ---------- Hardware Wiring ----------
 // Same as Griduino platform - see hardware.h
 
-#define TFT_BL 4    // TFT backlight
-#define TFT_CS 5    // TFT chip select pin
-#define TFT_DC 12   // TFT display/command pin
-
 // create an instance of the TFT Display
 Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 
 // ---------- neopixel
-#define NUMPIXELS 1   // Feather M4 has one NeoPixel on board
 Adafruit_NeoPixel pixel = Adafruit_NeoPixel(NUMPIXELS, PIN_NEOPIXEL, NEO_GRB + NEO_KHZ800);
 
 // ---------- GPS ----------
