@@ -1,9 +1,11 @@
 /*
- * File: unit_test.cpp
- * 
- */
+  File: unit_test.cpp
 
-#include <arduino.h>
+  Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
+  Hardware: John Vanderbeck, KM7O, Seattle, WA
+*/
+
+#include <Arduino.h>
 #include "constants.h"              // Griduino constants and colors
 #ifdef RUN_UNIT_TESTS
 #include "Adafruit_ILI9341.h"       // TFT color display library
@@ -13,9 +15,9 @@
 #include "TextField.h"              // Optimize TFT display text for proportional fonts
 #include "view.h"                   // Base class for all views
 #include "logger.h"                 // conditional printing to Serial port
+#include "grid_helper.h"            // lat/long conversion routines
 
-// ========== extern ==================================
-extern void calcLocator(char* result, double lat, double lon, int precision); // Griduino.ino
+// ========== extern ===========================================
 extern void setFontSize(int font);             // TextField.cpp
 extern void clearScreen();                     // Griduino.ino
 
@@ -25,11 +27,12 @@ extern DACMorseSender dacMorse;         // Morse code
 extern Model* model;
 extern ViewGrid gridView;               // Griduino.ino
 extern Logger logger;                   // Griduino.ino
+extern Grids grid;                      // grid_helper.h
 
 TextField txtTest("test", 1,21, ILI9341_WHITE);
 
 // =============================================================
-// Testing "grid helper" routines in Griduino.ino
+// Testing "grid helper" routines in grid_helper.h
 void testNextGridLineEast(float fExpected, double fLongitude) {
   // unit test helper for finding grid line crossings
   float result = model->nextGridLineEast(fLongitude);
@@ -59,7 +62,7 @@ void testNextGridLineWest(float fExpected, double fLongitude) {
 void testCalcLocator6(const char* sExpected, double lat, double lon) {
   // unit test helper function to display results
   char sResult[7];      // strlen("CN87us") = 6
-  calcLocator(sResult, lat, lon, 6);
+  grid.calcLocator(sResult, lat, lon, 6);
   Serial.print("Test: given (");
   Serial.print(lat,4);
   Serial.print(",");
@@ -77,7 +80,7 @@ void testCalcLocator6(const char* sExpected, double lat, double lon) {
 void testCalcLocator8(const char* sExpected, double lat, double lon) {
   // unit test helper function to display results
   char sResult[9];      // strlen("CN87us00") = 8
-  calcLocator(sResult, lat, lon, 8);
+  grid.calcLocator(sResult, lat, lon, 8);
   Serial.print("Test: expected = "); Serial.print(sExpected);
   Serial.print(", gResult = "); Serial.print(sResult);
   if (strcmp(sResult, sExpected) == 0) {

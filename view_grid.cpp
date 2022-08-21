@@ -27,6 +27,7 @@
 #include <Adafruit_ILI9341.h>         // TFT color display library
 #include "constants.h"                // Griduino constants and colors
 #include "logger.h"                   // conditional printing to Serial port
+#include "grid_helper.h"              // lat/long conversion routines
 #include "model_gps.h"                // Model of a GPS for model-view-controller
 #include "model_baro.h"               // Model of a barometer that measures temperature
 #include "TextField.h"                // Optimize TFT display text for proportional fonts
@@ -34,6 +35,7 @@
 
 // ========== extern ===========================================
 extern Logger logger;                 // Griduino.ino
+extern Grids grid;                    // grid_helper.h
 extern Adafruit_ILI9341 tft;          // Griduino.ino
 extern Model* model;                  // "model" portion of model-view-controller
 extern BarometerModel baroModel;      // singleton instance of the barometer model
@@ -211,10 +213,10 @@ void drawNeighborGridNames() {
   setFontSize(12);
   char nGrid[5], sGrid[5], eGrid[5], wGrid[5];
 
-  calcLocator(nGrid, model->gLatitude+1.0, model->gLongitude, 4);
-  calcLocator(sGrid, model->gLatitude-1.0, model->gLongitude, 4);
-  calcLocator(eGrid, model->gLatitude, model->gLongitude+2.0, 4);
-  calcLocator(wGrid, model->gLatitude, model->gLongitude-2.0, 4);
+  grid.calcLocator(nGrid, model->gLatitude+1.0, model->gLongitude, 4);
+  grid.calcLocator(sGrid, model->gLatitude-1.0, model->gLongitude, 4);
+  grid.calcLocator(eGrid, model->gLatitude, model->gLongitude+2.0, 4);
+  grid.calcLocator(wGrid, model->gLatitude, model->gLongitude-2.0, 4);
 
   txtGrid[N_GRIDNAME].print(nGrid);
   txtGrid[S_GRIDNAME].print(sGrid);
@@ -427,7 +429,7 @@ void ViewGrid::updateScreen() {
   PointGPS myLocation{ model->gLatitude, model->gLongitude }; // current location
   
   char grid6[7];
-  calcLocator(grid6, model->gLatitude, model->gLongitude, 6);
+  grid.calcLocator(grid6, model->gLatitude, model->gLongitude, 6);
   drawGridName(grid6);                // huge letters centered on screen
   drawAltitude();                     // height above sea level
   drawNumSatellites();

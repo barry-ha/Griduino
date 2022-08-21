@@ -27,12 +27,14 @@
 #include <Adafruit_ILI9341.h>   // TFT color display library
 #include "constants.h"          // Griduino constants and colors
 #include "logger.h"             // conditional printing to Serial port
+#include "grid_helper.h"        // lat/long conversion routines
 #include "model_gps.h"          // Model of a GPS for model-view-controller
 #include "TextField.h"          // Optimize TFT display text for proportional fonts
 #include "view.h"               // Base class for all views
 
 // ========== extern ===========================================
 extern Logger logger;                                                                // Griduino.ino
+extern Grids grid;                                                                   // grid_helper.h
 extern Model *model;                                                                 // "model" portion of model-view-controller
 void floatToCharArray(char *result, int maxlen, double fValue, int decimalPlaces);   // Griduino.ino
 extern void showDefaultTouchTargets();                                               // Griduino.ino
@@ -116,7 +118,7 @@ void ViewStatus::updateScreen() {
 
   // ----- 4-digit grid size
   char sGrid[10];   // strlen("CN87us") = 6
-  calcLocator(sGrid, model->gLatitude, model->gLongitude, 4);
+  grid.calcLocator(sGrid, model->gLatitude, model->gLongitude, 4);
   strcat(sGrid, ":");
   txtValues[GRID4].print(sGrid);
 
@@ -133,7 +135,7 @@ void ViewStatus::updateScreen() {
   txtValues[SIZE4].print(msg);
 
   // ----- 6-digit grid size
-  calcLocator(sGrid, model->gLatitude, model->gLongitude, 6);
+  grid.calcLocator(sGrid, model->gLatitude, model->gLongitude, 6);
   strcat(sGrid, ":");
   txtValues[GRID6].print(sGrid);
 

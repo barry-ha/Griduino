@@ -31,12 +31,14 @@
 #include <TimeLib.h>            // BorisNeubert / Time (who forked it from PaulStoffregen / Time)
 #include "constants.h"          // Griduino constants and colors
 #include "logger.h"             // conditional printing to Serial port
+#include "grid_helper.h"        // lat/long conversion routines
 #include "model_gps.h"          // Model of a GPS for model-view-controller
 #include "TextField.h"          // Optimize TFT display text for proportional fonts
 #include "view.h"               // Base class for all views
 
 // ========== extern ===========================================
 extern Logger logger;   // Griduino.ino
+extern Grids grid;      // grid_helper.h
 extern Model *model;    // "model" portion of model-view-controller
 
 extern void showDefaultTouchTargets();   // Griduino.ino
@@ -281,11 +283,11 @@ void ViewTenMileAlert::updateScreen() {
 
   // draw starting and current grid text
   char grid6[7];
-  calcLocator(grid6, startLat, startLong, 6);
+  grid.calcLocator(grid6, startLat, startLong, 6);
   txtTenMileAlert[eStartValue].print(grid6);
   // txtTenMileAlert[eStartValue].print("DM03ww");  // debug long string for Dave Glen N6TEP
 
-  calcLocator(grid6, model->gLatitude, model->gLongitude, 6);
+  grid.calcLocator(grid6, model->gLatitude, model->gLongitude, 6);
   txtTenMileAlert[eCurrentValue].print(grid6);
 
   // compute (x,y) intercept from line starting at (0,0) and a unit circle

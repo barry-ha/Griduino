@@ -83,6 +83,7 @@
 #include "constants.h"                // Griduino constants, colors, typedefs
 #include "hardware.h"                 // Griduino pin definitions
 #include "logger.h"                   // conditional printing to Serial port
+#include "grid_helper.h"              // lat/long conversion routines
 
 #include "view.h"                     // Griduino screens base class, followed by derived classes in alphabetical order
 #include "view_altimeter.h"           // altimeter
@@ -142,6 +143,9 @@ Adafruit_GPS GPS(&Serial1);           // https://github.com/adafruit/Adafruit_GP
         15-sec blink = position fix found
 */
 
+// ---------- lat/long conversion utilities
+Grids grid = Grids();
+
 // ---------- Neopixel
 Adafruit_NeoPixel pixel = Adafruit_NeoPixel(NUMPIXELS, PIN_NEOPIXEL, NEO_GRB + NEO_KHZ800);
 
@@ -190,85 +194,7 @@ void showWhereTouched(Point touch) {
   #endif
 }
 
-// ============== grid helpers =================================
-void calcLocator(char* result, double lat, double lon, int precision) {
-  // Converts from lat/long to Maidenhead Grid Locator
-  // From: https://ham.stackexchange.com/questions/221/how-can-one-convert-from-lat-long-to-grid-square
-  // And:  10-digit calculator, fmaidenhead.php[158], function getGridName($lat,$long)
-  /**************************** 6-digit **************************/
-  // Input: char result[7];
-  int o1, o2, o3;
-  int a1, a2, a3;
-  double remainder;
-
-  // longitude
-  remainder = lon + 180.0;
-  o1 = (int)(remainder / 20.0);
-  remainder = remainder - (double)o1 * 20.0;
-  o2 = (int)(remainder / 2.0);
-  remainder = remainder - 2.0 * (double)o2;
-  o3 = (int)(12.0 * remainder);
-
-  // latitude
-  remainder = lat + 90.0;
-  a1 = (int)(remainder / 10.0);
-  remainder = remainder - (double)a1 * 10.0;
-  a2 = (int)(remainder);
-  remainder = remainder - (double)a2;
-  a3 = (int)(24.0 * remainder);
-  /**************************** 8-digit *************************
-  // Input: char result[9];
-  int o1, o2, o3, o4;
-  int a1, a2, a3, a4;
-  double remainder;
-
-  // longitude
-  remainder = lon + 180.0;
-  o1 = (int)(remainder / 20.0);     // longitude first  letter is 360-degree globe in 18 parts (20 degree each) -> A..R
-  remainder = remainder - (double)o1 / 2.0;
-  o2 = (int)(10.0 * remainder);     // longitude second number is 20-degree swath in 10 parts (2 degree each)   -> 0..9
-  remainder = remainder - (double)o2;
-  o3 = (int)(24.0 * remainder);     // longitude third  letter is 2-degree swath in 24 parts (1/12 degree each) -> a..x
-  remainder = remainder - (double)o3;
-  o4 = (int)(10.0 * remainder);     // longitude fourth number is 1/12 degrees in 10 parts (1/120 degree each)  -> 0..9
-
-  // latitude
-  remainder = lat + 90.0;
-  a1 = (int)(remainder / 10.0);     // latitude first letter is 180-degrees pole to pole in (10-degree each)    -> A..R
-  remainder = remainder - (double)a1;
-  a2 = (int)(10.0 * remainder);     // latitude second number is 10-degree swath in 10 parts (1 degree each)    -> 0..9
-  remainder = remainder - (double)a2;
-  a3 = (int)(24.0 * remainder);     // latitude third letter is 1 degree swath in 24 parts                      -> a..x
-  remainder = remainder - (double)a3;
-  a4 = (int)(10.0 * remainder);     // latitude fourth number is 1/24 degree swath in 10 parts                  -> 0..9
-
-  char msg[64];
-  snprintf(msg, sizeof(msg), "Longitude remainders: %d, %d, %d, %d", o1, o2, o3, o4); // debug
-  Serial.println(msg);
-  snprintf(msg, sizeof(msg), "Latitude remainders:  %d, %d, %d, %d", a1, a2, a3, a4); // debug
-  Serial.println(msg);
-  ***********************************/
-
-  result[0] = (char)o1 + 'A';
-  result[1] = (char)a1 + 'A';
-  result[2] = (char)o2 + '0';
-  result[3] = (char)a2 + '0';
-  result[4] = (char)0;
-  if (precision > 4) {
-    result[4] = (char)o3 + 'a';
-    result[5] = (char)a3 + 'a';
-    result[6] = (char)0;
-  }
-  /*****
-  if (precision > 6) {
-    result[6] = (char)o4 + '0';
-    result[7] = (char)a4 + '0';
-    result[8] = (char)0;
-  }
-  *****/
-  return;
-}
-
+// ============== helpers ======================================
 void floatToCharArray(char* result, int maxlen, double fValue, int decimalPlaces) {
   String temp = String(fValue, decimalPlaces);
   temp.toCharArray(result, maxlen);
@@ -357,7 +283,7 @@ void waitForSerial(int howLong) {
 //    to help guide the programmer into designing an independent Model object 
 //    with very specific functionality and interfaces.
 //==============================================================
-#include "model_gps.h"
+#include "model_gps.h"                // Model of a GPS for model-view-controller
 
 // create an instance of the model
 Model modelGPS;                       // normal: use real GPS hardware
@@ -389,7 +315,7 @@ int fGetDataSource() {
 // If 160 pixels vert = 70 miles, then we need (500*160/70) = 1,140 entries.
 // In reality, with a drunken-sailor route around the Olympic Peninsula,
 // we need at least 800 entries to capture the whole out-and-back 500-mile loop.
-Location history[3000];     // remember a list of GPS coordinates
+Location history[3000];               // remember a list of GPS coordinates
 const int numHistory = sizeof(history) / sizeof(Location);
 
 // ======== date time helpers =================================
@@ -1034,7 +960,7 @@ void loop() {
     // note that cfg_settings4 will handle all of its own morse code announcement 
     if (pView->screenID != CFG_CROSSING) {
       char newGrid6[7];
-      calcLocator(newGrid6, model->gLatitude, model->gLongitude, 6);
+      grid.calcLocator(newGrid6, model->gLatitude, model->gLongitude, 6);
       if (model->compare4digits) {
         announceGrid( newGrid6, 4 );  // announce with Morse code or speech, according to user's config
       } else {

@@ -1,6 +1,7 @@
 #pragma once   // Please format this file with clang before check-in to GitHub
 /*
   File:     model_gps.h
+
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
 
@@ -9,9 +10,10 @@
 */
 
 #include <Arduino.h>        //
-#include <Adafruit_GPS.h>   // Ultimate GPS library
+#include <Adafruit_GPS.h>   // "Ultimate GPS" library
 #include "constants.h"      // Griduino constants and colors
 #include "logger.h"         // conditional printing to Serial port
+#include "grid_helper.h"    // lat/long conversion routines
 #include "save_restore.h"   // Configuration data in nonvolatile RAM
 
 // ========== extern ===========================================
@@ -19,8 +21,8 @@ extern Adafruit_GPS GPS;       // Griduino.ino
 extern Location history[];     // Griduino.ino, GPS breadcrumb trail
 extern const int numHistory;   // Griduino.ino, number of elements in history[]
 extern Logger logger;          // Griduino.ino
+extern Grids grid;             // grid_helper.h
 
-void calcLocator(char *result, double lat, double lon, int precision);               // Griduino.ino
 void floatToCharArray(char *result, int maxlen, double fValue, int decimalPlaces);   // Griduino.ino
 bool isVisibleDistance(const PointGPS from, const PointGPS to);                      // view_grid.cpp
 
@@ -545,7 +547,7 @@ public:
     if (compare4digits) {
       // returns TRUE if the first FOUR characters of grid name have changed
       char newGrid4[5];   // strlen("CN87") = 4
-      calcLocator(newGrid4, gLatitude, gLongitude, 4);
+      grid.calcLocator(newGrid4, gLatitude, gLongitude, 4);
       if (strcmp(newGrid4, sPrevGrid4) != 0) {
         char msg[128];
         snprintf(msg, sizeof(msg), "Prev grid: %s New grid: %s", sPrevGrid4, sPrevGrid4);
@@ -558,7 +560,7 @@ public:
     } else {
       // returns TRUE if the first SIX characters of grid name have changed
       char newGrid6[7];   // strlen("CN87us") = 6
-      calcLocator(newGrid6, gLatitude, gLongitude, 6);
+      grid.calcLocator(newGrid6, gLatitude, gLongitude, 6);
       if (strcmp(newGrid6, sPrevGrid6) != 0) {
         Serial.print("Prev grid: ");
         Serial.print(sPrevGrid6);

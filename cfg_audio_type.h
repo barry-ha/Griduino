@@ -26,12 +26,14 @@
 #include <Adafruit_ILI9341.h>   // TFT color display library
 #include "constants.h"          // Griduino constants and colors
 #include "logger.h"             // conditional printing to Serial port
+#include "grid_helper.h"        // lat/long conversion routines
 #include "model_gps.h"          // Model of a GPS for model-view-controller
 #include "TextField.h"          // Optimize TFT display text for proportional fonts
 #include "view.h"               // Base class for all views
 
 // ========== extern ===========================================
 extern Logger logger;   // Griduino.ino
+extern Grids grid;      // grid_helper.h
 extern Model *model;    // "model" portion of model-view-controller
 
 extern void showDefaultTouchTargets();                // Griduino.ino
@@ -109,7 +111,7 @@ protected:
 
     // announce grid name for an audible example of this selection
     char newGrid4[7];
-    calcLocator(newGrid4, model->gLatitude, model->gLongitude, 4);
+    grid.calcLocator(newGrid4, model->gLatitude, model->gLongitude, 4);
     announceGrid(newGrid4, 4);   // announce 4-digit grid by Morse code
   }
 
@@ -119,7 +121,7 @@ protected:
 
     // announce grid square for an audible example of this selection
     char newGrid4[7];
-    calcLocator(newGrid4, model->gLatitude, model->gLongitude, 4);
+    grid.calcLocator(newGrid4, model->gLatitude, model->gLongitude, 4);
     announceGrid(newGrid4, 4);   // announce 4-digit grid by Morse code OR speech
   }
   void setNone() {
