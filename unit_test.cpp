@@ -35,7 +35,7 @@ TextField txtTest("test", 1,21, ILI9341_WHITE);
 // Testing "grid helper" routines in grid_helper.h
 void testNextGridLineEast(float fExpected, double fLongitude) {
   // unit test helper for finding grid line crossings
-  float result = model->nextGridLineEast(fLongitude);
+  float result = grid.nextGridLineEast(fLongitude);
   //~Serial.print("Grid Crossing East: given = "); //~Serial.print(fLongitude);
   //~Serial.print(", expected = "); //~Serial.print(fExpected);
   //~Serial.print(", result = "); //~Serial.print(result);
@@ -48,7 +48,7 @@ void testNextGridLineEast(float fExpected, double fLongitude) {
 }
 void testNextGridLineWest(float fExpected, double fLongitude) {
   // unit test helper for finding grid line crossings
-  float result = model->nextGridLineWest(fLongitude);
+  float result = grid.nextGridLineWest(fLongitude);
   Serial.print("Grid Crossing West: given = "); Serial.print(fLongitude);
   Serial.print(", expected = "); Serial.print(fExpected);
   Serial.print(", result = "); Serial.print(result);

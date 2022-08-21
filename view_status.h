@@ -123,10 +123,10 @@ void ViewStatus::updateScreen() {
   txtValues[GRID4].print(sGrid);
 
   // all North-South distances are the same but we'll calculate it anyway
-  float nextNorth = model->nextGridLineNorth();
-  float nextSouth = model->nextGridLineSouth();
-  float nextEast  = model->nextGridLineEast();
-  float nextWest  = model->nextGridLineWest();
+  float nextNorth = grid.nextGridLineNorth(model->gLatitude);
+  float nextSouth = grid.nextGridLineSouth(model->gLatitude);
+  float nextEast  = grid.nextGridLineEast(model->gLongitude);
+  float nextWest  = grid.nextGridLineWest(model->gLongitude);
   int nsDistance  = (int)round(grid.calcDistanceLat(nextNorth, nextSouth, model->gMetric));
   int ewDistance  = (int)round(grid.calcDistanceLong(model->gLatitude, nextEast, nextWest, model->gMetric));
 
@@ -139,10 +139,10 @@ void ViewStatus::updateScreen() {
   strcat(sGrid, ":");
   txtValues[GRID6].print(sGrid);
 
-  nextNorth = model->nextGrid6North();
-  nextSouth = model->nextGrid6South();
-  nextEast  = model->nextGrid6East();
-  nextWest  = model->nextGrid6West();
+  nextNorth = grid.nextGrid6North(model->gLatitude);
+  nextSouth = grid.nextGrid6South(model->gLatitude);
+  nextEast  = grid.nextGrid6East(model->gLongitude);
+  nextWest  = grid.nextGrid6West(model->gLongitude);
   float fNS = grid.calcDistanceLat(nextNorth, nextSouth, model->gMetric);
   float fEW = grid.calcDistanceLong(model->gLatitude, nextEast, nextWest, model->gMetric);
   char sNS[10], sEW[10];

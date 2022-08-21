@@ -139,4 +139,43 @@ public:
     return distance;
   }
 
+  // ============== grid helpers =================================
+  // ----- north
+  float nextGridLineNorth(float latitudeDegrees) {
+    return ceil(latitudeDegrees);
+  }
+  float nextGrid6North(float latitudeDegrees) {
+    // six-digit grid every 2.5 minutes latitude (2.5/60 = 0.041666 degrees)
+    return ceil(latitudeDegrees * 60.0 / 2.5) / (60.0 / 2.5);
+  }
+
+  // ----- south
+  float nextGridLineSouth(float latitudeDegrees) {
+    return floor(latitudeDegrees);
+  }
+  float nextGrid6South(float latitudeDegrees) {
+    // six-digit grid every 2.5 minutes latitude (2.5/60 = 0.041666 degrees)
+    return floor(latitudeDegrees * 60.0 / 2.5) / (60.0 / 2.5);
+  }
+
+  // ----- east
+  // given a position, find the longitude of the next grid line
+  // this is always an even integer number since grids are 2-degrees wide
+  float nextGridLineEast(float longitudeDegrees) {
+    return ceil(longitudeDegrees / 2) * 2;
+  }
+  float nextGrid6East(float longitudeDegrees) {
+    // six-digit grid every 5 minutes longitude (5/60 = 0.08333 degrees)
+    return floor(longitudeDegrees * 60.0 / 5.0) / (60.0 / 5.0);
+  }
+
+  // ----- west
+  float nextGridLineWest(float longitudeDegrees) {
+    return floor(longitudeDegrees / 2) * 2;
+  }
+  float nextGrid6West(float longitudeDegrees) {
+    // six-digit grid every 5 minutes longitude (5/60 = 0.08333 degrees)
+    return ceil(longitudeDegrees * 60.0 / 5.0) / (60.0 / 5.0);
+  }
+
 };   // end class Grids

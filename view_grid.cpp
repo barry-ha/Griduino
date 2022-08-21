@@ -198,8 +198,8 @@ void drawBoxLatLong() {
   setFontSize(12);
   txtGrid[N_BOX_LAT].print( ceil(model->gLatitude) );    // latitude of N,S box edges
   txtGrid[S_BOX_LAT].print( floor(model->gLatitude) );
-  txtGrid[E_BOX_LONG].print( model->nextGridLineEast() ); // longitude of E,W box edges
-  txtGrid[W_BOX_LONG].print( model->nextGridLineWest() );
+  txtGrid[E_BOX_LONG].print( grid.nextGridLineEast( model->gLongitude ) ); // longitude of E,W box edges
+  txtGrid[W_BOX_LONG].print( grid.nextGridLineWest( model->gLongitude ) );
   
   int radius = 3;
   // draw "degree" symbol at:       x                        y        r     color
@@ -242,8 +242,8 @@ void drawNeighborDistances() {
   }
   
   // E-W: grid lines occur on nearest EVEN degrees
-  int eastLine = model->nextGridLineEast();
-  int westLine = model->nextGridLineWest();
+  int eastLine = grid.nextGridLineEast( model->gLongitude );
+  int westLine = grid.nextGridLineWest( model->gLongitude );
   float fEast = grid.calcDistanceLong(model->gLatitude, model->gLongitude, eastLine, model->gMetric);
   float fWest = grid.calcDistanceLong(model->gLatitude, model->gLongitude, westLine, model->gMetric);
   if (fEast < 2.0) {
@@ -424,7 +424,7 @@ void ViewGrid::updateScreen() {
   // called on every pass through main()
 
   // coordinates of lower-left corner of currently displayed grid square
-  PointGPS gridOrigin{ model->nextGridLineSouth(), model->nextGridLineWest() };
+  PointGPS gridOrigin{ grid.nextGridLineSouth(model->gLatitude), grid.nextGridLineWest(model->gLatitude) };
 
   PointGPS myLocation{ model->gLatitude, model->gLongitude }; // current location
   

@@ -704,51 +704,6 @@ public:
     // this->save();   // save the new timezone (and model) in non-volatile memory
   }
 
-  // ============== grid helpers =================================
-  float nextGridLineNorth(void) {   // if no value given, use current GPS reading
-    return nextGridLineNorth(gLatitude);
-  }
-  float nextGridLineNorth(float latitudeDegrees) {
-    return ceil(latitudeDegrees);
-  }
-  float nextGrid6North(void) {
-    // six-digit grid every 2.5 minutes latitude (2.5/60 = 0.041666 degrees)
-    return ceil(gLatitude * 60.0 / 2.5) / (60.0 / 2.5);
-  }
-  float nextGridLineSouth(void) {   // if no value given, use current GPS reading
-    return nextGridLineSouth(gLatitude);
-  }
-  float nextGridLineSouth(float latitudeDegrees) {
-    return floor(latitudeDegrees);
-  }
-  float nextGrid6South(void) {
-    // six-digit grid every 2.5 minutes latitude (2.5/60 = 0.041666 degrees)
-    return floor(gLatitude * 60.0 / 2.5) / (60.0 / 2.5);
-  }
-
-  // given a position, find the longitude of the next grid line
-  // this is always an even integer number since grids are 2-degrees wide
-  float nextGridLineEast(void) {
-    return nextGridLineEast(gLongitude);
-  }
-  float nextGridLineEast(float longitudeDegrees) {
-    return ceil(longitudeDegrees / 2) * 2;
-  }
-  float nextGrid6East(void) {
-    // six-digit grid every 5 minutes longitude (5/60 = 0.08333 degrees)
-    return floor(gLongitude * 60.0 / 5.0) / (60.0 / 5.0);
-  }
-  float nextGridLineWest(void) {
-    return nextGridLineWest(gLongitude);
-  }
-  float nextGridLineWest(float longitudeDegrees) {
-    return floor(longitudeDegrees / 2) * 2;
-  }
-  float nextGrid6West(void) {
-    // six-digit grid every 5 minutes longitude (5/60 = 0.08333 degrees)
-    return ceil(gLongitude * 60.0 / 5.0) / (60.0 / 5.0);
-  }
-
 private:
   void echoGPSinfo() {
 #ifdef ECHO_GPS
