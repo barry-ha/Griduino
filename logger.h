@@ -36,7 +36,8 @@ enum {
 }
 */
 
-#include "logger.h"   // conditional printing to Serial port
+#include <arduino.h>   // for "strncpy" and others
+#include "logger.h"    // conditional printing to Serial port
 
 class Logger {
 
