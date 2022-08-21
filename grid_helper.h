@@ -97,4 +97,46 @@ public:
     return;
   }
 
+  //=========== distance helpers =============================
+  double calcDistance(double fromLat, double fromLong, double toLat, double toLong, bool isMetric) {
+    // Note: accurate for short distances, since it ignores curvature of earth
+    double latDist  = calcDistanceLat(fromLat, toLat, isMetric);
+    double longDist = calcDistanceLong(fromLat, fromLong, toLong, isMetric);
+    double total    = sqrt(latDist * latDist + longDist * longDist);
+    return total;
+  }
+
+  double calcDistanceLat(double fromLat, double toLat, bool isMetric) {
+    // calculate distance in N-S direction (miles or km)
+    // input:   latitudes in degrees
+    //          metric true=km, false=miles
+    // returns: 'double' in either English or Metric
+
+    double R = 3958.8;   // average Earth radius (miles)
+    if (isMetric) {
+      R = 6371.0;   // average Earth radius (kilometers)
+    }
+    double angleDegrees = fabs(fromLat - toLat);
+    double angleRadians = angleDegrees / degreesPerRadian;
+    double distance     = angleRadians * R;
+    return distance;
+  }
+
+  double calcDistanceLong(double lat, double fromLong, double toLong, bool isMetric) {
+    // calculate distance in E-W direction (miles or km)
+    // input:   latitudes in degrees
+    //          metric true=km, false=miles
+    // returns: 'double' in either English or Metric
+
+    double R = 3958.8;   // average Earth radius (miles)
+    if (isMetric) {
+      R = 6371.0;   // average Earth radius (kilometers)
+    }
+    double scaleFactor  = fabs(cos(lat / degreesPerRadian));   // grids are narrower as you move from equator to north/south pole
+    double angleDegrees = fabs(fromLong - toLong);
+    double angleRadians = angleDegrees / degreesPerRadian * scaleFactor;
+    double distance     = angleRadians * R;
+    return distance;
+  }
+
 };   // end class Grids

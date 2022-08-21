@@ -704,46 +704,6 @@ public:
     // this->save();   // save the new timezone (and model) in non-volatile memory
   }
 
-  //=========== distance helpers =============================
-  double calcDistanceLat(double fromLat, double toLat) {
-    // calculate distance in N-S direction (miles)
-    // input:   latitudes in degrees
-    // returns: 'double' in either English or Metric
-
-    double R = 3958.8;   // average Earth radius (miles)
-    if (gMetric) {
-      R = 6371.0;   // average Earth radius (kilometers)
-    }
-    double angleDegrees = fabs(fromLat - toLat);
-    double angleRadians = angleDegrees / degreesPerRadian;
-    double distance     = angleRadians * R;
-    return distance;
-  }
-
-  double calcDistanceLong(double lat, double fromLong, double toLong) {
-    // calculate distance in E-W direction (degrees)
-    // input:   latitudes in degrees
-    // returns: 'double' in either English or Metric
-
-    double R = 3958.8;   // average Earth radius (miles)
-    if (gMetric) {
-      R = 6371.0;   // average Earth radius (kilometers)
-    }
-    double scaleFactor  = fabs(cos(lat / degreesPerRadian));   // grids are narrower as you move from equator to north/south pole
-    double angleDegrees = fabs(fromLong - toLong);
-    double angleRadians = angleDegrees / degreesPerRadian * scaleFactor;
-    double distance     = angleRadians * R;
-    return distance;
-  }
-
-  double calcDistance(double fromLat, double fromLong, double toLat, double toLong) {
-    // Note: accurate for short distances, since it ignores curvature of earth
-    double latDist  = calcDistanceLat(fromLat, toLat);
-    double longDist = calcDistanceLong(fromLat, fromLong, toLong);
-    double total    = sqrt(latDist * latDist + longDist * longDist);
-    return total;
-  }
-
   // ============== grid helpers =================================
   float nextGridLineNorth(void) {   // if no value given, use current GPS reading
     return nextGridLineNorth(gLatitude);

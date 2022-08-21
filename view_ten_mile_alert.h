@@ -278,7 +278,7 @@ void ViewTenMileAlert::updateScreen() {
   // called on every pass through main()
 
   // compute distance
-  double dist = model->calcDistance(startLat, startLong, model->gLatitude, model->gLongitude);
+  double dist = grid.calcDistance(startLat, startLong, model->gLatitude, model->gLongitude, model->gMetric);
   updateDistance(dist);
 
   // draw starting and current grid text

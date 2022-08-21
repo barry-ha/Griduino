@@ -95,13 +95,13 @@ void testCalcLocator8(const char* sExpected, double lat, double lon) {
 // Testing "distance helper" routines in Griduino.cpp
 void testDistanceLat(double expected, double fromLat, double toLat) {
   // unit test helper function to calculate N-S distances
-  double distance = model->calcDistanceLat(fromLat, toLat);
+  double distance = grid.calcDistanceLat(fromLat, toLat, model->gMetric);
   Serial.print("N-S Distance Test: expected = "); Serial.print(expected,2);
   Serial.print(", result = "); Serial.println(distance, 4);
 }
 void testDistanceLong(double expected, double lat, double fromLong, double toLong) {
   // unit test helper function to calculate E-W distances
-  double result = model->calcDistanceLong(lat, fromLong, toLong);
+  double result = grid.calcDistanceLong(lat, fromLong, toLong);
   Serial.print("E-W Distance Test: expected = "); Serial.print(expected,2);
   Serial.print(", result = "); Serial.print(result,2);
   if ((expected/1.01)<=result && result <= (expected*1.01)) {

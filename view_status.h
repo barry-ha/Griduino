@@ -127,8 +127,8 @@ void ViewStatus::updateScreen() {
   float nextSouth = model->nextGridLineSouth();
   float nextEast  = model->nextGridLineEast();
   float nextWest  = model->nextGridLineWest();
-  int nsDistance  = (int)round(model->calcDistanceLat(nextNorth, nextSouth));
-  int ewDistance  = (int)round(model->calcDistanceLong(model->gLatitude, nextEast, nextWest));
+  int nsDistance  = (int)round(grid.calcDistanceLat(nextNorth, nextSouth, model->gMetric));
+  int ewDistance  = (int)round(grid.calcDistanceLong(model->gLatitude, nextEast, nextWest, model->gMetric));
 
   char msg[33];
   snprintf(msg, sizeof(msg), "%d x %d %s", ewDistance, nsDistance, sUnits);
@@ -143,8 +143,8 @@ void ViewStatus::updateScreen() {
   nextSouth = model->nextGrid6South();
   nextEast  = model->nextGrid6East();
   nextWest  = model->nextGrid6West();
-  float fNS = model->calcDistanceLat(nextNorth, nextSouth);
-  float fEW = model->calcDistanceLong(model->gLatitude, nextEast, nextWest);
+  float fNS = grid.calcDistanceLat(nextNorth, nextSouth, model->gMetric);
+  float fEW = grid.calcDistanceLong(model->gLatitude, nextEast, nextWest, model->gMetric);
   char sNS[10], sEW[10];
   floatToCharArray(sNS, 8, fNS, 1);
   floatToCharArray(sEW, 8, fEW, 1);
@@ -157,8 +157,8 @@ void ViewStatus::updateScreen() {
   const double minLong = gridWidthDegrees / gBoxWidth;     // longitude degrees from one pixel to the next
   const double minLat  = gridHeightDegrees / gBoxHeight;   // latitude degrees from one pixel to the next
 
-  float ewScale = model->calcDistanceLong(model->gLatitude, 0.0, minLong);
-  float nsScale = model->calcDistanceLat(0.0, minLat);
+  float ewScale = grid.calcDistanceLong(model->gLatitude, 0.0, minLong, model->gMetric);
+  float nsScale = grid.calcDistanceLat(0.0, minLat, model->gMetric);
   float scale   = (ewScale + nsScale) / 2;
   char sScale[10];
   floatToCharArray(sScale, 8, scale, 1);

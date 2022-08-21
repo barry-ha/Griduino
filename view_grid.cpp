@@ -228,13 +228,13 @@ void drawNeighborDistances() {
   setFontSize(12);
 
   // N-S: grid lines occur on nearest INTEGER degree
-  float fNorth = model->calcDistanceLat(model->gLatitude, ceil(model->gLatitude));
+  float fNorth = grid.calcDistanceLat(model->gLatitude, ceil(model->gLatitude), model->gMetric);
   if (fNorth < 2.0) {
     txtGrid[N_DISTANCE].print( fNorth, 2 );
   } else {
     txtGrid[N_DISTANCE].print( fNorth, 1 );
   }
-  float fSouth = model->calcDistanceLat(model->gLatitude, floor(model->gLatitude));
+  float fSouth = grid.calcDistanceLat(model->gLatitude, floor(model->gLatitude), model->gMetric);
   if (fSouth < 2.0) {
     txtGrid[S_DISTANCE].print( fSouth, 2 );
   } else {
@@ -244,8 +244,8 @@ void drawNeighborDistances() {
   // E-W: grid lines occur on nearest EVEN degrees
   int eastLine = model->nextGridLineEast();
   int westLine = model->nextGridLineWest();
-  float fEast = model->calcDistanceLong(model->gLatitude, model->gLongitude, eastLine);
-  float fWest = model->calcDistanceLong(model->gLatitude, model->gLongitude, westLine);
+  float fEast = grid.calcDistanceLong(model->gLatitude, model->gLongitude, eastLine, model->gMetric);
+  float fWest = grid.calcDistanceLong(model->gLatitude, model->gLongitude, westLine, model->gMetric);
   if (fEast < 2.0) {
     txtGrid[E_DISTANCE].print( fEast, 2 );
   } else {
@@ -449,13 +449,13 @@ void ViewGrid::startScreen() {
   txtGrid[0].setBackground(this->background);           // set background for all TextFields in this view
   TextField::setTextDirty( txtGrid, numTextGrid );
 
-  double lngMiles = model->calcDistanceLong(model->gLatitude, 0.0, minLong);
+  double lngMiles = grid.calcDistanceLong(model->gLatitude, 0.0, minLong, model->gMetric);
   if (logger.print_info) {
     Serial.print("Minimum visible E-W movement x=long="); 
     Serial.print(minLong,6); Serial.print(" degrees = "); 
     Serial.print(lngMiles,2); Serial.println(" miles");
   
-    double latMiles = model->calcDistanceLat(0.0, minLat);
+    double latMiles = grid.calcDistanceLat(0.0, minLat, model->gMetric);
     Serial.print("Minimum visible N-S movement y=lat="); 
     Serial.print(minLat,6); Serial.print(" degrees = "); 
     Serial.print(latMiles,2); Serial.println(" miles");
