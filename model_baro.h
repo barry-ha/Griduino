@@ -57,7 +57,7 @@
 */
 
 #include <Adafruit_BMP3XX.h>   // Precision barometric and temperature sensor
-#include <Arduino.h>           //
+//#include <Arduino.h>           //
 #include "constants.h"         // Griduino constants, colors, typedefs
 #include "logger.h"            // conditional printing to Serial port
 
