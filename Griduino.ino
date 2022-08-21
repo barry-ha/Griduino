@@ -108,6 +108,7 @@ void initTouchScreen(void);                    // Touch.cpp
 //extern bool TouchScreen::isTouching(void);   // Touch.cpp
 //extern void mapTouchToScreen(TSPoint touch, Point* screen);
 //extern void setFontSize(int font);           // TextField.cpp
+void processCommand(char *cmd);                // commands.cpp
 
 // ---------- TFT display
 Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
@@ -140,9 +141,6 @@ Adafruit_GPS GPS(&Serial1);           // https://github.com/adafruit/Adafruit_GP
         1-sec blink = searching for satellites
         15-sec blink = position fix found
 */
-
-// //---------- Touch Screen
-//TouchScreen ts = TouchScreen(PIN_XP, PIN_YP, PIN_XM, PIN_YM, XP_XM_OHMS);
 
 // ---------- Neopixel
 Adafruit_NeoPixel pixel = Adafruit_NeoPixel(NUMPIXELS, PIN_NEOPIXEL, NEO_GRB + NEO_KHZ800);
@@ -190,70 +188,6 @@ void showWhereTouched(Point touch) {
     const int radius = 1;     // debug
     tft.fillCircle(touch.x, touch.y, radius, cTOUCHTARGET);  // debug - show dot
   #endif
-}
-
-// ============== USB port helpers =============================
-// ----- table of commands
-struct Command {
-  char text[20];
-  simpleFunction function;
-};
-Command cmdList[] = {
-    {"help", help},
-    {"version", version},
-    {"dump kml", dump_kml},
-    {"dump gps", dump_gps_history},
-    {"list", list_files},
-    {"start nmea", start_nmea},
-    {"stop nmea", stop_nmea},
-    {"start gmt", start_gmt},
-    {"stop gmt", stop_gmt},
-};
-const int numCmds = sizeof(cmdList) / sizeof(cmdList[0]);
-
-// ----- functions to implement commands
-void help() {
-  Serial.print("Available commands are:\n");
-  for (int ii = 0; ii < numCmds; ii++) {
-    if (ii > 0) {
-      Serial.print(", ");
-    }
-    Serial.print(cmdList[ii].text);
-  }
-  Serial.println();
-}
-void version() {
-  Serial.println(PROGRAM_TITLE " " PROGRAM_VERSION);
-  Serial.println("Compiled " PROGRAM_COMPILED);
-  Serial.println(PROGRAM_LINE1 "  " PROGRAM_LINE2);
-  Serial.println(__FILE__);
-  Serial.println(PROGRAM_GITHUB);
-}
-void dump_kml() {
-  model->dumpHistoryKML();
-}
-void dump_gps_history() {
-  model->dumpHistoryGPS();
-}
-void list_files() {
-  SaveRestore saver("x","y");   // dummy config object, we won't actually save anything
-  saver.listFiles("/");     // list them starting at root
-}
-void start_nmea() {
-  Serial.println("started");
-  logger.print_nmea = true;
-}
-void stop_nmea() {
-  Serial.println("stopped");
-  logger.print_nmea = false;
-}
-void start_gmt() {
-  Serial.println("started");
-  logger.print_gmt = true;
-}
-void stop_gmt() {
-  Serial.println("stopped");
-  logger.print_gmt = false;
 }
 
 // ============== grid helpers =================================
@@ -1139,23 +1073,7 @@ void loop() {
 
     char cmd[24];                            // convert "String" type to character array
     command.toCharArray(cmd, sizeof(cmd));   // because it's generally safer programming
-    for (char* p = cmd; *p != '\0'; ++p) {
-      *p = tolower(*p);
-    }
-    Serial.print(cmd);
-    Serial.print(": ");
-
-    bool found = false;
-    for (int ii = 0; ii < numCmds; ii++) {        // loop through table of commands
-      if (strcmp(cmd, cmdList[ii].text) == 0) {   // look for it
-        cmdList[ii].function();                   // found it! call the subroutine
-        found = true;
-        break;
-      }
-    }
-    if (!found) {
-      Serial.println("Unsupported");
-    }
+    processCommand(cmd);
   }
 
   // small activity bar crawls along bottom edge to give 
