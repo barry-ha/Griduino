@@ -24,21 +24,21 @@
             It saves the readings in non-volatile memory and re-displays them on power-up.
             Its RTC (realtime clock) is updated from the GPS satellite network.
 
-            +-----------------------------------+
-            | date        Baroduino       hh:mm |
-            | #sat       29.97 inHg          ss |
-            | 30.5 +--------------------------+ | <- yTop
-            |      |        |        |        | |
-            |      |        |        |        | |
-            |      |        |        |        | |
-            | 30.0 +  -  -  -  -  -  -  -  -  + | <- yMid
-            |      |        |        |        | |
-            |      |        |        |        | |
-            |      |        |        |  Today | |
-            | 29.5 +--------------------------+ | <- yBot
-            |        10/18    10/19    10/20    |
-            +------:--------:--------:--------:-+
-                   xDay1    xDay2    xDay3    xRight
+            +---------------------------------------+
+            | date          Baroduino         hh:mm |
+            | #sat         29.97 inHg            ss |
+            |  30.5+-----------------------------+  | <- yTop
+            |      |         |         |         |  |
+            |      |         |         |         |  |
+            |      |         |         |         |  |
+            | 30.0 +  -  -  -  -  -  -  -  -  -  +  | <- yMid
+            |      |         |         |         |  |
+            |      |         |         |         |  |
+            |      |         |         |  Today  |  |
+            | 29.5 +-----------------------------+  | <- yBot
+            |         10/18     10/19     10/20     |
+            +------:---------:---------:---------:--+
+                   xDay1     xDay2     xDay3     xRight
 
   Units of Time:
          This relies on "TimeLib.h" which uses "time_t" to represent time.
@@ -68,11 +68,12 @@
          about +/- 0.5 meter of altitude.
          
   Real Time Clock:
-         The real time clock in the Adafruit Ultimate GPS is not directly readable or 
-         accessible from the Arduino. It's definitely not writeable. It's only internal to the GPS. 
-         Once the battery is installed, and the GPS gets its first data reception from satellites 
-         it will set the internal RTC. Then as long as the battery is installed, you can read the 
-         time from the GPS as normal. Even without a current "gps fix" the time will be correct.
+         The real time clock in the Adafruit Ultimate GPS is not directly readable nor 
+         accessible from the Arduino. It's definitely not writeable. It's only internal 
+         to the GPS. Once the battery is installed, and the GPS gets its first data 
+         reception from satellites it will set the internal RTC. Then as long as the 
+         battery is installed, this program can read the time from the GPS as normal. 
+         Even without a current "gps fix" the time will be correct.
          The RTC timezone cannot be changed, it is always UTC.
 
   Tested with:
@@ -89,14 +90,14 @@
 
 #include <Adafruit_GFX.h>             // Core graphics display library
 #include <Adafruit_ILI9341.h>         // TFT color display library
-#include "TouchScreen.h"              // Touchscreen built in to 3.2" Adafruit TFT display
-#include "Adafruit_GPS.h"             // Ultimate GPS library
+#include <TouchScreen.h>              // Touchscreen built in to 3.2" Adafruit TFT display
+#include <Adafruit_GPS.h>             // Ultimate GPS library
 #include "Adafruit_BMP3XX.h"          // Precision barometric and temperature sensor
-#include "Adafruit_NeoPixel.h"        // On-board color addressable LED
+#include <Adafruit_NeoPixel.h>        // On-board color addressable LED
 #include "model_baro.h"               // Model of a barometer that stores 3-day history
 #include "save_restore.h"             // Save configuration in non-volatile RAM
-#include "hardware.h"                 // Griduino pin definitions 
 #include "constants.h"                // Griduino constants, colors, typedefs
+#include "hardware.h"                 // Griduino pin definitions
 #include "TextField.h"                // Optimize TFT display text for proportional fonts
 #include "TimeLib.h"                  // BorisNeubert / Time (who forked it from PaulStoffregen / Time)
 
