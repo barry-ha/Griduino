@@ -37,18 +37,11 @@
 */
 
 // ------- TFT 4-Wire Resistive Touch Screen configuration parameters
-// Last adjustment: 202-05-20
-#define TOUCHPRESSURE 200   // Minimum pressure threshhold considered an actual "press"
-#define X_MIN_OHMS    150   // Expected range on touchscreen's X-axis readings
-#define X_MAX_OHMS    880
-#define Y_MIN_OHMS    110   // Expected range on touchscreen's Y-axis readings
-#define Y_MAX_OHMS    860
-#define XP_XM_OHMS    295   // Resistance in ohms between X+ and X- to calibrate pressure
-                            // measure this with an ohmmeter while Griduino turned off
-
+// Last adjustment: 2022-05-20
 #include <Adafruit_ILI9341.h>   // TFT color display library
 #include <TouchScreen.h>        // Touchscreen built in to 3.2" Adafruit TFT display
 #include "constants.h"          // Griduino constants, colors, typedefs
+#include "hardware.h"           // Griduino pin definitions
 #include "TextField.h"          // Optimize TFT display text for proportional fonts
 
 // ------- Identity for splash screen and console --------
@@ -56,56 +49,24 @@
 
 #define SCREEN_ROTATION 1   // 0=portrait, 1=landscape, 2=portrait 180-deg, 3=landscape 180-deg
 
+// ---------- extern
+extern bool newScreenTap(Point* pPoint, int orientation); // Touch.cpp
+extern uint16_t myPressure(void);                         // Touch.cpp
+//extern bool TouchScreen::isTouching(void);              // Touch.cpp
+extern void mapTouchToScreen(TSPoint touch, Point* screen, int orientation);
+extern void setFontSize(int font);                        // TextField.cpp
+
 // ---------- Hardware Wiring ----------
-/* Same as Griduino platform
- */
-
-// TFT display and SD card share the hardware SPI interface, and have
-// separate 'select' pins to identify the active device on the bus.
-#if defined(SAMD_SERIES)
-// Adafruit Feather M4 Express pin definitions
-// To compile for Feather M0/M4, install "additional boards manager"
-// https://learn.adafruit.com/adafruit-feather-m4-express-atsamd51/setup
-
-#define TFT_BL 4    // TFT backlight
-#define TFT_CS 5    // TFT chip select pin
-#define TFT_DC 12   // TFT display/command pin
-
-#elif defined(ARDUINO_AVR_MEGA2560)
-#define TFT_BL 6    // TFT backlight
-#define TFT_DC 9    // TFT display/command pin
-#define TFT_CS 10   // TFT chip select pin
-
-#else
-#warning You need to define pins for your hardware
-
-#endif
+// Same as Griduino platform - see hardware.h
 
 // create an instance of the TFT Display
 Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 
 // ---------- Touch Screen
-// For touch point precision, we need to know the resistance
-// between X+ and X- Use any multimeter to read it
-#if defined(SAMD_SERIES)
-// Adafruit Feather M4 Express pin definitions
-#define PIN_XP A3   // Touchscreen X+ can be a digital pin
-#define PIN_XM A4   // Touchscreen X- must be an analog pin, use "An" notation
-#define PIN_YP A5   // Touchscreen Y+ must be an analog pin, use "An" notation
-#define PIN_YM 9    // Touchscreen Y- can be a digital pin
-#elif defined(ARDUINO_AVR_MEGA2560)
-// Arduino Mega 2560 and others
-#define PIN_XP 4    // Touchscreen X+ can be a digital pin
-#define PIN_XM A3   // Touchscreen X- must be an analog pin, use "An" notation
-#define PIN_YP A2   // Touchscreen Y+ must be an analog pin, use "An" notation
-#define PIN_YM 5    // Touchscreen Y- can be a digital pin
-#else
-#warning You need to define pins for your hardware
-#endif
 TouchScreen ts = TouchScreen(PIN_XP, PIN_YP, PIN_XM, PIN_YM, XP_XM_OHMS);
 
 // ------------ definitions
-const int howLongToWait = 5;   // max number of seconds at startup waiting for Serial port to console
+const int howLongToWait = 6;   // max number of seconds at startup waiting for Serial port to console
 #define SCREEN_ROTATION 1      // 1=landscape, 3=landscape 180 degrees
 
 #define gScreenWidth 320   // pixels wide, landscape orientation

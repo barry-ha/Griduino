@@ -81,6 +81,7 @@
 #include <DS1804.h>                   // DS1804 digital potentiometer library
 #include "save_restore.h"             // save/restore configuration data to SDRAM
 #include "constants.h"                // Griduino constants, colors, typedefs
+#include "hardware.h"                 // Griduino pin definitions
 #include "logger.h"                   // conditional printing to Serial port
 
 #include "view.h"                     // Griduino screens base class, followed by derived classes in alphabetical order
@@ -99,8 +100,14 @@
 #include "cfg_rotation.h"             // config screen rotation 
 #include "cfg_units.h"                // config english/metric
 #include "cfg_volume.h"               // config volume level
-#include "hardware.h"                 // Griduino pin definitions
 
+// ---------- extern
+extern bool newScreenTap(Point* pPoint);       // Touch.cpp
+extern uint16_t myPressure(void);              // Touch.cpp
+void initTouchScreen(void);                    // Touch.cpp
+//extern bool TouchScreen::isTouching(void);   // Touch.cpp
+//extern void mapTouchToScreen(TSPoint touch, Point* screen);
+//extern void setFontSize(int font);           // TextField.cpp
 
 // ---------- TFT display
 Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
@@ -134,8 +141,8 @@ Adafruit_GPS GPS(&Serial1);           // https://github.com/adafruit/Adafruit_GP
         15-sec blink = position fix found
 */
 
-// ---------- Touch Screen
-TouchScreen ts = TouchScreen(PIN_XP, PIN_YP, PIN_XM, PIN_YM, XP_XM_OHMS);
+// //---------- Touch Screen
+//TouchScreen ts = TouchScreen(PIN_XP, PIN_YP, PIN_XM, PIN_YM, XP_XM_OHMS);
 
 // ---------- Neopixel
 Adafruit_NeoPixel pixel = Adafruit_NeoPixel(NUMPIXELS, PIN_NEOPIXEL, NEO_GRB + NEO_KHZ800);
@@ -165,41 +172,7 @@ DACMorseSender dacMorse(DAC_PIN, gFrequency, gWordsPerMinute);
 AudioQSPI dacSpeech;
 
 // 2. Helper Functions
-// ============== touchscreen helpers ==========================
-
-bool gTouching = false;               // keep track of previous state
-bool newScreenTap(Point* pPoint) {
-  // find leading edge of a screen touch
-  // returns TRUE only once on initial screen press
-  // if true, also return screen coordinates of the touch
-
-  bool result = false;                // assume no touch
-  if (gTouching) {
-    // the touch was previously processed, so ignore continued pressure until they let go
-    if (!ts.isTouching()) {
-      // Touching ==> Not Touching transition
-      gTouching = false;
-    }
-  } else {
-    // here, we know the screen was not being touched in the last pass,
-    // so look for a new touch on this pass
-    // The built-in "isTouching" function does most of the debounce and threshhold detection needed
-    if (ts.isTouching()) {
-      gTouching = true;
-      result = true;
-
-      // touchscreen point object has (x,y,z) coordinates, where z = pressure
-      TSPoint touch = ts.getPoint();
-
-      // convert resistance measurements into screen pixel coords
-      mapTouchToScreen(touch, pPoint);
-      logger.info("Screen touched at (%d,%d)", pPoint->x, pPoint->y);
-    }
-  }
-  //delay(10);   // no delay: code above completely handles debounce without blocking the loop
-  return result;
-}
-
+// ============== Touchable spots on all screens ===============
 Rect areaGear {                 {0,0},  {gScreenWidth * 1/3, gScreenHeight * 1/4}};
 Rect areaArrow{ {gScreenWidth *2/3,0},  {gScreenWidth * 1/3, gScreenHeight * 1/4}};
 Rect areaBrite{ {0,gScreenHeight *3/4}, {gScreenWidth,      (gScreenHeight * 1/4)-1}};
@@ -217,111 +190,6 @@ void showWhereTouched(Point touch) {
     const int radius = 1;     // debug
     tft.fillCircle(touch.x, touch.y, radius, cTOUCHTARGET);  // debug - show dot
   #endif
-}
-// WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
-// 2020-05-12 barry@k7bwh.com
-// We need to replace TouchScreen::pressure() and implement TouchScreen::isTouching()
-
-/*#define USE_ORIGINAL_TOUCHSCREEN_CODE*/
-#ifdef USE_ORIGINAL_TOUCHSCREEN_CODE
-// 2019-11-12 barry@k7bwh.com 
-// "isTouching()" is defined in touch.h but is not implemented Adafruit's TouchScreen library
-// Note - For Griduino, if this function takes longer than 8 msec it can cause erratic GPS readings
-// Here's a function provided by https://forum.arduino.cc/index.php?topic=449719.0
-bool TouchScreen::isTouching(void) {
-
-  #define MEASUREMENTS    3
-  uint16_t nTouchCount = 0, nTouch = 0;
-
-  for (uint8_t nI = 0; nI < MEASUREMENTS; nI++) {
-    nTouch = pressure();    // read current pressure level
-    // Minimum and maximum pressure we consider true pressing
-    if (nTouch > 100 && nTouch < 900) {
-      nTouchCount++;
-    }
-
-    // pause between samples, but not after the last sample
-    //if (nI < (MEASUREMENTS-1)) {
-    //  delay(1);             // 2019-12-20 bwh: added for Feather M4 Express
-    //}
-  }
-  // Clean the touchScreen settings after function is used
-  // Because LCD may use the same pins
-  pinMode(_xm, OUTPUT);     digitalWrite(_xm, LOW);
-  pinMode(_yp, OUTPUT);     digitalWrite(_yp, HIGH);
-  pinMode(_ym, OUTPUT);     digitalWrite(_ym, LOW);
-  pinMode(_xp, OUTPUT);     digitalWrite(_xp, HIGH);
-
-  bool ret = (nTouchCount >= MEASUREMENTS);
-  return ret;
-}
-#else
-// 2020-05-03 CraigV and barry@k7bwh.com
-uint16_t myPressure(void) {
-  pinMode(PIN_XP, OUTPUT);   digitalWrite(PIN_XP, LOW);   // Set X+ to ground
-  pinMode(PIN_YM, OUTPUT);   digitalWrite(PIN_YM, HIGH);  // Set Y- to VCC
-
-  digitalWrite(PIN_XM, LOW); pinMode(PIN_XM, INPUT);      // Hi-Z X-
-  digitalWrite(PIN_YP, LOW); pinMode(PIN_YP, INPUT);      // Hi-Z Y+
-
-  int z1 = analogRead(PIN_XM);
-  int z2 = 1023-analogRead(PIN_YP);
-
-  return (uint16_t) ((z1+z2)/2);
-}
-
-// "isTouching()" is defined in touch.h but is not implemented Adafruit's TouchScreen library
-// Note - For Griduino, if this function takes longer than 8 msec it can cause erratic GPS readings
-// so we recommend against using https://forum.arduino.cc/index.php?topic=449719.0
-bool TouchScreen::isTouching(void) {
-  static bool button_state = false;
-  uint16_t pres_val = ::myPressure();
-
-  if ((button_state == false) && (pres_val > TOUCHPRESSURE)) {
-    //Serial.print(". finger pressure = "); Serial.println(pres_val);     // debug
-    button_state = true;
-  }
-
-  if ((button_state == true) && (pres_val < TOUCHPRESSURE)) {
-    //Serial.print(". released, pressure = "); Serial.println(pres_val);       // debug
-    button_state = false;
-  }
-
-  return button_state;
-}
-#endif
-// MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
-
-void mapTouchToScreen(TSPoint touch, Point* screen) {
-  // convert from X+,Y+ resistance measurements to screen coordinates
-  // param touch = resistance readings from touchscreen
-  // param screen = result of converting touch into screen coordinates
-  //
-  // Measured readings in Barry's landscape orientation were:
-  //   +---------------------+ X=876
-  //   |                     |
-  //   |                     |
-  //   |                     |
-  //   +---------------------+ X=160
-  //  Y=110                Y=892
-  //
-  // Typical measured pressures=200..549
-
-  // setRotation(1) = landscape orientation = x-,y-axis exchanged
-  //          map(value         in_min,in_max,       out_min,out_max)
-  screen->x = map(touch.y,  Y_MIN_OHMS,Y_MAX_OHMS,    0, tft.width());
-  screen->y = map(touch.x,  X_MAX_OHMS,X_MIN_OHMS,    0, tft.height());
-
-  // keep all touches within boundaries of the screen
-  screen->x = constrain(screen->x, 0, tft.width());
-  screen->y = constrain(screen->y, 0, tft.height());
-
-  if (tft.getRotation() == 3) {
-    // if display is flipped, then also flip both x,y touchscreen coords
-    screen->x = tft.width() - screen->x;
-    screen->y = tft.height() - screen->y;
-  }
-  return;
 }
 
 // ============== USB port helpers =============================
@@ -902,7 +770,7 @@ void setup() {
   analogWrite(TFT_BL, 255);           // start at full brightness
 
   // ----- init touch screen
-  ts.pressureThreshhold = 200;
+  void initTouchScreen();
 
   // ----- init serial monitor (do not "Serial.print" before this, it won't show up in console)
   Serial.begin(115200);               // init for debugging in the Arduino IDE

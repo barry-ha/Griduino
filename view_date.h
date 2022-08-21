@@ -63,6 +63,12 @@
 #include "TextField.h"          // Optimize TFT display text for proportional fonts
 #include "view.h"               // Base class for all views
 
+// ========== extern ===========================================
+extern Logger logger;   // Griduino.ino
+extern Model *model;    // "model" portion of model-view-controller
+
+extern void showDefaultTouchTargets();   // Griduino.ino
+
 // ===== definitions to manage the count up/down events
 #define DAYS_SINCE   true    // count UP after a date has passed
 #define COUNTDOWN_TO false   // count DOWN until a date is reached
@@ -178,12 +184,6 @@ DefinedEvent eventList[] = {
 
 // ----- choose target event
 DefinedEvent target = eventList[0];
-
-// ========== extern ===========================================
-extern Logger logger;   // Griduino.ino
-extern Model *model;    // "model" portion of model-view-controller
-
-extern void showDefaultTouchTargets();   // Griduino.ino
 
 // ========== class ViewDate ===================================
 class ViewDate : public View {
