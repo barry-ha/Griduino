@@ -118,6 +118,7 @@ public:
   double lat, lng;
 };
 
+#include <TimeLib.h>   // https://github.com/PaulStoffregen/Time for "time_t"
 class BaroReading {
 public:
   float pressure;   // in millibars, from BMP388 sensor
@@ -183,7 +184,6 @@ struct FunctionButton {
   int functionIndex;   // button identifier
 };
 
-#include <TimeLib.h>   // https://github.com/PaulStoffregen/Time
 class Location {
 public:
   PointGPS loc;       // has-a lat/long, degrees
