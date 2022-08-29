@@ -524,12 +524,17 @@ public:
     int ii;
     for (ii = 0; ii < numHistory; ii++) {
       Location item = history[ii];
+      char grid6[7];
+      grid.calcLocator(grid6, item.loc.lat, item.loc.lng, 6);
+
       Serial.print(ii);
-      Serial.print(". GPS(");
+      Serial.print(", ");
+      Serial.print(grid6);
+      Serial.print(",  ");
       Serial.print(item.loc.lat, 4);   // we prefer to see latitude first
       Serial.print(",");
       Serial.print(item.loc.lng, 4);
-      Serial.print(") ");
+      Serial.print(",  ");
       char msg[28];        // sizeof("GMT(12-31-21 at 12:34:56") = 25
       TimeElements time;   // https://github.com/PaulStoffregen/Time
       breakTime(item.timestamp, time);

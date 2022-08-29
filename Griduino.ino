@@ -89,6 +89,7 @@
 #include "view_altimeter.h"           // altimeter
 #include "view_baro.h"                // barometric pressure graph
 #include "view_date.h"                // counting days to/from special event 
+#include "view_grid_crossings.h"      // show time in grid
 #include "view_help.h"                // help screen
 #include "view_splash.h"              // splash screen
 #include "view_status.h"              // status screen 
@@ -399,9 +400,10 @@ BarometerModel baroModel( &baro, BMP_CS );    // create instance of the model, g
 //    "updateXxxxScreen" is dynamic and displays things that change over time
 //==============================================================
 
-// alias names for the views - MUST be in same order as "viewTable" array below, alphabetical by class name
+// alias names for all views - MUST be in same order as "viewTable" array below, alphabetical by class name
 enum {
   GRID_VIEW = 0,
+  GRID_CROSSINGS_VIEW,                // log of time in each grid
   ALTIMETER_VIEW,                     // altimeter
   BARO_VIEW,                          // barometer graph
   HELP_VIEW,                          // hints at startup
@@ -423,26 +425,28 @@ enum {
 // list of objects derived from "class View", in alphabetical order
 View* pView;                          // pointer to a derived class
 
-ViewAltimeter    altimeterView(&tft, ALTIMETER_VIEW);  // alphabetical order by class name
-ViewBaro         baroView(&tft, BARO_VIEW);            // instantiate derived classes
-ViewCfgAudioType cfgAudioType(&tft, CFG_AUDIO_TYPE);
-ViewCfgCrossing  cfgCrossing(&tft, CFG_CROSSING);
-ViewCfgGPS       cfgGPS(&tft, CFG_GPS);
-ViewCfgRotation  cfgRotation(&tft, CFG_ROTATION);
-ViewCfgUnits     cfgUnits(&tft, CFG_UNITS);
-ViewDate         dateView(&tft, DATE_VIEW);
-ViewGrid         gridView(&tft, GRID_VIEW);
-ViewHelp         helpView(&tft, HELP_VIEW);
-ViewSplash       splashView(&tft, SPLASH_VIEW);
-ViewStatus       statusView(&tft, STATUS_VIEW);
-ViewTenMileAlert tenMileAlertView(&tft, TEN_MILE_ALERT_VIEW);
-ViewTime         timeView(&tft, TIME_VIEW);
-ViewVolume       volumeView(&tft, CFG_VOLUME);
+ViewAltimeter     altimeterView(&tft, ALTIMETER_VIEW);  // alphabetical order by class name
+ViewBaro          baroView(&tft, BARO_VIEW);            // instantiate derived classes
+ViewCfgAudioType  cfgAudioType(&tft, CFG_AUDIO_TYPE);
+ViewCfgCrossing   cfgCrossing(&tft, CFG_CROSSING);
+ViewCfgGPS        cfgGPS(&tft, CFG_GPS);
+ViewCfgRotation   cfgRotation(&tft, CFG_ROTATION);
+ViewCfgUnits      cfgUnits(&tft, CFG_UNITS);
+ViewDate          dateView(&tft, DATE_VIEW);
+ViewGrid          gridView(&tft, GRID_VIEW);
+ViewGridCrossings gridCrossingsView(&tft, GRID_CROSSINGS_VIEW);
+ViewHelp          helpView(&tft, HELP_VIEW);
+ViewSplash        splashView(&tft, SPLASH_VIEW);
+ViewStatus        statusView(&tft, STATUS_VIEW);
+ViewTenMileAlert  tenMileAlertView(&tft, TEN_MILE_ALERT_VIEW);
+ViewTime          timeView(&tft, TIME_VIEW);
+ViewVolume        volumeView(&tft, CFG_VOLUME);
 
 void selectNewView(int cmd) {
   // this is a state machine to select next view, given current view and type of command
   View* viewTable[] = {    // vvv same order as enum vvv
         &gridView,         // [GRID_VIEW]
+        &gridCrossingsView,  // [GRID_CROSSINGS_VIEW]
         &altimeterView,    // [ALTIMETER_VIEW]
         &baroView,         // [BARO_VIEW]
         &helpView,         // [HELP_VIEW]
@@ -464,7 +468,8 @@ void selectNewView(int cmd) {
   if (cmd == GOTO_NEXT_VIEW) {
     // operator requested the next NORMAL user view
     switch (currentView) {
-      case GRID_VIEW:      nextView = TEN_MILE_ALERT_VIEW; break;
+      case GRID_VIEW:      nextView = GRID_CROSSINGS_VIEW; break;
+      case GRID_CROSSINGS_VIEW: nextView= TEN_MILE_ALERT_VIEW; break;
       case TEN_MILE_ALERT_VIEW: nextView = BARO_VIEW; break;
       case BARO_VIEW:      nextView = ALTIMETER_VIEW; break;
       case ALTIMETER_VIEW: nextView = STATUS_VIEW; break;
