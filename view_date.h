@@ -59,6 +59,7 @@
 #include <TimeLib.h>            // BorisNeubert / Time (who forked it from PaulStoffregen / Time)
 #include "constants.h"          // Griduino constants and colors
 #include "logger.h"             // conditional printing to Serial port
+#include "date_helper.h"        // date/time conversions
 #include "model_gps.h"          // Model of a GPS for model-view-controller
 #include "TextField.h"          // Optimize TFT display text for proportional fonts
 #include "view.h"               // Base class for all views
@@ -249,21 +250,6 @@ protected:
 #define DATE_FILE    DATE_FOLDER "/DateView.cfg"
 #define DATE_VERSION "v01"
 
-  char *dateToString(char *msg, int len, time_t datetime) {
-    // utility function to format date:  "2020-9-27 at 11:22:33"
-    // Example 1:
-    //      char sDate[24];
-    //      dateToString( sDate, sizeof(sDate), now() );
-    //      Serial.println( sDate );
-    // Example 2:
-    //      char sDate[24];
-    //      Serial.print("The current time is ");
-    //      Serial.println( dateToString(sDate, sizeof(sDate), now()) );
-    snprintf(msg, len, "%d-%d-%d at %02d:%02d:%02d",
-             year(datetime), month(datetime), day(datetime),
-             hour(datetime), minute(datetime), second(datetime));
-    return msg;
-  }
   // advance to show next date event counter
   void nextDateEvent() {
     whichEvent = (whichEvent + 1) % (sizeof(eventList) / sizeof(eventList[0]));

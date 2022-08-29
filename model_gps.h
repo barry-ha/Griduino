@@ -14,6 +14,7 @@
 #include "constants.h"      // Griduino constants and colors
 #include "logger.h"         // conditional printing to Serial port
 #include "grid_helper.h"    // lat/long conversion routines
+#include "date_helper.h"    // date/time conversions
 #include "save_restore.h"   // Configuration data in nonvolatile RAM
 
 // ========== extern ===========================================
@@ -22,6 +23,7 @@ extern Location history[];     // Griduino.ino, GPS breadcrumb trail
 extern const int numHistory;   // Griduino.ino, number of elements in history[]
 extern Logger logger;          // Griduino.ino
 extern Grids grid;             // grid_helper.h
+extern Dates date;             // date_helper.h
 
 void floatToCharArray(char *result, int maxlen, double fValue, int decimalPlaces);   // Griduino.ino
 bool isVisibleDistance(const PointGPS from, const PointGPS to);                      // view_grid.cpp
@@ -263,8 +265,8 @@ public:
 
     // report statistics for a visible sanity check to aid debug
     char sOldest[24], sNewest[24];
-    dateToString(sOldest, sizeof(sOldest), oldest);
-    dateToString(sNewest, sizeof(sNewest), newest);
+    date.dateToString(sOldest, sizeof(sOldest), oldest);
+    date.dateToString(sNewest, sizeof(sNewest), newest);
 
     char msg1[256], msg2[256];
     snprintf(msg1, sizeof(msg1), ". Oldest date = history[%d] = %s", indexOldest, sOldest);
@@ -602,20 +604,6 @@ public:
   }
 
   //=========== time helpers =================================
-  // Does the GPS real-time clock contain a valid date?
-  bool isDateValid(int yy, int mm, int dd) {
-    if (yy < 20) {
-      return false;
-    }
-    if (mm < 1 || mm > 12) {
-      return false;
-    }
-    if (dd < 1 || dd > 31) {
-      return false;
-    }
-    return true;
-  }
-
   // Formatted GMT time
   void getTime(char *result) {
     // result = char[10] = string buffer to modify
@@ -641,7 +629,7 @@ public:
     int mm     = GPS.month;
     int dd     = GPS.day;
 
-    if (isDateValid(yy, mm, dd)) {
+    if (date.isDateValid(yy, mm, dd)) {
       int year  = yy + 2000;   // convert two-digit year into four-digit integer
       int month = mm - 1;      // GPS month is 1-based, our array is 0-based
       snprintf(result, maxlen, "%s %d, %4d", aMonth[month], dd, year);

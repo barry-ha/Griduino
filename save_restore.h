@@ -32,8 +32,7 @@
 #include "logger.h"   // conditional printing to Serial port
 
 // ========== extern ===========================================
-extern char *dateToString(char *msg, int len, time_t datetime);   // Griduino/Baroduino.ino
-extern Logger logger;                                             // Griduino.ino
+extern Logger logger;   // Griduino.ino
 
 // ========== class SaveRestore =========================
 class SaveRestore {

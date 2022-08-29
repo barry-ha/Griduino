@@ -144,8 +144,9 @@ Adafruit_GPS GPS(&Serial1);           // https://github.com/adafruit/Adafruit_GP
         15-sec blink = position fix found
 */
 
-// ---------- lat/long conversion utilities
+// ---------- lat/long and date/time conversion utilities
 Grids grid = Grids();
+Dates date = Dates();
 
 // ---------- Neopixel
 Adafruit_NeoPixel pixel = Adafruit_NeoPixel(NUMPIXELS, PIN_NEOPIXEL, NEO_GRB + NEO_KHZ800);
@@ -318,57 +319,6 @@ int fGetDataSource() {
 // we need at least 800 entries to capture the whole out-and-back 500-mile loop.
 Location history[3000];               // remember a list of GPS coordinates
 const int numHistory = sizeof(history) / sizeof(Location);
-
-// ======== date time helpers =================================
-char* dateToString(char* msg, int len, time_t datetime) {
-  // utility function to format date:  "2020-9-27 at 11:22:33"
-  // Example 1:
-  //      char sDate[24];
-  //      dateToString( sDate, sizeof(sDate), now() );
-  //      Serial.println( sDate );
-  // Example 2:
-  //      char sDate[24];
-  //      Serial.print("The current time is ");
-  //      Serial.println( dateToString(sDate, sizeof(sDate), now()) );
-  snprintf(msg, len, "%d-%d-%d at %02d:%02d:%02d",
-                     year(datetime),month(datetime),day(datetime), 
-                     hour(datetime),minute(datetime),second(datetime));
-  return msg;
-}
-
-// Does the GPS real-time clock contain a valid date?
-bool isDateValid(int yy, int mm, int dd) {
-  bool valid = true;
-  if (yy < 20) {
-    valid = false;
-  }
-  if (mm < 1 || mm > 12) {
-    valid = false;
-  }
-  if (dd < 1 || dd > 31) {
-    valid = false;
-  }
-  if (!valid) {
-    // debug - issue message to console to help track down timing problem in Baroduino view
-    //char msg[120];
-    //snprintf(msg, sizeof(msg), "Date ymd not valid: %d-%d-%d");
-    //Serial.println(msg);
-  }
-  return valid;
-}
-
-time_t nextOneSecondMark(time_t timestamp) {
-  return timestamp+1;
-}
-time_t nextOneMinuteMark(time_t timestamp) {
-  return ((timestamp+1+SECS_PER_MIN)/SECS_PER_MIN)*SECS_PER_MIN;
-}
-time_t nextFiveMinuteMark(time_t timestamp) {
-  return ((timestamp+1+SECS_PER_5MIN)/SECS_PER_5MIN)*SECS_PER_5MIN;
-}
-time_t nextFifteenMinuteMark(time_t timestamp) {
-  return ((timestamp+1+SECS_PER_15MIN)/SECS_PER_15MIN)*SECS_PER_15MIN;
-}
 
 //==============================================================
 //
@@ -878,7 +828,7 @@ void loop() {
   }
 
   // look for the first "setTime()" to begin the datalogger
-  if (waitingForRTC && isDateValid(GPS.year, GPS.month, GPS.day)) {
+  if (waitingForRTC && date.isDateValid(GPS.year, GPS.month, GPS.day)) {
     // found a transition from an unknown date -> correct date/time
     // assuming "class Adafruit_GPS" contains 2000-01-01 00:00 until 
     // it receives an update via NMEA sentences
@@ -899,7 +849,7 @@ void loop() {
     prevCheckRTC = millis();
 
     // update RTC from GPS
-    if (isDateValid(GPS.year, GPS.month, GPS.day)) {
+    if (date.isDateValid(GPS.year, GPS.month, GPS.day)) {
       
       setTime(GPS.hour, GPS.minute, GPS.seconds, GPS.day, GPS.month, GPS.year);
       //adjustTime(offset * SECS_PER_HOUR);  // todo - adjust to local time zone. for now, we only do GMT
@@ -930,8 +880,8 @@ void loop() {
     if (timeStatus() == timeSet) {
       baroModel.logPressure( rightnow );
       //redrawGraph = true;             // request draw graph
-      nextSavePressure = nextFifteenMinuteMark( rightnow ); // production
-      //nextSavePressure = nextOneMinuteMark( rightnow );   // debug
+      nextSavePressure = date.nextFifteenMinuteMark( rightnow ); // production
+      //nextSavePressure = date.nextOneMinuteMark( rightnow );   // debug
     }
   }
 

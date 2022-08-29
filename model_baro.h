@@ -59,10 +59,11 @@
 #include <Adafruit_BMP3XX.h>   // Precision barometric and temperature sensor
 #include "constants.h"         // Griduino constants, colors, typedefs
 #include "logger.h"            // conditional printing to Serial port
+#include "date_helper.h"       // date/time conversions
 
 // ========== extern ===========================================
-extern char *dateToString(char *msg, int len, time_t datetime);   // Griduino/Baroduino.ino
-extern Logger logger;                                             // Griduino.ino
+extern Logger logger;   // Griduino.ino
+extern Dates date;      // for "dateToString()", Griduino.ino
 
 // ------------ definitions
 #define MILLIBARS_PER_INCHES_MERCURY (0.02953)
@@ -265,7 +266,7 @@ protected:
           Serial.print(item.pressure);
           Serial.print("  ");
           char msg[24];
-          Serial.println(dateToString(msg, sizeof(msg), item.time));   // debug
+          Serial.println(date.dateToString(msg, sizeof(msg), item.time));   // debug
         }
       }
     }

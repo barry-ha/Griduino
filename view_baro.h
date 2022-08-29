@@ -89,13 +89,8 @@ extern Logger logger;              // Griduino.ino
 extern Model *model;               // "model" portion of model-view-controller
 extern BarometerModel baroModel;   // singleton instance of the barometer model
 
-extern void showDefaultTouchTargets();                   // Griduino.ino
-extern void getDate(char *result, int maxlen);           // model_gps.h
-extern bool isDateValid(int yy, int mm, int dd);         // Griduino.ino
-extern time_t nextOneSecondMark(time_t timestamp);       // Griduino.ino
-extern time_t nextOneMinuteMark(time_t timestamp);       // Griduino.ino
-extern time_t nextFiveMinuteMark(time_t timestamp);      // Griduino.ino
-extern time_t nextFifteenMinuteMark(time_t timestamp);   // Griduino.ino
+extern void showDefaultTouchTargets();           // Griduino.ino
+extern void getDate(char *result, int maxlen);   // model_gps.h
 
 // ========== class ViewBaro ===================================
 class ViewBaro : public View {
@@ -441,7 +436,7 @@ protected:
     time_t minTime = maxTime - SECS_PER_DAY * 3;
 
     char msg[100], sDate[24];
-    dateToString(sDate, sizeof(sDate), today);
+    date.dateToString(sDate, sizeof(sDate), today);
 
     snprintf(msg, sizeof(msg), ". Right now is %d-%d-%d at %02d:%02d:%02d",
              year(today), month(today), day(today),
@@ -496,7 +491,7 @@ protected:
 
         if (x1 < xDay1) {
 #ifdef SHOW_IGNORED_PRESSURE
-          dateToString(sDate, sizeof(sDate), t1);
+          date.dateToString(sDate, sizeof(sDate), t1);
           snprintf(msg, sizeof(msg), "%d. Ignored: Date x1 (%s = %d) is off left edge of (%d).",
                    ii, sDate, x1, xDay1);
           Serial.println(msg);   // debug
@@ -505,7 +500,7 @@ protected:
         }
         if (x1 > xRight) {
 #ifdef SHOW_IGNORED_PRESSURE
-          dateToString(sDate, sizeof(sDate), t1);
+          date.dateToString(sDate, sizeof(sDate), t1);
           snprintf(msg, sizeof(msg), "%d. Ignored: Date x1 (%s = %d) is off right edge of (%d).",
                    ii, sDate, x1, xRight);
           Serial.println(msg);   // debug
@@ -529,7 +524,7 @@ void ViewBaro::updateScreen() {
   // called on every pass through main()
 
   // look for the first "setTime()" to begin the datalogger
-  if (waitingForRTC && isDateValid(GPS.year, GPS.month, GPS.day)) {
+  if (waitingForRTC && date.isDateValid(GPS.year, GPS.month, GPS.day)) {
     // found a transition from an unknown date -> correct date/time
     // assuming "class Adafruit_GPS" contains 2000-01-01 00:00 until
     // it receives an update via NMEA sentences
@@ -553,9 +548,7 @@ void ViewBaro::updateScreen() {
   // so the user can more easily predict when the next update will occur
   time_t rightnow = now();
   if (rightnow >= nextShowPressure) {
-    // nextShowPressure = nextFiveMinuteMark( rightnow );
-    nextShowPressure = nextOneMinuteMark(rightnow);
-    // nextShowPressure = nextOneSecondMark( rightnow );  // debug
+    nextShowPressure = date.nextOneMinuteMark(rightnow);
 
     float pascals = baroModel.getBaroPressure();   // get pressure
     printPressure(pascals);                        // redraw text pressure reading
@@ -568,7 +561,7 @@ void ViewBaro::updateScreen() {
     if (timeStatus() == timeSet) {
       baroModel.logPressure(rightnow);
       redrawGraph      = true;   // request draw graph
-      nextSavePressure = nextFifteenMinuteMark(rightnow);
+      nextSavePressure = date.nextFifteenMinuteMark(rightnow);
     }
   }
 
