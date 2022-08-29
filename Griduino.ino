@@ -146,7 +146,7 @@ Adafruit_GPS GPS(&Serial1);           // https://github.com/adafruit/Adafruit_GP
 
 // ---------- config settings
 // these are controllable by serial USB commands (command.h)
-bool showTouchTargets = true;
+bool showTouchTargets = false;
 
 // ---------- lat/long and date/time conversion utilities
 Grids grid = Grids();
