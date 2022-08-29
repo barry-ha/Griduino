@@ -134,6 +134,7 @@ void ViewCfgUnits::startScreen() {
 
   drawAllIcons();              // draw gear (settings) and arrow (next screen)
   showDefaultTouchTargets();   // optionally draw box around default button-touch areas
+  showMyTouchTargets(settings3Buttons, nButtonsUnits);   // optionally show this view's touch targets
   showScreenBorder();          // optionally outline visible area
   showScreenCenterline();      // optionally draw visual alignment bar
 
@@ -155,12 +156,6 @@ void ViewCfgUnits::startScreen() {
     tft->setCursor(xx, item.y + item.h / 2 + 5);   // place text centered inside button
     tft->setTextColor(item.color);
     tft->print(item.text);
-
-#ifdef SHOW_TOUCH_TARGETS
-    tft->drawRect(item.hitTarget.ul.x, item.hitTarget.ul.y,   // debug: draw outline around hit target
-                  item.hitTarget.size.x, item.hitTarget.size.y,
-                  cTOUCHTARGET);
-#endif
   }
 
   // ----- draw outlines of radio buttons

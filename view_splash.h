@@ -19,7 +19,6 @@
             +-----------------------------------+
 */
 
-#include <Arduino.h>
 #include <Adafruit_ILI9341.h>   // TFT color display library
 #include "constants.h"          // Griduino constants and colors
 #include "logger.h"             // conditional printing to Serial port
@@ -28,6 +27,8 @@
 
 // ========== extern ===========================================
 extern Logger logger;   // Griduino.ino
+
+extern void showDefaultTouchTargets();   // Griduino.ino
 
 // ========== class ViewSplash =================================
 class ViewSplash : public View {
@@ -64,16 +65,21 @@ void ViewSplash::startScreen() {
   };
   const int numSplashFields = sizeof(txtSplash) / sizeof(txtSplash[0]);
 
-  this->clearScreen(cBACKGROUND);                        // clear screen
+  this->clearScreen(this->background);                     // clear screen
   txtSplash[0].setBackground(cBACKGROUND);               // set background for all TextFields in this view
   TextField::setTextDirty(txtSplash, numSplashFields);   // make sure all fields get re-printed on screen change
+
+  // drawAllIcons();                          // no default icons on Splash view
+  // showDefaultTouchTargets();               // no default touch targets on Splash view
+  // showMyTouchTargets(Buttons, nButtons);   // no buttons on Splash view
+  showScreenBorder();                         // optionally outline visible area
+  showScreenCenterline();                     // optionally draw visual alignment bar
 
   // ----- draw text fields
   for (int ii = 0; ii < numSplashFields; ii++) {
     txtSplash[ii].print();
   }
 
-  showScreenBorder();   // optionally outline visible area
 
   updateScreen();   // fill in values immediately, don't wait for the main loop to eventually get around to it
 

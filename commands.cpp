@@ -15,16 +15,20 @@
 #include "logger.h"       // conditional printing to Serial port
 #include "model_gps.h"    // Model of a GPS for model-view-controller
 #include "model_baro.h"   // Model of a barometer that stores 3-day history
+#include "view.h"         // View base class, public interface
 
 // ========== extern ===========================================
 extern Logger logger;              // Griduino.ino
+extern bool showTouchTargets;      // Griduino.ino
 extern Model *model;               // "model" portion of model-view-controller
 extern BarometerModel baroModel;   // singleton instance of the barometer model
+extern View* pView;                // Griduino.ino
 
 // ----- forward references
 void help(), version();
 void dump_kml(), dump_gps_history(), list_files();
 void start_nmea(), stop_nmea(), start_gmt(), stop_gmt();
+void show_touch(), hide_touch();
 
 // ----- table of commands
 struct Command {
@@ -41,6 +45,8 @@ Command cmdList[] = {
     {"stop nmea", stop_nmea},
     {"start gmt", start_gmt},
     {"stop gmt", stop_gmt},
+    {"show touch", show_touch},
+    {"hide touch", hide_touch},
 };
 const int numCmds = sizeof(cmdList) / sizeof(cmdList[0]);
 
@@ -93,6 +99,20 @@ void start_gmt() {
 void stop_gmt() {
   Serial.println("stopped");
   logger.print_gmt = false;
+}
+
+void show_touch() {
+  Serial.println("showing touch targets");
+  showTouchTargets = true;
+  pView->startScreen();
+  pView->updateScreen();
+}
+
+void hide_touch() {
+  Serial.println("hiding touch targets");
+  showTouchTargets = false;
+  pView->startScreen();
+  pView->updateScreen();
 }
 
 // do the thing

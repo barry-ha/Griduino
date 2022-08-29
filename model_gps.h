@@ -379,6 +379,7 @@ public:
     }
     nextHistoryItem = 0;
   }
+
   void remember(PointGPS vLoc, time_t vTimestamp) {
     // save this GPS location and timestamp in internal array
     // so that we can display it as a breadcrumb trail
@@ -518,6 +519,7 @@ public:
     }
     Serial.print(KML_SUFFIX);   // end KML file
   }
+
   void dumpHistoryGPS() {
     Serial.print("Number of saved GPS records = ");
     Serial.println(numHistory);

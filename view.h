@@ -16,6 +16,8 @@
 #include "logger.h"             // conditional printing to Serial port
 #include "icons.h"              // bitmaps for icons
 
+extern bool showTouchTargets;   // Griduino.ino
+
 // ========== abstract base class ViewCfgAudioType ================
 class View {
 public:
@@ -129,14 +131,14 @@ protected:
    * Some views include function-specific buttons
    */
   void showMyTouchTargets(FunctionButton buttons[], int numButtons) {
-#ifdef SHOW_TOUCH_TARGETS
-    for (int ii = 0; ii < numButtons; ii++) {
-      FunctionButton item = buttons[ii];
-      tft->drawRect(item.hitTarget.ul.x, item.hitTarget.ul.y,   // debug: draw outline around hit target
-                    item.hitTarget.size.x, item.hitTarget.size.y,
-                    cTOUCHTARGET);
+    if (showTouchTargets) {
+      for (int ii = 0; ii < numButtons; ii++) {
+        FunctionButton item = buttons[ii];
+        tft->drawRect(item.hitTarget.ul.x, item.hitTarget.ul.y,   // debug: draw outline around hit target
+                      item.hitTarget.size.x, item.hitTarget.size.y,
+                      cTOUCHTARGET);
+      }
     }
-#endif
   }
 
 };   // end class View

@@ -69,9 +69,9 @@ bool isVisibleDistance(const PointGPS from, const PointGPS to) {
 void drawGridOutline() {
   tft.drawRect(gMarginX, gMarginY, gBoxWidth, gBoxHeight, ILI9341_CYAN);
 }
-// ----- workers for "updateGridScreen()" ----- in the same order as called, below
 
-// these are names for the array indexes for readability, must be named in same order as below
+  // ========== text screen layout ===================================
+  // these are names for the array indexes, must be named in same order as array below
 enum txtIndex {
   GRID4=0, GRID6, LATLONG, ALTITUDE, NUMSAT, TEMPERATURE,
   N_COMPASS,  S_COMPASS,  E_COMPASS,  W_COMPASS,
@@ -465,6 +465,7 @@ void ViewGrid::startScreen() {
   drawGridOutline();                  // box outline around grid
   drawAllIcons();                     // draw gear (settings) and arrow (next screen)
   showDefaultTouchTargets();          // optionally draw boxes around button-touch area
+  // showMyTouchTargets(gridButtons, nGridButtons);   // no buttons on this screen
   showScreenBorder();                 // optionally outline visible area
 
   updateScreen();                     // fill in values immediately, don't wait for the main loop to eventually get around to it

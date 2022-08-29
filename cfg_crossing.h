@@ -9,18 +9,18 @@
             Since it's not intended for a driver in motion, we can use
             a smaller font and cram more stuff onto the screen.
 
-            +-----------------------------------------+
-            |            3. Announcements             |
-            |                                         |
-            | Announce at       (o)[ 4-digit      ]   |
-            | grid crossing:                          |
-            |                   ( )[ 6-digit      ]   |
-            |                                         |
-            |                                         |
-            |                                         |
-            |                                         |
-            | v0.32, Feb 2 2021  08:16                |
-            +-----------------------------------------+
+            +-------------------------------------------+
+            |             3. Announcements              |
+            |                                           |
+            | Announce at       (o)[ 4-digit       ]    |
+            | grid crossing:                            |
+            |                   ( )[ 6-digit       ]    |
+            |                                           |
+            |                                           |
+            |                                           |
+            |                                           |
+            | v0.32, Feb 2 2021  08:16                  |
+            +-------------------------------------------+
 */
 
 #include <Arduino.h>            //
@@ -99,6 +99,7 @@ protected:
     grid.calcLocator(newGrid4, model->gLatitude, model->gLongitude, 4);
     announceGrid(newGrid4, 4);   // announce 4-digit grid by Morse code
   }
+
   void f6Digit() {
     logger.info("->->-> Clicked 6-DIGIT button.");
     model->compare4digits = false;
@@ -155,6 +156,7 @@ void ViewCfgCrossing::startScreen() {
 
   drawAllIcons();              // draw gear (settings) and arrow (next screen)
   showDefaultTouchTargets();   // optionally draw box around default button-touch areas
+  showMyTouchTargets(myButtons, nButtonsDigits);   // optionally show this view's touch targets
   showScreenBorder();          // optionally outline visible area
   showScreenCenterline();      // optionally draw visual alignment bar
 
@@ -173,11 +175,6 @@ void ViewCfgCrossing::startScreen() {
     tft->setTextColor(item.color);
     tft->print(item.text);
 
-#ifdef SHOW_TOUCH_TARGETS
-    tft->drawRect(item.hitTarget.ul.x, item.hitTarget.ul.y,   // debug: draw outline around hit target
-                  item.hitTarget.size.x, item.hitTarget.size.y,
-                  cTOUCHTARGET);
-#endif
   }
 
   // ----- draw outlines of radio buttons

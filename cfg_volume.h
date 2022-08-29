@@ -207,6 +207,7 @@ void ViewVolume::startScreen() {
 
   drawAllIcons();              // draw gear (settings) and arrow (next screen)
   showDefaultTouchTargets();   // optionally draw box around default button-touch areas
+  showMyTouchTargets(volButtons, nVolButtons);   // optionally show this view's touch targets
   showScreenBorder();          // optionally outline visible area
   showScreenCenterline();      // optionally draw visual alignment bar
 
@@ -223,12 +224,6 @@ void ViewVolume::startScreen() {
       tft->print(item.text);
     }
 
-#ifdef SHOW_TOUCH_TARGETS
-    Rect target = item.hitTarget;
-    tft->drawRect(target.ul.x, target.ul.y,   // debug: draw outline around hit target
-                  target.size.x, target.size.y,
-                  cTOUCHTARGET);
-#endif
   }
 
   // ----- draw text fields

@@ -170,6 +170,7 @@ void ViewGridCrossings::startScreen() {
 
   drawAllIcons();              // draw gear (settings) and arrow (next screen)
   showDefaultTouchTargets();   // optionally draw boxes around button-touch area
+  // showMyTouchTargets(Buttons, nButtons);   // no buttons on this view
   showScreenBorder();          // optionally outline visible area
   showScreenCenterline();      // optionally draw visual alignment bar
 

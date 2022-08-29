@@ -23,7 +23,6 @@
             +-----------------------------------------+
 */
 
-#include <Arduino.h>
 #include <Adafruit_ILI9341.h>   // TFT color display library
 #include "constants.h"          // Griduino constants and colors
 #include "logger.h"             // conditional printing to Serial port
@@ -161,7 +160,9 @@ void ViewCfgGPS::startScreen() {
 
   drawAllIcons();              // draw gear (settings) and arrow (next screen)
   showDefaultTouchTargets();   // optionally draw box around default button-touch areas
+  showMyTouchTargets(settings2Buttons, nButtonsGPS);   // optionally show this view's touch targets
   showScreenBorder();          // optionally outline visible area
+  showScreenCenterline();      // optionally draw visual alignment bar
 
   // ----- draw text fields
   for (int ii = 0; ii < nTextGPS; ii++) {
@@ -182,11 +183,6 @@ void ViewCfgGPS::startScreen() {
     tft->setTextColor(item.color);
     tft->print(item.text);
 
-#ifdef SHOW_TOUCH_TARGETS
-    tft->drawRect(item.hitTarget.ul.x, item.hitTarget.ul.y,   // debug: draw outline around hit target
-                  item.hitTarget.size.x, item.hitTarget.size.y,
-                  cTOUCHTARGET);
-#endif
   }
 
   // ----- draw outlines of radio buttons

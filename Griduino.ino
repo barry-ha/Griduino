@@ -144,6 +144,10 @@ Adafruit_GPS GPS(&Serial1);           // https://github.com/adafruit/Adafruit_GP
         15-sec blink = position fix found
 */
 
+// ---------- config settings
+// these are controllable by serial USB commands (command.h)
+bool showTouchTargets = true;
+
 // ---------- lat/long and date/time conversion utilities
 Grids grid = Grids();
 Dates date = Dates();
@@ -182,18 +186,18 @@ Rect areaArrow{ {gScreenWidth *2/3,0},  {gScreenWidth * 1/3, gScreenHeight * 1/4
 Rect areaBrite{ {0,gScreenHeight *3/4}, {gScreenWidth,      (gScreenHeight * 1/4)-1}};
 
 void showDefaultTouchTargets() {
-  #ifdef SHOW_TOUCH_TARGETS
+  if (showTouchTargets) {
     tft.drawRect(areaGear.ul.x,areaGear.ul.y,   areaGear.size.x,areaGear.size.y, ILI9341_MAGENTA);
     tft.drawRect(areaArrow.ul.x,areaArrow.ul.y, areaArrow.size.x,areaArrow.size.y, ILI9341_MAGENTA);
     tft.drawRect(areaBrite.ul.x,areaBrite.ul.y, areaBrite.size.x,areaBrite.size.y, ILI9341_MAGENTA);
-  #endif
+  }
 }
 
 void showWhereTouched(Point touch) {
-  #ifdef SHOW_TOUCH_TARGETS
+  if (showTouchTargets) {
     const int radius = 1;     // debug
     tft.fillCircle(touch.x, touch.y, radius, cTOUCHTARGET);  // debug - show dot
-  #endif
+  }
 }
 
 // ============== helpers ======================================
@@ -928,9 +932,9 @@ void loop() {
   Point touch;
   if (newScreenTap(&touch)) {
 
-    #ifdef SHOW_TOUCH_TARGETS
+    if (showTouchTargets) {
       showWhereTouched(touch);        // debug: show where touched
-    #endif
+    }
 
     bool touchHandled = pView->onTouch(touch);
 

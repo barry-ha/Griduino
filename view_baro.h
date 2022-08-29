@@ -580,7 +580,8 @@ void ViewBaro::startScreen() {
   TextField::setTextDirty(txtBaro, numBaroFields);   // make sure all fields get re-printed on screen change
 
   drawAllIcons();              // draw gear (settings) and arrow (next screen)
-  showDefaultTouchTargets();   // optionally draw boxes around button-touch area
+  showDefaultTouchTargets();   // optionally draw box around default button-touch areas
+  // showMyTouchTargets(baroButtons, nBaroButtons);   // no buttons on barometric graphing screen
   showScreenBorder();          // optionally outline visible area
   showScreenCenterline();      // optionally draw visual alignment bar
 

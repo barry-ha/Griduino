@@ -23,7 +23,7 @@
             |     Start:   CN87aa                   T |
             |                                         |
             +-----------------------------------------+
-              |     |            | |
+              :     :            : :
               col1  yCenter   col2 col3
 */
 
@@ -348,6 +348,8 @@ void ViewTenMileAlert::startScreen() {
   }
 
   // ----- draw static parts of direction indicators
+  prevDiffLat  = 99.9;  // force the pointer to be refreshed
+  prevDiffLong = 99.9;
   startCompass();
   clearDirectionName();
 

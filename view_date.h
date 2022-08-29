@@ -335,7 +335,7 @@ void ViewDate::updateScreen() {
   txtDate[NUMSATS].color = (model->gSatellites < 1) ? cWARN : cFAINT;
   txtDate[NUMSATS].print(sBirds);
   // txtDate[NUMSATS].dump();          // debug
-}
+}   // end updateScreen
 
 void ViewDate::startScreen() {
   // called once each time this view becomes active

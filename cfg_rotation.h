@@ -22,7 +22,6 @@
             +-----------------------------------------+
 */
 
-#include <Arduino.h>            //
 #include <Adafruit_ILI9341.h>   // TFT color display library
 #include "constants.h"          // Griduino constants and colors
 #include "logger.h"             // conditional printing to Serial port
@@ -149,6 +148,7 @@ void ViewCfgRotation::startScreen() {
 
   drawAllIcons();              // draw gear (settings) and arrow (next screen)
   showDefaultTouchTargets();   // optionally draw box around default button-touch areas
+  showMyTouchTargets(myButtons, nButtons);   // optionally show this view's touch targets
   showScreenBorder();          // optionally outline visible area
   showScreenCenterline();      // optionally draw visual alignment bar
 
@@ -188,9 +188,6 @@ void ViewCfgRotation::startScreen() {
     // the active button will be indicated in updateScreen()
     tft->drawCircle(xCenter, yCenter, 7, cVALUE);
   }
-
-  showScreenBorder();       // optionally outline visible area
-  showScreenCenterline();   // optionally draw alignment bar
 
   updateScreen();   // update UI immediately, don't wait for laggy mainline loop
 }   // end startScreen()

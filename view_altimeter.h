@@ -18,20 +18,20 @@
             Use the touchscreen to enter your current sea-level barometer setting.
             As much as possible, this module uses Pascals (not hPa).
 
-            +-----------------------------------------+
-            | *              Altitude                 |
-            |                                      +--+
-            |                                     | S |
-            | Barometer:      17.8 feet           | y |. . .yRow1
-            | GPS (5#):      123.4 feet           | n |. . .yRow2
-            |                                     | c |
-            | Enter local sea level pressure      +--+|
-            | Accuracy depends on your input          |
-            |                                         |
-            +-------+      30.150 inHg        +-------+
-            |   ^   |      1016.7 hPa         |   v   |
-            +-------+-------------------------+-------+
-              |                  | |
+            +-------------------------------------------+
+            | *               Altitude                  |
+            |                                        +--+
+            |                                       | S |
+            | Barometer:       17.8 feet            | y |. . .yRow1
+            | GPS (5#):       123.4 feet            | n |. . .yRow2
+            |                                       | c |
+            | Enter local sea level pressure        +--+|
+            | Accuracy depends on your input            |
+            |                                           |
+            +-------+       30.150 inHg         +-------+
+            |   ^   |       1016.7 hPa          |   v   |
+            +-------+---------------------------+-------+
+              :                  : :
               col1            col2 col3
 */
 
@@ -85,6 +85,7 @@ protected:
   const int col2 = 238;         // right-adjusted altitude
   const int col3 = col2 + 12;   // left-adjusted unit names
 
+  // ========== text screen layout ===================================
   // these are names for the array indexes, must be named in same order as array below
   enum txtIndex {
     eTitle = 0,
@@ -365,6 +366,7 @@ void ViewAltimeter::startScreen() {
     tft->setCursor(xx, item.y + item.h / 2 + 5);   // place text centered inside button
     tft->setTextColor(item.color);
     tft->print(item.text);
+
   }
 
   // ----- draw text fields

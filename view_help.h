@@ -10,15 +10,15 @@
             screen. They are not outlined or shown and you
             will need to simply remember where they are.
 
-            +-Hint:-----+-----------------------------+
-            |           |                             |
-            | Settings  |     Tap for next view       |
-            |           |                             |
-            |-----------+-----------------------------|
-            |                                         |
-            |    Tap to change brightness             |
-            |                                         |
-            +-----------------------------------------+
+            +-Hint:-------+-----------------------------+
+            |             |                             |
+            |  Settings   |     Tap for next view       |
+            |             |                             |
+            |-------------+-----------------------------|
+            |                                           |
+            |      Tap to change brightness             |
+            |                                           |
+            +-------------------------------------------+
 */
 
 #include <Arduino.h>
@@ -77,8 +77,12 @@ void ViewHelp::updateScreen() {
 
 void ViewHelp::startScreen() {
   // called once each time this view becomes active
-  this->clearScreen(cBACKGROUND);   // clear screen
+  this->clearScreen(this->background);                     // clear screen
 
+  showDefaultTouchTargets();                               // optionally draw box around default button-touch areas
+  // showMyTouchTargets(Buttons, nButtons);   // no real buttons on this view
+  showScreenBorder();                                      // optionally outline visible area
+  showScreenCenterline();                                  // optionally draw visual alignment bar
   // ----- draw buttons
   setFontSize(eFONTSMALL);
   for (int ii = 0; ii < nHelpButtons; ii++) {
@@ -92,16 +96,9 @@ void ViewHelp::startScreen() {
     tft->setCursor(xx, item.y + item.h / 2 + 7);
     tft->setTextColor(item.color);
     tft->print(item.text);
-
-#ifdef SHOW_TOUCH_TARGETS
-    tft->drawRect(item.x - 2, item.y - 2,   // debug: draw outline around hit target
-                  item.w + 4, item.h + 4,
-                  cTOUCHTARGET);
-#endif
   }
-  showDefaultTouchTargets();   // optionally draw boxes around button-touch area
 
-  updateScreen();   // fill in values immediately, don't wait for the main loop to eventually get around to it
+  updateScreen();   // update UI immediately, don't wait for the main loop to eventually get around to it
 
   // ----- label this view in upper left corner
   showNameOfView("Hint: ", cWARN, cBACKGROUND);

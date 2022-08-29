@@ -37,7 +37,8 @@ extern Logger logger;                                                           
 extern Grids grid;                                                                   // grid_helper.h
 extern Model *model;                                                                 // "model" portion of model-view-controller
 void floatToCharArray(char *result, int maxlen, double fValue, int decimalPlaces);   // Griduino.ino
-extern void showDefaultTouchTargets();                                               // Griduino.ino
+
+extern void showDefaultTouchTargets();   // Griduino.ino
 
 // ========== class ViewStatus =================================
 class ViewStatus : public View {
@@ -55,6 +56,8 @@ public:
 protected:
   // ---------- local data for this derived class ----------
   // color scheme: see constants.h
+
+  // ========== text screen layout ===================================
 
   // vertical placement of text rows
   const int space = 30;
@@ -184,6 +187,7 @@ void ViewStatus::startScreen() {
 
   drawAllIcons();              // draw gear (settings) and arrow (next screen)
   showDefaultTouchTargets();   // optionally draw boxes around button-touch area
+  // showMyTouchTargets(Buttons, nButtons);   // no buttons on "Grid Size and Scale" view
   showScreenBorder();          // optionally outline visible area
   showScreenCenterline();      // optionally draw visual alignment bar
 
@@ -191,11 +195,6 @@ void ViewStatus::startScreen() {
   txtValues[TITLE].print();
   txtValues[SCALE_LABEL].print();
   updateScreen();   // fill in values immediately, don't wait for the main loop to eventually get around to it
-
-#ifdef SHOW_SCREEN_CENTERLINE
-                    // show centerline at      x1,y1              x2,y2             color
-  tft->drawLine(tft->width() / 2, 0, tft->width() / 2, tft->height(), cWARN);   // debug
-#endif
 }
 
 bool ViewStatus::onTouch(Point touch) {
