@@ -397,7 +397,7 @@ public:
 
 // now the GPS location is saved in history array, now protect
 // the array in non-volatile memory in case of power loss
-#if defined RUN_UNIT_TESTS
+#if defined RUN_UNIT_TESTS      // todo: make this a run-time value selected by "run unittest"
       const int SAVE_INTERVAL = 9999;
 #elif defined USE_SIMULATED_GPS
       const int SAVE_INTERVAL = 58;   // reduce number of erase/write cycles to sdram
@@ -405,7 +405,7 @@ public:
       const int SAVE_INTERVAL = 2;
 #endif
       if (nextHistoryItem % SAVE_INTERVAL == 0) {
-        save();   // filename is MODEL_FILE[25] defined above
+        save();   // filename is #define MODEL_FILE[25] above
       }
     }
   }

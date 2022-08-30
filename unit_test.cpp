@@ -7,8 +7,7 @@
 */
 
 //#include <Arduino.h>
-#include "constants.h"   // Griduino constants and colors
-#ifdef RUN_UNIT_TESTS
+#include "constants.h"          // Griduino constants and colors
 #include "Adafruit_ILI9341.h"   // TFT color display library
 #include "morse_dac.h"          // Morse code
 #include "save_restore.h"       // Configuration data in nonvolatile RAM
@@ -38,7 +37,6 @@ TextField txtTest("test", 1, 21, ILI9341_WHITE);
 // =============================================================
 // Testing "date helper" routines in date_helper.h
 void testElapsedTime() {
-
 }
 
 // =============================================================
@@ -173,13 +171,15 @@ void verifySaveRestoreVolume() {
   SaveRestore configWrite(TEST_CONFIG_FILE, TEST_CONFIG_VERSION);
   SaveRestore configRead(TEST_CONFIG_FILE, TEST_CONFIG_VERSION);
 
-  if (configWrite.writeConfig((byte *)&writeValue, sizeof(writeValue))) {   // test writing data to SDRAM -- be sure to watch serial console log
+  // test writing data to SDRAM -- be sure to watch serial console log
+  if (configWrite.writeConfig((byte *)&writeValue, sizeof(writeValue))) {
     Serial.println("Success, integer stored to SDRAM");
   } else {
     Serial.println("ERROR! Unable to save integer to SDRAM");
   }
 
-  if (configRead.readConfig((byte *)&readValue, sizeof(readValue))) {   // test reading same data back from SDRAM
+  // test reading same data back from SDRAM
+  if (configRead.readConfig((byte *)&readValue, sizeof(readValue))) {
     Serial.println("Success, integer restored from SDRAM");
     if (readValue == writeValue) {
       Serial.println("Success, correct value was restored");
@@ -191,6 +191,7 @@ void verifySaveRestoreVolume() {
   }
   configWrite.remove(TEST_CONFIG_FILE);
 }
+
 // =============================================================
 void verifySaveRestoreArray() {
   Serial.print("-------- verifySaveRestoreArray() at line ");
@@ -324,7 +325,7 @@ void verifyBreadCrumbTrail1() {
   for (int ii = 0; ii < steps; ii++) {
     PointGPS location{model->gLatitude  = lat + (ii * stepsize),            // "plus" goes upward (north)
                       model->gLongitude = lon + (ii * stepsize * 5 / 4)};   // "plus" goes rightward (east)
-    time_t stamp = now(); // doesn't matter what timestamp is actually stored during tests
+    time_t stamp = now();                                                   // doesn't matter what timestamp is actually stored during tests
     model->remember(location, stamp);
   }
 
@@ -347,7 +348,7 @@ void generateSineWave(Model *pModel) {
     float longitude = startLong + (ii * stepsize);
     float latitude  = startLat + amplitude * sin(longitude * 150 / degreesPerRadian);
     PointGPS location{latitude, longitude};
-    time_t stamp = now(); // doesn't matter what timestamp is actually stored during tests
+    time_t stamp = now();   // doesn't matter what timestamp is actually stored during tests
     pModel->remember(location, stamp);
   }
   // Serial.println("---History as known by generateSineWave()...");
@@ -478,35 +479,35 @@ void runUnitTest() {
   tft.print("  --Open console monitor to see unit test results--");
   delay(1000);
 
-  // verifyMorseCode();                          // verify Morse code
-  verifySaveRestoreVolume();
-  countDown(5);   // verify save/restore an integer setting in SDRAM
-  verifySaveRestoreArray();
-  countDown(5);   // verify save/restore an array in SDRAM
-  verifySaveRestoreGPSModel();
-  countDown(5);   // verify save/restore GPS model state in SDRAM
-  // verifyWritingProportionalFont();              // verify writing proportional font
+  // verifyWritingProportionalFont();   // verify writing proportional font
+  verifyMorseCode();           // verify Morse code
+  verifySaveRestoreVolume();   // verify save/restore an integer setting in SDRAM
+  countDown(5);
+  verifySaveRestoreArray();   // verify save/restore an array in SDRAM
+  countDown(5);
+  verifySaveRestoreGPSModel();   // verify save/restore GPS model state in SDRAM
+  countDown(5);
 
-  verifyBreadCrumbs();
-  countDown(5);   // verify pushpins near the four corners
-  verifyBreadCrumbTrail1();
-  countDown(5);   // verify painting the bread crumb trail
-  verifyBreadCrumbTrail2();
-  countDown(5);   // verify painting the bread crumb trail
-  verifySaveTrail();
-  countDown(5);   // save GPS route to non-volatile memory
-  verifyRestoreTrail();
-  countDown(5);   // restore GPS route from non-volatile memory
+  verifyBreadCrumbs();   // verify pushpins near the four corners
+  countDown(5);
+  verifyBreadCrumbTrail1();   // verify painting the bread crumb trail
+  countDown(5);
+  verifyBreadCrumbTrail2();   // verify painting the bread crumb trail
+  countDown(5);
+  verifySaveTrail();   // save GPS route to non-volatile memory
+  countDown(5);
+  verifyRestoreTrail();   // restore GPS route from non-volatile memory
+  countDown(5);
 
-  verifyDerivingGridSquare();
-  countDown(5);                 // verify deriving grid square from lat-long coordinates
+  verifyDerivingGridSquare();   // verify deriving grid square from lat-long coordinates
+  countDown(5);
   verifyComputingDistance();    // verify computing distance
   verifyComputingGridLines();   // verify finding gridlines on E and W
 
   countDown(5);   // give user time to inspect display appearance for unit test problems
 
   model->clearHistory();   // clean up our mess after unit test
+
   Serial.print("-------- End Unit Test at line ");
   Serial.println(__LINE__);
 }
-#endif   // RUN_UNIT_TESTS

@@ -22,13 +22,14 @@ extern Logger logger;              // Griduino.ino
 extern bool showTouchTargets;      // Griduino.ino
 extern Model *model;               // "model" portion of model-view-controller
 extern BarometerModel baroModel;   // singleton instance of the barometer model
-extern View* pView;                // Griduino.ino
+extern View *pView;                // Griduino.ino
 
 // ----- forward references
 void help(), version();
 void dump_kml(), dump_gps_history(), list_files();
 void start_nmea(), stop_nmea(), start_gmt(), stop_gmt();
 void show_touch(), hide_touch();
+void run_unittest();
 
 // ----- table of commands
 struct Command {
@@ -47,6 +48,7 @@ Command cmdList[] = {
     {"stop gmt", stop_gmt},
     {"show touch", show_touch},
     {"hide touch", hide_touch},
+    {"run unittest", run_unittest},
 };
 const int numCmds = sizeof(cmdList) / sizeof(cmdList[0]);
 
@@ -113,6 +115,12 @@ void hide_touch() {
   showTouchTargets = false;
   pView->startScreen();
   pView->updateScreen();
+}
+
+void run_unittest() {
+  Serial.println("running unit test suite");
+  void runUnitTest();   // extern declaration
+  runUnitTest();        // see "unit_test.cpp"
 }
 
 // do the thing

@@ -76,6 +76,7 @@ public:
   /**
    * Deprecated: use these for unit test
    */
+  void unit_test();
   void dump();
   void send_dit();
   void send_dah();

@@ -764,12 +764,6 @@ void setup() {
     delay(5000);
   }
 
-  // ----- run unit tests, if allowed by "#define RUN_UNIT_TESTS"
-  #ifdef RUN_UNIT_TESTS
-    void runUnitTest();               // extern declaration
-    runUnitTest();                    // see "unit_test.cpp"
-  #endif
-
   // ----- all done with setup, show opening view screen
   pView = &gridView;
   pView->startScreen();               // start current view

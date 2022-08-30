@@ -231,11 +231,9 @@ public:
     logger.info("Saved pressure history to non-volatile memory");
   }
 
-#ifdef RUN_UNIT_TESTS
   void testRememberPressure(float pascals, time_t time) {
     rememberPressure(pascals, time);
   }
-#endif
 
 protected:
   void rememberPressure(float pascals, time_t time) {

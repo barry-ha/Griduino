@@ -211,15 +211,18 @@ void DACMorseSender::send_dah() {
   }
   send_dit_space();
 }
+
 void DACMorseSender::send_dit_space() {
   analogWrite(dacPin, dacOffset);
   delay(iDitDuration);
 }
+
 void DACMorseSender::send_letter_space() {
   analogWrite(dacPin, dacOffset);
   int msec = (int)1000.0 * letterSpace;
   delay(msec);
 }
+
 void DACMorseSender::send_word_space() {
   analogWrite(dacPin, dacOffset);
   int msec = (int)1000.0 * wordSpace;
@@ -286,8 +289,12 @@ void DACMorseSender::dump() {
     // note "delayMicroseconds()" only works reliably down to 3 usec
     Serial.println("!!! DAC dacSampleTime < 1 usec. Did you call setup()?");
   }
-#ifdef RUN_UNIT_TESTS
-  Serial.println("Begin DAC Morse settings:");
+}
+
+void DACMorseSender::unit_test() {
+  // unit test routine (todo - not currently called from anywhere, 2022-08)
+  char msg[256];
+  logger.info("Begin DAC Morse settings:");
   snprintf(msg, 256, ". DAC sizeWavetable(%d)", sizeWavetable);
   Serial.println(msg);
   snprintf(msg, 256, ". DAC dacPin(%d)", dacPin);
@@ -296,7 +303,8 @@ void DACMorseSender::dump() {
   Serial.println(msg);
   snprintf(msg, 256, ". DAC dacOffset(%d)", dacOffset);
   Serial.println(msg);
-  dtostrf(fFrequency, 12, 1, sFloat);
+  char sFloat[13];
+  dtostrf(fFrequency, sizeof(sFloat), 1, sFloat);
   snprintf(msg, 256, ". DAC fFrequency(%s Hz)", sFloat);
   Serial.println(msg);
   snprintf(msg, 256, ". DAC sizeWavetable(%d samples)", sizeWavetable);
@@ -326,5 +334,4 @@ void DACMorseSender::dump() {
   snprintf(msg, 256, ". Morse cyclesPerDah(%d)", cyclesPerDah);
   Serial.println(msg);
   Serial.println("End settings.");
-#endif
 }
