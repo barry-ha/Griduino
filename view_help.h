@@ -21,7 +21,6 @@
             +-------------------------------------------+
 */
 
-#include <Arduino.h>
 #include <Adafruit_ILI9341.h>   // TFT color display library
 #include "constants.h"          // Griduino constants and colors
 #include "logger.h"             // conditional printing to Serial port
@@ -38,7 +37,9 @@ public:
   // ---------- public interface ----------
   // This derived class must implement the public interface:
   ViewHelp(Adafruit_ILI9341 *vtft, int vid)   // ctor
-      : View{vtft, vid} {}
+      : View{vtft, vid} {
+    background = cBACKGROUND;   // every view can have its own background color
+  }
   void updateScreen();
   void startScreen();
   bool onTouch(Point touch);
@@ -50,6 +51,7 @@ protected:
   const int margin = 10;   // slight margin between button border and edge of screen
   const int radius = 10;   // rounded corners on buttons
 
+  // these are names for the array indexes, must be named in same order as array below
   enum txtIndex {
     SETTINGS = 0,
     NEXTVIEW,
@@ -73,16 +75,12 @@ protected:
 void ViewHelp::updateScreen() {
   // called on every pass through main()
   // nothing to do in the main loop - this screen has no dynamic items
-}
+}   // end updateScreen
 
 void ViewHelp::startScreen() {
   // called once each time this view becomes active
-  this->clearScreen(this->background);                     // clear screen
+  this->clearScreen(this->background);   // clear screen
 
-  showDefaultTouchTargets();                               // optionally draw box around default button-touch areas
-  // showMyTouchTargets(Buttons, nButtons);   // no real buttons on this view
-  showScreenBorder();                                      // optionally outline visible area
-  showScreenCenterline();                                  // optionally draw visual alignment bar
   // ----- draw buttons
   setFontSize(eFONTSMALL);
   for (int ii = 0; ii < nHelpButtons; ii++) {
@@ -97,6 +95,12 @@ void ViewHelp::startScreen() {
     tft->setTextColor(item.color);
     tft->print(item.text);
   }
+
+  // on Help screen, draw these after (on top of) the hint boxes, since they're filled with non-background color
+  showDefaultTouchTargets();   // optionally draw box around default button-touch areas
+  showMyTouchTargets(0, 0);    // no real buttons on this view
+  showScreenBorder();          // optionally outline visible area
+  showScreenCenterline();      // optionally draw visual alignment bar
 
   updateScreen();   // update UI immediately, don't wait for the main loop to eventually get around to it
 

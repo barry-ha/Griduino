@@ -28,7 +28,7 @@ extern View *pView;                // Griduino.ino
 void help(), version();
 void dump_kml(), dump_gps_history(), list_files();
 void start_nmea(), stop_nmea(), start_gmt(), stop_gmt();
-void show_touch(), hide_touch();
+void view_help(), show_touch(), hide_touch();
 void run_unittest();
 
 // ----- table of commands
@@ -46,6 +46,7 @@ Command cmdList[] = {
     {"stop nmea", stop_nmea},
     {"start gmt", start_gmt},
     {"stop gmt", stop_gmt},
+    {"view help", view_help},
     {"show touch", show_touch},
     {"hide touch", hide_touch},
     {"run unittest", run_unittest},
@@ -101,6 +102,13 @@ void start_gmt() {
 void stop_gmt() {
   Serial.println("stopped");
   logger.print_gmt = false;
+}
+
+void view_help() {
+  Serial.println("view Help screen");
+  void selectNewView(int cmd);      // extern declaration
+  extern /*const*/ int help_view;   // see "Griduino.ino"
+  selectNewView(help_view);         // see "Griduino.ino"
 }
 
 void show_touch() {

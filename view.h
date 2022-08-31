@@ -131,12 +131,14 @@ protected:
    * Some views include function-specific buttons
    */
   void showMyTouchTargets(FunctionButton buttons[], int numButtons) {
-    if (showTouchTargets) {
-      for (int ii = 0; ii < numButtons; ii++) {
-        FunctionButton item = buttons[ii];
-        tft->drawRect(item.hitTarget.ul.x, item.hitTarget.ul.y,   // debug: draw outline around hit target
-                      item.hitTarget.size.x, item.hitTarget.size.y,
-                      cTOUCHTARGET);
+    if (showTouchTargets) {   // if feature is turned off, return
+      if (buttons) {          // if a view has no buttons, return
+        for (int ii = 0; ii < numButtons; ii++) {
+          FunctionButton item = buttons[ii];
+          tft->drawRect(item.hitTarget.ul.x, item.hitTarget.ul.y,   // debug: draw outline around hit target
+                        item.hitTarget.size.x, item.hitTarget.size.y,
+                        cTOUCHTARGET);
+        }
       }
     }
   }

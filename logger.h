@@ -168,10 +168,10 @@ public:
       Serial.println(pText2);
     }
   }
-  void error(const char *pFormatString, const int value) {   // format string, one number
+  void error(const char *pFormatString, const int val1, const int val2 = 0) {   // format string, one or two numbers
     if (print_error) {
       char msg[256];
-      snprintf(msg, sizeof(msg), pFormatString, value);
+      snprintf(msg, sizeof(msg), pFormatString, val1, val2);
       Serial.println(msg);
     }
   }

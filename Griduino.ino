@@ -181,13 +181,13 @@ AudioQSPI dacSpeech;
 
 // 2. Helper Functions
 // ============== Touchable spots on all screens ===============
-Rect areaGear {                 {0,0},  {gScreenWidth * 1/3, gScreenHeight * 1/4}};
-Rect areaArrow{ {gScreenWidth *2/3,0},  {gScreenWidth * 1/3, gScreenHeight * 1/4}};
-Rect areaBrite{ {0,gScreenHeight *3/4}, {gScreenWidth,      (gScreenHeight * 1/4)-1}};
+Rect areaGear { {0,                 0},  {gScreenWidth * 2/5, gScreenHeight * 1/3}};
+Rect areaArrow{ {gScreenWidth *3/5, 0},  {gScreenWidth * 2/5, gScreenHeight * 1/3}};
+Rect areaBrite{ {0,gScreenHeight *2/3},  {gScreenWidth,      (gScreenHeight * 1/3)-1}};
 
 void showDefaultTouchTargets() {
   if (showTouchTargets) {
-    tft.drawRect(areaGear.ul.x,areaGear.ul.y,   areaGear.size.x,areaGear.size.y, ILI9341_MAGENTA);
+    tft.drawRect(areaGear.ul.x,areaGear.ul.y,   areaGear.size.x, areaGear.size.y,  ILI9341_MAGENTA);
     tft.drawRect(areaArrow.ul.x,areaArrow.ul.y, areaArrow.size.x,areaArrow.size.y, ILI9341_MAGENTA);
     tft.drawRect(areaBrite.ul.x,areaBrite.ul.y, areaBrite.size.x,areaBrite.size.y, ILI9341_MAGENTA);
   }
@@ -355,7 +355,7 @@ BarometerModel baroModel( &baro, BMP_CS );    // create instance of the model, g
 //==============================================================
 
 // alias names for all views - MUST be in same order as "viewTable" array below, alphabetical by class name
-enum {
+enum VIEW_INDEX {
   GRID_VIEW = 0,
   GRID_CROSSINGS_VIEW,                // log of time in each grid
   ALTIMETER_VIEW,                     // altimeter
@@ -375,7 +375,10 @@ enum {
   //VOLUME2_VIEW,
   GOTO_SETTINGS,                      // command the state machine to show control panel
   GOTO_NEXT_VIEW,                     // command the state machine to show next screen
+  MAX_VIEWS,                          // sentinel at end of list
 };
+/*const*/ int help_view = HELP_VIEW;
+
 // list of objects derived from "class View", in alphabetical order
 View* pView;                          // pointer to a derived class
 
@@ -397,6 +400,7 @@ ViewTime          timeView(&tft, TIME_VIEW);
 ViewVolume        volumeView(&tft, CFG_VOLUME);
 
 void selectNewView(int cmd) {
+  // cmd = GOTO_NEXT_VIEW | GOTO_SETTINGS
   // this is a state machine to select next view, given current view and type of command
   View* viewTable[] = {    // vvv same order as enum vvv
         &gridView,         // [GRID_VIEW]
@@ -433,7 +437,7 @@ void selectNewView(int cmd) {
       // none of above: we must be showing some settings view, so go to the first normal user view
       default:             nextView = GRID_VIEW; break;
     }
-  } else {
+  } else if (cmd == GOTO_SETTINGS) {
     // operator requested the next SETTINGS view
     switch (currentView) {
       case CFG_VOLUME:     nextView = CFG_AUDIO_TYPE; break;
@@ -446,6 +450,11 @@ void selectNewView(int cmd) {
       // none of above: we must be showing some normal user view, so go to the first settings view
       default:             nextView = CFG_VOLUME; break;
     }
+  } else if (cmd < MAX_VIEWS) {
+    // a specific view was requested, such as HELP_VIEW via a USB command
+    nextView = cmd;
+  } else {
+    logger.error("Requested view was out of range: %d where maximum is %d", cmd, MAX_VIEWS);
   }
   logger.info("selectNewView() from %d to %d", currentView, nextView);
   pView->endScreen();                   // a goodbye-kiss to the departing view
