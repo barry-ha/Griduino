@@ -8,7 +8,6 @@
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
 
 // ------- Select testing features ---------
-//#define RUN_UNIT_TESTS              // comment out to save boot-up time
 //#define ECHO_GPS                    // use this to see GPS detailed info on IDE console for debug
 //#define SHOW_SCREEN_BORDER          // use this to outline the screen's displayable area
 //#define SHOW_SCREEN_CENTERLINE      // use this visual aid to help layout the screen
@@ -85,10 +84,12 @@ const int OFF       = 0;     // = turned off
 #define cBREADCRUMB    ILI9341_CYAN     //
 #define cTITLE         ILI9341_GREEN    //
 #define cTEXTCOLOR     ILI9341_CYAN     // 0, 255, 255
-#define cFAINT         0x0514           // 0, 160, 160 = blue, between CYAN and DARKCYAN
-#define cBOXDEGREES    0x0410           // 0, 128, 128 = blue, between CYAN and DARKCYAN
+#define cFAINT         0x0555           // rgb(0,168,168) = hsl(180,100,33%) = blue, between CYAN and DARKCYAN
+#define cFAINTER       0x04B2           // rgb(0,128,128) = hsl(180,100,29%) = blue, between CYAN and DARKCYAN
+#define cBOXDEGREES    0x0410           // rgb(0,128,128) = hsl(180,100,25%) = blue, between CYAN and DARKCYAN
 #define cBUTTONLABEL   ILI9341_YELLOW   //
 #define cCOMPASS       ILI9341_BLUE     // a little darker than cBUTTONOUTLINE
+#define cSTATUS        0xFC10           // 255, 128, 128 = lavender
 #define cWARN          0xF844           // brighter than ILI9341_RED but not pink
 #define cTOUCHTARGET   ILI9341_RED      // outline touch-sensitive areas
 
