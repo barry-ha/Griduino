@@ -32,24 +32,31 @@ void view_help(), show_touch(), hide_touch();
 void run_unittest();
 
 // ----- table of commands
+#define Newline true   // use this to insert a CRLF before listing this command in help text
 struct Command {
   char text[20];
   simpleFunction function;
+  bool crlf;
 };
 Command cmdList[] = {
-    {"help", help},
-    {"version", version},
-    {"dump kml", dump_kml},
-    {"dump gps", dump_gps_history},
-    {"list", list_files},
-    {"start nmea", start_nmea},
-    {"stop nmea", stop_nmea},
-    {"start gmt", start_gmt},
-    {"stop gmt", stop_gmt},
-    {"view help", view_help},
-    {"show touch", show_touch},
-    {"hide touch", hide_touch},
-    {"run unittest", run_unittest},
+    {"help", help, 0},
+    {"version", version, 0},
+
+    {"dump kml", dump_kml, Newline},
+    {"dump gps", dump_gps_history, 0},
+
+    {"start nmea", start_nmea, Newline},
+    {"stop nmea", stop_nmea, 0},
+
+    {"show touch", show_touch, Newline},
+    {"hide touch", hide_touch, 0},
+
+    {"start gmt", start_gmt, Newline},
+    {"stop gmt", stop_gmt, 0},
+
+    {"list files", list_files, Newline},
+    {"view help", view_help, 0},
+    {"run unittest", run_unittest, 0},
 };
 const int numCmds = sizeof(cmdList) / sizeof(cmdList[0]);
 
@@ -57,10 +64,15 @@ const int numCmds = sizeof(cmdList) / sizeof(cmdList[0]);
 void help() {
   Serial.print("Available commands are:\n");
   for (int ii = 0; ii < numCmds; ii++) {
-    if (ii > 0) {
+    if (cmdList[ii].crlf) {
+      Serial.println();
+    }
+
+    Serial.print(cmdList[ii].text);
+
+    if (ii < numCmds - 1) {
       Serial.print(", ");
     }
-    Serial.print(cmdList[ii].text);
   }
   Serial.println();
 }
