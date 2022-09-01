@@ -36,7 +36,7 @@
   #warning You need to define pins for your hardware
 
 #endif
-TouchScreen ts = TouchScreen(PIN_XP, PIN_YP, PIN_XM, PIN_YM, 295);
+extern TouchScreen ts;
 
 // ------------ typedef's
 struct Point {
@@ -102,7 +102,7 @@ bool newScreenTap(Point* pPoint, int orientation) {
       Serial.print(","); Serial.print(pPoint->y); Serial.println(")");
     }
   }
-  //delay(10);   // no delay: code above completely handles debouncing without blocking the loop
+  // delay(10);   // no delay: code above completely handles debouncing without blocking the loop
   return result;
 }
 
