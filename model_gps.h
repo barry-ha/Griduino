@@ -399,8 +399,6 @@ public:
 // the array in non-volatile memory in case of power loss
 #if defined RUN_UNIT_TESTS      // todo: make this a run-time value selected by "run unittest"
       const int SAVE_INTERVAL = 9999;
-#elif defined USE_SIMULATED_GPS
-      const int SAVE_INTERVAL = 58;   // reduce number of erase/write cycles to sdram
 #else
       const int SAVE_INTERVAL = 2;
 #endif

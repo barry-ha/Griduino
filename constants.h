@@ -10,11 +10,11 @@
 
 // ------- Select testing features ---------
 //#define FASTBOOT                    // comment out in production, use to skip some startup screen
-//#define USE_SIMULATED_GPS           // comment out to use real GPS, or else it simulates driving around (see model_gps.h)
 //#define ECHO_GPS                    // use this to see GPS detailed info on IDE console for debug
 //#define SHOW_SCREEN_BORDER          // use this to outline the screen's displayable area
 //#define SHOW_SCREEN_CENTERLINE      // use this visual aid to help layout the screen
 //#define SHOW_IGNORED_PRESSURE       // use this to see barometric pressure readings that are out of range and therefore ignored
+// deleted: #define USE_SIMULATED_GPS   // comment out to use real GPS, or else it simulates driving around (see model_gps.h)
 // deleted: #define RUN_UNIT_TESTS      // comment out to save boot-up time
 // deleted: #define SHOW_TOUCH_TARGETS  // use serial command "show touch" instead
 
