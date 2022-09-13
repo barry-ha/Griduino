@@ -78,8 +78,8 @@ extern void showDefaultTouchTargets();   // Griduino.ino
 #define HIDE_HMS false
 
 struct DefinedEvent {
-  int countup;     // DAYS_SINCE | COUNTDOWN_TO
-  bool show_HMS;   // SHOW_HMS | HIDE_HMS
+  int countup;     // = DAYS_SINCE | COUNTDOWN_TO
+  bool show_HMS;   // = SHOW_HMS | HIDE_HMS
   char line1[24];
   char line2[26];
   char line3[26];
@@ -98,7 +98,7 @@ DefinedEvent aug_microwave{
     "Aug 13, 2022, 6 am local",
     "ARRL 10 GHz & Up Contest",
     // s,m,h, dow, dd, mm, yy
-    {0, 0, 13, 1, 21, 8, 2022 - 1970},
+    {0, 0, 13, 1, 17, 9, 2022 - 1970},
 };
 
 DefinedEvent sept_vhf{
@@ -111,7 +111,7 @@ DefinedEvent sept_vhf{
     "Sept 10, 2022 at 1800z",
     "ARRL Sept VHF Contest",
     // s,m,h, dow, dd, mm, yy
-    {0, 0, 18, 1, 10, 9, 2022 - 1970},
+    {0, 0, 18, 1,   9, 9, 2023 - 1970},
 };
 
 DefinedEvent june_vhf{
