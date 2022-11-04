@@ -79,7 +79,18 @@ On-board lights:
 
 #elif defined(ARDUINO_PICO_REVISION)
 // Ref: https://arduino-pico.readthedocs.io/en/latest/index.html
-#warning ----- Compiling for Arduino Pico RP2040 -----
+//warning ----- Compiling for Arduino Pico RP2040 -----
+// Adafruit Feather_RP2040 pin definitions
+// To compile for Feather_RP2040, install "additional boards manager"
+// https://github.com/earlephilhower/arduino-pico/releases/download/global/package_rp2040_index.json
+
+#define TFT_BL 4    // TFT backlight
+#define TFT_CS 5    // TFT chip select pin
+#define TFT_DC 12   // TFT display/command pin
+#define BMP_CS 13   // BMP388 sensor, chip select
+
+#define SD_CD  10   // SD card detect pin - Feather
+#define SD_CCS 11   // SD card select pin - Feather
 
 #else
 #warning You need to define pins for your SPI bus hardware
@@ -98,15 +109,18 @@ On-board lights:
 #define Y_MIN_OHMS 110   // Expected range on touchscreen's Y-axis readings
 #define Y_MAX_OHMS 860
 
-// ---------- Touch Screen
+// ---------- Touch Screen pins
 #define PIN_XP A3   // Touchscreen X+ can be a digital pin
 #define PIN_XM A4   // Touchscreen X- must be an analog pin, use "An" notation
 #define PIN_YP A5   // Touchscreen Y+ must be an analog pin, use "An" notation
 #define PIN_YM 9    // Touchscreen Y- can be a digital pin
 
-// ---------- Feather's onboard lights
+// ---------- Feather RP2040 onboard led
+#if defined(ARDUINO_PICO_REVISION)
+#define RED_LED 25  // diagnostics RED LED
+#else
 #define RED_LED 13   // diagnostics RED LED
-// define PIN_LED 13                    // already defined in Feather's board variant.h
+#endif
 
 // ---------- neopixel
 #define NUMPIXELS 1   // Feather M4 has one NeoPixel on board

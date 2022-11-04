@@ -1,4 +1,5 @@
 // Please format this file with clang before check-in to GitHub
+#ifdef TODO_FOR_RP2040    // temporarily removed 'save/restore' code because of 'File' vs 'SDFile'
 /*
   File:     save_restore.cpp
 
@@ -452,3 +453,4 @@ int SaveRestore::openFlash() {
   }
   return 1;   // indicate success
 }
+#endif  // TODO_FOR_RP2040
