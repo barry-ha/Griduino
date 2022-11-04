@@ -109,11 +109,25 @@ On-board lights:
 #define Y_MIN_OHMS 110   // Expected range on touchscreen's Y-axis readings
 #define Y_MAX_OHMS 860
 
-// ---------- Touch Screen pins
-#define PIN_XP A3   // Touchscreen X+ can be a digital pin
-#define PIN_XM A4   // Touchscreen X- must be an analog pin, use "An" notation
-#define PIN_YP A5   // Touchscreen Y+ must be an analog pin, use "An" notation
-#define PIN_YM 9    // Touchscreen Y- can be a digital pin
+#if defined(ARDUINO_PICO_REVISION)
+  // ---------- Touch Screen pins - Adafruit Feather RP2040
+  #define PIN_XM A2   // Touchscreen X- must be an analog pin, use "An" notation
+  #define PIN_YP A3   // Touchscreen Y+ must be an analog pin, use "An" notation
+  #define PIN_XP 24   // Touchscreen X+ can be a digital pin
+  #define PIN_YM 25   // Touchscreen Y- can be a digital pin
+  // ---------- Audio output pins
+  #define DAC_PIN     0   // do not use - RP2040 has no DAC
+  #define PIN_SPEAKER 0   // do not use - RP2040 has no DAC
+#else
+// ---------- Touch Screen pins - Feather M4
+  #define PIN_XP A3   // Touchscreen X+ can be a digital pin
+  #define PIN_XM A4   // Touchscreen X- must be an analog pin, use "An" notation
+  #define PIN_YP A5   // Touchscreen Y+ must be an analog pin, use "An" notation
+  #define PIN_YM 9    // Touchscreen Y- can be a digital pin
+  // ---------- Audio output pins
+  #define DAC_PIN     DAC0   // onboard DAC0 == pin A0
+  #define PIN_SPEAKER DAC0   // uses DAC
+#endif
 
 // ---------- Feather RP2040 onboard led
 #if defined(ARDUINO_PICO_REVISION)
@@ -125,10 +139,6 @@ On-board lights:
 // ---------- neopixel
 #define NUMPIXELS 1   // Feather M4 has one NeoPixel on board
 // efine PIN_NEOPIXEL 8     // already defined in Feather's board variant.h
-
-// ---------- Audio output
-#define DAC_PIN     DAC0   // onboard DAC0 == pin A0
-#define PIN_SPEAKER DAC0   // uses DAC
 
 // ---------- Digital potentiometer
 // Adafruit Feather M4 Express pin definitions

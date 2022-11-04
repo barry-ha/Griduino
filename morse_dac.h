@@ -23,6 +23,25 @@
 #define PROSIGN_MIM 'C'   // comma
 #define PROSIGN_AAA '.'   // period
 
+#if defined(ARDUINO_PICO_REVISION)
+// todo - for now, RP2040 has no DAC, no audio, no speech
+// ========== class DACMorsender ==================================
+class DACMorseSender {
+public:
+  DACMorseSender(int outputPin, int iFreq, float fWPM) {}
+  void setup() {}
+  void setMessage(const String newMessage) {}
+  void sendBlocking() {}
+  void unit_test() {}
+  void dump() {}
+  void send_dit() {}
+  void send_dah() {}
+  void send_dit_space() {}
+  void send_letter_space() {}
+  void send_word_space(){}
+};
+#else
+
 // ========== class DACMorsender ==================================
 class DACMorseSender {
 private:
@@ -87,3 +106,4 @@ public:
 private:
   void send(char c);
 };   // end class DACMorseSender
+#endif  // ARDUINO_PICO_REVISION

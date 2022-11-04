@@ -170,14 +170,14 @@ const int howLongToWait = 6;          // max number of seconds at startup waitin
 #include "morse_dac.h"                // Morse Code using digital-audio converter DAC0
 DACMorseSender dacMorse(DAC_PIN, gFrequency, gWordsPerMinute);
 
-// "morse_dac.cpp"  replaced  "morse.h"
-//#include "morse.h"                  // Morse Code Library for Arduino with Non-Blocking Sending
-//                                    // https://github.com/markfickett/arduinomorse
-
 // ----------- Speech PCM Audio Playback
-#include <Audio_QSPI.h>               // Audio playback library for Arduino
-                                      // https://github.com/barry-ha/Audio_QSPI
-AudioQSPI dacSpeech;
+#if defined(ARDUINO_PICO_REVISION)
+  // todo - for now, RP2040 has no DAC, no speech, no audio output
+#else
+  #include <Audio_QSPI.h>               // Audio playback library for Arduino
+                                        // https://github.com/barry-ha/Audio_QSPI
+  AudioQSPI dacSpeech;
+#endif
 
 // 2. Helper Functions
 // ============== Touchable spots on all screens ===============
@@ -488,9 +488,9 @@ void sendMorseLostSignal() {
   // commented out -- this occurs too frequently and is distracting
   return;
 
-  String msg(PROSIGN_AS);             // "wait" symbol
-  dacMorse.setMessage(msg);
-  dacMorse.sendBlocking();            // TODO - use non-blocking
+  //String msg(PROSIGN_AS);             // "wait" symbol
+  //dacMorse.setMessage(msg);
+  //dacMorse.sendBlocking();            // TODO - use non-blocking
 }
 
 void announceGrid(const String gridName, int length) {
@@ -500,6 +500,9 @@ void announceGrid(const String gridName, int length) {
   grid[length] = 0;   // null-terminate string to requested 4- or 6-character length
   Serial.print("Announcing grid: "); Serial.println(grid);
 
+#if defined(ARDUINO_PICO_REVISION)
+  // todo - for now, RP2040 has no DAC, no audio, no speech
+#else
   switch (cfgAudioType.selectedAudio) {
     case ViewCfgAudioType::MORSE: 
       sendMorseGrid6( grid );
@@ -525,6 +528,7 @@ void announceGrid(const String gridName, int length) {
       Serial.print("Internal error: unsupported audio in line "); Serial.println(__LINE__);
       break;
   }
+#endif
 }
 
 void sendMorseGrid4(const String gridName) {
@@ -563,6 +567,9 @@ void sayGrid(const char *name) {
   Serial.print("Say ");
   Serial.println(name);
 
+#if defined(ARDUINO_PICO_REVISION)
+  // todo - for now, RP2040 has no DAC, no audio, no speech
+#else
   for (int ii = 0; ii < strlen(name); ii++) {
 
     // example: choose the filename to play
@@ -583,6 +590,7 @@ void sayGrid(const char *name) {
       Serial.println(") failed");
     }
   }
+#endif
 }
 
 //=========== setup ============================================
@@ -727,12 +735,12 @@ void setup() {
     // Only set DAC resolution on devices that have a DAC
     analogWriteResolution(12);        // 1..32, sets DAC output resolution to 12 bit (4096 levels)
                                       // because Feather M4 maximum output resolution is 12 bit
-  #endif
   dacMorse.setup();                   // required Morse Code initialization
   dacMorse.dump();                    // debug
   
   dacSpeech.begin();                  // required Audio_QSPI initialization
   //sayGrid("k7bwh");                 // debug test 
+  #endif
 
   // ----- init onboard LED
   pinMode(RED_LED, OUTPUT);           // diagnostics RED LED

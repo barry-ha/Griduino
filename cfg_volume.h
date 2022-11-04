@@ -29,7 +29,6 @@
 #include <Arduino.h>
 #include <Adafruit_ILI9341.h>   // TFT color display library
 #include <DS1804.h>             // DS1804 digital potentiometer library
-#include <Audio_QSPI.h>         // Audio playback library for Arduino, https://github.com/barry-ha/Audio_QSPI
 #include "constants.h"          // Griduino constants and colors
 #include "logger.h"             // conditional printing to Serial port
 #include "model_gps.h"          // Model of a GPS for model-view-controller
@@ -41,8 +40,13 @@
 extern Logger logger;                                 // Griduino.ino
 extern void announceGrid(String gridName, int len);   // Griduino.ino
 extern DACMorseSender dacMorse;                       // morse code (so we can send audio sample)
-extern AudioQSPI dacSpeech;                           // spoken word (so we can play speech sample)
 extern DS1804 volume;                                 // digital potentiometer
+#if defined(ARDUINO_PICO_REVISION)
+  // todo - for now, RP2040 has no DAC, no speech, no audio output
+#else
+  #include <Audio_QSPI.h>         // Audio playback library for Arduino, https://github.com/barry-ha/Audio_QSPI
+  extern AudioQSPI dacSpeech;                         // spoken word (so we can play speech sample)
+#endif
 
 // ========== class ViewVolume =================================
 class ViewVolume : public View {
