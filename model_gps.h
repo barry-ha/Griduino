@@ -408,7 +408,7 @@ public:
     }
   }
 
-// Beginning/end of each KML file
+// ----- Beginning/end of each KML file -----
 #define KML_PREFIX "\
 <?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\
 <kml xmlns=\"http://www.opengis.net/kml/2.2\"\
@@ -444,21 +444,7 @@ public:
 </Document>\r\n\
 </kml>\r\n"
 
-// Beginning/end of a line for a track within KML file
-#define PLACEMARK_TRACK_PREFIX "\
-\t<Placemark>\r\n\
-\t\t<name>Griduino Track</name>\r\n\
-\t\t<styleUrl>#gstyle0</styleUrl>\r\n\
-\t\t<LineString>\r\n\
-\t\t\t<tessellate>1</tessellate>\r\n\
-\t\t\t<coordinates>\r\n"
-
-#define PLACEMARK_TRACK_SUFFIX "\r\n\
-\t\t\t</coordinates>\r\n\
-\t\t</LineString>\r\n\
-\t</Placemark>\r\n"
-
-// Beginning/end of a pushpin in a KML file
+// ----- Beginning/end of a pushpin in a KML file -----
 #define PUSHPIN_PREFIX_PART1 "\
 \t<Placemark>\r\n\
 \t\t<name>Start "
@@ -474,31 +460,76 @@ public:
 \t\t</Point>\r\n\
 \t</Placemark>\r\n"
 
+// ----- Icon for breadcrumbs along route -----
+#define BREADCRUMB_STYLE "\
+\t<Style id=\"crumb\">\r\n\
+\t\t<IconStyle>\r\n\
+\t\t\t<Icon><href>https://www.coilgun.info/images/bullet.png</href></Icon>\r\n\
+\t\t\t<hotSpot x=\".5\" y=\".5\" xunits=\"fraction\" yunits=\"fraction\"/>\r\n\
+\t\t</IconStyle>\r\n\
+\t</Style>\r\n"
+
+// ----- Placemark template with timestamp -----
+// From: https://developers.google.com/static/kml/documentation/TimeStamp_example.kml 
+#define PLACEMARK_WITH_TIMESTAMP "\
+\t<Placemark>\r\n\
+\t\t<description>\
+<center>\
+<h2><a target=\"_blank\" href=\"https://maps.google.com/maps?q=%s,%s\">%s</a></h2>\
+%04d-%02d-%02d <br/> %02d:%02d:%02d GMT\
+</center>\
+</description>\r\n\
+\t\t<TimeStamp><when>%04d-%02d-%02dT%02d:%02d:%02dZ</when></TimeStamp>\r\n\
+\t\t<Point><coordinates>%s,%s</coordinates></Point>\r\n\
+\t\t<styleUrl>#crumb</styleUrl>\r\n\
+\t</Placemark>\r\n"
+
   void dumpHistoryKML() {
 
     Serial.print(KML_PREFIX);               // begin KML file
-    Serial.print(PLACEMARK_TRACK_PREFIX);   // begin tracking route
+    Serial.print(BREADCRUMB_STYLE);         // add breadcrumb icon style
     int startIndex  = nextHistoryItem + 1;
     bool startFound = false;
 
-    int index = nextHistoryItem;   // start at oldest location in circular buffer
+    // start right AFTER the most recently written slot in circular buffer
+    int index = nextHistoryItem;
 
+    // loop through the entire GPS history buffer
     for (int ii = 0; ii < numHistory; ii++) {
       Location item = history[index];
       if ((item.loc.lat != 0) || (item.loc.lng != 0)) {
         if (!startFound) {
-          // remember the first non-empty lat/long for a "Start" pushpin
+          // this is the first non-empty lat/long found,
+          // so this must be chronologically the oldest entry recorded
+          // Remember it for the "Start" pushpin
           startIndex = index;
           startFound = true;
         }
-        Serial.print(item.loc.lng, 4);
-        Serial.print(",");
-        Serial.print(item.loc.lat, 4);
-        Serial.print(",0 ");
+
+        // PlaceMark with timestamp
+        TimeElements time;                    // https://github.com/PaulStoffregen/Time
+        breakTime(item.timestamp, time);
+
+        char sLat[12], sLng[12];
+        floatToCharArray(sLat, sizeof(sLat), item.loc.lat, 5);
+        floatToCharArray(sLng, sizeof(sLng), item.loc.lng, 5);
+
+        char grid6[7];
+        grid.calcLocator(grid6, item.loc.lat, item.loc.lng, 6);
+
+        char msg[500];
+        snprintf(msg, sizeof(msg), PLACEMARK_WITH_TIMESTAMP,
+            sLat, sLng,   // humans prefer "latitude,longitude"
+            grid6,
+            time.Year+1970, time.Month, time.Day, time.Hour, time.Minute, time.Second, // human readable time
+            time.Year+1970, time.Month, time.Day, time.Hour, time.Minute, time.Second, // kml timestamp
+            sLng, sLat    // kml requires "longitude,latitude"
+            );
+        Serial.print(msg);
       }
       index = (index + 1) % numHistory;
     }
-    Serial.print(PLACEMARK_TRACK_SUFFIX);   // end tracking route
+
     if (startFound) {                       // begin pushpin at start of route
       char pushpinDate[10];                 // strlen("12/24/21") = 9
       TimeElements time;                    // https://github.com/PaulStoffregen/Time
@@ -540,8 +571,8 @@ public:
       char msg[28];        // sizeof("GMT(12-31-21 at 12:34:56") = 25
       TimeElements time;   // https://github.com/PaulStoffregen/Time
       breakTime(item.timestamp, time);
-      snprintf(msg, sizeof(msg), "GMT(%02d-%02d-%02d at %02d:%02d:%02d)",
-               time.Month, time.Day, time.Year, time.Hour, time.Minute, time.Second);
+      snprintf(msg, sizeof(msg), "GMT(%02d-%02d-%04d at %02d:%02d:%02d)",
+               time.Month, time.Day, time.Year+1970, time.Hour, time.Minute, time.Second);
       Serial.println(msg);
     }
     int remaining = numHistory - ii;
