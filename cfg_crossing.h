@@ -154,11 +154,11 @@ void ViewCfgCrossing::startScreen() {
   txtSettings4[DISTANCE6].setBackground(cBUTTONFILL);     // change background for text on top of buttons
   TextField::setTextDirty(txtSettings4, nTextCrossing);   // make sure all fields get re-printed on screen change
 
-  drawAllIcons();              // draw gear (settings) and arrow (next screen)
-  showDefaultTouchTargets();   // optionally draw box around default button-touch areas
+  drawAllIcons();                                  // draw gear (settings) and arrow (next screen)
+  showDefaultTouchTargets();                       // optionally draw box around default button-touch areas
   showMyTouchTargets(myButtons, nButtonsDigits);   // optionally show this view's touch targets
-  showScreenBorder();          // optionally outline visible area
-  showScreenCenterline();      // optionally draw visual alignment bar
+  showScreenBorder();                              // optionally outline visible area
+  showScreenCenterline();                          // optionally draw visual alignment bar
 
   // ----- draw buttons
   setFontSize(eFONTSMALLEST);
@@ -174,7 +174,6 @@ void ViewCfgCrossing::startScreen() {
                                                    // to make room for a second row of text on the button
     tft->setTextColor(item.color);
     tft->print(item.text);
-
   }
 
   // ----- draw outlines of radio buttons
