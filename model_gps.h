@@ -559,27 +559,30 @@ public:
     int ii;
     for (ii = 0; ii < numHistory; ii++) {
       Location item = history[ii];
-      char grid6[7];
-      grid.calcLocator(grid6, item.loc.lat, item.loc.lng, 6);
 
-      Serial.print(ii);
-      Serial.print(", ");
-      Serial.print(grid6);
-      Serial.print(",  ");
-      Serial.print(item.loc.lat, 4);   // we prefer to see latitude first
-      Serial.print(",");
-      Serial.print(item.loc.lng, 4);
-      Serial.print(",  ");
-      char msg[20];        // sizeof("12-31-22  12:34:56") = 19
-      //TimeElements time;   // https://github.com/PaulStoffregen/Time
-      //breakTime(item.timestamp, time);
-      //snprintf(msg, sizeof(msg), "%02d-%02d-%04d  %02d:%02d:%02d",
-      //         time.Month, time.Day, time.Year+1970, time.Hour, time.Minute, time.Second);
-      
-      time_t time = item.timestamp; // https://github.com/PaulStoffregen/Time
-      snprintf(msg, sizeof(msg), "%02d-%02d-%04d  %02d:%02d:%02d",
-               month(time), day(time), year(time), hour(time), minute(time), second(time) );
-      Serial.println(msg);
+      if (!item.isEmpty()) {
+        char grid6[7];
+        grid.calcLocator(grid6, item.loc.lat, item.loc.lng, 6);
+
+        Serial.print(ii);
+        Serial.print(", ");
+        Serial.print(grid6);
+        Serial.print(",  ");
+        Serial.print(item.loc.lat, 4);   // we prefer to see latitude first
+        Serial.print(",");
+        Serial.print(item.loc.lng, 4);
+        Serial.print(",  ");
+        char msg[20];        // sizeof("12-31-22  12:34:56") = 19
+        //TimeElements time;   // https://github.com/PaulStoffregen/Time
+        //breakTime(item.timestamp, time);
+        //snprintf(msg, sizeof(msg), "%02d-%02d-%04d  %02d:%02d:%02d",
+        //         time.Month, time.Day, time.Year+1970, time.Hour, time.Minute, time.Second);
+        
+        time_t time = item.timestamp; // https://github.com/PaulStoffregen/Time
+        snprintf(msg, sizeof(msg), "%02d-%02d-%04d  %02d:%02d:%02d",
+                month(time), day(time), year(time), hour(time), minute(time), second(time) );
+        Serial.println(msg);
+      }
     }
     int remaining = numHistory - ii;
     if (remaining > 0) {
