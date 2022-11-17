@@ -26,8 +26,7 @@
 #include "view.h"               // Base class for all views
 
 // ========== extern ===========================================
-extern Logger logger;   // Griduino.ino
-
+extern Logger logger;                    // Griduino.ino
 extern void showDefaultTouchTargets();   // Griduino.ino
 
 // ========== class ViewSplash =================================
@@ -65,28 +64,21 @@ void ViewSplash::startScreen() {
   };
   const int numSplashFields = sizeof(txtSplash) / sizeof(txtSplash[0]);
 
-  this->clearScreen(this->background);                     // clear screen
+  this->clearScreen(this->background);                   // clear screen
   txtSplash[0].setBackground(cBACKGROUND);               // set background for all TextFields in this view
   TextField::setTextDirty(txtSplash, numSplashFields);   // make sure all fields get re-printed on screen change
 
-  // drawAllIcons();                          // no default icons on Splash view
-  // showDefaultTouchTargets();               // no default touch targets on Splash view
-  // showMyTouchTargets(Buttons, nButtons);   // no buttons on Splash view
-  showScreenBorder();                         // optionally outline visible area
-  showScreenCenterline();                     // optionally draw visual alignment bar
+  showDefaultTouchTargets();   // optionally draw box around default button-touch areas
+  showMyTouchTargets(0, 0);    // no real buttons on this view
+  showScreenBorder();          // optionally outline visible area
+  showScreenCenterline();      // optionally draw visual alignment bar
 
   // ----- draw text fields
   for (int ii = 0; ii < numSplashFields; ii++) {
     txtSplash[ii].print();
   }
 
-
-  updateScreen();   // fill in values immediately, don't wait for the main loop to eventually get around to it
-
-#ifdef SHOW_SCREEN_CENTERLINE
-                    // show centerline at      x1,y1              x2,y2             color
-  tft->drawLine(tft->width() / 2, 0, tft->width() / 2, tft->height(), cWARN);   // debug
-#endif
+  updateScreen();   // update UI immediately, don't wait for the main loop to eventually get around to it
 
 #ifdef USE_MORSE_CODE
   // ----- announce in Morse code, so vehicle's driver doesn't have to look at the screen
@@ -100,4 +92,5 @@ bool ViewSplash::onTouch(Point touch) {
   // do nothing - this screen does not respond to buttons
   logger.info("->->-> Touched splash screen.");
   return false;   // true=handled, false=controller uses default action
+
 }   // end onTouch()

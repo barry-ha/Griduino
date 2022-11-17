@@ -10,6 +10,7 @@
 *.bin 
 *.psd 
 *.xlsx
+build/
 datasheets/
 docs_mfr/
 downloads_archived/

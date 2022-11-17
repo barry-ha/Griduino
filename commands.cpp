@@ -28,7 +28,8 @@ extern View *pView;                // Griduino.ino
 void help(), version();
 void dump_kml(), dump_gps_history(), list_files();
 void start_nmea(), stop_nmea(), start_gmt(), stop_gmt();
-void view_help(), show_touch(), hide_touch();
+void view_help(), view_screen1(), view_splash();
+void show_touch(), hide_touch();
 void run_unittest();
 
 // ----- table of commands
@@ -54,8 +55,11 @@ Command cmdList[] = {
     {"start gmt", start_gmt, Newline},
     {"stop gmt", stop_gmt, 0},
 
-    {"list files", list_files, Newline},
     {"view help", view_help, 0},
+    {"view splash", view_splash, 0},
+    {"view screen1", view_screen1, 0},
+
+    {"list files", list_files, Newline},
     {"run unittest", run_unittest, 0},
 };
 const int numCmds = sizeof(cmdList) / sizeof(cmdList[0]);
@@ -76,11 +80,12 @@ void help() {
   }
   Serial.println();
 }
+
 void version() {
   Serial.println(PROGRAM_TITLE " " PROGRAM_VERSION);
   Serial.println("Compiled " PROGRAM_COMPILED);
   Serial.println(PROGRAM_LINE1 "  " PROGRAM_LINE2);
-  Serial.println(__FILE__);
+  Serial.println(PROGRAM_FILE);
   Serial.println(PROGRAM_GITHUB);
 }
 
@@ -106,6 +111,7 @@ void stop_nmea() {
   Serial.println("stopped");
   logger.print_nmea = false;
 }
+
 void start_gmt() {
   Serial.println("started");
   logger.print_gmt = true;
@@ -116,11 +122,23 @@ void stop_gmt() {
   logger.print_gmt = false;
 }
 
+void selectNewView(int cmd);      // extern declaration
 void view_help() {
   Serial.println("view Help screen");
-  void selectNewView(int cmd);      // extern declaration
   extern /*const*/ int help_view;   // see "Griduino.ino"
   selectNewView(help_view);         // see "Griduino.ino"
+}
+
+void view_splash() {
+  Serial.println("view Splash screen");
+  extern /*const*/ int splash_view;   // see "Griduino.ino"
+  selectNewView(splash_view);         // see "Griduino.ino"
+}
+
+void view_screen1() {
+  Serial.println("view Screen 1");
+  extern /*const*/ int screen1_view;  // see "Griduino.ino"
+  selectNewView(screen1_view);        // see "Griduino.ino"
 }
 
 void show_touch() {

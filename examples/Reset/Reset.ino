@@ -18,7 +18,8 @@
 // Pin 13 has the LED on Teensy 3.0
 int led = 13;
 
-// the setup routine runs once when you press reset
+
+// the setup routine runs once when you press reset:
 void setup() {
   // initialize the digital pin as an output.
   pinMode(led, OUTPUT);
@@ -51,15 +52,14 @@ void loop() {
 
 // ----- success: both Feather M4 and RP2040 will reset as desired
 // use library manager to install Adafruit_SleepyDog
-#include <Adafruit_SleepyDog.h>   // https://github.com/adafruit/Adafruit_SleepyDog
+#include <Adafruit_SleepyDog.h>  // https://github.com/adafruit/Adafruit_SleepyDog
 void reboot_wdt() {
-  Watchdog.enable(15);   // milliseconds timeout
-  while (1) {
-  }
+  Watchdog.enable(15);  // milliseconds timeout
+  while (1) {}
 }
 
 // ----- fail: the Feather M4 does not reconnect to USB
 void reboot_function() {
-  void (*resetFunction)(void) = 0;   // declare reset function at address 0
-  resetFunction();                   // does not return
+  void (*resetFunction)(void) = 0;  //declare reset function at address 0
+  resetFunction();                  // does not return
 }

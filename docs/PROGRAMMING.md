@@ -124,7 +124,7 @@ Run the Python conversion script (author https://github.com/microsoft/uf2):
 If you want to compile Griduino source code or work with its example files (and we hope you do) then here's everything you need to setup the workbench.
 
 1. **Download and Run Arduino IDE**<br/>
-The Arduino IDE (integrated development environment) is the main workbench for writing, compiling and testing Arduino programs. As of February 2022, the latest version is Arduino IDE v1.8.19, which is identified in the Windows Store as v1.8.51.
+The Arduino IDE (integrated development environment) is the main workbench for writing, compiling and testing Arduino programs. As of November 2022, the latest version is Arduino IDE v2.0.1. We recommend the latest version, although most previous development was done with v1.18.
 
   * Visit www.arduino.cc and find the **Software Downloads** section.
   * Scroll down to the **Download the Arduino IDE** section.
@@ -182,7 +182,35 @@ These components are outside of Arduino's Library Manager, so follow these links
 - https://github.com/tom-dudman/DS1804 v0.1.1 - library to control DS1804 Digital Potentiometer
 - https://github.com/barry-ha/Audio_QSPI v1.1.0 - library to play WAV files from Quad-SPI memory chip
 
-<h2 id=disclaimer>7. Disclaimer</h2>
+<h2 id=serialconsole>7. How to Use a Serial Console</h2>
+
+You can download GPS tracks from Griduino without the Arduino IDE. There are some common "serial terminal" programs that can interact directly with Griduino's console interface over the USB connection. Here's how.
+
+We've tested both PuTTY (https://www.putty.org/) and Tera Term (https://tera-term.en.lo4d.com). They both work similarly.
+
+Here's how to use Tera Term to capture the breadcrumb trail in both KML and CSV format. PuTTY is very similar.
+
+1. Run Tera Term
+1. New connection window:
+	1. Choose Serial
+	2. Set Port: COM7 <i>(or your own Griduino port)</i>
+	3. Leave everything else at default settings <i>(baud rate setting does not matter)</i>
+1. Menu bar: <b>File > Log ...</b> <i>(pick a filename you can find later, e.g., griduino.log)</i>
+1. Type: <b>stop nmea</b> <i>(don't press Enter!)</i>
+1. Type: <b>help</b> <i>(don't press Enter!)</i>
+1. Type: <b>version</b> <i>(don't press Enter!)</i>
+1. Type: <b>dump kml</b> <i>(don't press Enter!)</i>
+1. Type: <b>dump gps</b> <i>(don't press Enter!)</i>
+1. Close Tera Term
+1. Run Notepad
+	1. Edit <i>griduino.log</i>
+	1. Keep only from \<xml\> to \</xml\>
+	1. Save as <i>griduino.<b>kml</b></i>
+	
+Now you can open <i>griduino.kml</i> in Google Earth or another KML viewer.
+
+
+<h2 id=disclaimer>8. Disclaimer</h2>
 
 The information provided is for general education and entertainment. We hope you learn from this and enjoy your hobbies in a safe manner with this new GPS information available at a glance. We take no responsibility for your assembly and construction, nor for how you use these devices. 
 

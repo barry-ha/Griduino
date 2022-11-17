@@ -398,33 +398,55 @@ void plotVehicle(const Point car, uint16_t carColor) {
   }
 }
 // =============================================================
-Point prevVehicle;
+Point prevVehicle = {0,0};
 void plotCurrentPosition(const PointGPS loc, const PointGPS origin) {
   // drop a bread crumb inside the grid's box, proportional to your position within the grid
   // input:  loc    = double precision float, GPS coordinates of current position
   //         origin = GPS coordinates of currently displayed grid square, lower left corner
 
-  if (loc.lat == 0.0) return;                       // ignore uninitialized lat/long
+  if (loc.lat != 0.0) {                             // ignore uninitialized lat/long
 
-  float degreesX = loc.lng - origin.lng;            // longitude: distance from left edge of grid (degrees)
-  float degreesY = loc.lat - origin.lat;            // latitude: distance from bottom edge of grid
+    float degreesX = loc.lng - origin.lng;          // longitude: distance from left edge of grid (degrees)
+    float degreesY = loc.lat - origin.lat;          // latitude: distance from bottom edge of grid
+  
+    float fracGridX = degreesX / gridWidthDegrees;  // E-W position as fraction of grid width, 0-1
+    float fracGridY = degreesY / gridHeightDegrees; // N-S position as fraction of grid height, 0-1
+  
+    // our drawing canvas is the entire screen
+    Point result;
+    translateGPStoScreen(&result, loc, origin);
 
-  float fracGridX = degreesX / gridWidthDegrees;    // E-W position as fraction of grid width, 0-1
-  float fracGridY = degreesY / gridHeightDegrees;   // N-S position as fraction of grid height, 0-1
+    /* ... 
+    // ----- start debug messages
+    char sLat[12], sLng[12];    // debug
+    floatToCharArray(sLat, sizeof(sLat), loc.lat, 4);
+    floatToCharArray(sLng, sizeof(sLng), loc.lng, 4);
 
-  // our drawing canvas is the entire screen
-  Point result;
-  translateGPStoScreen(&result, loc, origin);
-  plotVehicle( prevVehicle, ILI9341_BLACK );        // erase old vehicle
-  plotVehicle( result, ILI9341_CYAN );              // plot new vehicle
-  prevVehicle = result;
+    char sOriginLat[16], sOriginLng[16];  // debug
+    floatToCharArray(sOriginLat, sizeof(sOriginLat), origin.lat, 4);
+    floatToCharArray(sOriginLng, sizeof(sOriginLng), origin.lng, 4);
+    
+    char msg[128];              // debug
+    snprintf(msg, sizeof(msg), "Plot vehicle gps(%s,%s) with origin(%s,%s) on screen(%d,%d)",
+                                sLat, sLng, sOriginLat, sOriginLng, result.x, result.y);
+    Serial.println(msg);        // debug
+    // ----- end debug messages
+    /* ... */
+
+    //if ((result.x != prevVehicle.x) || (result.y != prevVehicle.y)) 
+    {
+      plotVehicle( prevVehicle, ILI9341_BLACK );    // erase old vehicle
+      plotVehicle( result, ILI9341_CYAN );          // plot new vehicle
+    }
+    prevVehicle = result;
+  }
 }
 // ========== class ViewGrid
 void ViewGrid::updateScreen() {
   // called on every pass through main()
 
   // coordinates of lower-left corner of currently displayed grid square
-  PointGPS gridOrigin{ grid.nextGridLineSouth(model->gLatitude), grid.nextGridLineWest(model->gLatitude) };
+  PointGPS gridOrigin{ grid.nextGridLineSouth(model->gLatitude), grid.nextGridLineWest(model->gLongitude) };
 
   PointGPS myLocation{ model->gLatitude, model->gLongitude }; // current location
   
