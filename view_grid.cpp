@@ -415,8 +415,10 @@ void plotCurrentPosition(const PointGPS loc, const PointGPS origin) {
   // our drawing canvas is the entire screen
   Point result;
   translateGPStoScreen(&result, loc, origin);
-  plotVehicle( prevVehicle, ILI9341_BLACK );        // erase old vehicle
-  plotVehicle( result, ILI9341_CYAN );              // plot new vehicle
+  if ((result.x != prevVehicle.x) || (result.y != prevVehicle.y)) {
+    plotVehicle( prevVehicle, ILI9341_BLACK );      // erase old vehicle
+    plotVehicle( result, ILI9341_CYAN );            // plot new vehicle
+  }
   prevVehicle = result;
 }
 // ========== class ViewGrid

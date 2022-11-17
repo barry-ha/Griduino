@@ -2,10 +2,11 @@
 
 // ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE    "Griduino"
-#define PROGRAM_VERSION  "v1.11"
+#define PROGRAM_VERSION  "v1.11 rc2"
 #define PROGRAM_LINE1    "Barry K7BWH"
 #define PROGRAM_LINE2    "John KM7O"
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
+#define PROGRAM_FILE     __FILE__
 #define PROGRAM_GITHUB   "https://github.com/barry-ha/Griduino"
 
 // ------- Select testing features ---------

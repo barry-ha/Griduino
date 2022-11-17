@@ -83,7 +83,7 @@ public:
   const char HISTORY_FILE[25]    = CONFIG_FOLDER "/gpshistory.csv";   // CONFIG_FOLDER
   const char HISTORY_VERSION[25] = "GPS Breadcrumb Trail v1";         // <-- always change version when changing data format
 
-  // ----- save entire GPS state to non-volatile memory -----
+  // ----- save entire C++ object to non-volatile memory as binary object -----
   int save() {   // returns 1=success, 0=failure
     SaveRestore sdram(MODEL_FILE, MODEL_VERS);
     if (sdram.writeConfig((byte *)this, sizeof(Model))) {
@@ -96,8 +96,9 @@ public:
     return 1;   // return success
   }
 
+  // ----- save GPS history[] to non-volatile memory as CSV file -----
   int saveGPSBreadcrumbTrail() {   // returns 1=success, 0=failure
-    // save history[] to CSV file
+    // Internal breadcrumb trail is CSV format -- you can open this Arduino file directly in a spreadsheet
     // dumpHistoryGPS();   // debug
 
     // delete old file and open new file
@@ -409,7 +410,7 @@ public:
   }
 
 // ----- Beginning/end of each KML file -----
-#define KML_PREFIX "\
+#define KML_PREFIX "\r\n\
 <?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\
 <kml xmlns=\"http://www.opengis.net/kml/2.2\"\
  xmlns:gx=\"http://www.google.com/kml/ext/2.2\"\
@@ -546,7 +547,7 @@ public:
       Serial.print(",0");
       Serial.print(PUSHPIN_SUFFIX);   // end pushpin at start of route
     }
-    Serial.print(KML_SUFFIX);   // end KML file
+    Serial.println(KML_SUFFIX);   // end KML file
   }
 
   void dumpHistoryGPS() {
@@ -554,6 +555,7 @@ public:
     Serial.println(numHistory);
     Serial.print("Next record to be written = ");
     Serial.println(nextHistoryItem);
+    Serial.println("Record, Grid, Lat, Long, Date GMT");
     int ii;
     for (ii = 0; ii < numHistory; ii++) {
       Location item = history[ii];
@@ -568,17 +570,23 @@ public:
       Serial.print(",");
       Serial.print(item.loc.lng, 4);
       Serial.print(",  ");
-      char msg[28];        // sizeof("GMT(12-31-21 at 12:34:56") = 25
-      TimeElements time;   // https://github.com/PaulStoffregen/Time
-      breakTime(item.timestamp, time);
-      snprintf(msg, sizeof(msg), "GMT(%02d-%02d-%04d at %02d:%02d:%02d)",
-               time.Month, time.Day, time.Year+1970, time.Hour, time.Minute, time.Second);
+      char msg[20];        // sizeof("12-31-22  12:34:56") = 19
+      //TimeElements time;   // https://github.com/PaulStoffregen/Time
+      //breakTime(item.timestamp, time);
+      //snprintf(msg, sizeof(msg), "%02d-%02d-%04d  %02d:%02d:%02d",
+      //         time.Month, time.Day, time.Year+1970, time.Hour, time.Minute, time.Second);
+      
+      time_t time = item.timestamp; // https://github.com/PaulStoffregen/Time
+      snprintf(msg, sizeof(msg), "%02d-%02d-%04d  %02d:%02d:%02d",
+               month(time), day(time), year(time), hour(time), minute(time), second(time) );
       Serial.println(msg);
     }
     int remaining = numHistory - ii;
-    Serial.print("... and ");
-    Serial.print(remaining);
-    Serial.println(" more");
+    if (remaining > 0) {
+      Serial.print("... and ");
+      Serial.print(remaining);
+      Serial.println(" more");
+    }
   }
   // grid-crossing detector
   bool enteredNewGrid() {

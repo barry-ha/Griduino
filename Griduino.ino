@@ -378,6 +378,7 @@ enum VIEW_INDEX {
   MAX_VIEWS,                          // sentinel at end of list
 };
 /*const*/ int help_view = HELP_VIEW;
+/*const*/ int splash_view = SPLASH_VIEW;
 
 // list of objects derived from "class View", in alphabetical order
 View* pView;                          // pointer to a derived class
