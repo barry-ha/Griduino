@@ -24,20 +24,24 @@
               xGrid  xEnter        xExit       xDuration
 */
 
-#include <Arduino.h>
+#include <Arduino.h>            //
 #include <Adafruit_ILI9341.h>   // TFT color display library
 #include "constants.h"          // Griduino constants and colors
 #include "logger.h"             // conditional printing to Serial port
 #include "grid_helper.h"        // lat/long conversion routines
+#include "date_helper.h"        // date/time conversions
 #include "model_gps.h"          // Model of a GPS for model-view-controller
 #include "TextField.h"          // Optimize TFT display text for proportional fonts
 #include "view.h"               // Base class for all views
 
 // ========== extern ===========================================
-extern Logger logger;          // Griduino.ino
-extern Grids grid;             // grid_helper.h
-extern Adafruit_ILI9341 tft;   // Griduino.ino
-extern Model *model;           // "model" portion of model-view-controller
+extern Location history[];               // Griduino.ino, GPS breadcrumb trail
+extern const int numHistory;             // Griduino.ino, number of elements in history[]
+extern void showDefaultTouchTargets();   // Griduino.ino
+extern Logger logger;                    // Griduino.ino
+extern Grids grid;                       // grid_helper.h
+extern Adafruit_ILI9341 tft;             // Griduino.ino
+extern Model *model;                     // "model" portion of model-view-controller
 
 // ========== class ViewGridCrossing ===========================
 class ViewGridCrossings : public View {
@@ -48,9 +52,124 @@ public:
       : View{vtft, vid} {
     background = cBACKGROUND;   // every view can have its own background color
   }
-  void updateScreen();
-  void startScreen();
-  bool onTouch(Point touch);
+  void updateScreen() {
+    // called on every pass through main()
+    // our only dynamic item is "time in current grid" on the top row
+
+    // ----- [GRID1] data is our current location
+    // find the time that we entered this grid
+    // - examine the breadcrumb history file
+    // - start from most recent entry, working our way backwards in time
+    // - if the data is still in this grid, then continue
+    // - if the data is a different grid, then update [GRID1]
+
+    int currentIndex = previousItem(model->nextHistoryItem);
+    Location item    = history[currentIndex];
+
+    char currentGrid4[5];
+    grid.calcLocator(currentGrid4, item.loc.lat, item.loc.lng, 4);
+    logger.info("Current grid = ", currentGrid4);   // debug
+
+    for (int ii = 0; ii < numHistory; ii++) {
+      item = history[currentIndex];
+      if (!item.isEmpty()) {
+        char grid4[5];
+        grid.calcLocator(grid4, item.loc.lat, item.loc.lng, 4);
+
+        char temp[128];   // debug
+        snprintf(temp, sizeof(temp), "Comparing slot %d grid %s to current grid %s", currentIndex, grid4, currentGrid4);
+        logger.debug(temp);   // debug
+
+        if (strcmp(grid4, currentGrid4) == 0) {
+          // same grid, ignore, keep looking
+        } else {
+          // the next older slot is a different grid, so write this grid-crossing info to the screen
+          // todo: this is just [GRID1] so extrapolate for the next row
+          time_t enterTimestamp = item.timestamp;
+          time_t exitTimestamp  = now();   // todo: this works only for [GRID1]
+          showGridCrossing(GRID1, currentGrid4, enterTimestamp, exitTimestamp);
+          break;   // debug
+        }
+      }
+      currentIndex = previousItem(currentIndex);
+    }
+
+    // ----- GMT date & time
+    char sDate[15];   // strlen("Aug 26, 2022") = 13
+    char sTime[10];   // strlen("19:54:14") = 8
+    model->getDate(sDate, sizeof(sDate));
+    model->getTime(sTime);
+    txtFields[GMT_DATE].print(sDate);
+    txtFields[GMT_TIME].print(sTime);
+    txtFields[GMT].print();
+  }
+  void startScreen() {
+    // called once each time this view becomes active
+
+    this->clearScreen(this->background);            // clear screen
+    txtFields[0].setBackground(this->background);   // set background for all TextFields in this view
+#define nCrossingsFields 38
+    TextField::setTextDirty(txtFields, nCrossingsFields);   // make sure all fields get re-printed on screen change
+
+    // ----- draw text fields
+    for (int ii = 0; ii < nCrossingsFields; ii++) {
+      txtFields[ii].print();
+    }
+
+    drawAllIcons();              // draw gear (settings) and arrow (next screen)
+    showDefaultTouchTargets();   // optionally draw boxes around button-touch area
+    // showMyTouchTargets(Buttons, nButtons);   // no buttons on this view
+    showScreenBorder();       // optionally outline visible area
+    showScreenCenterline();   // optionally draw visual alignment bar
+    updateScreen();           // fill in values immediately, don't wait for the main loop to eventually get around to it
+  }
+  bool onTouch(Point touch) {
+    return false;   // this view has no buttons, false=controller uses default action
+  }
+
+  // human friendly "elapsed time" helper
+  // from time1 to time2 (where time1 <= time2)
+  // this method is 'public' so it is callable from unit tests
+  void calcTimeDiff(char *msg, int sizeMsg, time_t time1, time_t time2) {
+    int timeDiff = time2 - time1;   // seconds
+    if (timeDiff < SECS_PER_MIN) {
+      // ------------------------------------------
+      // show seconds, 0s ... 59s
+      // ------------------------------------------
+      snprintf(msg, sizeof(msg), "%ds", timeDiff);
+
+    } else if (timeDiff < (SECS_PER_MIN * 91)) {
+      // ------------------------------------------
+      // show minutes, 1m ... 90m
+      // ------------------------------------------
+      int elapsed = (unsigned long)timeDiff / SECS_PER_MIN;   // typecast integer for printing
+      snprintf(msg, sizeof(msg), "%dm", elapsed);
+
+    } else if (timeDiff < (SECS_PER_DAY * 2)) {
+      // ------------------------------------------
+      // show fractional hours, 1.5h ... 47.9h
+      // ------------------------------------------
+      float fHours = (float)timeDiff / SECS_PER_HOUR;
+      char sHours[6];
+      floatToCharArray(sHours, sizeof(sHours), fHours, 1);
+      snprintf(msg, sizeof(msg), "%s h", sHours);
+
+    } else if (timeDiff < (SECS_PER_DAY * 100)) {
+      // ------------------------------------------
+      // show fractional days, 2.0d ... 99.9d
+      // ------------------------------------------
+      float fDays = (float)timeDiff / SECS_PER_DAY;
+      char sDays[8];
+      floatToCharArray(sDays, sizeof(sDays), fDays, 1);
+      snprintf(msg, sizeof(msg), "%sd", sDays);
+
+    } else {
+      // ------------------------------------------
+      // show whole days, 100d ... 9999d
+      // ------------------------------------------
+      snprintf(msg, sizeof(msg), "%dd", timeDiff / SECS_PER_YEAR);
+    }
+  }
 
 protected:
   // ---------- local data for this derived class ----------
@@ -71,10 +190,10 @@ protected:
   const int xGrid      = 6;
   const int xEnterCL   = 110;   // center line for "enter grid"
   const int xEnterDate = xEnterCL - 7;
-  const int xEnterTime = xEnterCL + 7;
+  const int xEnterTime = xEnterCL + 6;
   const int xExitCL    = 214;   // center line for "exit grid"
   const int xExitDate  = xExitCL - 7;
-  const int xExitTime  = xExitCL + 7;
+  const int xExitTime  = xExitCL + 6;
   const int xDuration  = gScreenWidth - 6;
 
   // ----- screen text
@@ -90,8 +209,7 @@ protected:
     GMT_DATE, GMT_TIME, GMT
   };
 
-// ----- static + dynamic screen text
-#define nCrossingsFields 38
+  // ----- static + dynamic screen text
   TextField txtFields[nCrossingsFields] = {
       {"Grid Crossing Log", -1, yRow1, cTITLE, ALIGNCENTER, eFONTSMALLEST},    // [TITLE] view title, centered
       {"Grid", xGrid, yRow3, cTEXTCOLOR, ALIGNLEFT, eFONTSMALLEST},            // [GRID]
@@ -99,35 +217,35 @@ protected:
       {"Exit", xExitCL - 30, yRow3, cTEXTCOLOR, ALIGNLEFT, eFONTSMALLEST},     // [EXIT]
       {"Elapsed", xDuration, yRow3, cTEXTCOLOR, ALIGNRIGHT, eFONTSMALLEST},    // [DURATION]
 
-      {"CN87", xGrid, yRow4, cVALUE, ALIGNLEFT, eFONTSMALLEST},        // [GRID1]
+      {"CN86", xGrid, yRow4, cVALUE, ALIGNLEFT, eFONTSMALLEST},        // [GRID1]
       {"2/1", xEnterDate, yRow4, cVALUE, ALIGNRIGHT, eFONTSMALLEST},   // dummy data
       {"0822", xEnterTime, yRow4, cVALUE, ALIGNLEFT, eFONTSMALLEST},
       {"-", xExitDate, yRow4, cVALUE, ALIGNRIGHT, eFONTSMALLEST},
       {"", xExitTime, yRow4, cVALUE, ALIGNLEFT, eFONTSMALLEST},
       {"30s", xDuration, yRow4, cVALUE, ALIGNRIGHT, eFONTSMALLEST},
 
-      {"CN86", xGrid, yRow5, cVALUE, ALIGNLEFT, eFONTSMALLEST},        // [GRID2]
+      {"CN85", xGrid, yRow5, cVALUE, ALIGNLEFT, eFONTSMALLEST},        // [GRID2]
       {"2/1", xEnterDate, yRow5, cVALUE, ALIGNRIGHT, eFONTSMALLEST},   // dummy data
       {"0723", xEnterTime, yRow5, cVALUE, ALIGNLEFT, eFONTSMALLEST},
       {"2/1", xExitDate, yRow5, cVALUE, ALIGNRIGHT, eFONTSMALLEST},
       {"0822", xExitTime, yRow5, cVALUE, ALIGNLEFT, eFONTSMALLEST},
       {"59m", xDuration, yRow5, cVALUE, ALIGNRIGHT, eFONTSMALLEST},
 
-      {"CN85", xGrid, yRow6, cVALUE, ALIGNLEFT, eFONTSMALLEST},         // [GRID3]
+      {"CN84", xGrid, yRow6, cVALUE, ALIGNLEFT, eFONTSMALLEST},         // [GRID3]
       {"1/31", xEnterDate, yRow6, cVALUE, ALIGNRIGHT, eFONTSMALLEST},   // dummy data
       {"0823", xEnterTime, yRow6, cVALUE, ALIGNLEFT, eFONTSMALLEST},
       {"2/1", xExitDate, yRow6, cVALUE, ALIGNRIGHT, eFONTSMALLEST},
       {"0723", xExitTime, yRow6, cVALUE, ALIGNLEFT, eFONTSMALLEST},
       {"47.9h", xDuration, yRow6, cVALUE, ALIGNRIGHT, eFONTSMALLEST},
 
-      {"CN84", xGrid, yRow7, cVALUE, ALIGNLEFT, eFONTSMALLEST},        // [GRID4]
+      {"CN83", xGrid, yRow7, cVALUE, ALIGNLEFT, eFONTSMALLEST},        // [GRID4]
       {"2/1", xEnterDate, yRow7, cVALUE, ALIGNRIGHT, eFONTSMALLEST},   // dummy data
       {"0823", xEnterTime, yRow7, cVALUE, ALIGNLEFT, eFONTSMALLEST},
       {"1/31", xExitDate, yRow7, cVALUE, ALIGNRIGHT, eFONTSMALLEST},
       {"0823", xExitTime, yRow7, cVALUE, ALIGNLEFT, eFONTSMALLEST},
       {"99.9d", xDuration, yRow7, cVALUE, ALIGNRIGHT, eFONTSMALLEST},
 
-      {"CN83", xGrid, yRow8, cVALUE, ALIGNLEFT, eFONTSMALLEST},          // [GRID5]
+      {"CN82", xGrid, yRow8, cVALUE, ALIGNLEFT, eFONTSMALLEST},          // [GRID5]
       {"11/21", xEnterDate, yRow8, cVALUE, ALIGNRIGHT, eFONTSMALLEST},   // dummy data
       {"0111", xEnterTime, yRow8, cVALUE, ALIGNLEFT, eFONTSMALLEST},
       {"12/22", xExitDate, yRow8, cVALUE, ALIGNRIGHT, eFONTSMALLEST},
@@ -139,45 +257,32 @@ protected:
       {"GMT", 232, yRowBot, cFAINT, ALIGNLEFT, eFONTSMALLEST},             // [GMT]
   };
 
-};   // end class ViewGridCrossings
-
-// ============== implement public interface ================
-void ViewGridCrossings::updateScreen() {
-  // called on every pass through main()
-  // todo - recalculate "time in current grid" - this is the only dynamic item
-
-  // ----- GMT date & time
-  char sDate[15];   // strlen("Aug 26, 2022") = 13
-  char sTime[10];   // strlen("19:54:14") = 8
-  model->getDate(sDate, sizeof(sDate));
-  model->getTime(sTime);
-  txtFields[GMT_DATE].print(sDate);
-  txtFields[GMT_TIME].print(sTime);
-  txtFields[GMT].print();
-}   // end updateScreen
-
-void ViewGridCrossings::startScreen() {
-  // called once each time this view becomes active
-
-  this->clearScreen(this->background);                    // clear screen
-  txtFields[0].setBackground(this->background);           // set background for all TextFields in this view
-  TextField::setTextDirty(txtFields, nCrossingsFields);   // make sure all fields get re-printed on screen change
-
-  // ----- draw text fields
-  for (int ii = 0; ii < nCrossingsFields; ii++) {
-    txtFields[ii].print();
+  // Iterator helper
+  int previousItem(int ii) {
+    return (ii > 0) ? (ii - 1) : (numHistory - 1);
   }
 
-  drawAllIcons();              // draw gear (settings) and arrow (next screen)
-  showDefaultTouchTargets();   // optionally draw boxes around button-touch area
-  // showMyTouchTargets(Buttons, nButtons);   // no buttons on this view
-  showScreenBorder();          // optionally outline visible area
-  showScreenCenterline();      // optionally draw visual alignment bar
+  // helper to show one row on screen display
+  void showGridCrossing(int row, char *grid4, time_t enterTime, time_t exitTime) {
+    // [GRID]
+    txtFields[row + 0].print(grid4);
+    char msg[32];
+    // date enter
+    snprintf(msg, sizeof(msg), "%d/%d", month(enterTime), day(enterTime));
+    txtFields[row + 1].print(msg);
+    // time enter
+    snprintf(msg, sizeof(msg), "%02d%02d", hour(enterTime), minute(enterTime));
+    txtFields[row + 2].print(msg);
+    // date exit
+    snprintf(msg, sizeof(msg), "%d/%d", month(exitTime), day(exitTime));
+    txtFields[row + 3].print(msg);
+    // time exit
+    snprintf(msg, sizeof(msg), "%02d%02d", hour(exitTime), minute(exitTime));
+    txtFields[row + 4].print(msg);
+    // elapsed time
+    calcTimeDiff(msg, sizeof(msg), enterTime, exitTime);
+    txtFields[row + 5].print(msg);
+  }
 
-  updateScreen();   // fill in values immediately, don't wait for the main loop to eventually get around to it
-}
+};   // end class ViewGridCrossings
 
-bool ViewGridCrossings::onTouch(Point touch) {
-  // todo
-  return false;   // true=handled, false=controller uses default action
-}   // end onTouch()

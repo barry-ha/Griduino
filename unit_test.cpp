@@ -23,16 +23,117 @@ extern void setFontSize(int font);   // TextField.cpp
 extern void clearScreen();           // Griduino.ino
 
 // ----- globals
-extern Adafruit_ILI9341 tft;      // Griduino.ino
-extern DACMorseSender dacMorse;   // Morse code
-extern Model *model;              // "model" portion of model-view-controller
-extern const int numHistory;      // Griduino.ino, number of elements in history[]
-extern ViewGrid gridView;         // Griduino.ino
-extern Logger logger;             // Griduino.ino
-extern Grids grid;                // grid_helper.h
-extern Dates date;                // date_helper.h
+extern Adafruit_ILI9341 tft;             // Griduino.ino
+extern DACMorseSender dacMorse;          // Morse code
+extern Model *model;                     // "model" portion of model-view-controller
+extern const int numHistory;             // Griduino.ino, number of elements in history[]
+extern ViewGrid gridView;                // Griduino.ino
+extern Logger logger;                    // Griduino.ino
+extern void showDefaultTouchTargets();   // Griduino.ino
+extern Grids grid;                       // grid_helper.h
+extern Dates date;                       // date_helper.h
 
 TextField txtTest("test", 1, 21, ILI9341_WHITE);
+
+// =============================================================
+// Testing routines in view_grid_crossings.h
+// This relies on "TimeLib.h" which uses "time_t" to represent time.
+// The basic unit of time (time_t) is the number of seconds since Jan 1, 1970,
+// a compact 4-byte integer.
+// time_t is typecast to 'unsigned long int', our compiler guarantees at least 32 bits
+// https://github.com/PaulStoffregen/Time
+
+#include "view_grid_crossings.h"              // List of time spent in each grid
+extern ViewGridCrossings gridCrossingsView;   // view_grid_crossings.h
+
+void testTimeDiff(const char *sExpected, time_t time1, time_t time2) {
+  /* ... debug ...
+  Serial.print("Check input: sExpected = ");
+  Serial.print(sExpected);
+  Serial.print(", time1 = ");
+  Serial.print(time1);
+  Serial.print(", time2 = ");
+  Serial.println(time2);
+  /* ... */
+
+  if (time1 > time2) {
+    Serial.println("testTimeDiff() error, time2 must be > time1");
+    return;
+  }
+  long int nSeconds = (time2 - time1);
+  long int nMinutes = (time2 - time1) / SECS_PER_MIN;
+  long int nHours   = (time2 - time1) / SECS_PER_HOUR;
+  long int nDays    = (time2 - time1) / SECS_PER_DAY;
+
+  char sActual[16] = "todo";
+  gridCrossingsView.calcTimeDiff(sActual, sizeof(sActual), time1, time2);
+
+  Serial.print("Time difference: from ");
+  Serial.print(time1);
+  Serial.print(" to ");
+  Serial.print(time2);
+  Serial.print(" is ");
+  Serial.print(nSeconds);
+  Serial.print("s = ");
+  Serial.print(nMinutes);
+  Serial.print("m = ");
+  Serial.print(nHours);
+  Serial.print("h = ");
+  Serial.print(nDays);
+  Serial.print("d. Expected '");
+  Serial.print(sExpected);
+  Serial.print("', actual '");
+  Serial.print(sActual);
+  Serial.print("'");
+  
+  /* ... removed, prints bogus numbers, dunno why ...
+  char msg[256];
+  snprintf(msg, sizeof(msg), "Time difference: from %d to %d is %d sec / %d min / %d hr / %d days, expected '%s', actual '%s'",
+           time1, time2, nSeconds, nMinutes, nHours, nDays, sExpected, sActual);
+  Serial.print(msg);
+  /* ... */
+
+  if (strncmp(sExpected, sActual, sizeof(sActual)) == 0) {
+    Serial.println();   // success
+  } else {
+    Serial.println(" <-- Unequal");
+  }
+}
+// =============================================================
+// verify calculating time differences into human-friendly text
+void verifyCalcTimeDiff() {
+  Serial.print("-------- verifyCalcTimeDiff() at line ");
+  Serial.println(__LINE__);
+
+  //           expected  fromLongitude
+  testTimeDiff("30s", now(), now() + 30);
+  testTimeDiff("59s", now(), now() + 60 - 1);        // < 1 minute
+  testTimeDiff("1m", now(), now() + 60 + 0);         // = 1 minute
+  testTimeDiff("1m", now(), now() + 60 + 1);         // > 1 minute
+  testTimeDiff("1m", now(), now() + 60 + 30);        // 1.5 minutes
+  testTimeDiff("5m", now(), now() + 60 * 5);         // 5 minutes
+  testTimeDiff("59m", now(), now() + 60 * 60 - 1);   // < 1 hour
+  testTimeDiff("60m", now(), now() + 60 * 60 + 0);   // = 1 hour
+  testTimeDiff("60m", now(), now() + 60 * 60 + 1);   // > 1 hour
+  testTimeDiff("89m", now(), now() + 60 * 90 - 1);   // < 90 minutes
+  testTimeDiff("90m", now(), now() + 60 * 90 + 0);   // = 90 minutes
+  testTimeDiff("90m", now(), now() + 60 * 90 + 1);   // > 90 minutes
+  testTimeDiff("99m", now(), now() + 60 * 99);       // 99 minutes
+  testTimeDiff("119m", now(), now() + 60 * 119);     // almost 2 hours
+  testTimeDiff("2h", now(), now() + 60 * 60 * 2);    // fractional hours, e.g. "47.9h" up to two days
+  testTimeDiff("3h", now(), now() + 60 * 60 * 3);
+  testTimeDiff("1d", now(), now() + 60 * 60 * 24);
+  testTimeDiff("47.9h", now(), now() + SECS_PER_DAY * 2 - 1);   // < 2 days
+  testTimeDiff("2d", now(), now() + SECS_PER_DAY * 2 + 0);      // = 2 days
+  testTimeDiff("2d", now(), now() + SECS_PER_DAY * 2 + 1);      // > 2 days
+  testTimeDiff("2.1d", now(), now() + SECS_PER_DAY * 2 + SECS_PER_DAY / 10);
+  testTimeDiff("99d", now(), now() + SECS_PER_DAY * 99);
+  testTimeDiff("99.9d", now(), now() + SECS_PER_DAY * 99 + SECS_PER_DAY * 10 / 9);
+  testTimeDiff("100d", now(), now() + SECS_PER_DAY * 100);
+  testTimeDiff("200d", now(), now() + SECS_PER_DAY * 100 * 2);
+  // testTimeDiff("30s", now(), now() + 29);   // should fail
+  // testTimeDiff("30s", now(), now() - 30);   // should fail
+}
 
 // =============================================================
 // Testing "date helper" routines in date_helper.h
@@ -319,12 +420,12 @@ void verifyBreadCrumbTrail1() {
   float lat      = 47.0 - 0.2;     // 10% outside of CN87
   float lon      = -124.0 - 0.1;   //
   int steps      = numHistory;     // number of loops
-  float stepsize = 1.0 / 250.0;    // number of degrees to move each loop
+  float stepSize = 1.0 / 250.0;    // number of degrees to move each loop
 
   model->clearHistory();
   for (int ii = 0; ii < steps; ii++) {
-    PointGPS location{model->gLatitude  = lat + (ii * stepsize),            // "plus" goes upward (north)
-                      model->gLongitude = lon + (ii * stepsize * 5 / 4)};   // "plus" goes rightward (east)
+    PointGPS location{model->gLatitude  = lat + (ii * stepSize),            // "plus" goes upward (north)
+                      model->gLongitude = lon + (ii * stepSize * 5 / 4)};   // "plus" goes rightward (east)
     time_t stamp = now();                                                   // doesn't matter what timestamp is actually stored during tests
     model->remember(location, stamp);
   }
@@ -341,11 +442,11 @@ void generateSineWave(Model *pModel) {
   double startLat  = 47.5;   // 10% outside of CN87
   double startLong = -124.0 - 0.6;
   int steps        = numHistory;                // number of loops
-  double stepsize  = (125.5 - 121.5) / steps;   // degrees longitude to move each loop
+  double stepSize  = (125.5 - 121.5) / steps;   // degrees longitude to move each loop
   double amplitude = 0.65;                      // degrees latitude, maximum sine wave
 
   for (int ii = 0; ii < steps; ii++) {
-    float longitude = startLong + (ii * stepsize);
+    float longitude = startLong + (ii * stepSize);
     float latitude  = startLat + amplitude * sin(longitude * 150 / degreesPerRadian);
     PointGPS location{latitude, longitude};
     time_t stamp = now();   // doesn't matter what timestamp is actually stored during tests
@@ -431,7 +532,7 @@ void verifyComputingDistance() {
   testDistanceLong(138.0, 0.5000, -80.0000, -78.0000);      // width of FJ00 Ecuador is the largest possible, 222.4 km = 138.19 miles
 }
 // =============================================================
-// verify finding gridlines on E and W
+// verify finding grid lines on E and W
 void verifyComputingGridLines() {
   Serial.print("-------- verifyComputingGridLines() at line ");
   Serial.println(__LINE__);
@@ -471,6 +572,7 @@ void runUnitTest() {
   tft.setCursor(12, 38);
   tft.setTextColor(ILI9341_WHITE);
   tft.print("--Unit Test--");
+  Serial.println("--Unit Test--");
 
   setFontSize(0);
   tft.setTextSize(1);
@@ -479,32 +581,31 @@ void runUnitTest() {
   tft.print("  --Open console monitor to see unit test results--");
   delay(1000);
 
+  verifyCalcTimeDiff();         // verify human-friendly time intervals
+  countDown(5);                 //
   // verifyWritingProportionalFont();   // verify writing proportional font
-  verifyMorseCode();           // verify Morse code
-  verifySaveRestoreVolume();   // verify save/restore an integer setting in SDRAM
-  countDown(5);
-  verifySaveRestoreArray();   // verify save/restore an array in SDRAM
-  countDown(5);
-  verifySaveRestoreGPSModel();   // verify save/restore GPS model state in SDRAM
-  countDown(5);
-
-  verifyBreadCrumbs();   // verify pushpins near the four corners
-  countDown(5);
-  verifyBreadCrumbTrail1();   // verify painting the bread crumb trail
-  countDown(5);
-  verifyBreadCrumbTrail2();   // verify painting the bread crumb trail
-  countDown(5);
-  verifySaveTrail();   // save GPS route to non-volatile memory
-  countDown(5);
-  verifyRestoreTrail();   // restore GPS route from non-volatile memory
-  countDown(5);
-
+  verifyMorseCode();            // verify Morse code
+  verifySaveRestoreVolume();    // verify save/restore an integer setting in SDRAM
+  countDown(5);                 //
+  verifySaveRestoreArray();     // verify save/restore an array in SDRAM
+  countDown(5);                 //
+  // verifySaveRestoreGPSModel();   // verify save/restore GPS model state in SDRAM
+  // countDown(5);                  //
+  verifyBreadCrumbs();          // verify pushpins near the four corners
+  countDown(5);                 //
+  verifyBreadCrumbTrail1();     // verify painting the bread crumb trail
+  countDown(5);                 //
+  verifyBreadCrumbTrail2();     // verify painting the bread crumb trail
+  countDown(5);                 //
+  // verifySaveTrail();         // save GPS route to non-volatile memory
+  // countDown(5);              //
+  // verifyRestoreTrail();      // restore GPS route from non-volatile memory
+  // countDown(5);              //
   verifyDerivingGridSquare();   // verify deriving grid square from lat-long coordinates
-  countDown(5);
+  countDown(5);                 //
   verifyComputingDistance();    // verify computing distance
-  verifyComputingGridLines();   // verify finding gridlines on E and W
-
-  countDown(5);   // give user time to inspect display appearance for unit test problems
+  verifyComputingGridLines();   // verify finding grid lines on E and W
+  countDown(5);                 // give user time to inspect display appearance for unit test problems
 
   model->clearHistory();   // clean up our mess after unit test
 
