@@ -136,38 +136,41 @@ public:
       // ------------------------------------------
       // show seconds, 0s ... 59s
       // ------------------------------------------
-      snprintf(msg, sizeof(msg), "%ds", timeDiff);
+      snprintf(msg, sizeMsg, "%ds", timeDiff);
 
     } else if (timeDiff < (SECS_PER_MIN * 91)) {
       // ------------------------------------------
       // show minutes, 1m ... 90m
       // ------------------------------------------
       int elapsed = (unsigned long)timeDiff / SECS_PER_MIN;   // typecast integer for printing
-      snprintf(msg, sizeof(msg), "%dm", elapsed);
+      snprintf(msg, sizeMsg, "%dm", elapsed);
 
     } else if (timeDiff < (SECS_PER_DAY * 2)) {
       // ------------------------------------------
       // show fractional hours, 1.5h ... 47.9h
       // ------------------------------------------
-      float fHours = (float)timeDiff / SECS_PER_HOUR;
-      char sHours[6];
+      int eHours10    = timeDiff * 10 / SECS_PER_HOUR;
+      float fHours    = eHours10 / 10.0;
+      char sHours[8];
       floatToCharArray(sHours, sizeof(sHours), fHours, 1);
-      snprintf(msg, sizeof(msg), "%s h", sHours);
+      snprintf(msg, sizeMsg, "%sh", sHours);
 
     } else if (timeDiff < (SECS_PER_DAY * 100)) {
       // ------------------------------------------
       // show fractional days, 2.0d ... 99.9d
       // ------------------------------------------
-      float fDays = (float)timeDiff / SECS_PER_DAY;
+      int eDays = timeDiff * 10 / SECS_PER_DAY;
+      float fDays = eDays / 10.0;
       char sDays[8];
       floatToCharArray(sDays, sizeof(sDays), fDays, 1);
-      snprintf(msg, sizeof(msg), "%sd", sDays);
+      snprintf(msg, sizeMsg, "%sd", sDays);
 
     } else {
       // ------------------------------------------
       // show whole days, 100d ... 9999d
       // ------------------------------------------
-      snprintf(msg, sizeof(msg), "%dd", timeDiff / SECS_PER_YEAR);
+      int elapsed = (unsigned long)timeDiff / SECS_PER_DAY;   // typecast integer for printing
+      snprintf(msg, sizeMsg, "%dd", elapsed);
     }
   }
 

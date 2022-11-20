@@ -68,7 +68,7 @@ void testTimeDiff(const char *sExpected, time_t time1, time_t time2) {
   char sActual[16] = "todo";
   gridCrossingsView.calcTimeDiff(sActual, sizeof(sActual), time1, time2);
 
-  Serial.print("Time difference: from ");
+  Serial.print("Time difference from ");
   Serial.print(time1);
   Serial.print(" to ");
   Serial.print(time2);
@@ -102,35 +102,41 @@ void testTimeDiff(const char *sExpected, time_t time1, time_t time2) {
 // =============================================================
 // verify calculating time differences into human-friendly text
 void verifyCalcTimeDiff() {
+  // goal to truncate fractional units to 1 decimal place (not rounding up)
+  // ie, don't show "2.0 hours" until elapsed time is exactly 120 minutes or more
   Serial.print("-------- verifyCalcTimeDiff() at line ");
   Serial.println(__LINE__);
 
-  //           expected  fromLongitude
+  //         expected, time1, time2
   testTimeDiff("30s", now(), now() + 30);
-  testTimeDiff("59s", now(), now() + 60 - 1);        // < 1 minute
-  testTimeDiff("1m", now(), now() + 60 + 0);         // = 1 minute
-  testTimeDiff("1m", now(), now() + 60 + 1);         // > 1 minute
-  testTimeDiff("1m", now(), now() + 60 + 30);        // 1.5 minutes
-  testTimeDiff("5m", now(), now() + 60 * 5);         // 5 minutes
-  testTimeDiff("59m", now(), now() + 60 * 60 - 1);   // < 1 hour
-  testTimeDiff("60m", now(), now() + 60 * 60 + 0);   // = 1 hour
-  testTimeDiff("60m", now(), now() + 60 * 60 + 1);   // > 1 hour
-  testTimeDiff("89m", now(), now() + 60 * 90 - 1);   // < 90 minutes
-  testTimeDiff("90m", now(), now() + 60 * 90 + 0);   // = 90 minutes
-  testTimeDiff("90m", now(), now() + 60 * 90 + 1);   // > 90 minutes
-  testTimeDiff("99m", now(), now() + 60 * 99);       // 99 minutes
-  testTimeDiff("119m", now(), now() + 60 * 119);     // almost 2 hours
-  testTimeDiff("2h", now(), now() + 60 * 60 * 2);    // fractional hours, e.g. "47.9h" up to two days
-  testTimeDiff("3h", now(), now() + 60 * 60 * 3);
-  testTimeDiff("1d", now(), now() + 60 * 60 * 24);
+  testTimeDiff("59s", now(), now() + 60 - 1);                   // < 1 minute
+  testTimeDiff("1m", now(), now() + 60 + 0);                    // = 1 minute
+  testTimeDiff("1m", now(), now() + 60 + 1);                    // > 1 minute
+  testTimeDiff("1m", now(), now() + 60 + 30);                   // 1.5 minutes
+  testTimeDiff("5m", now(), now() + 60 * 5);                    // 5 minutes
+  testTimeDiff("59m", now(), now() + 60 * 60 - 1);              // < 1 hour
+  testTimeDiff("60m", now(), now() + 60 * 60 + 0);              // = 1 hour
+  testTimeDiff("60m", now(), now() + 60 * 60 + 1);              // > 1 hour
+  testTimeDiff("89m", now(), now() + 60 * 90 - 1);              // < 90 minutes
+  testTimeDiff("90m", now(), now() + 60 * 90 + 0);              // = 90 minutes
+  testTimeDiff("90m", now(), now() + 60 * 90 + 1);              // > 90 minutes
+  testTimeDiff("1.6h", now(), now() + 60 * 99);                 // 99 minutes fractional hours, e.g. "47.9h" up to two days
+  testTimeDiff("1.9h", now(), now() + 60 * 118);                // < 2 hours
+  testTimeDiff("1.9h", now(), now() + 60 * 119);                // < 2 hours
+  testTimeDiff("2.0h", now(), now() + 60 * 120);                // = 2 hours
+  testTimeDiff("3.0h", now(), now() + 60 * 60 * 3);             // 3 hours
+  testTimeDiff("12.0h", now(), now() + 60 * 60 * 12);           // 12 hours
+  testTimeDiff("24.0h", now(), now() + 60 * 60 * 24);            // 24 hours
   testTimeDiff("47.9h", now(), now() + SECS_PER_DAY * 2 - 1);   // < 2 days
-  testTimeDiff("2d", now(), now() + SECS_PER_DAY * 2 + 0);      // = 2 days
-  testTimeDiff("2d", now(), now() + SECS_PER_DAY * 2 + 1);      // > 2 days
+  testTimeDiff("2.0d", now(), now() + SECS_PER_DAY * 2 + 0);    // = 2 days
+  testTimeDiff("2.0d", now(), now() + SECS_PER_DAY * 2 + 1);    // > 2 days
   testTimeDiff("2.1d", now(), now() + SECS_PER_DAY * 2 + SECS_PER_DAY / 10);
-  testTimeDiff("99d", now(), now() + SECS_PER_DAY * 99);
-  testTimeDiff("99.9d", now(), now() + SECS_PER_DAY * 99 + SECS_PER_DAY * 10 / 9);
+  testTimeDiff("99.0d", now(), now() + SECS_PER_DAY * 99);
+  testTimeDiff("99.9d", now(), now() + SECS_PER_DAY * 99 + SECS_PER_DAY * 9 / 10);
   testTimeDiff("100d", now(), now() + SECS_PER_DAY * 100);
-  testTimeDiff("200d", now(), now() + SECS_PER_DAY * 100 * 2);
+  testTimeDiff("200d", now(), now() + SECS_PER_DAY * 200);
+  testTimeDiff("999d", now(), now() + SECS_PER_DAY * 999);     // 999 days = 2.7 years
+  testTimeDiff("9999d", now(), now() + SECS_PER_DAY * 9999);   // 9999 days = 27.4 years
   // testTimeDiff("30s", now(), now() + 29);   // should fail
   // testTimeDiff("30s", now(), now() - 30);   // should fail
 }
