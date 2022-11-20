@@ -52,6 +52,20 @@ public:
       : View{vtft, vid} {
     background = cBACKGROUND;   // every view can have its own background color
   }
+
+  struct CrossingInfo {
+    char grid4[5];           // e.g. "CN87"
+    time_t enterTimestamp;   // seconds
+    time_t exitTimestamp;    // seconds
+  };
+  CrossingInfo timeInGrid[5] = {
+      {"A", 0, 0},   // [GRID1]
+      {"B", 0, 0},   // [GRID2]
+      {"C", 0, 0},   // [GRID3]
+      {"D", 0, 0},   // [GRID4]
+      {"E", 0, 0},   // [GRID5]
+  };
+
   void updateScreen() {
     // called on every pass through main()
     // our only dynamic item is "time in current grid" on the top row
@@ -68,31 +82,10 @@ public:
 
     char currentGrid4[5];
     grid.calcLocator(currentGrid4, item.loc.lat, item.loc.lng, 4);
-    logger.info("Current grid = ", currentGrid4);   // debug
+    // logger.info("Current grid = ", currentGrid4);   // debug
 
-    for (int ii = 0; ii < numHistory; ii++) {
-      item = history[currentIndex];
-      if (!item.isEmpty()) {
-        char grid4[5];
-        grid.calcLocator(grid4, item.loc.lat, item.loc.lng, 4);
-
-        char temp[128];   // debug
-        snprintf(temp, sizeof(temp), "Comparing slot %d grid %s to current grid %s", currentIndex, grid4, currentGrid4);
-        logger.debug(temp);   // debug
-
-        if (strcmp(grid4, currentGrid4) == 0) {
-          // same grid, ignore, keep looking
-        } else {
-          // the next older slot is a different grid, so write this grid-crossing info to the screen
-          // todo: this is just [GRID1] so extrapolate for the next row
-          time_t enterTimestamp = item.timestamp;
-          time_t exitTimestamp  = now();   // todo: this works only for [GRID1]
-          showGridCrossing(GRID1, currentGrid4, enterTimestamp, exitTimestamp);
-          break;   // debug
-        }
-      }
-      currentIndex = previousItem(currentIndex);
-    }
+    extractGridCrossings(timeInGrid);   // read GPS history array
+    showGridCrossings(timeInGrid);      // show result on screen
 
     // ----- GMT date & time
     char sDate[15];   // strlen("Aug 26, 2022") = 13
@@ -149,8 +142,8 @@ public:
       // ------------------------------------------
       // show fractional hours, 1.5h ... 47.9h
       // ------------------------------------------
-      int eHours10    = timeDiff * 10 / SECS_PER_HOUR;
-      float fHours    = eHours10 / 10.0;
+      int eHours10 = timeDiff * 10 / SECS_PER_HOUR;
+      float fHours = eHours10 / 10.0;
       char sHours[8];
       floatToCharArray(sHours, sizeof(sHours), fHours, 1);
       snprintf(msg, sizeMsg, "%sh", sHours);
@@ -159,7 +152,7 @@ public:
       // ------------------------------------------
       // show fractional days, 2.0d ... 99.9d
       // ------------------------------------------
-      int eDays = timeDiff * 10 / SECS_PER_DAY;
+      int eDays   = timeDiff * 10 / SECS_PER_DAY;
       float fDays = eDays / 10.0;
       char sDays[8];
       floatToCharArray(sDays, sizeof(sDays), fDays, 1);
@@ -265,27 +258,78 @@ protected:
     return (ii > 0) ? (ii - 1) : (numHistory - 1);
   }
 
+  // helper that actually does all the work
+  void extractGridCrossings(CrossingInfo *timeInGrid) {
+    // loop through ALL entries in the GPS history array
+    // assume the entries are in chronological order, most recent first
+    // this only finds the most recent 5 grids crossed, it doesn't do anything about showing results
+    int historyIndex = model->nextHistoryItem;
+    int resultIndex = 0;
+    int maxResults  = 5;
+
+    char currentGrid4[5] = "";
+    //grid.calcLocator(currentGrid4, model->gLatitude, model->gLongitude, 4);
+
+    for (int ii = 0; ii < numHistory; ii++) {
+      Location item = history[ii];
+      if (!item.isEmpty()) {
+        char grid4[5];
+        grid.calcLocator(grid4, item.loc.lat, item.loc.lng, 4);
+
+        char temp[128];   // debug
+        snprintf(temp, sizeof(temp), "Comparing slot %d grid %s to current grid %s", ii, grid4, currentGrid4);
+        //logger.debug(temp);   // debug
+
+        if (strcmp(grid4, currentGrid4) == 0) {
+          // same grid, ignore, keep looking
+        } else {
+          // we encountered a different grid, so write this grid-crossing info into result
+          strcpy(timeInGrid[resultIndex].grid4, currentGrid4);
+          timeInGrid[resultIndex].enterTimestamp = item.timestamp;
+          // timeInGrid[resultIndex].exitTimestamp  = something?;
+          strcpy(currentGrid4, grid4);
+        }
+      }
+      historyIndex = previousItem(historyIndex);
+    }
+  }
+
+  // helper to update list of crossings
+  void showGridCrossings(CrossingInfo *timeInGrid) {
+    for (int ii = 0; ii < 5; ii++) {
+      CrossingInfo item = timeInGrid[ii];
+      int row           = GRID1 + ii * 6;
+      showGridCrossing(row, item.grid4, item.enterTimestamp, item.exitTimestamp);
+    }
+  }
+
   // helper to show one row on screen display
   void showGridCrossing(int row, char *grid4, time_t enterTime, time_t exitTime) {
     // [GRID]
     txtFields[row + 0].print(grid4);
     char msg[32];
-    // date enter
-    snprintf(msg, sizeof(msg), "%d/%d", month(enterTime), day(enterTime));
-    txtFields[row + 1].print(msg);
-    // time enter
-    snprintf(msg, sizeof(msg), "%02d%02d", hour(enterTime), minute(enterTime));
-    txtFields[row + 2].print(msg);
-    // date exit
-    snprintf(msg, sizeof(msg), "%d/%d", month(exitTime), day(exitTime));
-    txtFields[row + 3].print(msg);
-    // time exit
-    snprintf(msg, sizeof(msg), "%02d%02d", hour(exitTime), minute(exitTime));
-    txtFields[row + 4].print(msg);
+    // enter
+    if (enterTime > 0) {
+      snprintf(msg, sizeof(msg), "%d/%d", month(enterTime), day(enterTime));
+      txtFields[row + 1].print(msg);
+      snprintf(msg, sizeof(msg), "%02d%02d", hour(enterTime), minute(enterTime));
+      txtFields[row + 2].print(msg);
+    } else {
+      txtFields[row + 1].print("a");
+      txtFields[row + 2].print("b");
+    }
+    // exit
+    if (exitTime > 0) {
+      snprintf(msg, sizeof(msg), "%d/%d", month(exitTime), day(exitTime));
+      txtFields[row + 3].print(msg);
+      snprintf(msg, sizeof(msg), "%02d%02d", hour(exitTime), minute(exitTime));
+      txtFields[row + 4].print(msg);
+    } else {
+      txtFields[row + 3].print("c");
+      txtFields[row + 4].print("d");
+    }
     // elapsed time
     calcTimeDiff(msg, sizeof(msg), enterTime, exitTime);
     txtFields[row + 5].print(msg);
   }
-
 };   // end class ViewGridCrossings
-
