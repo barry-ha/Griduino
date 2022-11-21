@@ -26,7 +26,7 @@ extern View *pView;                // Griduino.ino
 
 // ----- forward references
 void help(), version();
-void dump_kml(), dump_gps_history(), list_files();
+void dump_kml(), dump_gps_history(), erase_gps_history(), list_files();
 void start_nmea(), stop_nmea(), start_gmt(), stop_gmt();
 void view_help(), view_screen1(), view_splash();
 void show_touch(), hide_touch();
@@ -45,6 +45,7 @@ Command cmdList[] = {
 
     {"dump kml", dump_kml, Newline},
     {"dump gps", dump_gps_history, 0},
+    {"erase history", erase_gps_history, 0},
 
     {"start nmea", start_nmea, Newline},
     {"stop nmea", stop_nmea, 0},
@@ -95,6 +96,10 @@ void dump_kml() {
 
 void dump_gps_history() {
   model->dumpHistoryGPS();
+}
+
+void erase_gps_history() {
+  model->clearHistory();
 }
 
 void list_files() {
