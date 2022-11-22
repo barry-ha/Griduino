@@ -185,7 +185,7 @@ protected:
   const int yRowBot = 226;   // GMT date on bottom row, "y=226" will match other views
 
   const int xGrid      = 6;
-  const int xEnterCL   = 110;   // center line for "enter grid"
+  const int xEnterCL   = 160;   // center line for "enter grid"
   const int xEnterDate = xEnterCL - 7;
   const int xEnterTime = xEnterCL + 6;
   const int xExitCL    = 214;   // center line for "exit grid"
@@ -207,53 +207,52 @@ protected:
   };
 
   // ----- static + dynamic screen text
-  TextField txtFields[nCrossingsFields] = {
-      {"Grid Crossing Log", -1, yRow1, cTITLE, ALIGNCENTER, eFONTSMALLEST},    // [TITLE] view title, centered
-      {"Grid", xGrid, yRow3, cTEXTCOLOR, ALIGNLEFT, eFONTSMALLEST},            // [GRID]
-      {"Enter", xEnterCL - 30, yRow3, cTEXTCOLOR, ALIGNLEFT, eFONTSMALLEST},   // [ENTER]
-      {"Exit", xExitCL - 28, yRow3, cTEXTCOLOR, ALIGNLEFT, eFONTSMALLEST},     // [EXIT]
-      {"Elapsed", xDuration+2, yRow3, cTEXTCOLOR, ALIGNRIGHT, eFONTSMALLEST},    // [DURATION]
+TextField txtFields[nCrossingsFields] = {
+    {"Grid Crossing Log", -1, yRow1, cTITLE, ALIGNCENTER, eFONTSMALLEST},            // [TITLE] view title, centered
+    {"Grid", xGrid, yRow3, cTEXTCOLOR, ALIGNLEFT, eFONTSMALLEST},                    // [GRID]
+    {"Entered Grid", xEnterCL - 70, yRow3, cTEXTCOLOR, ALIGNLEFT, eFONTSMALLEST},    // [ENTER]
+    {"", xExitCL - 28, yRow3, cTEXTCOLOR, ALIGNLEFT, eFONTSMALLEST},                 // [EXIT] unused
+    {"Time in Grid", xDuration + 2, yRow3, cTEXTCOLOR, ALIGNRIGHT, eFONTSMALLEST},   // [DURATION]
 
-      {"CN86", xGrid, yRow4, cVALUE, ALIGNLEFT, eFONTSMALLEST},        // [GRID1]
-      {"2/1", xEnterDate, yRow4, cVALUE, ALIGNRIGHT, eFONTSMALLEST},   // dummy data
-      {"0822", xEnterTime, yRow4, cVALUE, ALIGNLEFT, eFONTSMALLEST},
-      {"-", xExitDate, yRow4, cVALUE, ALIGNRIGHT, eFONTSMALLEST},
-      {"", xExitTime, yRow4, cVALUE, ALIGNLEFT, eFONTSMALLEST},
-      {"30s", xDuration, yRow4, cVALUE, ALIGNRIGHT, eFONTSMALLEST},
+    {"CN86", xGrid, yRow4, cVALUE, ALIGNLEFT, eFONTSMALLEST},             // [GRID1]
+    {"2-1-2022", xEnterDate, yRow4, cVALUE, ALIGNRIGHT, eFONTSMALLEST},   // [DATE1IN]
+    {"0822", xEnterTime, yRow4, cVALUE, ALIGNLEFT, eFONTSMALLEST},        // [TIME1IN]
+    {"", xExitDate, yRow4, cVALUE, ALIGNRIGHT, eFONTSMALLEST},            // [DATE1OUT] unused
+    {"", xExitTime, yRow4, cVALUE, ALIGNLEFT, eFONTSMALLEST},             // [TIME1OUT] unused
+    {"30s", xDuration, yRow4, cVALUE, ALIGNRIGHT, eFONTSMALLEST},         // [DURATION]
 
-      {"CN85", xGrid, yRow5, cVALUE, ALIGNLEFT, eFONTSMALLEST},        // [GRID2]
-      {"2/1", xEnterDate, yRow5, cVALUE, ALIGNRIGHT, eFONTSMALLEST},   // dummy data
-      {"0723", xEnterTime, yRow5, cVALUE, ALIGNLEFT, eFONTSMALLEST},
-      {"2/1", xExitDate, yRow5, cVALUE, ALIGNRIGHT, eFONTSMALLEST},
-      {"0822", xExitTime, yRow5, cVALUE, ALIGNLEFT, eFONTSMALLEST},
-      {"59m", xDuration, yRow5, cVALUE, ALIGNRIGHT, eFONTSMALLEST},
+    {"CN85", xGrid, yRow5, cVALUE, ALIGNLEFT, eFONTSMALLEST},              // [GRID2]
+    {"1-31-2022", xEnterDate, yRow5, cVALUE, ALIGNRIGHT, eFONTSMALLEST},   // dummy data
+    {"0723", xEnterTime, yRow5, cVALUE, ALIGNLEFT, eFONTSMALLEST},
+    {"", xExitDate, yRow5, cVALUE, ALIGNRIGHT, eFONTSMALLEST},
+    {"", xExitTime, yRow5, cVALUE, ALIGNLEFT, eFONTSMALLEST},
+    {"59m", xDuration, yRow5, cVALUE, ALIGNRIGHT, eFONTSMALLEST},
 
-      {"CN84", xGrid, yRow6, cVALUE, ALIGNLEFT, eFONTSMALLEST},         // [GRID3]
-      {"1/31", xEnterDate, yRow6, cVALUE, ALIGNRIGHT, eFONTSMALLEST},   // dummy data
-      {"0823", xEnterTime, yRow6, cVALUE, ALIGNLEFT, eFONTSMALLEST},
-      {"2/1", xExitDate, yRow6, cVALUE, ALIGNRIGHT, eFONTSMALLEST},
-      {"0723", xExitTime, yRow6, cVALUE, ALIGNLEFT, eFONTSMALLEST},
-      {"47.9h", xDuration, yRow6, cVALUE, ALIGNRIGHT, eFONTSMALLEST},
+    {"CN84", xGrid, yRow6, cVALUE, ALIGNLEFT, eFONTSMALLEST},               // [GRID3]
+    {"12-11-2011", xEnterDate, yRow6, cVALUE, ALIGNRIGHT, eFONTSMALLEST},   // dummy data
+    {"0823", xEnterTime, yRow6, cVALUE, ALIGNLEFT, eFONTSMALLEST},
+    {"", xExitDate, yRow6, cVALUE, ALIGNRIGHT, eFONTSMALLEST},
+    {"", xExitTime, yRow6, cVALUE, ALIGNLEFT, eFONTSMALLEST},
+    {"47.9h", xDuration, yRow6, cVALUE, ALIGNRIGHT, eFONTSMALLEST},
 
-      {"CN83", xGrid, yRow7, cVALUE, ALIGNLEFT, eFONTSMALLEST},        // [GRID4]
-      {"2/1", xEnterDate, yRow7, cVALUE, ALIGNRIGHT, eFONTSMALLEST},   // dummy data
-      {"0823", xEnterTime, yRow7, cVALUE, ALIGNLEFT, eFONTSMALLEST},
-      {"1/31", xExitDate, yRow7, cVALUE, ALIGNRIGHT, eFONTSMALLEST},
-      {"0823", xExitTime, yRow7, cVALUE, ALIGNLEFT, eFONTSMALLEST},
-      {"99.9d", xDuration, yRow7, cVALUE, ALIGNRIGHT, eFONTSMALLEST},
+    {"CN83", xGrid, yRow7, cVALUE, ALIGNLEFT, eFONTSMALLEST},               // [GRID4]
+    {"12-55-2055", xEnterDate, yRow7, cVALUE, ALIGNRIGHT, eFONTSMALLEST},   // dummy data
+    {"0823", xEnterTime, yRow7, cVALUE, ALIGNLEFT, eFONTSMALLEST},
+    {"", xExitDate, yRow7, cVALUE, ALIGNRIGHT, eFONTSMALLEST},
+    {"", xExitTime, yRow7, cVALUE, ALIGNLEFT, eFONTSMALLEST},
+    {"99.9d", xDuration, yRow7, cVALUE, ALIGNRIGHT, eFONTSMALLEST},
 
-      {"CN82", xGrid, yRow8, cVALUE, ALIGNLEFT, eFONTSMALLEST},          // [GRID5]
-      {"11/21", xEnterDate, yRow8, cVALUE, ALIGNRIGHT, eFONTSMALLEST},   // dummy data
-      {"0111", xEnterTime, yRow8, cVALUE, ALIGNLEFT, eFONTSMALLEST},
-      {"12/22", xExitDate, yRow8, cVALUE, ALIGNRIGHT, eFONTSMALLEST},
-      {"0823", xExitTime, yRow8, cVALUE, ALIGNLEFT, eFONTSMALLEST},
-      {"999d", xDuration, yRow8, cVALUE, ALIGNRIGHT, eFONTSMALLEST},
+    {"CN82", xGrid, yRow8, cVALUE, ALIGNLEFT, eFONTSMALLEST},             // [GRID5]
+    {"1-1-1111", xEnterDate, yRow8, cVALUE, ALIGNRIGHT, eFONTSMALLEST},   // dummy data
+    {"0111", xEnterTime, yRow8, cVALUE, ALIGNLEFT, eFONTSMALLEST},
+    {"", xExitDate, yRow8, cVALUE, ALIGNRIGHT, eFONTSMALLEST},
+    {"", xExitTime, yRow8, cVALUE, ALIGNLEFT, eFONTSMALLEST},
+    {"999d", xDuration, yRow8, cVALUE, ALIGNRIGHT, eFONTSMALLEST},
 
-      {"Jan 01, 2001", 130, yRowBot, cFAINT, ALIGNRIGHT, eFONTSMALLEST},   // [GMT_DATE]
-      {"02:34:56", 148, yRowBot, cFAINT, ALIGNLEFT, eFONTSMALLEST},        // [GMT_TIME]
-      {"GMT", 232, yRowBot, cFAINT, ALIGNLEFT, eFONTSMALLEST},             // [GMT]
-  };
-
+    {"Jan 01, 2001", 130, yRowBot, cFAINT, ALIGNRIGHT, eFONTSMALLEST},   // [GMT_DATE]
+    {"02:34:56", 148, yRowBot, cFAINT, ALIGNLEFT, eFONTSMALLEST},        // [GMT_TIME]
+    {"GMT", 232, yRowBot, cFAINT, ALIGNLEFT, eFONTSMALLEST},             // [GMT]
+};
   // Iterator helper
   int previousItem(int ii) {
     return (ii > 0) ? (ii - 1) : (numHistory - 1);
@@ -350,21 +349,32 @@ protected:
 
   // helper to display one row on screen
   void showGridCrossing(int field, char *grid4, time_t enterTime, time_t exitTime, bool isValid) {
+    // first, sanity check the recorded time 
+    //                         s, m, h, dow, dd, mm, yy
+    TimeElements Jan_1_2020 = {0, 0, 0,  0,   1,  1, 2020 - 1970};
+    time_t earliestPossibleTime = makeTime(Jan_1_2020);
+    bool timeInsane = (enterTime < earliestPossibleTime) ? true : false;
+    char sQuestionable[6] = "";
+    if (isValid && timeInsane) {
+      logger.error("Impossible! We entered the grid before 2020.");
+      strncpy(sQuestionable, " ??", sizeof(sQuestionable));
+    }
+
     // [GRID]
     if (isValid) {
       txtFields[field + 0].print(grid4);
       txtFields[field + 0].setColor(cVALUE);
     } else {
-      txtFields[field + 0].print("JJ00");
+      txtFields[field + 0].print("  - -");
       txtFields[field + 0].setColor(cFAINT);
     }
 
-    // enter
+    // entered grid
     char msg[32];
     if (isValid) {
-      snprintf(msg, sizeof(msg), "%d/%d", month(enterTime), day(enterTime));
+      snprintf(msg, sizeof(msg), "%d-%d-%d", month(enterTime), day(enterTime), year(exitTime));
       txtFields[field + 1].print(msg);
-      snprintf(msg, sizeof(msg), "%02d%02d", hour(enterTime), minute(enterTime));
+      snprintf(msg, sizeof(msg), "%02d:%02d%s", hour(enterTime), minute(enterTime), sQuestionable);
       txtFields[field + 2].print(msg);
     } else {
       txtFields[field + 1].setColor(cFAINT);
@@ -373,29 +383,29 @@ protected:
       txtFields[field + 2].print("-");
     }
 
-    // exit
+    // exited grid (unused)
     if (field == GRID1) {  
       // top row on screen is a special case, since we're still in the grid there's no 'exit' time
       txtFields[DATE1OUT].setColor(cFAINT);
       txtFields[TIME1OUT].setColor(cFAINT);
-      txtFields[DATE1OUT].print("-");
-      txtFields[TIME1OUT].print("-");
+      //txtFields[DATE1OUT].print("");  // unused
+      //txtFields[TIME1OUT].print("");
     } else {
       if (isValid) {
         txtFields[field + 1].setColor(cVALUE);
         txtFields[field + 2].setColor(cVALUE);
-        snprintf(msg, sizeof(msg), "%d/%d", month(exitTime), day(exitTime));
-        txtFields[field + 3].print(msg);
-        snprintf(msg, sizeof(msg), "%02d%02d", hour(exitTime), minute(exitTime));
-        txtFields[field + 4].print(msg);
+        snprintf(msg, sizeof(msg), "%d-%d-%d", month(exitTime), day(exitTime));
+        //txtFields[field + 3].print(msg);
+        snprintf(msg, sizeof(msg), "%2d:%02d", hour(exitTime), minute(exitTime));
+        //txtFields[field + 4].print(msg);
       } else {
         txtFields[field + 3].setColor(cFAINT);
         txtFields[field + 4].setColor(cFAINT);
-        txtFields[field + 3].print("-");
-        txtFields[field + 4].print("-");
+        //txtFields[field + 3].print("-");  // unused
+        //txtFields[field + 4].print("-");  // unused
       }
     }
-    // elapsed time
+    // elapsed time in grid
     if (isValid) {
       calcTimeDiff(msg, sizeof(msg), enterTime, exitTime);
       txtFields[field + 5].print(msg);
