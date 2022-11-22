@@ -50,7 +50,7 @@ public:
   int gTimeZone       = -7;      // default local time Pacific (-7 hours)
   bool compare4digits = true;    // true=4 digit, false=6 digit comparisons
 
-  float gSeaLevelPressure = DEFAULT_SEALEVEL_HPA;   // default starting value, hPa; adjustable by touch in view_altimeter.h
+  float gSeaLevelPressure = DEFAULT_SEALEVEL_HPA;   // todo - unused by 'model_gps.h', delete me
 
   // Location history[1500];     // 2022-06 the GPS breadcrumb trail moved to Griduino.ino
   int nextHistoryItem = 0;   // index of next item to write
