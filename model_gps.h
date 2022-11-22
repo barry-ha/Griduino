@@ -50,8 +50,6 @@ public:
   int gTimeZone       = -7;      // default local time Pacific (-7 hours)
   bool compare4digits = true;    // true=4 digit, false=6 digit comparisons
 
-  float gSeaLevelPressure = DEFAULT_SEALEVEL_HPA;   // default starting value, hPa; adjustable by touch in view_altimeter.h
-
   // Location history[1500];     // 2022-06 the GPS breadcrumb trail moved to Griduino.ino
   int nextHistoryItem = 0;   // index of next item to write
 
@@ -78,7 +76,7 @@ public:
 
   // ========== load/save config setting =========================
   const char MODEL_FILE[25] = CONFIG_FOLDER "/gpsmodel.cfg";   // CONFIG_FOLDER
-  const char MODEL_VERS[15] = "GPS Data v1";                   // <-- always change version when changing model data
+  const char MODEL_VERS[15] = "GPS Data v2";                   // <-- always change version when changing model data
 
   const char HISTORY_FILE[25]    = CONFIG_FOLDER "/gpshistory.csv";   // CONFIG_FOLDER
   const char HISTORY_VERSION[25] = "GPS Breadcrumb Trail v1";         // <-- always change version when changing data format
@@ -318,7 +316,6 @@ public:
     gMetric           = from.gMetric;             // distance report in miles/kilometers
     gTimeZone         = from.gTimeZone;           // offset from GMT to local time
     compare4digits    = from.compare4digits;      //
-    gSeaLevelPressure = from.gSeaLevelPressure;   // hPa
   }
 
   // sanity check data from NVR
