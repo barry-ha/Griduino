@@ -332,6 +332,17 @@ public:
     Serial.println(item.loc.lng);
   }
 
+  // given a GPS reading in NMEA format, create a "time_t" timestamp
+  // written as a small independent function so it can be unit tested
+  time_t NMEAtoTime_t(uint8_t nmeaYear, uint8_t nmeaMonth, uint8_t nmeaDay,
+                      uint8_t nmeaHour, uint8_t nmeaMinute, uint8_t nmeaSeconds) {
+
+    // NMEA years are the last two digits and start at year 2000, time_t starts at 1970
+    const uint8_t year = nmeaYear + (2000 - 1970);
+    TimeElements tm{nmeaSeconds, nmeaMinute, nmeaHour, 1, nmeaDay, nmeaMonth, year};
+    return makeTime(tm);
+  }
+
   // read GPS hardware
   virtual void getGPS() {                 // "virtual" allows derived class MockModel to replace it
     if (GPS.fix) {                        // DO NOT use "GPS.fix" anywhere else in the program,
@@ -341,8 +352,8 @@ public:
       gAltitude  = GPS.altitude;
       // save timestamp as compact 4-byte integer (number of seconds since Jan 1 1970)
       // using https://github.com/PaulStoffregen/Time
-      TimeElements tm{GPS.seconds, GPS.minute, GPS.hour, 0, GPS.day, GPS.month, GPS.year+2000};
-      gTimestamp  = makeTime(tm);
+      // NMEA sentences contain only the last two digits of year, so add the century
+      gTimestamp = NMEAtoTime_t(GPS.year, GPS.month, GPS.day, GPS.hour, GPS.minute, GPS.seconds);
       gHaveGPSfix = true;
     } else {
       gHaveGPSfix = false;
@@ -585,7 +596,7 @@ public:
     snprintf(msg, sizeof(msg), "now() = %s GMT", sDate);   // debug
     Serial.println(msg);                                   // debug
 
-    Serial.println("Record, Date GMT, Grid, Lat, Long, time_t");
+    Serial.println("Record, Date GMT, Grid, Lat, Long");
     int ii;
     for (ii = 0; ii < numHistory; ii++) {
       Location item = history[ii];
@@ -603,15 +614,15 @@ public:
         floatToCharArray(sLng, sizeof(sLng), history[ii].loc.lng, 5);
 
         char out[128];
-        snprintf(out, sizeof(out), "%d, %s, %s, %s, %s, %lu",
-                 ii, sDate, grid6, sLat, sLng, tm);
+        snprintf(out, sizeof(out), "%d, %s, %s, %s, %s",
+                 ii, sDate, grid6, sLat, sLng);
         Serial.println(out);
 
-        TimeElements time;                 // https://github.com/PaulStoffregen/Time
-        breakTime(item.timestamp, time);   // debug
-        snprintf(out, sizeof(out), "item.timestamp = %02d-%02d-%04d %02d:%02d:%02d",
-                 time.Month, time.Day, time.Year, time.Hour, time.Minute, time.Second);
-        Serial.println(out);   // debug
+        //TimeElements time;                 // https://github.com/PaulStoffregen/Time
+        //breakTime(item.timestamp, time);   // debug
+        //snprintf(out, sizeof(out), "item.timestamp = %02d-%02d-%04d %02d:%02d:%02d",
+        //         time.Month, time.Day, 1970+time.Year, time.Hour, time.Minute, time.Second);
+        //Serial.println(out);               // debug
       }
     }
     int remaining = numHistory - ii;

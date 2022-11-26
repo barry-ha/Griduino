@@ -46,6 +46,51 @@ TextField txtTest("test", 1, 21, ILI9341_WHITE);
 #include "view_grid_crossings.h"              // List of time spent in each grid
 extern ViewGridCrossings gridCrossingsView;   // view_grid_crossings.h
 
+// =============================================================
+void testNMEAtime(const time_t expected, uint8_t yr, uint8_t mo, uint8_t day,
+                  uint8_t hr, uint8_t min, uint8_t sec, int line) {
+
+  unsigned long ulExpected = expected;
+  unsigned long ulActual = model->NMEAtoTime_t(yr, mo, day, hr, min, sec);
+  char msg[120];
+  snprintf(msg, sizeof(msg), "[%d] Expected %lu, actual %lu from %02d-%02d-%02d %02d:%02d:%02d",
+                              line, ulExpected, ulActual, yr, mo, day, hr, min, sec);
+  Serial.print(msg);
+  if (ulExpected == ulActual) {
+    Serial.println();   // success
+  } else {
+    long diff = ulExpected - ulActual;
+    Serial.print(" <-- Unequal, diff = ");
+    Serial.println(diff);
+    // todo: also display message on screen, e.g. "Unit test failure at line 71"
+  }
+}
+
+void verifyNMEAtime() {
+  Serial.print("-------- verifyNMEAtime() at line ");
+  Serial.println(__LINE__);
+
+  //                       s, m, h, dow, d, m, y
+  const TimeElements day_1{0, 0, 0,  1,  1, 1, (2000 - 1970)};   // Jan 1, 2000 is the first day of NMEA time
+  const time_t t0 = makeTime(day_1);                             // seconds offset from 1-1-1970 to 1-1-2000
+  const time_t y2k = SECS_YR_2000;                               // t0 = y2k = the time (seconds) at the start of y2k
+
+  const TimeElements test7{0, 0, 0,  1,  1, 1, (2001 - 1970)};    // Jan 1, 2001
+  const time_t time_2001_1_1 = makeTime(test7);
+
+  //             expected        uint8_t uint8_t uint8_t uint8_t uint8_t uint8_t
+  //              time_t,      nmea year, month,   day,   hour,  minute, seconds
+  testNMEAtime(      0+t0,         00,      1,       1,     0,     0,      0, __LINE__);
+  testNMEAtime(      1+t0,         00,      1,       1,     0,     0,      1, __LINE__);
+  testNMEAtime(     60+t0,         00,      1,       1,     0,     1,      0, __LINE__);
+  testNMEAtime(  60*60+t0,         00,      1,       1,     1,     0,      0, __LINE__);
+  testNMEAtime( SECS_PER_DAY+t0,   00,      1,       2,     0,     0,      0, __LINE__);  // Jan 2, 2000
+  testNMEAtime( 31*SECS_PER_DAY+t0,00,      2,       1,     0,     0,      0, __LINE__);  // Feb 1, 2000
+  testNMEAtime( time_2001_1_1,     01,      1,       1,     0,     0,      0, __LINE__);  // Jan 1, 2001
+  testNMEAtime( 1669431993,        22,     11,      26,     3,     6,     33, __LINE__);  // Nov 26, 2022
+}
+
+// =============================================================
 void testTimeDiff(const char *sExpected, time_t time1, time_t time2) {
   /* ... debug ...
   Serial.print("Check input: sExpected = ");
@@ -86,7 +131,7 @@ void testTimeDiff(const char *sExpected, time_t time1, time_t time2) {
   Serial.print(sActual);
   Serial.print("'");
   
-  /* ... removed, prints bogus numbers, dunno why ...
+  /* ... removed, this will print bogus numbers, dunno why ...
   char msg[256];
   snprintf(msg, sizeof(msg), "Time difference: from %d to %d is %d sec / %d min / %d hr / %d days, expected '%s', actual '%s'",
            time1, time2, nSeconds, nMinutes, nHours, nDays, sExpected, sActual);
@@ -99,6 +144,7 @@ void testTimeDiff(const char *sExpected, time_t time1, time_t time2) {
     Serial.println(" <-- Unequal");
   }
 }
+
 // =============================================================
 // verify calculating time differences into human-friendly text
 void verifyCalcTimeDiff() {
@@ -587,6 +633,8 @@ void runUnitTest() {
   tft.print("  --Open console monitor to see unit test results--");
   delay(1000);
 
+  verifyNMEAtime();             // verify conversions from GPS' time (NMEA) to time_t
+  countDown(5);                 //
   verifyCalcTimeDiff();         // verify human-friendly time intervals
   countDown(5);                 //
   // verifyWritingProportionalFont();   // verify writing proportional font
@@ -599,10 +647,10 @@ void runUnitTest() {
   // countDown(5);                  //
   verifyBreadCrumbs();          // verify pushpins near the four corners
   countDown(5);                 //
-  verifyBreadCrumbTrail1();     // verify painting the bread crumb trail
-  countDown(5);                 //
-  verifyBreadCrumbTrail2();     // verify painting the bread crumb trail
-  countDown(5);                 //
+  //verifyBreadCrumbTrail1();     // verify painting the bread crumb trail
+  //countDown(5);                 //
+  //verifyBreadCrumbTrail2();     // verify painting the bread crumb trail
+  //countDown(5);                 //
   // verifySaveTrail();         // save GPS route to non-volatile memory
   // countDown(5);              //
   // verifyRestoreTrail();      // restore GPS route from non-volatile memory
