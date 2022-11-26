@@ -7,11 +7,17 @@
 
    Note: All data must be self-contained so it can be save/restored in
          non-volatile memory; do not use String class because it's on the heap.
+
+  Units of Time:
+         This relies on "TimeLib.h" which uses "time_t" to represent time.
+         The basic unit of time (time_t) is the number of seconds since Jan 1, 1970, 
+         a compact 4-byte integer.
+         https://github.com/PaulStoffregen/Time
 */
 
 #include <Arduino.h>        //
 #include <Adafruit_GPS.h>   // "Ultimate GPS" library
-#include "constants.h"      // Griduino constants and colors
+#include "constants.h"      // Griduino constants, colors, typedefs
 #include "logger.h"         // conditional printing to Serial port
 #include "grid_helper.h"    // lat/long conversion routines
 #include "date_helper.h"    // date/time conversions
@@ -108,34 +114,32 @@ public:
     // line 1,2,3,4: filename, data format, version, compiled
     char msg[256];
     snprintf(msg, sizeof(msg), "File:,%s\nData format:,%s\nGriduino:,%s\nCompiled:,%s",
-             MODEL_FILE, MODEL_VERS, PROGRAM_VERSION, PROGRAM_COMPILED);
+             HISTORY_FILE, HISTORY_VERSION, PROGRAM_VERSION, PROGRAM_COMPILED);
     config.writeLine(msg);
 
     // line 5: column headings
-    config.writeLine("GMT Date, GMT Time, Latitude, Longitude");
+    config.writeLine("GMT Date, GMT Time, Grid, Latitude, Longitude");
 
-    // line 6..x: date-time, latitude, longitude
+    // line 6..x: date-time, grid6, latitude, longitude
     int count = 0;
     for (uint ii = 0; ii < numHistory; ii++) {
       if (!history[ii].isEmpty()) {
         count++;
-        int yy = year(history[ii].timestamp);
-        int mm = month(history[ii].timestamp);
-        int dd = day(history[ii].timestamp);
-        char sDate[12];
-        snprintf(sDate, sizeof(sDate), "%4d/%02d/%02d", yy, mm, dd);
 
-        int hh = hour(history[ii].timestamp);
-        int nn = minute(history[ii].timestamp);
-        int ss = second(history[ii].timestamp);
-        char sTime[12];
-        snprintf(sTime, sizeof(sTime), "%02d:%02d:%02d", hh, nn, ss);
+        char sDate[12];   // sizeof("2022-11-10") = 10
+        date.dateToString(sDate, sizeof(sDate), history[ii].timestamp);
+
+        char sTime[12];   // sizeof("12:34:56") = 8
+        date.timeToString(sTime, sizeof(sTime), history[ii].timestamp);
+
+        char sGrid6[7];
+        grid.calcLocator(sGrid6, history[ii].loc.lat, history[ii].loc.lng, 6);
 
         char sLat[12], sLng[12];
         floatToCharArray(sLat, sizeof(sLat), history[ii].loc.lat, 5);
         floatToCharArray(sLng, sizeof(sLng), history[ii].loc.lng, 5);
 
-        snprintf(msg, sizeof(msg), "%s,%s,%s,%s", sDate, sTime, sLat, sLng);
+        snprintf(msg, sizeof(msg), "%s,%s,%s,%s,%s", sDate, sTime, sGrid6, sLat, sLng);
         config.writeLine(msg);
       }
     }
@@ -148,11 +152,8 @@ public:
   }
 
   int restoreGPSBreadcrumbTrail() {   // returns 1=success, 0=failure
-    // clear breadcrumb memory
-    nextHistoryItem = 0;
-    for (uint ii = 0; ii < numHistory; ii++) {
-      history[ii].reset();
-    }
+    clearHistory();                   // clear breadcrumb memory
+
     // open file
     SaveRestoreStrings config(HISTORY_FILE, HISTORY_VERSION);
     if (!config.open(HISTORY_FILE, "r")) {
@@ -266,8 +267,8 @@ public:
 
     // report statistics for a visible sanity check to aid debug
     char sOldest[24], sNewest[24];
-    date.dateToString(sOldest, sizeof(sOldest), oldest);
-    date.dateToString(sNewest, sizeof(sNewest), newest);
+    date.datetimeToString(sOldest, sizeof(sOldest), oldest);
+    date.datetimeToString(sNewest, sizeof(sNewest), newest);
 
     char msg1[256], msg2[256];
     snprintf(msg1, sizeof(msg1), ". Oldest date = history[%d] = %s", indexOldest, sOldest);
@@ -340,7 +341,7 @@ public:
       gAltitude  = GPS.altitude;
       // save timestamp as compact 4-byte integer (number of seconds since Jan 1 1970)
       // using https://github.com/PaulStoffregen/Time
-      TimeElements tm{GPS.seconds, GPS.minute, GPS.hour, 0, GPS.day, GPS.month, GPS.year};
+      TimeElements tm{GPS.seconds, GPS.minute, GPS.hour, 0, GPS.day, GPS.month, GPS.year+2000};
       gTimestamp  = makeTime(tm);
       gHaveGPSfix = true;
     } else {
@@ -379,6 +380,7 @@ public:
       history[ii].reset();
     }
     nextHistoryItem = 0;
+    Serial.println("GPS history has been erased");
   }
 
   void remember(PointGPS vLoc, time_t vTimestamp) {
@@ -550,38 +552,66 @@ public:
     Serial.println(KML_SUFFIX);   // end KML file
   }
 
+  int countHistorySaved() {
+    int count = 0;
+    for (int ii=0; ii<numHistory; ii++) {
+      Location item = history[ii];
+      if (!item.isEmpty()) {
+        count++;
+      }
+    }
+    return count;
+  }
+
   void dumpHistoryGPS() {
-    Serial.print("Number of saved GPS records = ");
+    Serial.print("\nMaximum saved GPS records = ");
     Serial.println(numHistory);
+
+    Serial.print("Current number of records saved = ");
+    int count = countHistorySaved();
+    Serial.println(count);
+
     Serial.print("Next record to be written = ");
     Serial.println(nextHistoryItem);
-    Serial.println("Record, Grid, Lat, Long, Date GMT");
+
+    time_t tm = now();                           // debug: show current time in seconds
+    Serial.print("now() = ");                    // debug
+    Serial.print(tm);                            // debug
+    Serial.println(" seconds since 1-1-1970");   // debug
+
+    char sDate[24];                                        // debug: show current time decoded
+    date.datetimeToString(sDate, sizeof(sDate), tm);       // date_helper.h
+    char msg[40];                                          // sizeof("Today is 12-31-2022  12:34:56 GMT") = 32
+    snprintf(msg, sizeof(msg), "now() = %s GMT", sDate);   // debug
+    Serial.println(msg);                                   // debug
+
+    Serial.println("Record, Date GMT, Grid, Lat, Long, time_t");
     int ii;
     for (ii = 0; ii < numHistory; ii++) {
       Location item = history[ii];
-
       if (!item.isEmpty()) {
+
+        time_t tm = item.timestamp;                        // https://github.com/PaulStoffregen/Time
+        char sDate[24];                                    // sizeof("2022-11-25 12:34:56") = 19
+        date.datetimeToString(sDate, sizeof(sDate), tm);   // date_helper.h
+
         char grid6[7];
         grid.calcLocator(grid6, item.loc.lat, item.loc.lng, 6);
 
-        Serial.print(ii);
-        Serial.print(", ");
-        Serial.print(grid6);
-        Serial.print(",  ");
-        Serial.print(item.loc.lat, 4);   // we prefer to see latitude first
-        Serial.print(",");
-        Serial.print(item.loc.lng, 4);
-        Serial.print(",  ");
-        char msg[20];        // sizeof("12-31-22  12:34:56") = 19
-        //TimeElements time;   // https://github.com/PaulStoffregen/Time
-        //breakTime(item.timestamp, time);
-        //snprintf(msg, sizeof(msg), "%02d-%02d-%04d  %02d:%02d:%02d",
-        //         time.Month, time.Day, time.Year+1970, time.Hour, time.Minute, time.Second);
-        
-        time_t time = item.timestamp; // https://github.com/PaulStoffregen/Time
-        snprintf(msg, sizeof(msg), "%02d-%02d-%04d  %02d:%02d:%02d",
-                month(time), day(time), year(time), hour(time), minute(time), second(time) );
-        Serial.println(msg);
+        char sLat[12], sLng[12];
+        floatToCharArray(sLat, sizeof(sLat), history[ii].loc.lat, 5);
+        floatToCharArray(sLng, sizeof(sLng), history[ii].loc.lng, 5);
+
+        char out[128];
+        snprintf(out, sizeof(out), "%d, %s, %s, %s, %s, %lu",
+                 ii, sDate, grid6, sLat, sLng, tm);
+        Serial.println(out);
+
+        TimeElements time;                 // https://github.com/PaulStoffregen/Time
+        breakTime(item.timestamp, time);   // debug
+        snprintf(out, sizeof(out), "item.timestamp = %02d-%02d-%04d %02d:%02d:%02d",
+                 time.Month, time.Day, time.Year, time.Hour, time.Minute, time.Second);
+        Serial.println(out);   // debug
       }
     }
     int remaining = numHistory - ii;

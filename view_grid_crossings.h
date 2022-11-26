@@ -57,7 +57,7 @@ public:
     char grid4[5];           // e.g. "CN87"
     time_t enterTimestamp;   // seconds
     time_t exitTimestamp;    // seconds
-    bool isValid;            // true=real data, false=uninitialized
+    bool isSet;            // true=real data, false=uninitialized
   };
   CrossingInfo timeInGrid[5] = {
       {"A", 0, 0, false},   // [GRID1]
@@ -264,9 +264,9 @@ TextField txtFields[nCrossingsFields] = {
     // assume the entries are in chronological order, most recent first
     // this only finds the most recent 5 grids crossed, it doesn't do anything about showing results
     int historyIndex = previousItem(model->nextHistoryItem);
-    //Serial.print("First item examined is index "); Serial.println(historyIndex);   // debug
-    int maxResults  = 5;            // number of rows displayed on screen
-    int resultIndex = 0;            //
+    // Serial.print("First item examined is index "); Serial.println(historyIndex);   // debug
+    int maxResults  = 5;   // number of rows displayed on screen
+    int resultIndex = 0;   //
 
     char currentGrid4[5] = "none";
     // grid.calcLocator(currentGrid4, model->gLatitude, model->gLongitude, 4);
@@ -276,9 +276,9 @@ TextField txtFields[nCrossingsFields] = {
       strncpy(timeInGrid[jj].grid4, "un", 4);
       timeInGrid[jj].enterTimestamp = (time_t)0;
       timeInGrid[jj].exitTimestamp  = (time_t)0;
-      timeInGrid[jj].isValid        = false;
+      timeInGrid[jj].isSet          = false;
     }
-    //Serial.print("At entry: "); dumpCrossingInfo(timeInGrid, 0);   // debug
+    // Serial.print("At entry: "); dumpCrossingInfo(timeInGrid, 0);   // debug
 
     // walk the entire GPS breadcrumb trail
     for (int ii = 0; ii < numHistory; ii++) {
@@ -287,9 +287,9 @@ TextField txtFields[nCrossingsFields] = {
         char thisGrid[5];
         grid.calcLocator(thisGrid, item.loc.lat, item.loc.lng, 4);
 
-        //char temp[128];   // debug
-        //snprintf(temp, sizeof(temp), "Comparing slot %d grid '%s' to current grid '%s'", ii, thisGrid, currentGrid4);
-        //logger.debug(temp); delay(10);   // debug
+        // char temp[128];   // debug
+        // snprintf(temp, sizeof(temp), "Comparing slot %d grid '%s' to current grid '%s'", ii, thisGrid, currentGrid4);
+        // logger.debug(temp); delay(10);   // debug
 
         if (strcmp(thisGrid, currentGrid4) == 0) {
           // same grid, ignore, keep looking
@@ -298,7 +298,7 @@ TextField txtFields[nCrossingsFields] = {
           strcpy(timeInGrid[resultIndex].grid4, thisGrid);
           timeInGrid[resultIndex].enterTimestamp = item.timestamp;
           // timeInGrid[resultIndex].exitTimestamp  = item[prevResultIndex].enterTimestamp?;
-          timeInGrid[resultIndex].isValid = true;
+          timeInGrid[resultIndex].isSet = true;
 
           // save this grid for next loop comparison
           strncpy(currentGrid4, thisGrid, sizeof(currentGrid4));
@@ -306,13 +306,13 @@ TextField txtFields[nCrossingsFields] = {
       }
       historyIndex = previousItem(historyIndex);
     }
-    /*
+    /* ... 
     dumpCrossingInfo(&timeInGrid[0], now());   // debug
     dumpCrossingInfo(&timeInGrid[1], 1);       // debug
     dumpCrossingInfo(&timeInGrid[2], 2);       // debug
     dumpCrossingInfo(&timeInGrid[3], 3);       // debug
     dumpCrossingInfo(&timeInGrid[4], 4);       // debug
-    */
+    /* ... */
   }
 
   // debug helper to show internal status of Grid Crossing
@@ -325,7 +325,7 @@ TextField txtFields[nCrossingsFields] = {
         timeInGrid->exitTimestamp,    // exit
         (timeInGrid->exitTimestamp - timeInGrid->enterTimestamp)); // elapsed seconds
     Serial.print(dump); // debug
-    if (timeInGrid->isValid) {
+    if (timeInGrid->isSet) {
       Serial.println(", valid");
     } else {
       Serial.println(", un");
@@ -338,30 +338,32 @@ TextField txtFields[nCrossingsFields] = {
       CrossingInfo item = timeInGrid[row];
       if (row == 0) {
         // first row's elapsed time uses "now" because it has no "exit time" since we're still in the same grid
-        showGridCrossing(GRID1, item.grid4, item.enterTimestamp, now(), item.isValid);
+        showGridCrossing(GRID1, item.grid4, item.enterTimestamp, now(), item.isSet);
       } else {
         // subsequent rows always have an "exit time"
         int field = GRID1 + row * 6;  // 6 = count of (GRID1, DATE1IN, TIME1IN, DATE1OUT, TIME1OUT, ET1)
-        showGridCrossing(field, item.grid4, item.enterTimestamp, item.exitTimestamp, item.isValid);
+        showGridCrossing(field, item.grid4, item.enterTimestamp, item.exitTimestamp, item.isSet);
       }
     }
   }
 
   // helper to display one row on screen
-  void showGridCrossing(int field, char *grid4, time_t enterTime, time_t exitTime, bool isValid) {
-    // first, sanity check the recorded time 
+  void showGridCrossing(int field, char *grid4, time_t enterTime, time_t exitTime, bool isSet) {
+    // first, sanity check the recorded time
     //                         s, m, h, dow, dd, mm, yy
-    TimeElements Jan_1_2020 = {0, 0, 0,  0,   1,  1, 2020 - 1970};
+    TimeElements Jan_1_2020     = {0, 0, 0, 0, 1, 1, 2020 - 1970};
     time_t earliestPossibleTime = makeTime(Jan_1_2020);
-    bool timeInsane = (enterTime < earliestPossibleTime) ? true : false;
-    char sQuestionable[6] = "";
-    if (isValid && timeInsane) {
-      logger.error("Impossible! We entered the grid before 2020.");
+    bool timeInsane             = (enterTime < earliestPossibleTime) ? true : false;
+    char sQuestionable[6]       = "";
+    if (isSet && timeInsane) {
+      char msg[24];
+      date.datetimeToString(msg, sizeof(msg), enterTime);
+      logger.error("Internal Error, entered grid before 2020: ", msg);
       strncpy(sQuestionable, " ??", sizeof(sQuestionable));
     }
 
     // [GRID]
-    if (isValid) {
+    if (isSet) {
       txtFields[field + 0].print(grid4);
       txtFields[field + 0].setColor(cVALUE);
     } else {
@@ -371,10 +373,10 @@ TextField txtFields[nCrossingsFields] = {
 
     // entered grid
     char msg[32];
-    if (isValid) {
-      snprintf(msg, sizeof(msg), "%d-%d-%d", month(enterTime), day(enterTime), year(exitTime));
+    if (isSet) {
+      date.dateToString(msg, sizeof(msg), enterTime);
       txtFields[field + 1].print(msg);
-      snprintf(msg, sizeof(msg), "%02d:%02d%s", hour(enterTime), minute(enterTime), sQuestionable);
+      date.timeToString(msg, sizeof(msg), enterTime);
       txtFields[field + 2].print(msg);
     } else {
       txtFields[field + 1].setColor(cFAINT);
@@ -384,34 +386,34 @@ TextField txtFields[nCrossingsFields] = {
     }
 
     // exited grid (unused)
-    if (field == GRID1) {  
+    if (field == GRID1) {
       // top row on screen is a special case, since we're still in the grid there's no 'exit' time
       txtFields[DATE1OUT].setColor(cFAINT);
       txtFields[TIME1OUT].setColor(cFAINT);
-      //txtFields[DATE1OUT].print("");  // unused
-      //txtFields[TIME1OUT].print("");
+      // txtFields[DATE1OUT].print("");   // unused
+      // txtFields[TIME1OUT].print("");
     } else {
-      if (isValid) {
+      if (isSet) {
         txtFields[field + 1].setColor(cVALUE);
         txtFields[field + 2].setColor(cVALUE);
-        snprintf(msg, sizeof(msg), "%d-%d-%d", month(exitTime), day(exitTime));
-        //txtFields[field + 3].print(msg);
-        snprintf(msg, sizeof(msg), "%2d:%02d", hour(exitTime), minute(exitTime));
-        //txtFields[field + 4].print(msg);
+        date.dateToString(msg, sizeof(msg), exitTime);
+        // txtFields[field + 3].print(msg);   // unused
+        date.timeToString(msg, sizeof(msg), exitTime);
+        // txtFields[field + 4].print(msg);   // unused
       } else {
         txtFields[field + 3].setColor(cFAINT);
         txtFields[field + 4].setColor(cFAINT);
-        //txtFields[field + 3].print("-");  // unused
-        //txtFields[field + 4].print("-");  // unused
+        // txtFields[field + 3].print("-");   // unused
+        // txtFields[field + 4].print("-");   // unused
       }
     }
     // elapsed time in grid
-    if (isValid) {
+    if (isSet) {
       calcTimeDiff(msg, sizeof(msg), enterTime, exitTime);
       txtFields[field + 5].print(msg);
     } else {
-        txtFields[field + 5].setColor(cFAINT);
-        txtFields[field + 5].print("-");
+      txtFields[field + 5].setColor(cFAINT);
+      txtFields[field + 5].print("-");
     }
   }
 };   // end class ViewGridCrossings
