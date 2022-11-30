@@ -50,11 +50,11 @@
 #define SCREEN_ROTATION 1   // 0=portrait, 1=landscape, 2=portrait 180-deg, 3=landscape 180-deg
 
 // ---------- extern
-extern bool newScreenTap(Point* pPoint, int orientation); // Touch.cpp
-extern uint16_t myPressure(void);                         // Touch.cpp
-//extern bool TouchScreen::isTouching(void);              // Touch.cpp
-extern void mapTouchToScreen(TSPoint touch, Point* screen, int orientation);
-extern void setFontSize(int font);                        // TextField.cpp
+extern bool newScreenTap(Point *pPoint, int orientation);   // Touch.cpp
+extern uint16_t myPressure(void);                           // Touch.cpp
+// extern bool TouchScreen::isTouching(void);              // Touch.cpp
+extern void mapTouchToScreen(TSPoint touch, Point *screen, int orientation);
+extern void setFontSize(int font);   // TextField.cpp
 
 // ---------- Hardware Wiring ----------
 // Same as Griduino platform - see hardware.h

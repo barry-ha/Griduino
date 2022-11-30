@@ -2,10 +2,12 @@
 
 // ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE    "Griduino"
-#define PROGRAM_VERSION  "v1.08"
+#define PROGRAM_VERSION  "v1.11"
 #define PROGRAM_LINE1    "Barry K7BWH"
 #define PROGRAM_LINE2    "John KM7O"
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
+#define PROGRAM_FILE     __FILE__
+#define PROGRAM_GITHUB   "https://github.com/barry-ha/Griduino"
 
 // ------- Select testing features ---------
 //#define ECHO_GPS                    // use this to see GPS detailed info on IDE console for debug
@@ -77,11 +79,14 @@ const int OFF       = 0;     // = turned off
 #define cDISTANCE      ILI9341_YELLOW   //
 #define cVALUE         ILI9341_YELLOW   // 255, 255, 0
 #define cVALUEFAINT    0xbdc0           // darker than cVALUE
+#define cDISABLED      0x7bee           // 125, 125, 115 = gray for disabled screen item
 #define cHIGHLIGHT     ILI9341_WHITE    //
 #define cBUTTONFILL    ILI9341_NAVY     //
 #define cBUTTONOUTLINE 0x0514           // was ILI9341_CYAN
 #define cBREADCRUMB    ILI9341_CYAN     //
-#define cTEXTCOLOR     ILI9341_CYAN     // 0, 255, 255
+#define cTITLE         ILI9341_GREEN    //
+#define cTEXTCOLOR     0x67FF           // rgb(102,255,255) = hsl(180,100,70%)
+#define cCYAN          ILI9341_CYAN     // rgb(0,255,255) = hsl(180,100,50%)
 #define cFAINT         0x0555           // rgb(0,168,168) = hsl(180,100,33%) = blue, between CYAN and DARKCYAN
 #define cFAINTER       0x04B2           // rgb(0,128,128) = hsl(180,100,29%) = blue, between CYAN and DARKCYAN
 #define cBOXDEGREES    0x0410           // rgb(0,128,128) = hsl(180,100,25%) = blue, between CYAN and DARKCYAN
@@ -100,6 +105,7 @@ public:
   double lat, lng;
 };
 
+#include <TimeLib.h>   // https://github.com/PaulStoffregen/Time for "time_t"
 class BaroReading {
 public:
   float pressure;   // in millibars, from BMP388 sensor
@@ -167,11 +173,11 @@ struct FunctionButton {
 
 class Location {
 public:
-  PointGPS loc;     // has-a lat/long, degrees
-  int hh, mm, ss;   // has-a GMT time
+  PointGPS loc;       // has-a lat/long, degrees
+  time_t timestamp;   // has-a GMT time
   void reset() {
     loc.lat = loc.lng = 0.0;
-    hh = mm = ss = 0;
+    timestamp         = 0;
   }
   bool isEmpty() {
     return (loc.lat == 0.0 && loc.lng == 0.0);

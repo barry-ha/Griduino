@@ -67,14 +67,6 @@ On-board lights:
 #define SD_CD  10   // SD card detect pin - Feather
 #define SD_CCS 11   // SD card select pin - Feather
 
-#elif defined(ARDUINO_AVR_MEGA2560)
-#define TFT_BL 6    // TFT backlight
-#define SD_CCS 7    // SD card select pin - Mega
-#define SD_CD  8    // SD card detect pin - Mega
-#define TFT_DC 9    // TFT display/command pin
-#define TFT_CS 10   // TFT chip select pin
-#define BMP_CS 13   // BMP388 sensor, chip select
-
 #else
 #warning You need to define pins for your SPI bus hardware
 #endif
@@ -104,7 +96,7 @@ On-board lights:
 
 // ---------- neopixel
 #define NUMPIXELS 1   // Feather M4 has one NeoPixel on board
-// efine PIN_NEOPIXEL 8     // already defined in Feather's board variant.h
+// define PIN_NEOPIXEL 8     // already defined in Feather's board variant.h
 
 // ---------- Audio output
 #define DAC_PIN     DAC0   // onboard DAC0 == pin A0
