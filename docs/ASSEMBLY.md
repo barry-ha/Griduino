@@ -59,6 +59,7 @@ Some of Griduino's hardware, such as the connectors and PCB, should be easy to i
 To identify the two 8-pin DIPs (dual inline package), inspect the silkscreen label to identify which is which. Then look closely for a notch at one end -- this helps locate Pin 1. The chip's notch must be oriented the same direction as the PCB's semicircle.
 
 
+
 ![](img/dip-chips-img7038.jpg)
 
 Small 1N4001 diodes are marked with a band on one end for polarity; the band must be oriented the same direction as the band on the PCB.
@@ -216,6 +217,8 @@ If the Feather's LED doesn't blink as expected, don't panic; sometimes the compu
 The barometric sensor comes with a matching 8-pin header strip. Insert this header strip into the main board, long pins first and short pins extending upward. (Okay, it doesn't really matter but we think this looks better.)
 
 If you have a **BMP-388**, break off two single pins from a leftover strip and insert them into the other two corners. The two single pins in the corners are for physical support and have no other functional purpose. Do not solder them yet.
+
+If you have a **BMP-388 after June 2022**, do not insert single-pin supports. Adafruit moved the two support holes and they no longer align with the PCB holes. Ignore the supports; they are not required.
 
 If you have a **BMP-390**, do not insert two single-pin supports. The BMP-390 breakout board is pin-compatible but a different size and the support holes don't line up.
 
