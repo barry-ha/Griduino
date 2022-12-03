@@ -185,7 +185,7 @@ protected:
   const int yRowBot = 226;   // GMT date on bottom row, "y=226" will match other views
 
   const int xGrid      = 6;
-  const int xEnterCL   = 160;   // center line for "enter grid"
+  const int xEnterCL   = 158;   // center line for "enter grid"
   const int xEnterDate = xEnterCL - 7;
   const int xEnterTime = xEnterCL + 6;
   const int xExitCL    = 214;   // center line for "exit grid"
@@ -280,24 +280,21 @@ TextField txtFields[nCrossingsFields] = {
     }
     // Serial.print("At entry: "); dumpCrossingInfo(timeInGrid, 0);   // debug
 
-    // walk the entire GPS breadcrumb trail
+    // walk the entire GPS breadcrumb array
     for (int ii = 0; ii < numHistory; ii++) {
       Location item = history[historyIndex];
       if (!item.isEmpty()) {
         char thisGrid[5];
         grid.calcLocator(thisGrid, item.loc.lat, item.loc.lng, 4);
 
-        // char temp[128];   // debug
-        // snprintf(temp, sizeof(temp), "Comparing slot %d grid '%s' to current grid '%s'", ii, thisGrid, currentGrid4);
-        // logger.debug(temp); delay(10);   // debug
-
+        // compare this slot's grid to previous slot's grid
         if (strcmp(thisGrid, currentGrid4) == 0) {
           // same grid, ignore, keep looking
         } else {
           // we encountered a different grid, so write this grid-crossing info into result
           strcpy(timeInGrid[resultIndex].grid4, thisGrid);
           timeInGrid[resultIndex].enterTimestamp = item.timestamp;
-          // timeInGrid[resultIndex].exitTimestamp  = item[prevResultIndex].enterTimestamp?;
+          // timeInGrid[resultIndex].exitTimestamp  = item[prevResultIndex].enterTimestamp?; // exit time is unused
           timeInGrid[resultIndex].isSet = true;
 
           // save this grid for next loop comparison
@@ -306,12 +303,12 @@ TextField txtFields[nCrossingsFields] = {
       }
       historyIndex = previousItem(historyIndex);
     }
+    dumpCrossingInfo(&timeInGrid[0], 0);   // debug
     /* ... 
-    dumpCrossingInfo(&timeInGrid[0], now());   // debug
-    dumpCrossingInfo(&timeInGrid[1], 1);       // debug
-    dumpCrossingInfo(&timeInGrid[2], 2);       // debug
-    dumpCrossingInfo(&timeInGrid[3], 3);       // debug
-    dumpCrossingInfo(&timeInGrid[4], 4);       // debug
+    dumpCrossingInfo(&timeInGrid[1], 1);   // debug
+    dumpCrossingInfo(&timeInGrid[2], 2);   // debug
+    dumpCrossingInfo(&timeInGrid[3], 3);   // debug
+    dumpCrossingInfo(&timeInGrid[4], 4);   // debug
     /* ... */
   }
 
@@ -348,18 +345,35 @@ TextField txtFields[nCrossingsFields] = {
   }
 
   // helper to display one row on screen
-  void showGridCrossing(int field, char *grid4, time_t enterTime, time_t exitTime, bool isSet) {
+  void showGridCrossing(int field, const char *grid4, time_t enterTime, time_t exitTime, bool isSet) {
     // first, sanity check the recorded time
-    //                         s, m, h, dow, dd, mm, yy
-    TimeElements Jan_1_2020     = {0, 0, 0, 0, 1, 1, 2020 - 1970};
+    //                             s, m, h, dow, dd, mm, yy
+    TimeElements Jan_1_2020     = {0, 0, 0, 0,    1,  1, 2020 - 1970};
     time_t earliestPossibleTime = makeTime(Jan_1_2020);
-    bool timeInsane             = (enterTime < earliestPossibleTime) ? true : false;
-    char sQuestionable[6]       = "";
-    if (isSet && timeInsane) {
+    bool timeTooEarly           = (enterTime < earliestPossibleTime) ? true : false;
+
+    TimeElements Jan_1_2072     = {0, 0, 0, 0,    1,  1, 2072 - 1970};
+    time_t latestAllowedTime    = makeTime(Jan_1_2072);   // fifty years from current 2022
+    bool timeTooLate            = (enterTime > latestAllowedTime) ? true : false;
+
+    // if the grid was recorded before RTC set, the "enter time" can be 1970, before Griduino was built
+    char suffix[8]       = "";
+    if (isSet && timeTooEarly) {
+      strncpy(suffix, " ?", sizeof(suffix));
+
       char msg[24];
-      date.datetimeToString(msg, sizeof(msg), enterTime);
+      date.datetimeToString(msg, sizeof(msg), enterTime, " ?");
       logger.error("Internal Error, entered grid before 2020: ", msg);
-      strncpy(sQuestionable, " ??", sizeof(sQuestionable));
+    }
+
+    // if the "enter time" is after now() then we don't want to show negative elapsed time
+    // but we can't trust "now()" if the RTC is not set yet, so use an arbitrarily large milepost
+    if (isSet && timeTooLate) {
+      strncpy(suffix, " ?", sizeof(suffix));
+
+      char msg[24];
+      date.datetimeToString(msg, sizeof(msg), enterTime, suffix);
+      logger.error("Internal Error, entered grid more than fifty years after 2022: ", msg);
     }
 
     // [GRID]
@@ -376,7 +390,7 @@ TextField txtFields[nCrossingsFields] = {
     if (isSet) {
       date.dateToString(msg, sizeof(msg), enterTime);
       txtFields[field + 1].print(msg);
-      date.timeToString(msg, sizeof(msg), enterTime);
+      date.timeToString(msg, sizeof(msg), enterTime, suffix);
       txtFields[field + 2].print(msg);
     } else {
       txtFields[field + 1].setColor(cFAINT);
@@ -385,6 +399,7 @@ TextField txtFields[nCrossingsFields] = {
       txtFields[field + 2].print("-");
     }
 
+    /* ...
     // exited grid (unused)
     if (field == GRID1) {
       // top row on screen is a special case, since we're still in the grid there's no 'exit' time
@@ -407,6 +422,8 @@ TextField txtFields[nCrossingsFields] = {
         // txtFields[field + 4].print("-");   // unused
       }
     }
+    ... */
+
     // elapsed time in grid
     if (isSet) {
       calcTimeDiff(msg, sizeof(msg), enterTime, exitTime);
