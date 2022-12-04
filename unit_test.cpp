@@ -47,51 +47,56 @@ TextField txtTest("test", 1, 21, ILI9341_WHITE);
 extern ViewGridCrossings gridCrossingsView;   // view_grid_crossings.h
 
 // =============================================================
-void testNMEAtime(const time_t expected, uint8_t yr, uint8_t mo, uint8_t day,
-                  uint8_t hr, uint8_t min, uint8_t sec, int line) {
+int testNMEAtime(const time_t expected, uint8_t yr, uint8_t mo, uint8_t day,
+                 uint8_t hr, uint8_t min, uint8_t sec, int line) {
 
   unsigned long ulExpected = expected;
-  unsigned long ulActual = model->NMEAtoTime_t(yr, mo, day, hr, min, sec);
+  unsigned long ulActual   = model->NMEAtoTime_t(yr, mo, day, hr, min, sec);
   char msg[120];
   snprintf(msg, sizeof(msg), "[%d] Expected %lu, actual %lu from %02d-%02d-%02d %02d:%02d:%02d",
-                              line, ulExpected, ulActual, yr, mo, day, hr, min, sec);
+           line, ulExpected, ulActual, yr, mo, day, hr, min, sec);
   Serial.print(msg);
+  int fails = 0;
   if (ulExpected == ulActual) {
     Serial.println();   // success
   } else {
     long diff = ulExpected - ulActual;
     Serial.print(" <-- Unequal, diff = ");
     Serial.println(diff);
+    fails += 1;
     // todo: also display message on screen, e.g. "Unit test failure at line 71"
   }
+  return fails;
 }
 
-void verifyNMEAtime() {
+int verifyNMEAtime() {
   Serial.print("-------- verifyNMEAtime() at line ");
   Serial.println(__LINE__);
 
   //                       s, m, h, dow, d, m, y
-  const TimeElements day_1{0, 0, 0,  1,  1, 1, (2000 - 1970)};   // Jan 1, 2000 is the first day of NMEA time
-  const time_t t0 = makeTime(day_1);                             // seconds offset from 1-1-1970 to 1-1-2000
-  const time_t y2k = SECS_YR_2000;                               // t0 = y2k = the time (seconds) at the start of y2k
+  const TimeElements day_1{0, 0, 0, 1, 1, 1, (2000 - 1970)};   // Jan 1, 2000 is the first day of NMEA time
+  const time_t t0  = makeTime(day_1);                          // seconds offset from 1-1-1970 to 1-1-2000
+  const time_t y2k = SECS_YR_2000;                             // t0 = y2k = the time (seconds) at the start of y2k
 
-  const TimeElements test7{0, 0, 0,  1,  1, 1, (2001 - 1970)};    // Jan 1, 2001
+  const TimeElements test7{0, 0, 0, 1, 1, 1, (2001 - 1970)};   // Jan 1, 2001
   const time_t time_2001_1_1 = makeTime(test7);
 
   //             expected        uint8_t uint8_t uint8_t uint8_t uint8_t uint8_t
   //              time_t,      nmea year, month,   day,   hour,  minute, seconds
-  testNMEAtime(      0+t0,         00,      1,       1,     0,     0,      0, __LINE__);
-  testNMEAtime(      1+t0,         00,      1,       1,     0,     0,      1, __LINE__);
-  testNMEAtime(     60+t0,         00,      1,       1,     0,     1,      0, __LINE__);
-  testNMEAtime(  60*60+t0,         00,      1,       1,     1,     0,      0, __LINE__);
-  testNMEAtime( SECS_PER_DAY+t0,   00,      1,       2,     0,     0,      0, __LINE__);  // Jan 2, 2000
-  testNMEAtime( 31*SECS_PER_DAY+t0,00,      2,       1,     0,     0,      0, __LINE__);  // Feb 1, 2000
-  testNMEAtime( time_2001_1_1,     01,      1,       1,     0,     0,      0, __LINE__);  // Jan 1, 2001
-  testNMEAtime( 1669431993,        22,     11,      26,     3,     6,     33, __LINE__);  // Nov 26, 2022
+  int r = 0;
+  r += testNMEAtime(0 + t0, 00, 1, 1, 0, 0, 0, __LINE__);
+  r += testNMEAtime(1 + t0, 00, 1, 1, 0, 0, 1, __LINE__);
+  r += testNMEAtime(60 + t0, 00, 1, 1, 0, 1, 0, __LINE__);
+  r += testNMEAtime(60 * 60 + t0, 00, 1, 1, 1, 0, 0, __LINE__);
+  r += testNMEAtime(SECS_PER_DAY + t0, 00, 1, 2, 0, 0, 0, __LINE__);        // Jan 2, 2000
+  r += testNMEAtime(31 * SECS_PER_DAY + t0, 00, 2, 1, 0, 0, 0, __LINE__);   // Feb 1, 2000
+  r += testNMEAtime(time_2001_1_1, 01, 1, 1, 0, 0, 0, __LINE__);            // Jan 1, 2001
+  r += testNMEAtime(1669431993, 22, 11, 26, 3, 6, 33, __LINE__);            // Nov 26, 2022
+  return r;
 }
 
 // =============================================================
-void testTimeDiff(const char *sExpected, time_t time1, time_t time2) {
+int testTimeDiff(const char *sExpected, time_t time1, time_t time2) {
   /* ... debug ...
   Serial.print("Check input: sExpected = ");
   Serial.print(sExpected);
@@ -101,9 +106,11 @@ void testTimeDiff(const char *sExpected, time_t time1, time_t time2) {
   Serial.println(time2);
   /* ... */
 
+  int fails = 0;
   if (time1 > time2) {
     Serial.println("testTimeDiff() error, time2 must be > time1");
-    return;
+    fails += 1;
+    return fails;
   }
   long int nSeconds = (time2 - time1);
   long int nMinutes = (time2 - time1) / SECS_PER_MIN;
@@ -130,7 +137,7 @@ void testTimeDiff(const char *sExpected, time_t time1, time_t time2) {
   Serial.print("', actual '");
   Serial.print(sActual);
   Serial.print("'");
-  
+
   /* ... removed, this will print bogus numbers, dunno why ...
   char msg[256];
   snprintf(msg, sizeof(msg), "Time difference: from %d to %d is %d sec / %d min / %d hr / %d days, expected '%s', actual '%s'",
@@ -143,48 +150,51 @@ void testTimeDiff(const char *sExpected, time_t time1, time_t time2) {
   } else {
     Serial.println(" <-- Unequal");
   }
+  return fails;
 }
 
 // =============================================================
 // verify calculating time differences into human-friendly text
-void verifyCalcTimeDiff() {
+int verifyCalcTimeDiff() {
   // goal to truncate fractional units to 1 decimal place (not rounding up)
   // ie, don't show "2.0 hours" until elapsed time is exactly 120 minutes or more
   Serial.print("-------- verifyCalcTimeDiff() at line ");
   Serial.println(__LINE__);
+  int r = 0;
 
   //         expected, time1, time2
-  testTimeDiff("30s", now(), now() + 30);
-  testTimeDiff("59s", now(), now() + 60 - 1);                   // < 1 minute
-  testTimeDiff("1m", now(), now() + 60 + 0);                    // = 1 minute
-  testTimeDiff("1m", now(), now() + 60 + 1);                    // > 1 minute
-  testTimeDiff("1m", now(), now() + 60 + 30);                   // 1.5 minutes
-  testTimeDiff("5m", now(), now() + 60 * 5);                    // 5 minutes
-  testTimeDiff("59m", now(), now() + 60 * 60 - 1);              // < 1 hour
-  testTimeDiff("60m", now(), now() + 60 * 60 + 0);              // = 1 hour
-  testTimeDiff("60m", now(), now() + 60 * 60 + 1);              // > 1 hour
-  testTimeDiff("89m", now(), now() + 60 * 90 - 1);              // < 90 minutes
-  testTimeDiff("90m", now(), now() + 60 * 90 + 0);              // = 90 minutes
-  testTimeDiff("90m", now(), now() + 60 * 90 + 1);              // > 90 minutes
-  testTimeDiff("1.6h", now(), now() + 60 * 99);                 // 99 minutes fractional hours, e.g. "47.9h" up to two days
-  testTimeDiff("1.9h", now(), now() + 60 * 118);                // < 2 hours
-  testTimeDiff("1.9h", now(), now() + 60 * 119);                // < 2 hours
-  testTimeDiff("2.0h", now(), now() + 60 * 120);                // = 2 hours
-  testTimeDiff("3.0h", now(), now() + 60 * 60 * 3);             // 3 hours
-  testTimeDiff("12.0h", now(), now() + 60 * 60 * 12);           // 12 hours
-  testTimeDiff("24.0h", now(), now() + 60 * 60 * 24);            // 24 hours
-  testTimeDiff("47.9h", now(), now() + SECS_PER_DAY * 2 - 1);   // < 2 days
-  testTimeDiff("2.0d", now(), now() + SECS_PER_DAY * 2 + 0);    // = 2 days
-  testTimeDiff("2.0d", now(), now() + SECS_PER_DAY * 2 + 1);    // > 2 days
-  testTimeDiff("2.1d", now(), now() + SECS_PER_DAY * 2 + SECS_PER_DAY / 10);
-  testTimeDiff("99.0d", now(), now() + SECS_PER_DAY * 99);
-  testTimeDiff("99.9d", now(), now() + SECS_PER_DAY * 99 + SECS_PER_DAY * 9 / 10);
-  testTimeDiff("100d", now(), now() + SECS_PER_DAY * 100);
-  testTimeDiff("200d", now(), now() + SECS_PER_DAY * 200);
-  testTimeDiff("999d", now(), now() + SECS_PER_DAY * 999);     // 999 days = 2.7 years
-  testTimeDiff("9999d", now(), now() + SECS_PER_DAY * 9999);   // 9999 days = 27.4 years
-  // testTimeDiff("30s", now(), now() + 29);   // should fail
-  // testTimeDiff("30s", now(), now() - 30);   // should fail
+  r += testTimeDiff("30s", now(), now() + 30);
+  r += testTimeDiff("59s", now(), now() + 60 - 1);                   // < 1 minute
+  r += testTimeDiff("1m", now(), now() + 60 + 0);                    // = 1 minute
+  r += testTimeDiff("1m", now(), now() + 60 + 1);                    // > 1 minute
+  r += testTimeDiff("1m", now(), now() + 60 + 30);                   // 1.5 minutes
+  r += testTimeDiff("5m", now(), now() + 60 * 5);                    // 5 minutes
+  r += testTimeDiff("59m", now(), now() + 60 * 60 - 1);              // < 1 hour
+  r += testTimeDiff("60m", now(), now() + 60 * 60 + 0);              // = 1 hour
+  r += testTimeDiff("60m", now(), now() + 60 * 60 + 1);              // > 1 hour
+  r += testTimeDiff("89m", now(), now() + 60 * 90 - 1);              // < 90 minutes
+  r += testTimeDiff("90m", now(), now() + 60 * 90 + 0);              // = 90 minutes
+  r += testTimeDiff("90m", now(), now() + 60 * 90 + 1);              // > 90 minutes
+  r += testTimeDiff("1.6h", now(), now() + 60 * 99);                 // 99 minutes fractional hours, e.g. "47.9h" up to two days
+  r += testTimeDiff("1.9h", now(), now() + 60 * 118);                // < 2 hours
+  r += testTimeDiff("1.9h", now(), now() + 60 * 119);                // < 2 hours
+  r += testTimeDiff("2.0h", now(), now() + 60 * 120);                // = 2 hours
+  r += testTimeDiff("3.0h", now(), now() + 60 * 60 * 3);             // 3 hours
+  r += testTimeDiff("12.0h", now(), now() + 60 * 60 * 12);           // 12 hours
+  r += testTimeDiff("24.0h", now(), now() + 60 * 60 * 24);           // 24 hours
+  r += testTimeDiff("47.9h", now(), now() + SECS_PER_DAY * 2 - 1);   // < 2 days
+  r += testTimeDiff("2.0d", now(), now() + SECS_PER_DAY * 2 + 0);    // = 2 days
+  r += testTimeDiff("2.0d", now(), now() + SECS_PER_DAY * 2 + 1);    // > 2 days
+  r += testTimeDiff("2.1d", now(), now() + SECS_PER_DAY * 2 + SECS_PER_DAY / 10);
+  r += testTimeDiff("99.0d", now(), now() + SECS_PER_DAY * 99);
+  r += testTimeDiff("99.9d", now(), now() + SECS_PER_DAY * 99 + SECS_PER_DAY * 9 / 10);
+  r += testTimeDiff("100d", now(), now() + SECS_PER_DAY * 100);
+  r += testTimeDiff("200d", now(), now() + SECS_PER_DAY * 200);
+  r += testTimeDiff("999d", now(), now() + SECS_PER_DAY * 999);     // 999 days = 2.7 years
+  r += testTimeDiff("9999d", now(), now() + SECS_PER_DAY * 9999);   // 9999 days = 27.4 years
+  // r += testTimeDiff("30s", now(), now() + 29);   // should fail
+  // r += testTimeDiff("30s", now(), now() - 30);   // should fail
+  return r;
 }
 
 // =============================================================
@@ -223,11 +233,30 @@ void testNextGridLineWest(float fExpected, double fLongitude) {
   }
 }
 
+void testCalcLocator4(const char *sExpected, double lat, double lon) {
+  // unit test helper function to display results
+  char sResult[7];   // strlen("CN87") = 4
+  grid.calcLocator(sResult, lat, lon, 4);
+  Serial.print("testCalcLocator4: given (");
+  Serial.print(lat, 4);
+  Serial.print(",");
+  Serial.print(lon, 4);
+  Serial.print(") expected = ");
+  Serial.print(sExpected);
+  Serial.print(", gResult = ");
+  Serial.print(sResult);
+  if (strcmp(sResult, sExpected) == 0) {
+    Serial.println("");
+  } else {
+    Serial.println(" <-- Unequal");
+  }
+}
+
 void testCalcLocator6(const char *sExpected, double lat, double lon) {
   // unit test helper function to display results
   char sResult[7];   // strlen("CN87us") = 6
   grid.calcLocator(sResult, lat, lon, 6);
-  Serial.print("Test: given (");
+  Serial.print("testCalcLocator6: given (");
   Serial.print(lat, 4);
   Serial.print(",");
   Serial.print(lon, 4);
@@ -246,7 +275,11 @@ void testCalcLocator8(const char *sExpected, double lat, double lon) {
   // unit test helper function to display results
   char sResult[9];   // strlen("CN87us00") = 8
   grid.calcLocator(sResult, lat, lon, 8);
-  Serial.print("Test: expected = ");
+  Serial.print("testCalcLocator8: ");
+  Serial.print(lat, 4);
+  Serial.print(",");
+  Serial.print(lon, 4);
+  Serial.print(") expected = ");
   Serial.print(sExpected);
   Serial.print(", gResult = ");
   Serial.print(sResult);
@@ -551,6 +584,17 @@ void verifyDerivingGridSquare() {
   Serial.println(__LINE__);
 
   // Expected values from: https://www.movable-type.co.uk/scripts/latlong.html
+  //              expected    lat       long
+  testCalcLocator4("AA00", -89.5, -179.0);      // south pole
+  testCalcLocator4("BC12", -67.5, -157.0);      // southern ocean
+  testCalcLocator4("FD64", -55.222, -67.385);   // southern tip of south america
+  testCalcLocator4("LG89", -20.519, 57.962);    // mauritius island
+  testCalcLocator4("JP99", 69.635, 18.558);     // tromso, norway
+  //              expected     lat        long
+  testCalcLocator4("CN87", 47.001, -123.999);   // sw corner of CN87 is CN87aa00
+  testCalcLocator4("CN87", 47.999, -123.999);   // se corner of CN87 is CN87ax09
+  testCalcLocator4("CN87", 47.001, -122.001);   // nw corner of CN87 is CN87xa90
+  testCalcLocator4("CN87", 47.999, -122.001);   // ne corner of CN87 is CN87xx99
   //              expected     lat        long
   testCalcLocator6("CN87us", 47.753000, -122.28470);    // read console log for failure messages
   testCalcLocator6("CN85uk", 45.4231, -122.2847);       //
@@ -559,12 +603,27 @@ void verifyDerivingGridSquare() {
   testCalcLocator6("FD54oq", -55.315349, -68.794971);   // -,-
   testCalcLocator6("PM85ge", 35.205535, 136.565790);    // +,+
   //              expected     lat        long
-  testCalcLocator8("CN87us00", 47.753000, -122.28470);    // read console log for failure messages
-  testCalcLocator8("CN85uk00", 45.4231, -122.2847);       //
-  testCalcLocator8("EM66pd00", 36.165926, -86.723285);    // +,-
-  testCalcLocator8("OF86cx00", -33.014673, 116.230695);   // -,+
-  testCalcLocator8("FD54oq00", -55.315349, -68.794971);   // -,-
-  testCalcLocator8("PM85ge00", 35.205535, 136.565790);    // +,+
+  testCalcLocator8("CN87us00", 47.75191, -122.329514);    // read console log for failure messages
+  testCalcLocator8("CN87us10", 47.75191, -122.321181);    //
+  testCalcLocator8("CN87us90", 47.75191, -122.254514);    //
+  testCalcLocator8("CN87us01", 47.756076, -122.329514);   //
+  testCalcLocator8("CN87us09", 47.78941, -122.329514);    //
+  //              expected     lat        long
+  testCalcLocator8("CN87us91", 47.756076, -122.254514);   // read console log for failure messages
+  testCalcLocator8("CN87us92", 47.760243, -122.254514);   //
+  testCalcLocator8("CN87us93", 47.764410, -122.254514);   //
+  testCalcLocator8("CN87us94", 47.768576, -122.254514);   //
+  testCalcLocator8("CN87us95", 47.772743, -122.254514);   //
+  testCalcLocator8("CN87us96", 47.776910, -122.254514);   //
+  testCalcLocator8("CN87us97", 47.781076, -122.254514);   //
+  testCalcLocator8("CN87us98", 47.784243, -122.254514);   //
+  testCalcLocator8("CN87us99", 47.789410, -122.254514);   //
+  //              expected     lat        long
+  testCalcLocator8("CN85uk51", 45.4231, -122.2847);       // read console log for failure messages
+  testCalcLocator8("EM66pd39", 36.165926, -86.723285);    // +,-
+  testCalcLocator8("OF86cx76", -33.014673, 116.230695);   // -,+
+  testCalcLocator8("FD54oq44", -55.315349, -68.794971);   // -,-
+  testCalcLocator8("PM85ge79", 35.205535, 136.565790);    // +,+
 }
 // =============================================================
 // verify computing distance
@@ -633,28 +692,30 @@ void runUnitTest() {
   tft.print("  --Open console monitor to see unit test results--");
   delay(1000);
 
-  verifyNMEAtime();             // verify conversions from GPS' time (NMEA) to time_t
-  countDown(5);                 //
-  verifyCalcTimeDiff();         // verify human-friendly time intervals
-  countDown(5);                 //
-  // verifyWritingProportionalFont();   // verify writing proportional font
-  verifyMorseCode();            // verify Morse code
-  verifySaveRestoreVolume();    // verify save/restore an integer setting in SDRAM
-  countDown(5);                 //
-  verifySaveRestoreArray();     // verify save/restore an array in SDRAM
-  countDown(5);                 //
-  // verifySaveRestoreGPSModel();   // verify save/restore GPS model state in SDRAM
-  // countDown(5);                  //
-  verifyBreadCrumbs();          // verify pushpins near the four corners
-  countDown(5);                 //
-  //verifyBreadCrumbTrail1();     // verify painting the bread crumb trail
-  //countDown(5);                 //
-  //verifyBreadCrumbTrail2();     // verify painting the bread crumb trail
-  //countDown(5);                 //
-  // verifySaveTrail();         // save GPS route to non-volatile memory
-  // countDown(5);              //
-  // verifyRestoreTrail();      // restore GPS route from non-volatile memory
-  // countDown(5);              //
+  /* ... ok 12/4/2022 ...
+  ... */
+  int f = 0;
+  f += verifyNMEAtime();         // verify conversions from GPS' time (NMEA) to time_t
+  countDown(5);                  //
+  f += verifyCalcTimeDiff();     // verify human-friendly time intervals
+  countDown(5);                  //
+  verifyMorseCode();             // verify Morse code
+  verifySaveRestoreVolume();     // verify save/restore an integer setting in SDRAM
+  countDown(5);                  //
+  verifySaveRestoreArray();      // verify save/restore an array in SDRAM
+  countDown(5);                  //
+  verifySaveRestoreGPSModel();   // verify save/restore GPS model state in SDRAM
+  countDown(5);                  //
+  verifyBreadCrumbs();           // verify pushpins near the four corners
+  countDown(5);                  //
+  // verifyBreadCrumbTrail1();     // verify painting the bread crumb trail
+  // countDown(5);                 //
+  // verifyBreadCrumbTrail2();     // verify painting the bread crumb trail
+  // countDown(5);                 //
+  //  verifySaveTrail();         // save GPS route to non-volatile memory
+  //  countDown(5);              //
+  //  verifyRestoreTrail();      // restore GPS route from non-volatile memory
+  //  countDown(5);              //
   verifyDerivingGridSquare();   // verify deriving grid square from lat-long coordinates
   countDown(5);                 //
   verifyComputingDistance();    // verify computing distance
@@ -663,6 +724,11 @@ void runUnitTest() {
 
   model->clearHistory();   // clean up our mess after unit test
 
+  if (f) {
+    Serial.println("====================");
+    Serial.print(f);
+    Serial.println(" failures");
+  }
   Serial.print("-------- End Unit Test at line ");
   Serial.println(__LINE__);
 }
