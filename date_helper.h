@@ -26,8 +26,9 @@ public:
     // Similar to ISO-8601 format but without "T" in front of time
     // Example 1:
     //      char sDate[24];
-    //      datetimeToString( sDate, sizeof(sDate), now() );
+    //      datetimeToString( sDate, sizeof(sDate), now(), " GMT" );
     //      Serial.println( sDate );
+    //      --> "2022-12-3 08:07 GMT"
     // Example 2:
     //      char sDate[24];
     //      Serial.print("The current date is ");
@@ -38,9 +39,19 @@ public:
              hour(tm), minute(tm), second(tm));
     return msg;
   }
+  char *datetimeToString(char *msg, int len, time_t tm, const char* suffix) {
+    datetimeToString(msg, len, tm);
+    strncat(msg, suffix, len-1);
+    return msg;
+  }
 
   char *dateToString(char *msg, int len, time_t tm) {
     snprintf(msg, len, "%04d-%d-%d", year(tm), month(tm), day(tm));
+    return msg;
+  }
+  char *dateToString(char *msg, int len, time_t tm, const char* suffix) {
+    dateToString(msg, len, tm);
+    strncat(msg, suffix, len-1);
     return msg;
   }
 
@@ -48,8 +59,13 @@ public:
     snprintf(msg, len, "%02d:%02d:%02d", hour(tm), minute(tm), second(tm));
     return msg;
   }
+  char *timeToString(char *msg, int len, time_t tm, const char *suffix) {
+    timeToString(msg, len, tm);
+    strncat(msg, suffix, len-1);
+    return msg;
+  }
 
-  // Does the GPS real-time clock contain a valid date?
+  // Did the GPS real-time clock report a valid date?
   bool isDateValid(int yy, int mm, int dd) {
     bool valid = true;
     if (yy < 20) {
