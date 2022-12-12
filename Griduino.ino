@@ -750,6 +750,9 @@ void setup() {
   }
 
   // ----- init barometer
+#if defined(ARDUINO_PICO_REVISION)
+  // nothing - RP2040 has no barometric pressure sensor
+#else
   if (baroModel.begin()) {
     // success
   } else {
@@ -761,6 +764,7 @@ void setup() {
     tft.println("Error!\n Unable to init\n  BMP388 sensor\n   check wiring");
     delay(5000);
   }
+#endif
 
   // ----- all done with setup, show opening view screen
   pView = &gridView;
