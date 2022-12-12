@@ -105,6 +105,12 @@
 #include "cfg_volume.h"               // config volume level
 
 // ---------- extern
+extern "C" {
+  #include <hardware/watchdog.h>
+  #include <hardware/resets.h>
+  #include <pico/bootrom.h>
+}
+
 extern bool newScreenTap(Point* pPoint);       // Touch.cpp
 extern uint16_t myPressure(void);              // Touch.cpp
 void initTouchScreen(void);                    // Touch.cpp
@@ -184,12 +190,14 @@ DACMorseSender dacMorse(DAC_PIN, gFrequency, gWordsPerMinute);
 // ============== Touchable spots on all screens ===============
 Rect areaGear { {0,                 0},  {gScreenWidth * 2/5, gScreenHeight * 1/3}};
 Rect areaArrow{ {gScreenWidth *3/5, 0},  {gScreenWidth * 2/5, gScreenHeight * 1/3}};
-Rect areaBrite{ {0,gScreenHeight *2/3},  {gScreenWidth,      (gScreenHeight * 1/3)-1}};
+Rect areaReboot{{0,gScreenHeight *2/3},  {gScreenWidth * 2/5, gScreenHeight * 1/3}};
+Rect areaBrite{ {gScreenWidth *3/5,gScreenHeight *2/3},  {gScreenWidth *2/5, (gScreenHeight * 1/3)-1}};
 
 void showDefaultTouchTargets() {
   if (showTouchTargets) {
     tft.drawRect(areaGear.ul.x,areaGear.ul.y,   areaGear.size.x, areaGear.size.y,  ILI9341_MAGENTA);
     tft.drawRect(areaArrow.ul.x,areaArrow.ul.y, areaArrow.size.x,areaArrow.size.y, ILI9341_MAGENTA);
+    tft.drawRect(areaReboot.ul.x,areaReboot.ul.y, areaReboot.size.x,areaReboot.size.y, ILI9341_MAGENTA);
     tft.drawRect(areaBrite.ul.x,areaBrite.ul.y, areaBrite.size.x,areaBrite.size.y, ILI9341_MAGENTA);
   }
 }
@@ -432,6 +440,30 @@ void adjustBrightness() {
   int brightness = gaBrightness[gCurrentBrightnessIndex];
   analogWrite(TFT_BL, brightness);
 }
+
+void rebootGriduino() {               // reboot to USB for software update
+  Serial.println("---> REBOOTING");   // the end of the world is nigh
+  delay(100);                         // allow time for Serial to send message
+
+  const int left = 32;  // x: left text edge
+  const int top = 40;   // y: top text row
+  tft.fillScreen(cBACKGROUND);
+  tft.setCursor(80, top);
+  tft.setTextColor(cLABEL);
+  setFontSize(12);
+  tft.println("Griduino Reboot");
+  tft.setCursor(left, top + 2*28);
+  tft.println("Check your external drives");
+  tft.setCursor(left, top + 3*28);
+  tft.println("and look for RPI-RP2.");
+  tft.setCursor(left, top + 4*28);
+  tft.println("Copy a UF2 file there.");
+  delay(1000);
+
+  multicore_reset_core1();
+  multicore_launch_core1(0);
+  reset_usb_boot(0, 0);
+} 
 
 void sendMorseLostSignal() {
   // commented out -- this occurs too frequently and is distracting
@@ -893,7 +925,7 @@ void loop() {
   if (newScreenTap(&touch)) {
 
     if (showTouchTargets) {
-      showWhereTouched(touch);        // debug: show where touched
+      showWhereTouched(touch);   // debug: show where touched
     }
 
     bool touchHandled = pView->onTouch(touch);
@@ -901,11 +933,13 @@ void loop() {
     if (!touchHandled) {
       // not handled by one of the views, so run our default action
       if (areaGear.contains(touch)) {
-          selectNewView(GOTO_SETTINGS);   // advance to next settings view
+        selectNewView(GOTO_SETTINGS);   // advance to next settings view
       } else if (areaArrow.contains(touch)) {
-          selectNewView(GOTO_NEXT_VIEW);  // advance to next normal user view
+        selectNewView(GOTO_NEXT_VIEW);   // advance to next normal user view
+      } else if (areaReboot.contains(touch)) {
+        rebootGriduino();           // reboot to USB for software update
       } else if (areaBrite.contains(touch)) {
-        adjustBrightness();               // change brightness
+        adjustBrightness();   // change brightness
       } else {
         // nothing to do
       }

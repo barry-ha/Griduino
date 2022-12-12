@@ -15,10 +15,10 @@
             |  Settings   |     Tap for next view       |
             |             |                             |
             |-------------+-----------------------------|
-            |                                           |
-            |      Tap to change brightness             |
-            |                                           |
-            +-------------------------------------------+
+            |             |                             |
+            |   Reboot    |  Tap to change brightness   |
+            |             |                             |
+            +-------------+-----------------------------+
 */
 
 #include <Adafruit_ILI9341.h>   // TFT color display library
@@ -51,23 +51,29 @@ protected:
   const int margin = 10;   // slight margin between button border and edge of screen
   const int radius = 10;   // rounded corners on buttons
 
-  // these are names for the array indexes, must be named in same order as array below
+  // ----- screen text
+  // names for the array indexes, must be named in same order as array below
   enum txtIndex {
     SETTINGS = 0,
     NEXTVIEW,
+    REBOOT,
     BRIGHTNESS,
     VIEWNAME,
   };
 
+// ----- static screen text
 // const int cl = gScreenWidth/2;
-#define nHelpButtons 3
+// clang-format off
+#define nHelpButtons 4
   Button helpButtons[nHelpButtons] = {
-      //       text                x,y             w,h      r      color
-      {"Settings", margin, margin, 98, 105, radius, cBUTTONLABEL},                   //[SETTINGS]
-      {"Tap for next view", margin + 108, margin, 192, 105, radius, cBUTTONLABEL},   //[NEXTVIEW]
-      {"Tap for brightness", margin, 126, 300, 105, radius, cBUTTONLABEL},           //[BRIGHTNESS]
-                                                                                     //{"Hint",             cl-38,4,            76,26, radius/2, cHIGHLIGHT }, //[VIEWNAME]
+      //       text       x,y                w,h      r      color
+      {"Settings",   margin,       margin,  98, 105, radius, cBUTTONLABEL},   //[SETTINGS]
+      {"Next view",  margin + 108, margin, 192, 105, radius, cBUTTONLABEL},   //[NEXTVIEW]
+      {"Reboot",     margin,       126,     98, 105, radius, cBUTTONLABEL},   //[REBOOT]
+      {"Brightness", margin + 108, 126,    192, 105, radius, cBUTTONLABEL},   //[BRIGHTNESS]
+    //{"Hint",       cl-38, 4,              76,  26, radius/2, cHIGHLIGHT }, //[VIEWNAME]
   };
+// clang-format on
 
 };   // end class ViewHelp
 

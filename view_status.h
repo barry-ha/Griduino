@@ -37,7 +37,6 @@ extern Logger logger;                                                           
 extern Grids grid;                                                                   // grid_helper.h
 extern Model *model;                                                                 // "model" portion of model-view-controller
 void floatToCharArray(char *result, int maxlen, double fValue, int decimalPlaces);   // Griduino.ino
-
 extern void showDefaultTouchTargets();   // Griduino.ino
 
 // ========== class ViewStatus =================================
@@ -187,14 +186,14 @@ void ViewStatus::startScreen() {
 
   drawAllIcons();              // draw gear (settings) and arrow (next screen)
   showDefaultTouchTargets();   // optionally draw boxes around button-touch area
-  // showMyTouchTargets(Buttons, nButtons);   // no buttons on "Grid Size and Scale" view
+  showMyTouchTargets(0, 0);    // no real buttons on this view
   showScreenBorder();          // optionally outline visible area
   showScreenCenterline();      // optionally draw visual alignment bar
 
   // ----- draw fields that have static text
   txtValues[TITLE].print();
   txtValues[SCALE_LABEL].print();
-  updateScreen();   // fill in values immediately, don't wait for the main loop to eventually get around to it
+  updateScreen();   // update UI immediately, don't wait for the main loop to eventually get around to it
 }
 
 bool ViewStatus::onTouch(Point touch) {
