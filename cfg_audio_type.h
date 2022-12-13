@@ -18,11 +18,11 @@
             |                                         |
             |                    ( )[ No audio ]      |... yRow3
             |                                         |
-            | v0.36, Apr 6 2021                       |
+            |           v1.11, Dec 13 2022            |... yRow9
             +-----------------------------------------+
 */
 
-#include <Arduino.h>
+//#include <Arduino.h>
 #include <Adafruit_ILI9341.h>   // TFT color display library
 #include "constants.h"          // Griduino constants and colors
 #include "logger.h"             // conditional printing to Serial port
@@ -71,12 +71,12 @@ protected:
   const int yRow1 = 80;                   // "Announcements", "Morse code"
   const int yRow2 = yRow1 + 52;           //                  "Spoken word"
   const int yRow3 = yRow2 + 52;           //                  "No audio"
-  const int yRow9 = gScreenHeight - 12;   // "v0.38, Apr 13 2021"
+  const int yRow9 = gScreenHeight - 12;   // "v1.11, Dec 13 2022"
 
 #define col1    10    // left-adjusted column of text
 #define xButton 160   // indented column of buttons
 
-  // these are names for the array indexes, must be named in same order as array below
+  // names for the array indexes, must be named in same order as array below
   enum txtSettings5 {
     SETTINGS = 0,
     ANNOUNCEMENTS,
@@ -84,6 +84,7 @@ protected:
     COMPILED,
   };
 
+// clang-format off
 #define nTxtSettings5 4
   TextField txtSettings5[nTxtSettings5] = {
       //        text                x, y        color                      enum
@@ -102,6 +103,7 @@ protected:
       {"Spoken word", xButton, yRow2 - 26, 140, 40, {120, yRow2 - 32, 195, 52}, 4, cVALUE, SPEECH},
       {"No audio", xButton, yRow3 - 26, 140, 40, {120, yRow3 - 32, 195, 62}, 4, cVALUE, NO_AUDIO},
   };
+  // clang-format on
 
   // ---------- local functions for this derived class ----------
   void setMorse() {
