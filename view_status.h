@@ -37,7 +37,7 @@ extern Logger logger;                                                           
 extern Grids grid;                                                                   // grid_helper.h
 extern Model *model;                                                                 // "model" portion of model-view-controller
 void floatToCharArray(char *result, int maxlen, double fValue, int decimalPlaces);   // Griduino.ino
-extern void showDefaultTouchTargets();   // Griduino.ino
+extern void showDefaultTouchTargets();                                               // Griduino.ino
 
 // ========== class ViewStatus =================================
 class ViewStatus : public View {
@@ -92,19 +92,21 @@ protected:
   };
 
 // ----- static + dynamic screen text
+// clang-format off
 #define nStatusValues 10
   TextField txtValues[nStatusValues] = {
-      {"Grid Size and Scale", -1, yRow1, cTITLE, ALIGNCENTER, eFONTSMALLEST},   // [TITLE] view title, centered
-      {"CN87:", labelX, yRow3, cLABEL, ALIGNRIGHT, eFONTSMALL},                 // [GRID4]
-      {"101 x 69 mi", valueX, yRow3, cHIGHLIGHT, ALIGNLEFT, eFONTSMALL},        // [SIZE4]
-      {"CN87us:", labelX, yRow4, cLABEL, ALIGNRIGHT, eFONTSMALL},               // [GRID6]
-      {"4.4 x 3.3 mi", valueX, yRow4, cVALUE, ALIGNLEFT, eFONTSMALL},           // [SIZE6]
-      {"Screen:", label2, yRow5, cLABEL, ALIGNRIGHT, eFONTSMALL},               // [SCALE_LABEL]
-      {"1 pixel = 0.7 mi", value2, yRow5, cVALUE, ALIGNLEFT, eFONTSMALL},       // [SCALE]
-      {"Apr 26, 2021", 130, yRow7, cFAINT, ALIGNRIGHT, eFONTSMALLEST},          // [GMT_DATE]
-      {"02:34:56", 148, yRow7, cFAINT, ALIGNLEFT, eFONTSMALLEST},               // [GMT_TIME]
-      {"GMT", 232, yRow7, cFAINT, ALIGNLEFT, eFONTSMALLEST},                    // [GMT]
+      {"Grid Size and Scale",  -1, yRow1, cTITLE,  ALIGNCENTER,  eFONTSMALLEST},   // [TITLE] view title, centered
+      {"CN87:",            labelX, yRow3, cLABEL,  ALIGNRIGHT,   eFONTSMALL},      // [GRID4]
+      {"101 x 69 mi",      valueX, yRow3, cHIGHLIGHT, ALIGNLEFT, eFONTSMALL},      // [SIZE4]
+      {"CN87us:",          labelX, yRow4, cLABEL,  ALIGNRIGHT,   eFONTSMALL},      // [GRID6]
+      {"4.4 x 3.3 mi",     valueX, yRow4, cVALUE,  ALIGNLEFT,    eFONTSMALL},      // [SIZE6]
+      {"Screen:",          label2, yRow5, cLABEL,  ALIGNRIGHT,   eFONTSMALL},      // [SCALE_LABEL]
+      {"1 pixel = 0.7 mi", value2, yRow5, cVALUE,  ALIGNLEFT,    eFONTSMALL},      // [SCALE]
+      {"Apr 26, 2021",        130, yRow7, cFAINT,  ALIGNRIGHT,   eFONTSMALLEST},   // [GMT_DATE]
+      {"02:34:56",            148, yRow7, cFAINT,  ALIGNLEFT,    eFONTSMALLEST},   // [GMT_TIME]
+      {"GMT",                 232, yRow7, cFAINT,  ALIGNLEFT,    eFONTSMALLEST},   // [GMT]
   };
+  // clang-format on
 
 };   // end class ViewStatus
 
@@ -185,7 +187,7 @@ void ViewStatus::startScreen() {
   setFontSize(eFONTSMALL);
 
   drawAllIcons();              // draw gear (settings) and arrow (next screen)
-  showDefaultTouchTargets();   // optionally draw boxes around button-touch area
+  showDefaultTouchTargets();   // optionally draw box around default button-touch areas
   showMyTouchTargets(0, 0);    // no real buttons on this view
   showScreenBorder();          // optionally outline visible area
   showScreenCenterline();      // optionally draw visual alignment bar
