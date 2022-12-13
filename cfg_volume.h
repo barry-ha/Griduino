@@ -42,10 +42,10 @@ extern void announceGrid(String gridName, int len);   // Griduino.ino
 extern DACMorseSender dacMorse;                       // morse code (so we can send audio sample)
 extern DS1804 volume;                                 // digital potentiometer
 #if defined(ARDUINO_PICO_REVISION)
-  // todo - for now, RP2040 has no DAC, no speech, no audio output
+                        // todo - for now, RP2040 has no DAC, no speech, no audio output
 #else
-  #include <Audio_QSPI.h>         // Audio playback library for Arduino, https://github.com/barry-ha/Audio_QSPI
-  extern AudioQSPI dacSpeech;                         // spoken word (so we can play speech sample)
+#include <Audio_QSPI.h>   // Audio playback library for Arduino, https://github.com/barry-ha/Audio_QSPI
+extern AudioQSPI dacSpeech;   // spoken word (so we can play speech sample)
 #endif
 
 // ========== class ViewVolume =================================
@@ -86,17 +86,16 @@ protected:
     MUTELABEL,
   };
 
+// clang-format off
 #define numVolFields 5
   TextField txtVolume[numVolFields] = {
       //  text             x, y    color       alignment    size
-      {"1. Speaker", col1, 20, cHIGHLIGHT, ALIGNCENTER, eFONTSMALLEST},   // [SETTINGS]
-      {"0", 82, yRow2, cVALUE, ALIGNRIGHT, eFONTGIANT},                   // [BIGVOLUME] giant audio volume display
-      {"Audio Volume", 98, yRow1, cLABEL, ALIGNLEFT, eFONTSMALL},         // [LINE1] normal size text labels
-      {"of 10", 98, yRow2, cLABEL, ALIGNLEFT, eFONTSMALL},                // [LINE2]
-      {"  Mute", 208, 156, cBUTTONLABEL, ALIGNLEFT, eFONTSMALL},          // [MUTELABEL]
+      {"1. Speaker",    col1, 20,    cHIGHLIGHT, ALIGNCENTER, eFONTSMALLEST},   // [SETTINGS]
+      {"0",               82, yRow2, cVALUE, ALIGNRIGHT,      eFONTGIANT},      // [BIGVOLUME] giant audio volume display
+      {"Audio Volume",    98, yRow1, cLABEL, ALIGNLEFT,       eFONTSMALL},      // [LINE1] normal size text labels
+      {"of 10",           98, yRow2, cLABEL, ALIGNLEFT,       eFONTSMALL},      // [LINE2]
+      {"  Mute",         208, 156,   cBUTTONLABEL, ALIGNLEFT, eFONTSMALL},      // [MUTELABEL]
   };
-
-  // ----- constants -----
 
   enum functionID {
     UP_ID = 0,
@@ -111,6 +110,7 @@ protected:
       {"", 38, 166, 136, 64, {38, 166, 136, 64}, 10, cBUTTONLABEL, DOWN_ID},    // Down
       {"", 200, 120, 98, 62, {198, 100, 122, 80}, 10, cBUTTONLABEL, MUTE_ID},   // Mute
   };
+  // clang-format on
 
 #define numLevels 11
   const int volLevel[numLevels] = {
@@ -209,11 +209,11 @@ void ViewVolume::startScreen() {
   txtVolume[BIGVOLUME].setBackground(cBACKGROUND);    // set background for all TextFields in this view
   TextField::setTextDirty(txtVolume, numVolFields);   // make sure all fields get re-printed on screen change
 
-  drawAllIcons();              // draw gear (settings) and arrow (next screen)
-  showDefaultTouchTargets();   // optionally draw box around default button-touch areas
+  drawAllIcons();                                // draw gear (settings) and arrow (next screen)
+  showDefaultTouchTargets();                     // optionally draw box around default button-touch areas
   showMyTouchTargets(volButtons, nVolButtons);   // optionally show this view's touch targets
-  showScreenBorder();          // optionally outline visible area
-  showScreenCenterline();      // optionally draw visual alignment bar
+  showScreenBorder();                            // optionally outline visible area
+  showScreenCenterline();                        // optionally draw visual alignment bar
 
   // ----- draw buttons
   for (int ii = 0; ii < nVolButtons; ii++) {
@@ -227,7 +227,6 @@ void ViewVolume::startScreen() {
       tft->setTextColor(cVALUE);
       tft->print(item.text);
     }
-
   }
 
   // ----- draw text fields
