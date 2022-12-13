@@ -91,7 +91,8 @@
 #include "view_date.h"                // counting days to/from special event 
 #include "view_grid_crossings.h"      // show time in grid
 #include "view_help.h"                // help screen
-#include "view_screen1.h"             // boot screen animation
+#include "view_reboot.h"              // confirm reboot operation
+#include "view_screen1.h"             // starting screen animation
 #include "view_splash.h"              // splash screen
 #include "view_status.h"              // status screen 
 #include "view_ten_mile_alert.h"      // microwave rover screen
@@ -105,12 +106,6 @@
 #include "cfg_volume.h"               // config volume level
 
 // ---------- extern
-extern "C" {
-  #include <hardware/watchdog.h>
-  #include <hardware/resets.h>
-  #include <pico/bootrom.h>
-}
-
 extern bool newScreenTap(Point* pPoint);       // Touch.cpp
 extern uint16_t myPressure(void);              // Touch.cpp
 void initTouchScreen(void);                    // Touch.cpp
@@ -188,10 +183,10 @@ DACMorseSender dacMorse(DAC_PIN, gFrequency, gWordsPerMinute);
 
 // 2. Helper Functions
 // ============== Touchable spots on all screens ===============
-Rect areaGear { {0,                 0},  {gScreenWidth * 2/5, gScreenHeight * 1/3}};
-Rect areaArrow{ {gScreenWidth *3/5, 0},  {gScreenWidth * 2/5, gScreenHeight * 1/3}};
-Rect areaReboot{{0,gScreenHeight *2/3},  {gScreenWidth * 2/5, gScreenHeight * 1/3}};
-Rect areaBrite{ {gScreenWidth *3/5,gScreenHeight *2/3},  {gScreenWidth *2/5, (gScreenHeight * 1/3)-1}};
+Rect areaGear { {0,                   0},  {gScreenWidth * 4/10, gScreenHeight * 5/10}};
+Rect areaArrow{ {gScreenWidth *5/10,  0},  {gScreenWidth * 5/10, gScreenHeight * 5/10}};
+Rect areaReboot{{0, gScreenHeight *7/10},  {gScreenWidth * 3/10, gScreenHeight * 3/10}};
+Rect areaBrite{ {gScreenWidth *4/10,gScreenHeight *6/10}, {gScreenWidth *6/10, (gScreenHeight * 4/10)-1}};
 
 void showDefaultTouchTargets() {
   if (showTouchTargets) {
@@ -310,9 +305,10 @@ enum VIEW_INDEX {
   CFG_CROSSING,                       // announce grid crossing 4/6 digit boundaries 
   CFG_AUDIO_TYPE,                     // audio output Morse/speech
   CFG_ROTATION,                       // screen rotation
+  REBOOT_VIEW,                        // confirm reboot
   SCREEN1_VIEW,                       // first bootup screen
   SPLASH_VIEW,                        // startup
-  STATUS_VIEW,
+  STATUS_VIEW,                        // size and scale of this grid
   TEN_MILE_ALERT_VIEW,                // microwave rover view
   TIME_VIEW,
   DATE_VIEW,                          // Groundhog Day, Halloween, or other day-counting screen
@@ -325,6 +321,7 @@ enum VIEW_INDEX {
 /*const*/ int help_view = HELP_VIEW;
 /*const*/ int splash_view = SPLASH_VIEW;
 /*const*/ int screen1_view = SCREEN1_VIEW;
+/*const*/ int grid_view = GRID_VIEW;
 
 // list of objects derived from "class View", in alphabetical order
 View* pView;                          // pointer to a derived class
@@ -340,6 +337,7 @@ ViewDate          dateView(&tft, DATE_VIEW);
 ViewGrid          gridView(&tft, GRID_VIEW);
 ViewGridCrossings gridCrossingsView(&tft, GRID_CROSSINGS_VIEW);
 ViewHelp          helpView(&tft, HELP_VIEW);
+ViewReboot        rebootView(&tft, REBOOT_VIEW);
 ViewScreen1       screen1View(&tft, SCREEN1_VIEW);
 ViewSplash        splashView(&tft, SPLASH_VIEW);
 ViewStatus        statusView(&tft, STATUS_VIEW);
@@ -361,6 +359,7 @@ void selectNewView(int cmd) {
         &cfgCrossing,      // [CFG_CROSSING]
         &cfgAudioType,     // [CFG_AUDIO_TYPE]
         &cfgRotation,      // [CFG_ROTATION]
+        &rebootView,       // [REBOOT_VIEW]
         &screen1View,      // [SCREEN1_VIEW]
         &splashView,       // [SPLASH_VIEW]
         &statusView,       // [STATUS_VIEW]
@@ -440,30 +439,6 @@ void adjustBrightness() {
   int brightness = gaBrightness[gCurrentBrightnessIndex];
   analogWrite(TFT_BL, brightness);
 }
-
-void rebootGriduino() {               // reboot to USB for software update
-  Serial.println("---> REBOOTING");   // the end of the world is nigh
-  delay(100);                         // allow time for Serial to send message
-
-  const int left = 32;  // x: left text edge
-  const int top = 40;   // y: top text row
-  tft.fillScreen(cBACKGROUND);
-  tft.setCursor(80, top);
-  tft.setTextColor(cLABEL);
-  setFontSize(12);
-  tft.println("Griduino Reboot");
-  tft.setCursor(left, top + 2*28);
-  tft.println("Check your external drives");
-  tft.setCursor(left, top + 3*28);
-  tft.println("and look for RPI-RP2.");
-  tft.setCursor(left, top + 4*28);
-  tft.println("Copy a UF2 file there.");
-  delay(1000);
-
-  multicore_reset_core1();
-  multicore_launch_core1(0);
-  reset_usb_boot(0, 0);
-} 
 
 void sendMorseLostSignal() {
   // commented out -- this occurs too frequently and is distracting
@@ -941,7 +916,7 @@ void loop() {
       } else if (areaArrow.contains(touch)) {
         selectNewView(GOTO_NEXT_VIEW);   // advance to next normal user view
       } else if (areaReboot.contains(touch)) {
-        rebootGriduino();           // reboot to USB for software update
+        selectNewView(REBOOT_VIEW);
       } else if (areaBrite.contains(touch)) {
         adjustBrightness();   // change brightness
       } else {
