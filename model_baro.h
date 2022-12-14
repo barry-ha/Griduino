@@ -63,7 +63,7 @@
 
 // ========== extern ===========================================
 extern Logger logger;   // Griduino.ino
-extern Dates date;      // for "dateToString()", Griduino.ino
+extern Dates date;      // for "datetimeToString()", Griduino.ino
 
 // ------------ definitions
 #define MILLIBARS_PER_INCHES_MERCURY (0.02953)
@@ -264,7 +264,7 @@ protected:
           Serial.print(item.pressure);
           Serial.print("  ");
           char msg[24];
-          Serial.println(date.dateToString(msg, sizeof(msg), item.time));   // debug
+          Serial.println(date.datetimeToString(msg, sizeof(msg), item.time));   // debug
         }
       }
     }

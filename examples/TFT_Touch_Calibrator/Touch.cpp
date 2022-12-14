@@ -1,15 +1,14 @@
+// Please format this file with clang before check-in to GitHub
 /*
- * File: Touch.cpp
- * 
- * Purp: Contains the touchscreen code to get it out of the way
+  File:     Touch.cpp
+  Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
+  Hardware: John Vanderbeck, KM7O, Seattle, WA
+
+ * Purpose: Contains the touchscreen code to get it out of the way
  * 
  */
 
-//#include <Wire.h>
-//#include "SPI.h"                    // Serial Peripheral Interface
 #include "Adafruit_GFX.h"           // Core graphics display library
-//#include "Adafruit_ILI9341.h"       // TFT color display library
-//#include "Adafruit_GPS.h"           // Ultimate GPS library
 #include "TouchScreen.h"            // Touchscreen built in to 3.2" Adafruit TFT display
 
 // ---------- constants
@@ -62,8 +61,8 @@ void mapTouchToScreen(TSPoint touch, Point* screen, int orientation) {
 
   // setRotation(1) = landscape orientation = x-,y-axis exchanged
   //          map(value    in_min,in_max, out_min,out_max)
-  screen->x = map(touch.y,  225,825,      0, SCREENWIDTH);
-  screen->y = map(touch.x,  800,300,      0, SCREENHEIGHT);
+  screen->x = map(touch.y,  150,880,      0, SCREENWIDTH);
+  screen->y = map(touch.x,  860,130,      0, SCREENHEIGHT);
   if (orientation == 3) {
     // if display is flipped, then also flip both x,y touchscreen coords
     screen->x = SCREENWIDTH - screen->x;
@@ -118,9 +117,9 @@ uint16_t myPressure(void) {
   digitalWrite(PIN_YP, LOW); pinMode(PIN_YP, INPUT);      // Hi-Z Y+
 
   int z1 = analogRead(PIN_XM);
-  int z2 = 1023-analogRead(PIN_YP);
+  int z2 = 1023 - analogRead(PIN_YP);
 
-  return (uint16_t) ((z1+z2)/2);
+  return (uint16_t)((z1 + z2) / 2);
 }
 
 // "isTouching()" is defined in touch.h but is not implemented Adafruit's TouchScreen library
@@ -129,7 +128,7 @@ uint16_t myPressure(void) {
 bool TouchScreen::isTouching(void) {
   #define TOUCHPRESSURE 200       // Minimum pressure we consider true pressing
   static bool button_state = false;
-  uint16_t pres_val = ::myPressure();
+  uint16_t pres_val        = ::myPressure();
 
   if ((button_state == false) && (pres_val > TOUCHPRESSURE)) {
     Serial.print(". pressed, pressure = "); Serial.println(pres_val);     // debug

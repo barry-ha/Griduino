@@ -46,7 +46,7 @@ public:
   bool print_gmt       = false;   // the time reports are frequent (1 per second) so by default it's off
   bool print_fencepost = true;
   bool print_debug     = true;
-  bool print_info      = false;   // set FALSE for NmeaTime2 by www.visualgps.net
+  bool print_info      = true;   // set FALSE for NmeaTime2 by www.visualgps.net
   bool print_warning   = true;
   bool print_error     = true;
 
@@ -83,7 +83,7 @@ public:
     }
   }
   void fencepost(const char *pModule, const int lineno) {
-    // example output: "Griduino.ino[123] says hi"
+    // example output: "Griduino.ino[123]"
     if (print_fencepost) {
       Serial.print(pModule);
       Serial.print("[");
@@ -92,14 +92,17 @@ public:
     }
   }
   void fencepost(const char *pModule, const char *pSubroutine, const int lineno) {
-    // example output: "----- unit_test.cpp[123] verifyMorseCode()"
+    // This is used extensively in unittest.cpp
+    // example input:  logger.fencepost("unittest.cpp", "subroutineName()", __LINE__);
+    // example output: "----- subroutineName(), unit_test.cpp[123]"
     if (print_fencepost) {
       Serial.print("----- ");
+      Serial.print(pSubroutine);
+      Serial.print(", ");
       Serial.print(pModule);
       Serial.print("[");
       Serial.print(lineno);
-      Serial.print("] ");
-      Serial.println(pSubroutine);
+      Serial.println("] ");
     }
   }
   void info(const char *pText) {   // one string arg

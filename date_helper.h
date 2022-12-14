@@ -20,23 +20,52 @@
 class Dates {
 public:
   // ======== date time helpers =================================
-  char *dateToString(char *msg, int len, time_t datetime) {
-    // utility function to format date:  "2020-9-27 at 11:22:33"
+  char *datetimeToString(char *msg, int len, time_t tm) {
+    // utility function to format date:  "2020-9-27 17:18:19"
+    // Representation is general-to-specific (year first) for sorting
+    // Similar to ISO-8601 format but without "T" in front of time
     // Example 1:
     //      char sDate[24];
-    //      dateToString( sDate, sizeof(sDate), now() );
+    //      datetimeToString( sDate, sizeof(sDate), now(), " GMT" );
     //      Serial.println( sDate );
+    //      --> "2022-12-3 08:07 GMT"
     // Example 2:
     //      char sDate[24];
-    //      Serial.print("The current time is ");
-    //      Serial.println( dateToString(sDate, sizeof(sDate), now()) );
-    snprintf(msg, len, "%d-%d-%d at %02d:%02d:%02d",
-             year(datetime), month(datetime), day(datetime),
-             hour(datetime), minute(datetime), second(datetime));
+    //      Serial.print("The current date is ");
+    //      Serial.print( datetimeToString(sDate, sizeof(sDate), now()) );
+    //      Serial.println(" GMT");
+    snprintf(msg, len, "%04d-%d-%d %02d:%02d:%02d",
+             year(tm), month(tm), day(tm),
+             hour(tm), minute(tm), second(tm));
+    return msg;
+  }
+  char *datetimeToString(char *msg, int len, time_t tm, const char* suffix) {
+    datetimeToString(msg, len, tm);
+    strncat(msg, suffix, len-1);
     return msg;
   }
 
-  // Does the GPS real-time clock contain a valid date?
+  char *dateToString(char *msg, int len, time_t tm) {
+    snprintf(msg, len, "%04d-%d-%d", year(tm), month(tm), day(tm));
+    return msg;
+  }
+  char *dateToString(char *msg, int len, time_t tm, const char* suffix) {
+    dateToString(msg, len, tm);
+    strncat(msg, suffix, len-1);
+    return msg;
+  }
+
+  char *timeToString(char *msg, int len, time_t tm) {
+    snprintf(msg, len, "%02d:%02d:%02d", hour(tm), minute(tm), second(tm));
+    return msg;
+  }
+  char *timeToString(char *msg, int len, time_t tm, const char *suffix) {
+    timeToString(msg, len, tm);
+    strncat(msg, suffix, len-1);
+    return msg;
+  }
+
+  // Did the GPS real-time clock report a valid date?
   bool isDateValid(int yy, int mm, int dd) {
     bool valid = true;
     if (yy < 20) {

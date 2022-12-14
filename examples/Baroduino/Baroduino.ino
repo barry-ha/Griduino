@@ -168,16 +168,16 @@ const int howLongToWait = 10;         // max number of seconds at startup waitin
 #define cWARN           0xF844        // brighter than ILI9341_RED but not pink
 
 // ======== date time helpers =================================
-char* dateToString(char* msg, int len, time_t datetime) {
+char* datetimeToString(char* msg, int len, time_t datetime) {
   // utility function to format date:  "2020-9-27 at 11:22:33"
   // Example 1:
   //      char sDate[24];
-  //      dateToString( sDate, sizeof(sDate), now() );
+  //      datetimeToString( sDate, sizeof(sDate), now() );
   //      Serial.println( sDate );
   // Example 2:
   //      char sDate[24];
   //      Serial.print("The current time is ");
-  //      Serial.println( dateToString(sDate, sizeof(sDate), now()) );
+  //      Serial.println( datetimeToString(sDate, sizeof(sDate), now()) );
   snprintf(msg, len, "%d-%d-%d at %02d:%02d:%02d",
                      year(datetime),month(datetime),day(datetime), 
                      hour(datetime),minute(datetime),second(datetime));
@@ -242,7 +242,7 @@ void initTestStepValues() {
   time_t fakeTime = makeTime(tm);
 
   char sDate[24];                       // strlen("1999-12-31 at 00:11:22") = 22
-  dateToString(sDate, sizeof(sDate), fakeTime);
+  datetimeToString(sDate, sizeof(sDate), fakeTime);
   Serial.print("initTestStepValue() starting date: ");    // debug
   Serial.println(sDate);                                  // debug
 
@@ -634,7 +634,7 @@ void drawGraph() {
   time_t minTime = maxTime - SECS_PER_DAY*3;
 
   char msg[100], sDate[24];
-  dateToString(sDate, sizeof(sDate), today);
+  datetimeToString(sDate, sizeof(sDate), today);
 
   snprintf(msg, sizeof(msg), ". Right now is %d-%d-%d at %02d:%02d:%02d",
                                     year(today),month(today),day(today), 
@@ -676,14 +676,14 @@ void drawGraph() {
       int x1 = map( t1,   minTime,maxTime,  xDay1,xRight);
 
       if (x1 < xDay1) {
-        dateToString(sDate, sizeof(sDate), t1);
+        datetimeToString(sDate, sizeof(sDate), t1);
         snprintf(msg, sizeof(msg), "%d. Ignored: Date x1 (%s = %d) is off left edge of (%d).", 
                                     ii,                  sDate,x1,                   xDay1); 
         Serial.println(msg);          // debug
         continue;
       }
       if (x1 > xRight) {
-        dateToString(sDate, sizeof(sDate), t1);
+        datetimeToString(sDate, sizeof(sDate), t1);
         snprintf(msg, sizeof(msg), "%d. Ignored: Date x1 (%s = %d) is off right edge of (%d).", 
                                     ii,                 sDate, x1,                   xRight); 
         Serial.println(msg);          // debug

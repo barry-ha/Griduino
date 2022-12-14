@@ -139,8 +139,10 @@ public:
     }
   }
   void setColor(uint16_t fgd) {
-    this->color = fgd;
-    this->dirty = true;
+    if (this->color != fgd) {
+      this->color = fgd;
+      this->dirty = true;
+    }
   }
   void setBackground(uint16_t bkg) {
     // Set ALL text fields background color - this is a single static var

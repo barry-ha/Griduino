@@ -62,7 +62,7 @@
 #include "save_restore.h"
 
 // ========== extern ===========================================
-extern char *dateToString(char *msg, int len, time_t datetime);   // Griduino/Baroduino.ino
+extern char *datetimeToString(char *msg, int len, time_t datetime);   // Griduino/Baroduino.ino
 
 // ------------ definitions
 #define MILLIBARS_PER_INCHES_MERCURY (0.02953)
@@ -249,7 +249,7 @@ protected:
         Serial.print(item.pressure);
         Serial.print("  ");
         char msg[24];
-        Serial.println(dateToString(msg, sizeof(msg), item.time));   // debug
+        Serial.println(datetimeToString(msg, sizeof(msg), item.time));   // debug
       }
     }
     return;

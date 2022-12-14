@@ -138,7 +138,7 @@ On-board lights:
 
 // ---------- neopixel
 #define NUMPIXELS 1   // Feather M4 has one NeoPixel on board
-// efine PIN_NEOPIXEL 8     // already defined in Feather's board variant.h
+// define PIN_NEOPIXEL 8     // already defined in Feather's board variant.h
 
 // ---------- Digital potentiometer
 // Adafruit Feather M4 Express pin definitions
