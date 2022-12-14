@@ -184,11 +184,11 @@ These components are outside of Arduino's Library Manager, so follow these links
 
 <h2 id=serialconsole>7. How to Use a Serial Console</h2>
 
-You can download GPS tracks from Griduino without the Arduino IDE. There are some common "serial terminal" programs that can interact directly with Griduino's console interface over the USB connection. Here's how.
+You can download GPS tracks from Griduino without the Arduino IDE. There are some common "serial terminal" programs that can interact directly with Griduino's console interface over the USB connection.
 
-We've tested both PuTTY (https://www.putty.org/) and Tera Term (https://tera-term.en.lo4d.com). They both work similarly.
+We recommend Tera Term (https://tera-term.en.lo4d.com). Although we tested PuTTY (https://www.putty.org/), it randomly fails to chunks of text from Griduino. Use Tera Term instead.
 
-Here's how to use Tera Term to capture the breadcrumb trail in both KML and CSV format. PuTTY is very similar.
+How to use Tera Term to capture the breadcrumb trail in both KML and CSV format:
 
 1. Run Tera Term
 1. New connection window:
@@ -206,8 +206,11 @@ Here's how to use Tera Term to capture the breadcrumb trail in both KML and CSV 
 	1. Edit <i>griduino.log</i>
 	1. Keep only from \<xml\> to \</xml\>
 	1. Save as <i>griduino.<b>kml</b></i>
+	1. Edit <i>griduino.log</i> again
+	1. Keep only from "Record, Grid, Lat, Long, Date GMT" <br/>to last line e.g. "101, CN97ct, 47.8128,-121.8053, 11-17-2022  17:57:0"
+	1. Save as <i>griduino.<b>csv</b></i>
 	
-Now you can open <i>griduino.kml</i> in Google Earth or another KML viewer.
+Now you can open <i>griduino.kml</i> in Google Earth and <i>griduino.csv</i> in Microsoft XML.
 
 
 <h2 id=disclaimer>8. Disclaimer</h2>
