@@ -89,7 +89,7 @@
 #include "view_altimeter.h"           // altimeter
 #include "view_baro.h"                // barometric pressure graph
 #include "view_date.h"                // counting days to/from special event 
-#include "view_grid_crossings.h"      // show time in grid
+#include "view_grid_crossings.h"      // list of time spent in each grid
 #include "view_help.h"                // help screen
 #include "view_reboot.h"              // confirm reboot operation
 #include "view_screen1.h"             // starting screen animation
