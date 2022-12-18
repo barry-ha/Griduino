@@ -56,7 +56,7 @@ Command cmdList[] = {
     {"start gmt", start_gmt, Newline},
     {"stop gmt", stop_gmt, 0},
 
-    {"view help", view_help, 0},
+    {"view help", view_help, Newline},
     {"view splash", view_splash, 0},
     {"view screen1", view_screen1, 0},
 
