@@ -322,6 +322,7 @@ enum VIEW_INDEX {
 /*const*/ int splash_view = SPLASH_VIEW;
 /*const*/ int screen1_view = SCREEN1_VIEW;
 /*const*/ int grid_view = GRID_VIEW;
+/*const*/ int goto_next_view = GOTO_NEXT_VIEW;
 
 // list of objects derived from "class View", in alphabetical order
 View* pView;                          // pointer to a derived class
@@ -374,6 +375,8 @@ void selectNewView(int cmd) {
   if (cmd == GOTO_NEXT_VIEW) {
     // operator requested the next NORMAL user view
     switch (currentView) {
+      case SCREEN1_VIEW:   nextView = SPLASH_VIEW; break;
+      case SPLASH_VIEW:    nextView = GRID_VIEW; break;
       case GRID_VIEW:      nextView = GRID_CROSSINGS_VIEW; break;
       case GRID_CROSSINGS_VIEW: nextView= TEN_MILE_ALERT_VIEW; break;
       case TEN_MILE_ALERT_VIEW: nextView = BARO_VIEW; break;
@@ -420,7 +423,11 @@ void waitForSerial(int howLong) {
   // and the operator takes awhile to restart the IDE console (Tools > Serial Monitor)
   // so give them a few seconds for this to settle before sending messages to IDE
 
+  pView = &screen1View;
   screen1View.startScreen();
+  while (pView == &screen1View) {
+    screen1View.updateScreen();
+  }  
 }
 
 //==============================================================
@@ -438,6 +445,7 @@ void adjustBrightness() {
   gCurrentBrightnessIndex = (gCurrentBrightnessIndex + 1) % gNumLevels;
   int brightness = gaBrightness[gCurrentBrightnessIndex];
   analogWrite(TFT_BL, brightness);
+  logger.info("Set brightness %d", brightness);
 }
 
 void sendMorseLostSignal() {
