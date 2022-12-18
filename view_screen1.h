@@ -43,6 +43,7 @@
 // ========== extern ===========================================
 extern Logger logger;                    // Griduino.ino
 extern void showDefaultTouchTargets();   // Griduino.ino
+extern int goto_next_view;               // Griduino.ino
 
 // ========== class ViewScreen1 =================================
 class ViewScreen1 : public View {
@@ -56,9 +57,51 @@ public:
   bool onTouch(Point touch);
 
 protected:
+  const int w = gScreenWidth;
+  const int h = gScreenHeight;
+
+  // Starburst variables
+  const int maxFullScreens    = 4;   // max number of full screens to show before we're done
+  const int numStarsPerScreen = 4;   // number of stars (pinwheels) per full screen
+  int starNum;                       // count 0..numStarsPerScreen
+  int starDelay;                     // msec delay after each full screen to admire display
+  int countFullScreens;              // count 0..maxFullScreens
+  const int maxStarLoops = 4;
+  void startStarburst(int totalDelayMsec) {
+    starNum          = 0;                               // how many stars have been drawn on this screen
+    starDelay        = totalDelayMsec / maxStarLoops;   // msec delay between full screens
+    countFullScreens = 0;                               // how many screens have been filled
+  }
+  bool continueStarburst() {
+    // divide up our screen updates into small units that are called frequently from updateScreen()
+    // this allows us to check Touch() and other events
+    // keep track of our own state
+    switch (starNum) {
+    case 0:
+      this->clearScreen(this->background);                         // clear screen
+      pinwheel(random(0, w / 2), random(0, h / 2), ILI9341_RED);   // ul
+      starNum++;
+      break;
+    case 1:
+      pinwheel(random(w / 2, w), random(0, h / 2), ILI9341_GREEN);   // ur
+      starNum++;
+      break;
+    case 2:
+      pinwheel(random(w / 2, w), random(h / 2, h), ILI9341_YELLOW);   // lr
+      starNum++;
+      break;
+    case 3:
+      pinwheel(random(0, w / 2), random(h / 2, h), ILI9341_CYAN);   // ll
+      delay(starDelay);
+      starNum = 0;          // reset counter
+      countFullScreens++;   // finished another screen full of stars
+      break;
+    }
+    bool finished = (countFullScreens > maxStarLoops);
+    return finished;
+  }
+  /*
   void starburst(int totalDelayMsec) {
-    int w        = gScreenWidth;
-    int h        = gScreenHeight;
     int numLoops = 4;
     for (int ii = 0; ii < numLoops; ii++) {
       this->clearScreen(this->background);                            // clear screen
@@ -69,6 +112,7 @@ protected:
       delay(totalDelayMsec / numLoops);
     }
   }
+  */
   void pinwheel(int x0, int y0, uint16_t color) {
     // draw a starburst with arbitrary origin x0,y0
     // and evenly-spaced lines
@@ -124,14 +168,17 @@ protected:
 
 // ============== implement public interface ================
 void ViewScreen1::updateScreen() {
-  // called on every pass through main()
-  // nothing to do in the main loop - this screen has no dynamic items
+  bool allDone = continueStarburst();
+  if (allDone) {
+    selectNewView(goto_next_view);
+  }
 }
 
 void ViewScreen1::startScreen() {
   // called once during bootup, and optionally via console command
   // goal is to waste 6-8 seconds while looking busy
-  starburst(6000);
+  startStarburst(6000);
+  // starburst(6000);
   // timeTunnel(10000);
 
   showDefaultTouchTargets();   // optionally draw box around default button-touch areas
@@ -143,8 +190,9 @@ void ViewScreen1::startScreen() {
 }
 
 bool ViewScreen1::onTouch(Point touch) {
-  // do nothing - this screen does not respond to buttons
+  // todo - when stars are all finished, change view to next thing in list
   logger.info("->->-> Touched screen1.");
-  return false;   // true=handled, false=controller uses default action
+  selectNewView(goto_next_view);   // any touch anywhere, exit this decorator view
+  return true;                     // true=handled, false=controller uses default action
 
 }   // end onTouch()
