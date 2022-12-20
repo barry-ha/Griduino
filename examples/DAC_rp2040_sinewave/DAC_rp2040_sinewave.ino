@@ -11,21 +11,20 @@
   Based on: sinewave.pde, Adafruit Industries, license BSD (see license.txt)
   https://github.com/adafruit/Adafruit_MCP4725/blob/master/examples/sinewave/sinewave.ino
 
-  This is an example sketch for the Adafruit MCP4725 breakout board
-  ----> http://www.adafruit.com/products/935
+  Adapted from Adafruit MCP4725: http://www.adafruit.com/products/935
 */
 /**************************************************************************/
 
-#include <Wire.h>  // defines "Wire1" as an instance of "Class TwoWire"
-#include <Adafruit_MCP4725.h>
+#include <Wire.h>   // defines "Wire1" as an instance of "Class TwoWire"
+#include <Adafruit_MCP4725.h>   // class definition for MCP4725 attached by I2C
 
 Adafruit_MCP4725 dac;
 
 // ------- Identity for splash screen and console --------
-#define PROGRAM_TITLE "Generate waveforms with the MCP4725 DAC on v6 Griduino"
-#define PROGRAM_VERSION "v1.11"
-#define PROGRAM_LINE1 "Barry K7BWH"
-#define PROGRAM_LINE2 "John KM7O"
+#define PROGRAM_TITLE    "Generate waveforms with the MCP4725 DAC on v6 Griduino"
+#define PROGRAM_VERSION  "v1.11"
+#define PROGRAM_LINE1    "Barry K7BWH"
+#define PROGRAM_LINE2    "John KM7O"
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
 
 // ============== constants ====================================
@@ -59,12 +58,12 @@ const int Sine64[64] = {2048, 2248, 2447, 2642, 2831, 3013, 3185, 3346,
 
 //=========== setup ============================================
 void setup(void) {
-  delay(10000);  // wait for Serial console
+  delay(10000);   // wait for Serial console
 
   // now that Serial is ready and connected (or we gave up)...
-  Serial.println(PROGRAM_TITLE " " PROGRAM_VERSION);  // Report our program name to console
-  Serial.println("Compiled " PROGRAM_COMPILED);       // Report our compiled date
-  Serial.println(__FILE__);                           // Report our source code file name
+  Serial.println(PROGRAM_TITLE " " PROGRAM_VERSION);   // Report our program name to console
+  Serial.println("Compiled " PROGRAM_COMPILED);        // Report our compiled date
+  Serial.println(__FILE__);                            // Report our source code file name
 
 #if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
   Serial.println("Compiled for Adafruit Feather RP2040 (product id 4884)");
@@ -83,7 +82,7 @@ void setup(void) {
   // ----------------------------------------------------------------
   // Known bug in hardware causes actual I2C bus frequency to be 2x the requested.
   // So the maximum usable number is (3,400,000 Hz / 2) = 1,700,000
-  const int MY_I2C_FREQ = 1700000;  // I2C clock frequency
+  const int MY_I2C_FREQ = 1700000;   // I2C clock frequency
 
   /* ...
   Serial.print("Generating a wave using I2C frequency ");
@@ -112,9 +111,9 @@ void setup(void) {
   // ----------------------------------------------------------------
   // Test 2: Select sidetone and measure results to compute a multiplier
   // ----------------------------------------------------------------
-  const int SIDETONE = 800;                 // 800 Hz sidetone
-  const int MULTIPLIER = 2085;
-  const int CW_I2C_FREQ = SIDETONE * MULTIPLIER;  // I2C clock frequency
+  const int SIDETONE    = 800;   // 800 Hz sidetone
+  const int MULTIPLIER  = 2085;
+  const int CW_I2C_FREQ = SIDETONE * MULTIPLIER;   // I2C clock frequency
   // *1000 yields 483 Hz with sine32()
   // *2000 yields 779 Hz with sine32()
   // *2040 yields 795 Hz with sine32()
