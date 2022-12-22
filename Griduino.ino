@@ -436,17 +436,38 @@ void waitForSerial(int howLong) {
 //      This is MVC (model-view-controller) design pattern
 //
 //==============================================================
-// ----- adjust screen brightness
-const int gNumLevels = 3;
-const int gaBrightness[gNumLevels] = { 255, 80, 20 }; // global array of preselected brightness
-int gCurrentBrightnessIndex = 0;      // current brightness
+#if defined(ARDUINO_PICO_REVISION)
+// ----- adjust screen brightness: Feather RP2040
+const int gNumLevels               = 3;
+const int gaBrightness[gNumLevels] = {100, 50, 15};   // global array of preselected brightness
+int gCurrentBrightnessIndex        = 0;               // current brightness
+float frequency                    = 10000;
+float dutyCycle                    = 100;
+
+#include "RP2040_PWM.h"
+RP2040_PWM PWM_backlight           = RP2040_PWM(TFT_BL, frequency, dutyCycle);
+
 void adjustBrightness() {
   // increment display brightness
-  gCurrentBrightnessIndex = (gCurrentBrightnessIndex + 1) % gNumLevels;
-  int brightness = gaBrightness[gCurrentBrightnessIndex];
-  analogWrite(TFT_BL, brightness);
+  gCurrentBrightnessIndex = (gCurrentBrightnessIndex + 1) % gNumLevels;   // incr index
+  int brightness          = gaBrightness[gCurrentBrightnessIndex];        // look up brightness
+  PWM_backlight.setPWM(TFT_BL, frequency, brightness);                    // write to hardware
   logger.info("Set brightness %d", brightness);
 }
+#else
+// ----- adjust screen brightness: Feather M4
+const int gNumLevels               = 3;
+const int gaBrightness[gNumLevels] = {255, 80, 20};   // global array of preselected brightness
+int gCurrentBrightnessIndex        = 0;               // current brightness
+
+void adjustBrightness() {
+  // increment display brightness
+  gCurrentBrightnessIndex = (gCurrentBrightnessIndex + 1) % gNumLevels;   // incr index
+  int brightness          = gaBrightness[gCurrentBrightnessIndex];        // look up brightness
+  analogWrite(TFT_BL, brightness);                                        // write to hardware
+  logger.info("Set brightness %d", brightness);
+}
+#endif
 
 void sendMorseLostSignal() {
   // commented out -- this occurs too frequently and is distracting
