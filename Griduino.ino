@@ -587,6 +587,7 @@ void setup() {
   tft.fillScreen(ILI9341_BLACK);      // note that "begin()" does not clear screen
 
   // ----- init TFT backlight
+  pinMode(A0, INPUT);                 // Griduino v6 uses pin A0 (DAC0) to measure 3v coin battery; don't load down the pin
   pinMode(TFT_BL, OUTPUT);
   analogWrite(TFT_BL, 255);           // start at full brightness
 

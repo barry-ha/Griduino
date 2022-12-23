@@ -29,7 +29,9 @@
 class DACMorseSender {
 public:
   DACMorseSender(int outputPin, int iFreq, float fWPM) {}
-  void setup() {}
+  void setup() {
+    pinMode(A0, INPUT);   // Griduino v6 uses DAC0 (A0) to measure 3v coin battery; don't load down the pin
+  }
   void setMessage(const String newMessage) {}
   void sendBlocking() {}
   void unit_test() {}
