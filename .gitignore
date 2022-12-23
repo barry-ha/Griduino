@@ -7,8 +7,9 @@
 # because fu*kn github marks ALL files by default
 # and github jeniuses don't wanna give us the option
 # https://github.com/desktop/desktop/issues/1788
-*.bin 
-*.psd 
+*.bin
+*.json
+*.psd
 *.xlsx
 build/
 datasheets/
