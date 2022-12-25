@@ -55,6 +55,7 @@ public:
   bool gMetric        = false;   // distance reported in miles(false), kilometers(true)
   int gTimeZone       = -7;      // default local time Pacific (-7 hours)
   bool compare4digits = true;    // true=4 digit, false=6 digit comparisons
+  int gpsBattery      = 1023;    // measured coin battery ADC sample
 
   float gSeaLevelPressure = DEFAULT_SEALEVEL_HPA;   // todo - unused by 'model_gps.h', delete me
 
@@ -84,7 +85,7 @@ public:
 
   // ========== load/save config setting =========================
   const char MODEL_FILE[25] = CONFIG_FOLDER "/gpsmodel.cfg";   // CONFIG_FOLDER
-  const char MODEL_VERS[15] = "GPS Data v1";                   // <-- always change version when changing model data
+  const char MODEL_VERS[15] = "GPS Data v2";                   // <-- always change version when changing model data
 
   const char HISTORY_FILE[25]    = CONFIG_FOLDER "/gpshistory.csv";   // CONFIG_FOLDER
   const char HISTORY_VERSION[25] = "GPS Breadcrumb Trail v1";         // <-- always change version when changing data format
@@ -320,6 +321,7 @@ public:
     gTimeZone         = from.gTimeZone;           // offset from GMT to local time
     compare4digits    = from.compare4digits;      //
     gSeaLevelPressure = from.gSeaLevelPressure;   // hPa
+    gpsBattery        = from.gpsBattery;          // measured coin battery ADC sample
   }
 
   // sanity check data from NVR
@@ -363,6 +365,7 @@ public:
     gSatellites = GPS.satellites;
     gSpeed      = GPS.speed * mphPerKnots;
     gAngle      = GPS.angle;
+    gpsBattery  = analogRead(A0);
   }
 
   // the Model will update its internal state on a schedule determined by the Controller
