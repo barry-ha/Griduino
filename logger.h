@@ -42,7 +42,7 @@ enum {
 class Logger {
 
 public:
-  bool print_nmea      = true;    // set TRUE for NmeaTime2 by www.visualgps.net
+  bool print_nmea      = false;   // set TRUE for NmeaTime2 by www.visualgps.net
   bool print_gmt       = false;   // the time reports are frequent (1 per second) so by default it's off
   bool print_fencepost = true;
   bool print_debug     = true;
