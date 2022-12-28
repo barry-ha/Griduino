@@ -3,6 +3,7 @@
   File: Flash_file_directory_list.ino
 
   Version history:
+            2022-12-27 migrated Feather M4 program into RP2040 + LittleFS
             2022-06-05 refactored pin definitions into hardware.h
             2021-03-16 created, based on old unfinished Griduino_v9\examples\DAC_play_wav_from_SD_v2
             which, in turn, was based on Adafruit's full featured example
@@ -10,25 +11,32 @@
 
   Author:   Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
 
-  Purpose:  List the file system contents of Feather M4's onboard 2MB Quad-SPI Flash chip
-            This example ignores the MicroSD Card slot on the ILI9341 TFT Display
-            and ONLY examines the file system on the 2MB Flash memory.
-           This is a rather simple program that only reports at root and first folder levels.
+  Purpose:  List the file system contents of Feather RP2040 onboard 8MB flash memory.
+            Contrary to the Feather M4, the new RP2040 has a single 8MB memory
+            space shared for both program and files. You must allocate and
+            partition this memory (to 4MB each) in the Arduino IDE.
+            This is simple program only reports at root and first folder levels.
 
+  LittleFS docs:
+            https://github.com/earlephilhower/arduino-pico-littlefs-plugin
+            https://github.com/littlefs-project/littlefs/blob/master/SPEC.md
+            https://github.com/littlefs-project/littlefs/blob/master/DESIGN.md
+            C:\Users\barry\AppData\Local\Arduino15\packages\rp2040\hardware\rp2040\2.6.5\libraries\LittleFS\src\LittleFS.h
+            C:\Users\barry\AppData\Local\Arduino15\packages\rp2040\hardware\rp2040\2.6.5\cores\rp2040\FSImpl.h
   SD file system docs:
             https://www.arduino.cc/en/Reference/SD
 
   Tested with:
-         1. Arduino Feather M4 Express (120 MHz SAMD51)
+         1. Arduino Feather RP2040 (133 MHz dual-core M0)
             Spec: https://www.adafruit.com/product/3857
 
 */
 
-#include <Adafruit_ILI9341.h>    // TFT color display library
-#include "LittleFS.h" // LittleFS is declared
-//#include <SdFat.h>               // for FAT file systems on Flash and Micro SD cards
-#include <Adafruit_SPIFlash.h>   // for FAT file systems on SPI flash chips
-#include "hardware.h"            // Griduino pin definitions
+#include <Adafruit_ILI9341.h>   // TFT color display library
+#include "LittleFS.h"           // LittleFS is declared
+// #include <SdFat.h>               // for FAT file systems on Flash and Micro SD cards
+// #include <Adafruit_SPIFlash.h>   // for FAT file systems on SPI flash chips
+#include "hardware.h"   // Griduino pin definitions
 
 // ------- Identity for splash screen and console --------
 #define EXAMPLE_TITLE    "Flash File Directory List"
@@ -46,8 +54,8 @@ Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 
 // SD card share the hardware SPI interface with TFT display, and have
 // separate 'select' pins to identify the active device on the bus.
-const int chipSelectPin = 7;
-const int chipDetectPin = 8;
+// const int chipSelectPin = 7; // no "chip select" used with rp2040 memory space
+// const int chipDetectPin = 8;
 
 // ------------ definitions
 const int howLongToWait = 6;   // max number of seconds at startup waiting for Serial port to console
@@ -63,9 +71,10 @@ const int howLongToWait = 6;   // max number of seconds at startup waiting for S
 #define cWARN       0xF844           // brighter than ILI9341_RED but not pink
 
 // ------------ global scope
-Adafruit_FlashTransport_QSPI gFlashTransport;   // Quad-SPI 2MB memory chip
-Adafruit_SPIFlash gFlash(&gFlashTransport);     //
-FatFileSystem gFatfs;                           // file system object from SdFat
+// Adafruit_FlashTransport_QSPI gFlashTransport;   // Quad-SPI 2MB memory chip
+// Adafruit_SPIFlash gFlash(&gFlashTransport);     //
+// FatFileSystem gFatfs;                           // file system object from SdFat
+// LittleFS fs;                                       // file system object from LittleFS is declared in "LittleFS.h"
 
 // ========== splash screen ====================================
 const int xLabel    = 8;   // indent labels, slight margin on left edge of screen
@@ -151,6 +160,13 @@ void waitForSerial(int howLong) {
 int openFlash() {
   // returns 1=success, 0=failure
 
+#if defined(ARDUINO_PICO_REVISION)
+  if (!LittleFS.begin()) {   // Start LittleFS
+    Serial.println("An Error has occurred while mounting LittleFS");
+    delay(500);
+    return 0;   // indicate error
+  }
+#else
   // Initialize flash library and check its chip ID.
   if (!gFlash.begin()) {
     showErrorMessage("Error, failed to initialize onboard memory.");
@@ -166,6 +182,7 @@ int openFlash() {
     showErrorMessage("Was the flash chip formatted with the SdFat_format example?");
     return 0;
   }
+#endif
   Serial.println(". Mounted flash filesystem");
   return 1;   // success
 }
@@ -175,7 +192,8 @@ void listLevel2(const char *folder) {
   // Open a subdirectory to list all its children (files and folders)
   bool okay = true;   // assume success
   Serial.println(folder);
-  File mydir = gFatfs.open(folder);
+  //File mydir = gFatfs.open(folder);
+  File mydir = LittleFS.open(folder, "r");
   if (!mydir) {
     showErrorMessage("Error, failed to open subfolder");
   }
@@ -183,7 +201,8 @@ void listLevel2(const char *folder) {
   int count = 1;
   while (kid2 && okay) {
     char filename[64];
-    kid2.getName(filename, sizeof(filename));
+    //kid2.getName(filename, sizeof(filename));
+    strncpy(filename, kid2.name(), sizeof(filename));
     if (strlen(filename) == 0) {
       Serial.println("   Empty filename, time to return");
       okay = false;
@@ -209,8 +228,8 @@ void listLevel2(const char *folder) {
 // ----- iterate files at root level
 int listFiles() {
   // Open the root folder to list top-level children (files and directories).
-  int rc       = 1;   // assume success
-  File testDir = gFatfs.open("/");
+  int rc       = 1;              // assume success
+  File testDir = LittleFS.open("/", "r");   //
   if (!testDir) {
     showErrorMessage("Error, failed to open root directory");
     rc = 0;
@@ -226,7 +245,8 @@ int listFiles() {
     File child = testDir.openNextFile();
     while (child && rc > 0) {
       char filename[64];
-      child.getName(filename, sizeof(filename));
+      //child.getName(filename, sizeof(filename));
+      strncpy(filename, child.name(), sizeof(filename));
 
       if (strlen(filename) == 0) {
         Serial.println("Empty filename, so time to return");
@@ -283,8 +303,9 @@ void setup() {
   Serial.println(__FILE__);                            // Report our source code file name
 
   // ----- look for memory card
+  /* ...
   Serial.print("Detecting if FLASH memory is available, using pin ");
-  Serial.print(chipDetectPin);
+  Serial.print(chipDetectPin);   // todo
   Serial.println(" ... ");
   pinMode(chipDetectPin, INPUT_PULLUP);               // use internal pullup resistor
   bool isCardDetected = digitalRead(chipDetectPin);   // HIGH = no card; LOW = card detected
@@ -293,6 +314,7 @@ void setup() {
   } else {
     Serial.println(". Failed - no memory chip found");
   }
+  ... */
 
   // ----- Do The Thing
   Serial.println("Initializing Flash memory interface...");
