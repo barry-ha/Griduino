@@ -34,7 +34,7 @@
 // ========== extern ===========================================
 extern Logger logger;   // Griduino.ino
 
-#if defined(ARDUINO_PICO_REVISION)    // temporarily stubbed out 'save/restore' code because of 'File' vs 'SDFile' errors
+#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)    // temporarily stubbed out 'save/restore' code because of 'File' vs 'SDFile' errors
 class SaveRestore {
 public:
   SaveRestore(const char *vFilename, const char *vVersion) {}

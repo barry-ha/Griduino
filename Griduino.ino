@@ -173,7 +173,7 @@ const int howLongToWait = 6;          // max number of seconds at startup waitin
 DACMorseSender dacMorse(DAC_PIN, gFrequency, gWordsPerMinute);
 
 // ----------- Speech PCM Audio Playback
-#if defined(ARDUINO_PICO_REVISION)
+#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
   // todo - for now, RP2040 has no DAC, no speech, no audio output
 #else
   #include <Audio_QSPI.h>               // Audio playback library for Arduino
@@ -436,7 +436,7 @@ void waitForSerial(int howLong) {
 //      This is MVC (model-view-controller) design pattern
 //
 //==============================================================
-#if defined(ARDUINO_PICO_REVISION)
+#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
 // ----- adjust screen brightness: Feather RP2040
 const int gNumLevels               = 3;
 const int gaBrightness[gNumLevels] = {100, 50, 15};   // global array of preselected brightness
@@ -485,7 +485,7 @@ void announceGrid(const String gridName, int length) {
   grid[length] = 0;   // null-terminate string to requested 4- or 6-character length
   Serial.print("Announcing grid: "); Serial.println(grid);
 
-#if defined(ARDUINO_PICO_REVISION)
+#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
   // todo - for now, RP2040 has no DAC, no audio, no speech
 #else
   switch (cfgAudioType.selectedAudio) {
@@ -552,7 +552,7 @@ void sayGrid(const char *name) {
   Serial.print("Say ");
   Serial.println(name);
 
-#if defined(ARDUINO_PICO_REVISION)
+#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
   // todo - for now, RP2040 has no DAC, no audio, no speech
 #else
   for (int ii = 0; ii < strlen(name); ii++) {
@@ -755,7 +755,7 @@ void setup() {
   }
 
   // ----- init barometer
-#if defined(ARDUINO_PICO_REVISION)
+#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
   // nothing - RP2040 has no barometric pressure sensor
 #else
   if (baroModel.begin()) {

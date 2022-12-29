@@ -77,7 +77,7 @@ void setup() {
   Serial.println(__FILE__);                            // Report our source code file name
 
   // ----- init BMP388 or BMP390 barometer
-#if defined(ARDUINO_PICO_REVISION)
+#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
   bool initialized = bmp.begin_I2C(BMP3XX_DEFAULT_ADDRESS, &Wire1);
 #else
   bool initialized = bmp.begin_SPI(BMP_CS);

@@ -102,7 +102,7 @@ public:
   int begin(void) {
     int rc = 1;   // assume success
                   // logger.fencepost("model_baro.h", __LINE__);
-#if defined(ARDUINO_PICO_REVISION)
+#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
     bool initialized = baro->begin_I2C(BMP3XX_DEFAULT_ADDRESS, &Wire1);   // Griduino v6 pcb
 #else
     bool initialized = baro->begin_SPI(bmp_cs);   // Griduino v4 pcb

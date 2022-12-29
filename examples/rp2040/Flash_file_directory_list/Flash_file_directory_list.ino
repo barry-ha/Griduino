@@ -160,7 +160,7 @@ void waitForSerial(int howLong) {
 int openFlash() {
   // returns 1=success, 0=failure
 
-#if defined(ARDUINO_PICO_REVISION)
+#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
   if (!LittleFS.begin()) {   // Start LittleFS
     Serial.println("An Error has occurred while mounting LittleFS");
     delay(500);

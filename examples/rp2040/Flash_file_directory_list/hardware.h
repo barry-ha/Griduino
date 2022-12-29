@@ -68,7 +68,9 @@ On-board lights:
 #define SD_CD  10   // SD card detect pin - Feather
 #define SD_CCS 11   // SD card select pin - Feather
 
-#elif defined(ARDUINO_PICO_REVISION)
+//#elif defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
+#elif defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
+#warning ----- Compiling for Arduino Feather RP2040 -----
 // Ref: https://arduino-pico.readthedocs.io/en/latest/index.html
 //warning ----- Compiling for Arduino Pico RP2040 -----
 // Adafruit Feather_RP2040 pin definitions
@@ -100,7 +102,7 @@ On-board lights:
 #define Y_MIN_OHMS 110   // Expected range on touchscreen's Y-axis readings
 #define Y_MAX_OHMS 860
 
-#if defined(ARDUINO_PICO_REVISION)
+#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
   // ---------- Touch Screen pins - Adafruit Feather RP2040
   #define PIN_XM A2   // Touchscreen X- must be an analog pin, use "An" notation
   #define PIN_YP A3   // Touchscreen Y+ must be an analog pin, use "An" notation
@@ -121,7 +123,7 @@ On-board lights:
 #endif
 
 // ---------- Feather RP2040 onboard led
-#if defined(ARDUINO_PICO_REVISION)
+#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
 #define RED_LED 25  // diagnostics RED LED
 #else
 #define RED_LED 13   // diagnostics RED LED

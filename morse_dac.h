@@ -23,7 +23,7 @@
 #define PROSIGN_MIM 'C'   // comma
 #define PROSIGN_AAA '.'   // period
 
-#if defined(ARDUINO_PICO_REVISION)
+#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
 // todo - for now, RP2040 has no DAC, no audio, no speech
 // ========== class DACMorsender ==================================
 class DACMorseSender {
@@ -108,4 +108,4 @@ public:
 private:
   void send(char c);
 };   // end class DACMorseSender
-#endif  // ARDUINO_PICO_REVISION
+#endif  // ARDUINO_ADAFRUIT_FEATHER_RP2040

@@ -65,6 +65,21 @@ void deleteData() {
   Serial.println("Data Deleted");
 }
 
+// ----- Flash FS helper -----
+int openFlash() {
+  // returns 1=success, 0=failure
+
+  if (!LittleFS.begin()) {   // Start LittleFS
+    Serial.println("An Error has occurred while mounting LittleFS");
+    Serial.println("Mounting Error");
+    delay(500);
+    return 0;  // indicate error
+  }
+  Serial.println(". Mounted flash filesystem");
+  return 1;
+  }
+}
+
 //=========== setup ============================================
 void setup() {
   Serial.begin(115200);
@@ -78,12 +93,7 @@ void setup() {
 
   delay(1000);
 
-  if (!LittleFS.begin()) {   // Start LittleFS
-    Serial.println("An Error has occurred while mounting LittleFS");
-    Serial.println("Mounting Error");
-    delay(1000);
-    return;
-  }
+  openflash();
 
   Serial.print(DATA_FILE);
   if (LittleFS.exists(DATA_FILE)) {
