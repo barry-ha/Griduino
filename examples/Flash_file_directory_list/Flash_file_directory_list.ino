@@ -13,22 +13,21 @@
   Purpose:  List the file system contents of Feather M4's onboard 2MB Quad-SPI Flash chip
             This example ignores the MicroSD Card slot on the ILI9341 TFT Display
             and ONLY examines the file system on the 2MB Flash memory.
-           This is a rather simple program that only reports at root and first folder levels.
+            This is a rather simple program that only reports at root and first folder levels.
 
   SD file system docs:
             https://www.arduino.cc/en/Reference/SD
 
   Tested with:
-         1. Arduino Feather M4 Express (120 MHz SAMD51)
-            Spec: https://www.adafruit.com/product/3857
+         1. Adafruit Feather M4 Express   https://www.adafruit.com/product/3857
 
 */
 
-#include <Adafruit_ILI9341.h>    // TFT color display library
-#include "LittleFS.h" // LittleFS is declared
-//#include <SdFat.h>               // for FAT file systems on Flash and Micro SD cards
+#include <Adafruit_ILI9341.h>   // TFT color display library
+// #include "LittleFS.h"            // LittleFS is declared
+#include <SdFat.h>               // for FAT file systems on Flash and Micro SD cards
 #include <Adafruit_SPIFlash.h>   // for FAT file systems on SPI flash chips
-#include "hardware.h"            // Griduino pin definitions
+#include "hardware.h"            // Griduino pins for TFT
 
 // ------- Identity for splash screen and console --------
 #define EXAMPLE_TITLE    "Flash File Directory List"
@@ -46,7 +45,6 @@ Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 
 // SD card share the hardware SPI interface with TFT display, and have
 // separate 'select' pins to identify the active device on the bus.
-const int chipSelectPin = 7;
 const int chipDetectPin = 8;
 
 // ------------ definitions
@@ -62,10 +60,12 @@ const int howLongToWait = 6;   // max number of seconds at startup waiting for S
 #define cHIGHLIGHT  ILI9341_WHITE    //
 #define cWARN       0xF844           // brighter than ILI9341_RED but not pink
 
-// ------------ global scope
+// ------------ Flash File System
+// clang-format off
 Adafruit_FlashTransport_QSPI gFlashTransport;   // Quad-SPI 2MB memory chip
 Adafruit_SPIFlash gFlash(&gFlashTransport);     //
 FatFileSystem gFatfs;                           // file system object from SdFat
+// clang-format on
 
 // ========== splash screen ====================================
 const int xLabel    = 8;   // indent labels, slight margin on left edge of screen
@@ -74,7 +74,9 @@ const int rowHeight = 12;
 int gCurrentY       = yRow1;
 
 void startSplashScreen() {
+  clearScreen();
   tft.setTextSize(1);
+  gCurrentY = yRow1;
 
   tft.setCursor(xLabel, gCurrentY);
   tft.setTextColor(cTEXTCOLOR, cBACKGROUND);
@@ -153,7 +155,7 @@ int openFlash() {
 
   // Initialize flash library and check its chip ID.
   if (!gFlash.begin()) {
-    showErrorMessage("Error, failed to initialize onboard memory.");
+    showErrorMessage("Error, failed to initialize onboard flash memory.");
     return 0;
   }
   Serial.print(". Flash chip JEDEC ID: 0x");
@@ -162,9 +164,10 @@ int openFlash() {
   // First call begin to mount the filesystem.  Check that it returns true
   // to make sure the filesystem was mounted.
   if (!gFatfs.begin(&gFlash)) {
-    showErrorMessage("Error, failed to mount filesystem");
-    showErrorMessage("Was the flash chip formatted with the SdFat_format example?");
-    return 0;
+    showErrorMessage("Error, failed to mount SdFat filesystem");
+    showErrorMessage("  Was the flash chip formatted with the SdFat_format example?");
+    showErrorMessage("  Was CircuitPython installed at least once?");
+    return 0;   // indicate error
   }
   Serial.println(". Mounted flash filesystem");
   return 1;   // success
@@ -175,15 +178,15 @@ void listLevel2(const char *folder) {
   // Open a subdirectory to list all its children (files and folders)
   bool okay = true;   // assume success
   Serial.println(folder);
-  File mydir = gFatfs.open(folder);
+  File mydir = gFatfs.open(folder);   // SdFat
   if (!mydir) {
     showErrorMessage("Error, failed to open subfolder");
   }
-  File kid2 = mydir.openNextFile();
+  File kid2 = mydir.openNextFile();   // SdFat
   int count = 1;
   while (kid2 && okay) {
     char filename[64];
-    kid2.getName(filename, sizeof(filename));
+    kid2.getName(filename, sizeof(filename));   // SdFat
     if (strlen(filename) == 0) {
       Serial.println("   Empty filename, time to return");
       okay = false;
@@ -206,11 +209,12 @@ void listLevel2(const char *folder) {
     }
   }
 }
+
 // ----- iterate files at root level
 int listFiles() {
   // Open the root folder to list top-level children (files and directories).
-  int rc       = 1;   // assume success
-  File testDir = gFatfs.open("/");
+  int rc       = 1;                  // assume success
+  File testDir = gFatfs.open("/");   // SdFat
   if (!testDir) {
     showErrorMessage("Error, failed to open root directory");
     rc = 0;
@@ -226,7 +230,7 @@ int listFiles() {
     File child = testDir.openNextFile();
     while (child && rc > 0) {
       char filename[64];
-      child.getName(filename, sizeof(filename));
+      child.getName(filename, sizeof(filename));   // SdFat
 
       if (strlen(filename) == 0) {
         Serial.println("Empty filename, so time to return");
@@ -293,16 +297,16 @@ void setup() {
   } else {
     Serial.println(". Failed - no memory chip found");
   }
-
-  // ----- Do The Thing
-  Serial.println("Initializing Flash memory interface...");
-  int result = openFlash();   // open file system
-  result     = listFiles();   // list all files in the file system
-  Serial.println("All done.");
 }
 
 //=========== main work loop ===================================
 void loop() {
+
+  // ----- Do The Thing
+  startSplashScreen();
+  if (openFlash()) {   // open file system
+    listFiles();       // list all files in the file system
+  }
 
   for (int ii = 30; ii--; ii <= 0) {
     Serial.print(ii);
@@ -310,12 +314,4 @@ void loop() {
     delay(1000);
   }
   Serial.println(" ");
-  clearScreen();   // note that "begin()" does not clear screen
-  gCurrentY = yRow1;
-
-  // ----- Do The Thing
-  Serial.println("Initializing Flash memory interface...");
-  int result = openFlash();   // open file system
-  result     = listFiles();   // list all files in the file system
-  Serial.println("All done.");
 }
