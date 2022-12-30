@@ -1,4 +1,16 @@
 // Please format this file with clang before check-in to GitHub
+
+#define SDFAT_M4          // Pick one, recompile
+//#define SDFAT_RP2040      // Pick one, recompile
+//#define LITTLEFS_RP2040   // Pick one, recompile
+
+/*Context:  We are evaluating three different flash file systems:
+            1. SdFat for Feather M4         #define SDFAT_M4
+            2. SdFat for Feather RP2040     #define SDFAT_RP2040
+            3. LittleFS for Feather RP2040  #define LITTLEFS_RP2040
+            This example program can be compiled three different ways.
+            The "#if" statements are complicated but serve to highlight code changes.
+*/
 /*
   File: Flash_file_directory_list.ino
 
@@ -18,25 +30,39 @@
             This is simple program only reports at root and first folder levels.
 
   LittleFS docs:
-            https://github.com/earlephilhower/arduino-pico-littlefs-plugin
             https://github.com/littlefs-project/littlefs/blob/master/SPEC.md
             https://github.com/littlefs-project/littlefs/blob/master/DESIGN.md
-            C:\Users\barry\AppData\Local\Arduino15\packages\rp2040\hardware\rp2040\2.6.5\libraries\LittleFS\src\LittleFS.h
-            C:\Users\barry\AppData\Local\Arduino15\packages\rp2040\hardware\rp2040\2.6.5\cores\rp2040\FSImpl.h
+            https://github.com/earlephilhower/arduino-pico-littlefs-plugin
+            %LocalAppData%\Arduino15\packages\rp2040\hardware\rp2040\2.6.5\libraries\LittleFS\src\LittleFS.h
+            %LocalAppData%\Arduino15\packages\rp2040\hardware\rp2040\2.6.5\cores\rp2040\FSImpl.h
   SD file system docs:
             https://www.arduino.cc/en/Reference/SD
 
   Tested with:
-         1. Arduino Feather RP2040 (133 MHz dual-core M0)
-            Spec: https://www.adafruit.com/product/3857
+         1. Adafruit Feather M4 Express   https://www.adafruit.com/product/3857
+         2. Adafruit Feather RP2040       https://www.adafruit.com/product/3857
 
 */
 
-#include <Adafruit_ILI9341.h>   // TFT color display library
-#include "LittleFS.h"           // LittleFS is declared
-// #include <SdFat.h>               // for FAT file systems on Flash and Micro SD cards
-// #include <Adafruit_SPIFlash.h>   // for FAT file systems on SPI flash chips
-#include "hardware.h"   // Griduino pin definitions
+// clang-format off
+#if defined(SDFAT_M4)
+  #include <SdFat.h>               // for FAT file systems on Flash and Micro SD cards
+  #include <Adafruit_SPIFlash.h>   // for FAT file systems on SPI flash chips
+
+#elif defined(SDFAT_RP2040)
+  #include <SdFat.h>               // for FAT file systems on Flash and Micro SD cards
+  #include <Adafruit_SPIFlash.h>   // for FAT file systems on SPI flash chips
+
+#elif defined(LITTLEFS_RP2040)
+  #include "LittleFS.h"            // LittleFS is declared
+
+#else
+  #error Choose your #define test case. 
+#endif
+// clang-format on
+
+#include <Adafruit_ILI9341.h>    // TFT color display library
+#include "hardware.h"            // Griduino pins for TFT
 
 // ------- Identity for splash screen and console --------
 #define EXAMPLE_TITLE    "Flash File Directory List"
@@ -46,16 +72,12 @@
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
 #define PROGRAM_FILE     __FILE__
 
-// ---------- Hardware Wiring ----------
-// Same as Griduino platform - see hardware.h
-
 // ---------- TFT Display
 Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 
 // SD card share the hardware SPI interface with TFT display, and have
 // separate 'select' pins to identify the active device on the bus.
-// const int chipSelectPin = 7; // no "chip select" used with rp2040 memory space
-// const int chipDetectPin = 8;
+const int chipDetectPin = 8;
 
 // ------------ definitions
 const int howLongToWait = 6;   // max number of seconds at startup waiting for Serial port to console
@@ -70,11 +92,38 @@ const int howLongToWait = 6;   // max number of seconds at startup waiting for S
 #define cHIGHLIGHT  ILI9341_WHITE    //
 #define cWARN       0xF844           // brighter than ILI9341_RED but not pink
 
-// ------------ global scope
-// Adafruit_FlashTransport_QSPI gFlashTransport;   // Quad-SPI 2MB memory chip
-// Adafruit_SPIFlash gFlash(&gFlashTransport);     //
-// FatFileSystem gFatfs;                           // file system object from SdFat
-// LittleFS fs;                                       // file system object from LittleFS is declared in "LittleFS.h"
+// ------------ Flash File System
+// clang-format off
+#if defined(SDFAT_M4)
+  Adafruit_FlashTransport_QSPI flashTransport;   // Quad SPI 2MB memory chip
+
+#elif defined(SDFAT_RP2040)
+  // Un-comment either of the following lines:
+  //  Adafruit_FlashTransport_RP2040  flashTransport(Adafruit_FlashTransport_RP2040::CPY_START_ADDR,
+  //                                                 Adafruit_FlashTransport_RP2040::CPY_SIZE);
+  Adafruit_FlashTransport_RP2040_CPY flashTransport;
+
+#else //defined(LITTLEFS_RP2040)
+  // RP2040 use same flash device that store code for file system. Therefore we
+  // only need to specify start address and size (no need SPI or SS).
+  //
+  // By default (start=0, size=0), values that match file system setting in
+  // 'Tools->Flash Size' menu selection will be used.
+  // Adafruit_FlashTransport_RP2040 flashTransport;
+
+  // To be compatible with CircuitPython partition scheme (start_address = 1 MB,
+  // size = total flash - 1 MB) use const value (CPY_START_ADDR, CPY_SIZE) or
+  // subclass Adafruit_FlashTransport_RP2040_CPY. 
+  //
+  // Un-comment either of the following lines:
+  //  Adafruit_FlashTransport_RP2040  flashTransport(Adafruit_FlashTransport_RP2040::CPY_START_ADDR,
+  //                                                 Adafruit_FlashTransport_RP2040::CPY_SIZE);
+  Adafruit_FlashTransport_RP2040_CPY flashTransport;
+#endif
+
+Adafruit_SPIFlash flash(&flashTransport);   //
+FatFileSystem fatfs;                        // file system object from SdFat
+// clang-format on
 
 // ========== splash screen ====================================
 const int xLabel    = 8;   // indent labels, slight margin on left edge of screen
@@ -83,7 +132,9 @@ const int rowHeight = 12;
 int gCurrentY       = yRow1;
 
 void startSplashScreen() {
+  clearScreen();
   tft.setTextSize(1);
+  gCurrentY = yRow1;
 
   tft.setCursor(xLabel, gCurrentY);
   tft.setTextColor(cTEXTCOLOR, cBACKGROUND);
@@ -160,49 +211,93 @@ void waitForSerial(int howLong) {
 int openFlash() {
   // returns 1=success, 0=failure
 
-#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
-  if (!LittleFS.begin()) {   // Start LittleFS
-    Serial.println("An Error has occurred while mounting LittleFS");
+  // Initialize flash library
+  Serial.println("Initializing Flash memory interface...");
+#if defined(SDFAT_M4)
+  if (!flash.begin()) {
+    showErrorMessage("Error, failed to initialize onboard flash memory chip!");
+    return 0;
+  }
+  if (!fatfs.begin(&flash)) {
+    showErrorMessage("Error, failed to mount SdFat filesystem");
+    showErrorMessage("  Was the flash chip formatted with the SdFat_format example?");
+    showErrorMessage("  Was CircuitPython installed at least once?");
+    return 0;   // indicate error
+  }
+
+#elif defined(SDFAT_RP2040)
+  if (!flash.begin()) {
+    showErrorMessage("Error, failed to initialize onboard flash memory chip!");
+    return 0;
+  }
+  if (!fatfs.begin(&flash)) {
+    showErrorMessage("Error, failed to mount SdFat filesystem");
+    showErrorMessage("  Was the flash chip formatted with the SdFat_format example?");
+    showErrorMessage("  Was CircuitPython installed at least once to create the filesystem?");
+    return 0;   // indicate error
+  }
+
+#else //defined(LITTLEFS_RP2040)
+  if (!LittleFS.begin()) {
+    Serial.println("Error, failed to mount LittleFS filesystem");
+    Serial.println("  Was memory space allocated in the IDE?");
     delay(500);
     return 0;   // indicate error
   }
-#else
-  // Initialize flash library and check its chip ID.
-  if (!gFlash.begin()) {
-    showErrorMessage("Error, failed to initialize onboard memory.");
-    return 0;
-  }
-  Serial.print(". Flash chip JEDEC ID: 0x");
-  Serial.println(gFlash.getJEDECID(), HEX);
-
-  // First call begin to mount the filesystem.  Check that it returns true
-  // to make sure the filesystem was mounted.
-  if (!gFatfs.begin(&gFlash)) {
-    showErrorMessage("Error, failed to mount filesystem");
-    showErrorMessage("Was the flash chip formatted with the SdFat_format example?");
-    return 0;
-  }
 #endif
+
+  // Check flash chip ID
+  Serial.print(". Flash chip JEDEC ID: 0x");
+  Serial.println(flash.getJEDECID(), HEX);  // typ: 0xC84015 on Feather M4
+
   Serial.println(". Mounted flash filesystem");
   return 1;   // success
 }
+
+//template
+#if defined(SDFAT_M4)
+#elif defined(SDFAT_RP2040)
+#else //defined(LITTLEFS_RP2040)
+#endif
 
 // ----- iterate files in a folder
 void listLevel2(const char *folder) {
   // Open a subdirectory to list all its children (files and folders)
   bool okay = true;   // assume success
   Serial.println(folder);
-  //File mydir = gFatfs.open(folder);
-  File mydir = LittleFS.open(folder, "r");
+
+#if defined(SDFAT_M4)
+  File32 mydir = fatfs.open(folder);   // SdFat
+#elif defined(SDFAT_RP2040)
+  File32 mydir = fatfs.open(folder);   // SdFat
+#else //defined(LITTLEFS_RP2040)
+  File mydir = LittleFS.open(folder, "r");   // LittleFS
+#endif
+
   if (!mydir) {
     showErrorMessage("Error, failed to open subfolder");
   }
-  File kid2 = mydir.openNextFile();
+
+#if defined(SDFAT_M4)
+  File kid2    = mydir.openNextFile();   // SdFat
+#elif defined(SDFAT_RP2040)
+  File32 kid2  = mydir.openNextFile();   // SdFat
+#else //defined(LITTLEFS_RP2040)
+  File32 kid2 = mydir.openNextFile();   // LittleFS
+#endif
+
   int count = 1;
   while (kid2 && okay) {
     char filename[64];
-    //kid2.getName(filename, sizeof(filename));
-    strncpy(filename, kid2.name(), sizeof(filename));
+
+#if defined(SDFAT_M4)
+    kid2.getName(filename, sizeof(filename));   // SdFat
+#elif defined(SDFAT_RP2040)
+    kid2.getName(filename, sizeof(filename));   // SdFat
+#else //defined(LITTLEFS_RP2040)
+    strncpy(filename, kid2.name(), sizeof(filename));   // LittleFS
+#endif
+
     if (strlen(filename) == 0) {
       Serial.println("   Empty filename, time to return");
       okay = false;
@@ -225,11 +320,20 @@ void listLevel2(const char *folder) {
     }
   }
 }
+
 // ----- iterate files at root level
 int listFiles() {
   // Open the root folder to list top-level children (files and directories).
-  int rc       = 1;              // assume success
-  File testDir = LittleFS.open("/", "r");   //
+  int rc = 1;   // assume success
+
+#if defined(SDFAT_M4)
+  File32 testDir = fatfs.open("/");   // SdFat
+#elif defined(SDFAT_RP2040)
+  File32 testDir = fatfs.open("/");   // SdFat
+#else //defined(LITTLEFS_RP2040)
+  File testDir = LittleFS.open("/", "r");   // LittleFS
+#endif
+
   if (!testDir) {
     showErrorMessage("Error, failed to open root directory");
     rc = 0;
@@ -242,11 +346,17 @@ int listFiles() {
     int count = 1;
     Serial.println("Listing files in the root directory:");
 
-    File child = testDir.openNextFile();
+    File32 child = testDir.openNextFile();
     while (child && rc > 0) {
       char filename[64];
-      //child.getName(filename, sizeof(filename));
-      strncpy(filename, child.name(), sizeof(filename));
+
+#if defined(SDFAT_M4)
+      child.getName(filename, sizeof(filename));   // SdFat
+#elif defined(SDFAT_RP2040)
+      child.getName(filename, sizeof(filename));   // SdFat
+#else //defined(LITTLEFS_RP2040)
+      strncpy(filename, child.name(), sizeof(filename));   // LittleFS
+#endif
 
       if (strlen(filename) == 0) {
         Serial.println("Empty filename, so time to return");
@@ -302,10 +412,10 @@ void setup() {
   Serial.println("Compiled " PROGRAM_COMPILED);        // Report our compiled date
   Serial.println(__FILE__);                            // Report our source code file name
 
-  // ----- look for memory card
-  /* ...
+  // ----- look for memory card (Feather M4 only)
+#if defined(SDFAT_M4)
   Serial.print("Detecting if FLASH memory is available, using pin ");
-  Serial.print(chipDetectPin);   // todo
+  Serial.print(chipDetectPin);
   Serial.println(" ... ");
   pinMode(chipDetectPin, INPUT_PULLUP);               // use internal pullup resistor
   bool isCardDetected = digitalRead(chipDetectPin);   // HIGH = no card; LOW = card detected
@@ -314,17 +424,17 @@ void setup() {
   } else {
     Serial.println(". Failed - no memory chip found");
   }
-  ... */
-
-  // ----- Do The Thing
-  Serial.println("Initializing Flash memory interface...");
-  int result = openFlash();   // open file system
-  result     = listFiles();   // list all files in the file system
-  Serial.println("All done.");
+#endif
 }
 
 //=========== main work loop ===================================
 void loop() {
+
+  // ----- Do The Thing
+  startSplashScreen();
+  if (openFlash()) {   // open file system
+    listFiles();       // list all files in the file system
+  }
 
   for (int ii = 30; ii--; ii <= 0) {
     Serial.print(ii);
@@ -332,12 +442,4 @@ void loop() {
     delay(1000);
   }
   Serial.println(" ");
-  clearScreen();   // note that "begin()" does not clear screen
-  gCurrentY = yRow1;
-
-  // ----- Do The Thing
-  Serial.println("Initializing Flash memory interface...");
-  int result = openFlash();   // open file system
-  result     = listFiles();   // list all files in the file system
-  Serial.println("All done.");
 }
