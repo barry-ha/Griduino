@@ -62,9 +62,9 @@ const int howLongToWait = 6;   // max number of seconds at startup waiting for S
 
 // ------------ Flash File System
 // clang-format off
-Adafruit_FlashTransport_QSPI gFlashTransport;   // Quad-SPI 2MB memory chip
-Adafruit_SPIFlash gFlash(&gFlashTransport);     //
-FatFileSystem gFatfs;                           // file system object from SdFat
+Adafruit_FlashTransport_QSPI flashTransport;   // Quad-SPI 2MB memory chip
+Adafruit_SPIFlash flash(&flashTransport);   //
+FatFileSystem fatfs;                        // file system object from SdFat
 // clang-format on
 
 // ========== splash screen ====================================
@@ -154,16 +154,15 @@ int openFlash() {
   // returns 1=success, 0=failure
 
   // Initialize flash library and check its chip ID.
-  if (!gFlash.begin()) {
+  if (!flash.begin()) {
     showErrorMessage("Error, failed to initialize onboard flash memory.");
     return 0;
   }
   Serial.print(". Flash chip JEDEC ID: 0x");
-  Serial.println(gFlash.getJEDECID(), HEX);
+  Serial.println(flash.getJEDECID(), HEX);
 
-  // First call begin to mount the filesystem.  Check that it returns true
-  // to make sure the filesystem was mounted.
-  if (!gFatfs.begin(&gFlash)) {
+  // First, call begin() to mount the filesystem.
+  if (!fatfs.begin(&flash)) {
     showErrorMessage("Error, failed to mount SdFat filesystem");
     showErrorMessage("  Was the flash chip formatted with the SdFat_format example?");
     showErrorMessage("  Was CircuitPython installed at least once?");
@@ -178,7 +177,7 @@ void listLevel2(const char *folder) {
   // Open a subdirectory to list all its children (files and folders)
   bool okay = true;   // assume success
   Serial.println(folder);
-  File mydir = gFatfs.open(folder);   // SdFat
+  File mydir = fatfs.open(folder);   // SdFat
   if (!mydir) {
     showErrorMessage("Error, failed to open subfolder");
   }
@@ -214,7 +213,7 @@ void listLevel2(const char *folder) {
 int listFiles() {
   // Open the root folder to list top-level children (files and directories).
   int rc       = 1;                  // assume success
-  File testDir = gFatfs.open("/");   // SdFat
+  File testDir = fatfs.open("/");   // SdFat
   if (!testDir) {
     showErrorMessage("Error, failed to open root directory");
     rc = 0;
