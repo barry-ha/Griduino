@@ -1,8 +1,8 @@
 // Please format this file with clang before check-in to GitHub
 
-#define SDFAT_M4          // Pick one, recompile
-//#define SDFAT_RP2040      // Pick one, recompile
-//#define LITTLEFS_RP2040   // Pick one, recompile
+#define SDFAT_M4   // Pick one, recompile
+// #define SDFAT_RP2040      // Pick one, recompile
+// #define LITTLEFS_RP2040   // Pick one, recompile
 
 /*Context:  We are evaluating three different flash file systems:
             1. SdFat for Feather M4         #define SDFAT_M4
@@ -47,11 +47,9 @@
 // clang-format off
 #if defined(SDFAT_M4)
   #include <SdFat.h>               // for FAT file systems on Flash and Micro SD cards
-  #include <Adafruit_SPIFlash.h>   // for FAT file systems on SPI flash chips
 
 #elif defined(SDFAT_RP2040)
   #include <SdFat.h>               // for FAT file systems on Flash and Micro SD cards
-  #include <Adafruit_SPIFlash.h>   // for FAT file systems on SPI flash chips
 
 #elif defined(LITTLEFS_RP2040)
   #include "LittleFS.h"            // LittleFS is declared
@@ -61,6 +59,7 @@
 #endif
 // clang-format on
 
+#include <Adafruit_SPIFlash.h>   // for FAT file systems on SPI flash chips
 #include <Adafruit_ILI9341.h>    // TFT color display library
 #include "hardware.h"            // Griduino pins for TFT
 
@@ -237,7 +236,7 @@ int openFlash() {
     return 0;   // indicate error
   }
 
-#else //defined(LITTLEFS_RP2040)
+#else   // defined(LITTLEFS_RP2040)
   if (!LittleFS.begin()) {
     Serial.println("Error, failed to mount LittleFS filesystem");
     Serial.println("  Was memory space allocated in the IDE?");
@@ -248,16 +247,38 @@ int openFlash() {
 
   // Check flash chip ID
   Serial.print(". Flash chip JEDEC ID: 0x");
-  Serial.println(flash.getJEDECID(), HEX);  // typ: 0xC84015 on Feather M4
+  Serial.println(flash.getJEDECID(), HEX);   // typ: 0xC84015 on Feather M4
 
   Serial.println(". Mounted flash filesystem");
   return 1;   // success
 }
 
-//template
+// ----- make sure a file exists in the file system
+void createTestFile(const char *fname) {
+// The first time you run LittleFS, there are no files,
+// so let's make sure there's something to list in the following test
+#if defined(SDFAT_M4)
+  File32 myfile = fatfs.open(fname, FILE_WRITE);   // SdFat
+#elif defined(SDFAT_RP2040)
+  File32 myfile = fatfs.open(fname, FILE_WRITE);   // SdFat
+#elif defined(LITTLEFS_RP2040)
+  File myfile = LittleFS.open(fname, "w");                // LittleFS
+#endif
+  if (myfile) {
+    myfile.print(fname);
+    myfile.close();
+    Serial.print("Wrote file: ");
+    Serial.println(fname);
+  } else {
+    Serial.print("Failed to create file ");
+    Serial.println(fname);
+  }
+}
+
+// template
 #if defined(SDFAT_M4)
 #elif defined(SDFAT_RP2040)
-#else //defined(LITTLEFS_RP2040)
+#else   // defined(LITTLEFS_RP2040)
 #endif
 
 // ----- iterate files in a folder
@@ -269,9 +290,9 @@ void listLevel2(const char *folder) {
 #if defined(SDFAT_M4)
   File32 mydir = fatfs.open(folder);   // SdFat
 #elif defined(SDFAT_RP2040)
-  File32 mydir = fatfs.open(folder);   // SdFat
-#else //defined(LITTLEFS_RP2040)
-  File mydir = LittleFS.open(folder, "r");   // LittleFS
+  File32 mydir  = fatfs.open(folder);              // SdFat
+#else   // defined(LITTLEFS_RP2040)
+  File mydir  = LittleFS.open(folder, "r");               // LittleFS
 #endif
 
   if (!mydir) {
@@ -279,11 +300,11 @@ void listLevel2(const char *folder) {
   }
 
 #if defined(SDFAT_M4)
-  File kid2    = mydir.openNextFile();   // SdFat
+  File kid2 = mydir.openNextFile();   // SdFat
 #elif defined(SDFAT_RP2040)
-  File32 kid2  = mydir.openNextFile();   // SdFat
-#else //defined(LITTLEFS_RP2040)
-  File32 kid2 = mydir.openNextFile();   // LittleFS
+  File32 kid2   = mydir.openNextFile();            // SdFat
+#else   // defined(LITTLEFS_RP2040)
+  File kid2   = mydir.openNextFile();                     // LittleFS
 #endif
 
   int count = 1;
@@ -293,8 +314,8 @@ void listLevel2(const char *folder) {
 #if defined(SDFAT_M4)
     kid2.getName(filename, sizeof(filename));   // SdFat
 #elif defined(SDFAT_RP2040)
-    kid2.getName(filename, sizeof(filename));   // SdFat
-#else //defined(LITTLEFS_RP2040)
+    kid2.getName(filename, sizeof(filename));    // SdFat
+#else   // defined(LITTLEFS_RP2040)
     strncpy(filename, kid2.name(), sizeof(filename));   // LittleFS
 #endif
 
@@ -329,9 +350,9 @@ int listFiles() {
 #if defined(SDFAT_M4)
   File32 testDir = fatfs.open("/");   // SdFat
 #elif defined(SDFAT_RP2040)
-  File32 testDir = fatfs.open("/");   // SdFat
-#else //defined(LITTLEFS_RP2040)
-  File testDir = LittleFS.open("/", "r");   // LittleFS
+  File32 testDir = fatfs.open("/");                // SdFat
+#else   // defined(LITTLEFS_RP2040)
+  File testDir = LittleFS.open("/", "r");                 // LittleFS
 #endif
 
   if (!testDir) {
@@ -346,7 +367,13 @@ int listFiles() {
     int count = 1;
     Serial.println("Listing files in the root directory:");
 
+#if defined(SDFAT_M4)
     File32 child = testDir.openNextFile();
+#elif defined(SDFAT_RP2040)
+    File32 child = testDir.openNextFile();
+#else   // defined(LITTLEFS_RP2040)
+    File child = testDir.openNextFile();
+#endif
     while (child && rc > 0) {
       char filename[64];
 
@@ -354,7 +381,7 @@ int listFiles() {
       child.getName(filename, sizeof(filename));   // SdFat
 #elif defined(SDFAT_RP2040)
       child.getName(filename, sizeof(filename));   // SdFat
-#else //defined(LITTLEFS_RP2040)
+#else   // defined(LITTLEFS_RP2040)
       strncpy(filename, child.name(), sizeof(filename));   // LittleFS
 #endif
 
@@ -427,13 +454,17 @@ void setup() {
 #endif
 }
 
+const char fname[]   = "Test File 2.txt";   // longer than 8.3
+const char fname83[] = "TestFile.txt";      // 8.3 filename
 //=========== main work loop ===================================
 void loop() {
 
   // ----- Do The Thing
   startSplashScreen();
-  if (openFlash()) {   // open file system
-    listFiles();       // list all files in the file system
+  if (openFlash()) {           // open file system
+    createTestFile(fname83);   // make sure an 8.3 file exists
+    createTestFile(fname);     // make sure a long filename exists
+    listFiles();               // list all files in the file system
   }
 
   for (int ii = 30; ii--; ii <= 0) {
