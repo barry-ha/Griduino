@@ -27,7 +27,7 @@ void setup() {
   // allow time for Windows to recognize USB connection
   Serial.begin(115200);
   while (!Serial) {
-    delay(10);
+    yield();
   }
   Serial.println();
   Serial.println("Software Reset Demo");

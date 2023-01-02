@@ -82,9 +82,9 @@ int openFlash() {
 
 //=========== setup ============================================
 void setup() {
-  Serial.begin(115200);
-  while (!Serial) {
-    delay(100);
+  Serial.begin(115200);   // init for debugging in the Arduino IDE
+  while (!Serial) {       // Wait for console in the Arduino IDE
+    yield();
   }
 
   Serial.println(PROGRAM_TITLE);

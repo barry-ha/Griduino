@@ -67,9 +67,10 @@ Adafruit_BMP3XX bmp;
 void setup() {
 
   // ----- init serial monitor
-  Serial.begin(115200);   // init for debuggging in the Arduino IDE
-  while (!Serial)
-    ;
+  Serial.begin(115200);   // init for debugging in the Arduino IDE
+  while (!Serial) {       // Wait for console in the Arduino IDE
+    yield();
+  }
 
   // now that Serial is ready and connected (or we gave up)...
   Serial.println(PROGRAM_TITLE " " PROGRAM_VERSION);   // Report our program name to console
