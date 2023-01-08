@@ -35,8 +35,8 @@
 #include "view.h"               // Base class for all views
 
 // ========== extern ===========================================
-extern Location history[];               // Griduino.ino, GPS breadcrumb trail
-extern const int numHistory;             // Griduino.ino, number of elements in history[]
+extern Location history[];   // Griduino.ino, GPS breadcrumb trail
+// extern const int numHistory;             // Griduino.ino, number of elements in history[]
 extern void showDefaultTouchTargets();   // Griduino.ino
 extern Logger logger;                    // Griduino.ino
 extern Grids grid;                       // grid_helper.h
@@ -57,7 +57,7 @@ public:
     char grid4[5];           // e.g. "CN87"
     time_t enterTimestamp;   // seconds
     time_t exitTimestamp;    // seconds
-    bool isSet;            // true=real data, false=uninitialized
+    bool isSet;              // true=real data, false=uninitialized
   };
   CrossingInfo timeInGrid[5] = {
       {"A", 0, 0, false},   // [GRID1]
@@ -78,15 +78,15 @@ public:
     // - if the data is still in this grid, then continue
     // - if the data is a different grid, then update [GRID1]
 
-    int currentIndex = previousItem(model->nextHistoryItem);
-    Location item    = history[currentIndex];
+    // int currentIndex = previousIndex(model->nextHistoryItem);
+    // Location item    = history[currentIndex];
 
-    char currentGrid4[5];
-    grid.calcLocator(currentGrid4, item.loc.lat, item.loc.lng, 4);
-    // logger.info("Current grid = ", currentGrid4);   // debug
+    // char currentGrid4[5];
+    // grid.calcLocator(currentGrid4, item.loc.lat, item.loc.lng, 4);
+    //  logger.info("Current grid = ", currentGrid4);   // debug
 
-    extractGridCrossings(timeInGrid);   // read GPS history array
-    showGridCrossings(timeInGrid);      // show result on screen
+    extractGridCrossings(history, numHistory, model->nextHistoryItem, timeInGrid);   // read GPS history array
+    showGridCrossings(timeInGrid);                                                   // show result on screen
 
     // ----- GMT date & time
     char sDate[15];   // strlen("Aug 26, 2022") = 13
@@ -195,6 +195,7 @@ protected:
 
   // ----- screen text
   // names for the array indexes, must be named in same order as array below
+  // clang-format off
   enum txtIndex {
     TITLE = 0,
     GRID, ENTER, EXIT, DURATION,
@@ -205,71 +206,82 @@ protected:
     GRID5, DATE5IN, TIME5IN, DATE5OUT, TIME5OUT, ET5,
     GMT_DATE, GMT_TIME, GMT
   };
+  // clang-format on
 
   // ----- static + dynamic screen text
-TextField txtFields[nCrossingsFields] = {
-    {"Grid Crossing Log", -1, yRow1, cTITLE, ALIGNCENTER, eFONTSMALLEST},            // [TITLE] view title, centered
-    {"Grid", xGrid, yRow3, cTEXTCOLOR, ALIGNLEFT, eFONTSMALLEST},                    // [GRID]
-    {"Entered Grid", xEnterCL - 70, yRow3, cTEXTCOLOR, ALIGNLEFT, eFONTSMALLEST},    // [ENTER]
-    {"", xExitCL - 28, yRow3, cTEXTCOLOR, ALIGNLEFT, eFONTSMALLEST},                 // [EXIT] unused
-    {"Time in Grid", xDuration + 2, yRow3, cTEXTCOLOR, ALIGNRIGHT, eFONTSMALLEST},   // [DURATION]
+  // clang-format off
+  TextField txtFields[nCrossingsFields] = {
+      {"Grid Crossing Log", -1, yRow1, cTITLE, ALIGNCENTER, eFONTSMALLEST},             // [TITLE] view title, centered
+      {"Grid",         xGrid, yRow3, cTEXTCOLOR, ALIGNLEFT, eFONTSMALLEST},           // [GRID]
+      {"Entered Grid", xEnterCL - 70, yRow3, cTEXTCOLOR, ALIGNLEFT, eFONTSMALLEST},   // [ENTER]
+      {"",             xExitCL - 28, yRow3, cTEXTCOLOR, ALIGNLEFT, eFONTSMALLEST},    // [EXIT] unused
+      {"Time in Grid", xDuration + 2, yRow3, cTEXTCOLOR, ALIGNRIGHT, eFONTSMALLEST},  // [DURATION]
 
-    {"CN86", xGrid, yRow4, cVALUE, ALIGNLEFT, eFONTSMALLEST},             // [GRID1]
-    {"2-1-2022", xEnterDate, yRow4, cVALUE, ALIGNRIGHT, eFONTSMALLEST},   // [DATE1IN]
-    {"0822", xEnterTime, yRow4, cVALUE, ALIGNLEFT, eFONTSMALLEST},        // [TIME1IN]
-    {"", xExitDate, yRow4, cVALUE, ALIGNRIGHT, eFONTSMALLEST},            // [DATE1OUT] unused
-    {"", xExitTime, yRow4, cVALUE, ALIGNLEFT, eFONTSMALLEST},             // [TIME1OUT] unused
-    {"30s", xDuration, yRow4, cVALUE, ALIGNRIGHT, eFONTSMALLEST},         // [DURATION]
+      {"CN86",         xGrid, yRow4, cVALUE, ALIGNLEFT, eFONTSMALLEST},         // [GRID1]
+      {"2-1-2022",     xEnterDate, yRow4, cVALUE, ALIGNRIGHT, eFONTSMALLEST},   // [DATE1IN]
+      {"0822",         xEnterTime, yRow4, cVALUE, ALIGNLEFT, eFONTSMALLEST},    // [TIME1IN]
+      {"",             xExitDate, yRow4, cVALUE, ALIGNRIGHT, eFONTSMALLEST},    // [DATE1OUT] unused
+      {"",             xExitTime, yRow4, cVALUE, ALIGNLEFT, eFONTSMALLEST},     // [TIME1OUT] unused
+      {"30s",          xDuration, yRow4, cVALUE, ALIGNRIGHT, eFONTSMALLEST},    // [DURATION]
 
-    {"CN85", xGrid, yRow5, cVALUE, ALIGNLEFT, eFONTSMALLEST},              // [GRID2]
-    {"1-31-2022", xEnterDate, yRow5, cVALUE, ALIGNRIGHT, eFONTSMALLEST},   // dummy data
-    {"0723", xEnterTime, yRow5, cVALUE, ALIGNLEFT, eFONTSMALLEST},
-    {"", xExitDate, yRow5, cVALUE, ALIGNRIGHT, eFONTSMALLEST},
-    {"", xExitTime, yRow5, cVALUE, ALIGNLEFT, eFONTSMALLEST},
-    {"59m", xDuration, yRow5, cVALUE, ALIGNRIGHT, eFONTSMALLEST},
+      {"CN85",         xGrid, yRow5, cVALUE, ALIGNLEFT, eFONTSMALLEST},         // [GRID2]
+      {"1-31-2022",    xEnterDate, yRow5, cVALUE, ALIGNRIGHT, eFONTSMALLEST},   // dummy data
+      {"0723",         xEnterTime, yRow5, cVALUE, ALIGNLEFT, eFONTSMALLEST},
+      {"",             xExitDate, yRow5, cVALUE, ALIGNRIGHT, eFONTSMALLEST},
+      {"",             xExitTime, yRow5, cVALUE, ALIGNLEFT, eFONTSMALLEST},
+      {"59m",          xDuration, yRow5, cVALUE, ALIGNRIGHT, eFONTSMALLEST},
 
-    {"CN84", xGrid, yRow6, cVALUE, ALIGNLEFT, eFONTSMALLEST},               // [GRID3]
-    {"12-11-2011", xEnterDate, yRow6, cVALUE, ALIGNRIGHT, eFONTSMALLEST},   // dummy data
-    {"0823", xEnterTime, yRow6, cVALUE, ALIGNLEFT, eFONTSMALLEST},
-    {"", xExitDate, yRow6, cVALUE, ALIGNRIGHT, eFONTSMALLEST},
-    {"", xExitTime, yRow6, cVALUE, ALIGNLEFT, eFONTSMALLEST},
-    {"47.9h", xDuration, yRow6, cVALUE, ALIGNRIGHT, eFONTSMALLEST},
+      {"CN84",         xGrid, yRow6, cVALUE, ALIGNLEFT, eFONTSMALLEST},         // [GRID3]
+      {"12-11-2011",   xEnterDate, yRow6, cVALUE, ALIGNRIGHT, eFONTSMALLEST},   // dummy data
+      {"0823",         xEnterTime, yRow6, cVALUE, ALIGNLEFT, eFONTSMALLEST},
+      {"",             xExitDate, yRow6, cVALUE, ALIGNRIGHT, eFONTSMALLEST},
+      {"",             xExitTime, yRow6, cVALUE, ALIGNLEFT, eFONTSMALLEST},
+      {"47.9h",        xDuration, yRow6, cVALUE, ALIGNRIGHT, eFONTSMALLEST},
 
-    {"CN83", xGrid, yRow7, cVALUE, ALIGNLEFT, eFONTSMALLEST},               // [GRID4]
-    {"12-55-2055", xEnterDate, yRow7, cVALUE, ALIGNRIGHT, eFONTSMALLEST},   // dummy data
-    {"0823", xEnterTime, yRow7, cVALUE, ALIGNLEFT, eFONTSMALLEST},
-    {"", xExitDate, yRow7, cVALUE, ALIGNRIGHT, eFONTSMALLEST},
-    {"", xExitTime, yRow7, cVALUE, ALIGNLEFT, eFONTSMALLEST},
-    {"99.9d", xDuration, yRow7, cVALUE, ALIGNRIGHT, eFONTSMALLEST},
+      {"CN83",         xGrid, yRow7, cVALUE, ALIGNLEFT, eFONTSMALLEST},         // [GRID4]
+      {"12-55-2055",   xEnterDate, yRow7, cVALUE, ALIGNRIGHT, eFONTSMALLEST},   // dummy data
+      {"0823",         xEnterTime, yRow7, cVALUE, ALIGNLEFT, eFONTSMALLEST},
+      {"",             xExitDate, yRow7, cVALUE, ALIGNRIGHT, eFONTSMALLEST},
+      {"",             xExitTime, yRow7, cVALUE, ALIGNLEFT, eFONTSMALLEST},
+      {"99.9d",        xDuration, yRow7, cVALUE, ALIGNRIGHT, eFONTSMALLEST},
 
-    {"CN82", xGrid, yRow8, cVALUE, ALIGNLEFT, eFONTSMALLEST},             // [GRID5]
-    {"1-1-1111", xEnterDate, yRow8, cVALUE, ALIGNRIGHT, eFONTSMALLEST},   // dummy data
-    {"0111", xEnterTime, yRow8, cVALUE, ALIGNLEFT, eFONTSMALLEST},
-    {"", xExitDate, yRow8, cVALUE, ALIGNRIGHT, eFONTSMALLEST},
-    {"", xExitTime, yRow8, cVALUE, ALIGNLEFT, eFONTSMALLEST},
-    {"999d", xDuration, yRow8, cVALUE, ALIGNRIGHT, eFONTSMALLEST},
+      {"CN82",         xGrid, yRow8, cVALUE, ALIGNLEFT, eFONTSMALLEST},         // [GRID5]
+      {"1-1-1111",     xEnterDate, yRow8, cVALUE, ALIGNRIGHT, eFONTSMALLEST},   // dummy data
+      {"0111",         xEnterTime, yRow8, cVALUE, ALIGNLEFT, eFONTSMALLEST},
+      {"",             xExitDate, yRow8, cVALUE, ALIGNRIGHT, eFONTSMALLEST},
+      {"",             xExitTime, yRow8, cVALUE, ALIGNLEFT, eFONTSMALLEST},
+      {"999d",         xDuration, yRow8, cVALUE, ALIGNRIGHT, eFONTSMALLEST},
 
-    {"Jan 01, 2001", 130, yRowBot, cFAINT, ALIGNRIGHT, eFONTSMALLEST},   // [GMT_DATE]
-    {"02:34:56", 148, yRowBot, cFAINT, ALIGNLEFT, eFONTSMALLEST},        // [GMT_TIME]
-    {"GMT", 232, yRowBot, cFAINT, ALIGNLEFT, eFONTSMALLEST},             // [GMT]
-};
+      {"Jan 01, 2001", 130, yRowBot, cFAINT, ALIGNRIGHT, eFONTSMALLEST},   // [GMT_DATE]
+      {"02:34:56",     148, yRowBot, cFAINT, ALIGNLEFT, eFONTSMALLEST},    // [GMT_TIME]
+      {"GMT",          232, yRowBot, cFAINT, ALIGNLEFT, eFONTSMALLEST},    // [GMT]
+  };
+  // clang-format on
+
   // Iterator helper
-  int previousItem(int ii) {
-    return (ii > 0) ? (ii - 1) : (numHistory - 1);
+  int previousIndex(int ii, const int numHist) {
+    return (ii > 0) ? (ii - 1) : (numHist - 1);
   }
 
   // helper that actually does all the work
-  void extractGridCrossings(CrossingInfo *timeInGrid) {
+  void extractGridCrossings(const Location *hist, const int numHist, const int nextItem, CrossingInfo *timeInGrid) {
+    // Find the most recent 5 grids crossed (just find them, don't show results)
+    // input:
+    //      *hist - pointer to GPS history circular array, typ. =model->history
+    //      nHist - array size of *history
+    //      nextItem - array index of next element to be overwritten
+    // output:
+    //      timeInGrid[5] - array of results
+    //
     // loop through ALL entries in the GPS history array
     // assume the entries are in chronological order, most recent first
-    // this only finds the most recent 5 grids crossed, it doesn't do anything about showing results
-    int historyIndex = previousItem(model->nextHistoryItem);
+    int historyIndex = previousIndex(nextItem, numHist);
     // Serial.print("First item examined is index "); Serial.println(historyIndex);   // debug
     int maxResults  = 5;   // number of rows displayed on screen
     int resultIndex = 0;   //
 
-    char currentGrid4[5] = "none";
-    // grid.calcLocator(currentGrid4, model->gLatitude, model->gLongitude, 4);
+    char currentGrid4[5] = "none";   // start by comparing to non-grid string
+    // grid.calcLocator(currentGrid4, model->gLatitude, model->gLongitude, 4);  // debug
 
     // clear any previous results
     for (int jj = 0; jj < 5; jj++) {
@@ -281,8 +293,8 @@ TextField txtFields[nCrossingsFields] = {
     // Serial.print("At entry: "); dumpCrossingInfo(timeInGrid, 0);   // debug
 
     // walk the entire GPS breadcrumb array
-    for (int ii = 0; ii < numHistory; ii++) {
-      Location item = history[historyIndex];
+    for (int ii = 0; ii < numHist; ii++) {
+      Location item = hist[historyIndex];
       if (!item.isEmpty()) {
         char thisGrid[5];
         grid.calcLocator(thisGrid, item.loc.lat, item.loc.lng, 4);
@@ -301,10 +313,10 @@ TextField txtFields[nCrossingsFields] = {
           strncpy(currentGrid4, thisGrid, sizeof(currentGrid4));
         }
       }
-      historyIndex = previousItem(historyIndex);
+      historyIndex = previousIndex(historyIndex, numHist);
     }
     dumpCrossingInfo(&timeInGrid[0], 0);   // debug
-    /* ... 
+    /* ...
     dumpCrossingInfo(&timeInGrid[1], 1);   // debug
     dumpCrossingInfo(&timeInGrid[2], 2);   // debug
     dumpCrossingInfo(&timeInGrid[3], 3);   // debug
@@ -314,14 +326,14 @@ TextField txtFields[nCrossingsFields] = {
 
   // debug helper to show internal status of Grid Crossing
   void dumpCrossingInfo(const CrossingInfo *timeInGrid, int index) {
-    char dump[128];  // debug
-    snprintf(dump, sizeof(dump), "timeInGrid[%d] = '%s', %lu, %lu, %lu seconds",  // "%lu" is unsigned long
-        index,
-        timeInGrid->grid4,
-        timeInGrid->enterTimestamp,   // enter
-        timeInGrid->exitTimestamp,    // exit
-        (timeInGrid->exitTimestamp - timeInGrid->enterTimestamp)); // elapsed seconds
-    Serial.print(dump); // debug
+    char dump[128];                                                                // debug
+    snprintf(dump, sizeof(dump), "timeInGrid[%d] = '%s', %lu, %lu, %lu seconds",   // "%lu" is unsigned long
+             index,
+             timeInGrid->grid4,
+             timeInGrid->enterTimestamp,                                  // enter
+             timeInGrid->exitTimestamp,                                   // exit
+             (timeInGrid->exitTimestamp - timeInGrid->enterTimestamp));   // elapsed seconds
+    Serial.print(dump);                                                   // debug
     if (timeInGrid->isSet) {
       Serial.println(", valid");
     } else {
@@ -338,7 +350,7 @@ TextField txtFields[nCrossingsFields] = {
         showGridCrossing(GRID1, item.grid4, item.enterTimestamp, now(), item.isSet);
       } else {
         // subsequent rows always have an "exit time"
-        int field = GRID1 + row * 6;  // 6 = count of (GRID1, DATE1IN, TIME1IN, DATE1OUT, TIME1OUT, ET1)
+        int field = GRID1 + row * 6;   // 6 = count of (GRID1, DATE1IN, TIME1IN, DATE1OUT, TIME1OUT, ET1)
         showGridCrossing(field, item.grid4, item.enterTimestamp, item.exitTimestamp, item.isSet);
       }
     }
@@ -348,16 +360,16 @@ TextField txtFields[nCrossingsFields] = {
   void showGridCrossing(int field, const char *grid4, time_t enterTime, time_t exitTime, bool isSet) {
     // first, sanity check the recorded time
     //                             s, m, h, dow, dd, mm, yy
-    TimeElements Jan_1_2020     = {0, 0, 0, 0,    1,  1, 2020 - 1970};
+    TimeElements Jan_1_2020     = {0, 0, 0, 0, 1, 1, 2020 - 1970};
     time_t earliestPossibleTime = makeTime(Jan_1_2020);
     bool timeTooEarly           = (enterTime < earliestPossibleTime) ? true : false;
 
-    TimeElements Jan_1_2072     = {0, 0, 0, 0,    1,  1, 2072 - 1970};
-    time_t latestAllowedTime    = makeTime(Jan_1_2072);   // fifty years from current 2022
-    bool timeTooLate            = (enterTime > latestAllowedTime) ? true : false;
+    TimeElements Jan_1_2072  = {0, 0, 0, 0, 1, 1, 2072 - 1970};
+    time_t latestAllowedTime = makeTime(Jan_1_2072);   // fifty years from current 2022
+    bool timeTooLate         = (enterTime > latestAllowedTime) ? true : false;
 
     // if the grid was recorded before RTC set, the "enter time" can be 1970, before Griduino was built
-    char suffix[8]       = "";
+    char suffix[8] = "";
     if (isSet && timeTooEarly) {
       strncpy(suffix, " ?", sizeof(suffix));
 
