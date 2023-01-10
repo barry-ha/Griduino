@@ -231,13 +231,13 @@ int openFlash() {
   Serial.println("Initializing Flash memory interface...");
 #if defined(SDFAT_M4)
   if (!flash.begin()) {
-    showErrorMessage("Error, failed to initialize onboard flash memory chip!");
+    Serial.println("Error, failed to initialize onboard flash memory chip!");
     return 0;
   }
   if (!fatfs.begin(&flash)) {
-    showErrorMessage("Error, failed to mount SdFat filesystem");
-    showErrorMessage("  Was the flash chip formatted with the SdFat_format example?");
-    showErrorMessage("  Was CircuitPython installed at least once?");
+    Serial.println("Error, failed to mount SdFat filesystem");
+    Serial.println("  Was the flash chip formatted with the SdFat_format example?");
+    Serial.println("  Was CircuitPython installed at least once to create a compatible filesystem?");
     return 0;   // indicate error
   }
 
@@ -249,7 +249,7 @@ int openFlash() {
   if (!fatfs.begin(&flash)) {
     Serial.println("Error, failed to mount SdFat filesystem");
     Serial.println("  Was the flash chip formatted with the SdFat_format example?");
-    Serial.println("  Was CircuitPython installed at least once to create the filesystem?");
+    Serial.println("  Was CircuitPython installed at least once to create a compatible filesystem?");
     return 0;   // indicate error
   }
 
