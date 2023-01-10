@@ -1,7 +1,9 @@
 /*
- * File: Touch.cpp
- * 
- * Purp: Contains the touchscreen code to get it out of the way
+  File:     Touch.cpp
+  Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
+  Hardware: John Vanderbeck, KM7O, Seattle, WA
+
+ * Purpose: Contains the touchscreen code to get it out of the way
  * 
  */
 
@@ -11,31 +13,13 @@
 //#include "Adafruit_ILI9341.h"       // TFT color display library
 //#include "Adafruit_GPS.h"           // Ultimate GPS library
 #include "TouchScreen.h"            // Touchscreen built in to 3.2" Adafruit TFT display
+#include "hardware.h"       // Griduino pin definitions
 
 // ---------- constants
 #define SCREENWIDTH 320
 #define SCREENHEIGHT 240
 
 // ---------- Touch Screen
-// For touch point precision, we need to know the resistance
-// between X+ and X- Use any multimeter to read it
-// This sketch has just one touch area that covers the entire screen
-#if defined(SAMD_SERIES)
-  // Adafruit Feather M4 Express pin definitions
-  #define PIN_XP  A3    // Touchscreen X+ can be a digital pin
-  #define PIN_XM  A4    // Touchscreen X- must be an analog pin, use "An" notation
-  #define PIN_YP  A5    // Touchscreen Y+ must be an analog pin, use "An" notation
-  #define PIN_YM   9    // Touchscreen Y- can be a digital pin
-#elif defined(ARDUINO_AVR_MEGA2560)
-  // Arduino Mega 2560 and others
-  #define PIN_XP   4    // Touchscreen X+ can be a digital pin
-  #define PIN_XM  A3    // Touchscreen X- must be an analog pin, use "An" notation
-  #define PIN_YP  A2    // Touchscreen Y+ must be an analog pin, use "An" notation
-  #define PIN_YM   5    // Touchscreen Y- can be a digital pin
-#else
-  #warning You need to define pins for your hardware
-
-#endif
 TouchScreen ts = TouchScreen(PIN_XP, PIN_YP, PIN_XM, PIN_YM, 295);
 
 // ------------ typedef's
@@ -102,7 +86,7 @@ bool newScreenTap(Point* pPoint, int orientation) {
       Serial.print(","); Serial.print(pPoint->y); Serial.println(")");
     }
   }
-  //delay(10);   // no delay: code above completely handles debouncing without blocking the loop
+  // delay(10);   // no delay: code above completely handles debouncing without blocking the loop
   return result;
 }
 
@@ -118,9 +102,9 @@ uint16_t myPressure(void) {
   digitalWrite(PIN_YP, LOW); pinMode(PIN_YP, INPUT);      // Hi-Z Y+
 
   int z1 = analogRead(PIN_XM);
-  int z2 = 1023-analogRead(PIN_YP);
+  int z2 = 1023 - analogRead(PIN_YP);
 
-  return (uint16_t) ((z1+z2)/2);
+  return (uint16_t)((z1 + z2) / 2);
 }
 
 // "isTouching()" is defined in touch.h but is not implemented Adafruit's TouchScreen library
@@ -140,14 +124,6 @@ bool TouchScreen::isTouching(void) {
     Serial.print(". released, pressure = "); Serial.println(pres_val);       // debug
     button_state = false;
   }
-
-  // Clean the touchScreen settings after function is used
-  // Because LCD may use the same pins
-  // todo - is this actually necessary?
-  //pinMode(_xm, OUTPUT);     digitalWrite(_xm, LOW);
-  //pinMode(_yp, OUTPUT);     digitalWrite(_yp, HIGH);
-  //pinMode(_ym, OUTPUT);     digitalWrite(_ym, LOW);
-  //pinMode(_xp, OUTPUT);     digitalWrite(_xp, HIGH);
 
   return button_state;
 }
