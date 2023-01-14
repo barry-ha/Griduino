@@ -326,6 +326,8 @@ protected:
 
   // debug helper to show internal status of Grid Crossing
   void dumpCrossingInfo(const CrossingInfo *timeInGrid, int index) {
+    return;   // do nothing
+
     char dump[128];                                                                // debug
     snprintf(dump, sizeof(dump), "timeInGrid[%d] = '%s', %lu, %lu, %lu seconds",   // "%lu" is unsigned long
              index,
@@ -375,7 +377,7 @@ protected:
 
       char msg[24];
       date.datetimeToString(msg, sizeof(msg), enterTime, " ?");
-      logger.error("Internal Error, entered grid before 2020: ", msg);
+      //logger.error("Internal Error, entered grid before 2020: ", msg);
     }
 
     // if the "enter time" is after now() then we don't want to show negative elapsed time
