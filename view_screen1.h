@@ -1,4 +1,7 @@
 #pragma once   // Please format this file with clang before check-in to GitHub
+// #define ANIMATED_LOGO      // Pick one, recompile
+ #define STARBURST          // Pick one, recompile
+// #define TIME_TUNNEL        // Pick one, recompile
 /*
   File:     view_screen1.h
 
@@ -9,8 +12,34 @@
             This is a visual time-waster while waiting about 6 seconds
             for Windows USB port to stabilize and connect to a
             serial monitor program.
+            Invoked once during startup and optionally from command line.
+            Goal is to waste 6-8 seconds while looking busy and also
+            checking for exit conditions, such as touching the screen.
+            All "screen 1" implementations must divide its work into small
+            time slices, to allow checking touchscreen and exit conditions.
+  Usage:
+            Main code is not aware of how "screen 1" looks, nor does it
+            request any particular implementation. 
+  Griduino.ino:
+            ViewScreen1       screen1View(&tft, SCREEN1_VIEW);
 
-  Pinwheel:
+  Implementation:
+            We can independently build anything we want into this module.
+            To save flash program space, we only compile one result at a 
+            time, selectable by #define. See top of file.
+
+  Animated Logo:
+            +-----------------------------------+
+            |      |                     |      |
+            |   ---+---------------------+---   |
+            |      |                     |      |
+            |      |                     |      |
+            |      |          G          |      |
+            |      |                     |      |
+            |   ---+---------------------+---   |
+            |      |                     |      |
+            +-----------------------------------+
+  Pinwheel / Starburst:
             +-----------------------------------+
             |     \ | /         \   |   /       |
             |      \|/           \  |  /        |
@@ -72,7 +101,7 @@ protected:
     starDelay        = totalDelayMsec / maxStarLoops;   // msec delay between full screens
     countFullScreens = 0;                               // how many screens have been filled
   }
-  bool continueStarburst() {
+  bool continueViewing() {
     // divide up our screen updates into small units that are called frequently from updateScreen()
     // this allows us to check Touch() and other events
     // keep track of our own state
@@ -130,6 +159,7 @@ protected:
       tft->drawLine(x0, y0, x, y, color);
     }
   }
+#if defined(TIME_TUNNEL)
   void timeTunnel(int totalDelayMsec) {
     // 2022-11-17 'time tunnel' is available but currently unused
     int startMsec = millis();
@@ -164,11 +194,12 @@ protected:
       delay(15);
     }
   }
+#endif
 };   // end class ViewScreen1
 
 // ============== implement public interface ================
 void ViewScreen1::updateScreen() {
-  bool allDone = continueStarburst();
+  bool allDone = continueViewing();
   if (allDone) {
     selectNewView(goto_next_view);
   }
