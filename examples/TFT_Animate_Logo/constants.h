@@ -1,12 +1,8 @@
 #pragma once   // Please format this file with clang before check-in to GitHub
 
 // ------- Identity for splash screen and console --------
-#define PROGRAM_TITLE    "Griduino"
-#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
-#define PROGRAM_VERSION  "v1.11 rp2040"
-#else
-#define PROGRAM_VERSION  "v1.11 M4"
-#endif
+#define PROGRAM_TITLE    "Animate Logo"
+#define PROGRAM_VERSION  "v1.11"
 #define PROGRAM_LINE1    "Barry K7BWH"
 #define PROGRAM_LINE2    "John KM7O"
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
@@ -143,10 +139,6 @@ struct Rect {
       return false;
     }
   }
-};
-
-struct Route {   // screen coordinates
-  uint16_t x, y;
 };
 
 struct Label {

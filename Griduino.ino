@@ -173,7 +173,7 @@ const int howLongToWait = 6;          // max number of seconds at startup waitin
 DACMorseSender dacMorse(DAC_PIN, gFrequency, gWordsPerMinute);
 
 // ----------- Speech PCM Audio Playback
-#if defined(ARDUINO_PICO_REVISION)
+#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
   // todo - for now, RP2040 has no DAC, no speech, no audio output
 #else
   #include <Audio_QSPI.h>               // Audio playback library for Arduino
@@ -296,36 +296,36 @@ BarometerModel baroModel( &baro, BMP_CS );    // create instance of the model, g
 // alias names for all views - MUST be in same order as "viewTable" array below, alphabetical by class name
 enum VIEW_INDEX {
   GRID_VIEW = 0,
-  GRID_CROSSINGS_VIEW,                // log of time in each grid
-  ALTIMETER_VIEW,                     // altimeter
-  BARO_VIEW,                          // barometer graph
-  HELP_VIEW,                          // hints at startup
-  CFG_GPS,                            // gps/simulator 
-  CFG_UNITS,                          // english/metric
-  CFG_CROSSING,                       // announce grid crossing 4/6 digit boundaries 
-  CFG_AUDIO_TYPE,                     // audio output Morse/speech
-  CFG_ROTATION,                       // screen rotation
-  REBOOT_VIEW,                        // confirm reboot
-  SCREEN1_VIEW,                       // first bootup screen
-  SPLASH_VIEW,                        // startup
-  STATUS_VIEW,                        // size and scale of this grid
-  TEN_MILE_ALERT_VIEW,                // microwave rover view
-  TIME_VIEW,
-  DATE_VIEW,                          // Groundhog Day, Halloween, or other day-counting screen
-  CFG_VOLUME,
-  //VOLUME2_VIEW,
-  GOTO_SETTINGS,                      // command the state machine to show control panel
-  GOTO_NEXT_VIEW,                     // command the state machine to show next screen
-  MAX_VIEWS,                          // sentinel at end of list
+  GRID_CROSSINGS_VIEW,   // log of time in each grid
+  ALTIMETER_VIEW,        // altimeter
+  BARO_VIEW,             // barometer graph
+  HELP_VIEW,             // hints at startup
+  CFG_GPS,               // gps/simulator
+  CFG_UNITS,             // english/metric
+  CFG_CROSSING,          // announce grid crossing 4/6 digit boundaries
+  CFG_AUDIO_TYPE,        // audio output Morse/speech
+  CFG_ROTATION,          // screen rotation
+  REBOOT_VIEW,           // confirm reboot
+  SCREEN1_VIEW,          // first bootup screen
+  SPLASH_VIEW,           // startup
+  STATUS_VIEW,           // size and scale of this grid
+  TEN_MILE_ALERT_VIEW,   // microwave rover view
+  TIME_VIEW,             //
+  DATE_VIEW,             // Groundhog Day, Halloween, or other day-counting screen
+  CFG_VOLUME,            //
+  GOTO_SETTINGS,         // command the state machine to show control panel
+  GOTO_NEXT_VIEW,        // command the state machine to show next screen
+  MAX_VIEWS,             // sentinel at end of list
 };
-/*const*/ int help_view = HELP_VIEW;
-/*const*/ int splash_view = SPLASH_VIEW;
-/*const*/ int screen1_view = SCREEN1_VIEW;
-/*const*/ int grid_view = GRID_VIEW;
+/*const*/ int help_view      = HELP_VIEW;
+/*const*/ int splash_view    = SPLASH_VIEW;
+/*const*/ int screen1_view   = SCREEN1_VIEW;
+/*const*/ int grid_view      = GRID_VIEW;
 /*const*/ int goto_next_view = GOTO_NEXT_VIEW;
 
 // list of objects derived from "class View", in alphabetical order
-View* pView;                          // pointer to a derived class
+// clang-format off
+View* pView;      // pointer to a derived class
 
 ViewAltimeter     altimeterView(&tft, ALTIMETER_VIEW);  // alphabetical order by class name
 ViewBaro          baroView(&tft, BARO_VIEW);            // instantiate derived classes
@@ -345,33 +345,36 @@ ViewStatus        statusView(&tft, STATUS_VIEW);
 ViewTenMileAlert  tenMileAlertView(&tft, TEN_MILE_ALERT_VIEW);
 ViewTime          timeView(&tft, TIME_VIEW);
 ViewVolume        volumeView(&tft, CFG_VOLUME);
+// clang-format on
 
 void selectNewView(int cmd) {
   // cmd = GOTO_NEXT_VIEW | GOTO_SETTINGS
   // this is a state machine to select next view, given current view and type of command
-  View* viewTable[] = {    // vvv same order as enum vvv
-        &gridView,         // [GRID_VIEW]
-        &gridCrossingsView,  // [GRID_CROSSINGS_VIEW]
-        &altimeterView,    // [ALTIMETER_VIEW]
-        &baroView,         // [BARO_VIEW]
-        &helpView,         // [HELP_VIEW]
-        &cfgGPS,           // [CFG_GPS]
-        &cfgUnits,         // [CFG_UNITS]
-        &cfgCrossing,      // [CFG_CROSSING]
-        &cfgAudioType,     // [CFG_AUDIO_TYPE]
-        &cfgRotation,      // [CFG_ROTATION]
-        &rebootView,       // [REBOOT_VIEW]
-        &screen1View,      // [SCREEN1_VIEW]
-        &splashView,       // [SPLASH_VIEW]
-        &statusView,       // [STATUS_VIEW]
-        &tenMileAlertView, // [TEN_MILE_ALERT_VIEW]
-        &timeView,         // [TIME_VIEW]
-        &dateView,         // [DATE_VIEW]
-        &volumeView,       // [CFG_VOLUME]
+  View *viewTable[] = {
+      // vvv same order as enum vvv
+      &gridView,            // [GRID_VIEW]
+      &gridCrossingsView,   // [GRID_CROSSINGS_VIEW]
+      &altimeterView,       // [ALTIMETER_VIEW]
+      &baroView,            // [BARO_VIEW]
+      &helpView,            // [HELP_VIEW]
+      &cfgGPS,              // [CFG_GPS]
+      &cfgUnits,            // [CFG_UNITS]
+      &cfgCrossing,         // [CFG_CROSSING]
+      &cfgAudioType,        // [CFG_AUDIO_TYPE]
+      &cfgRotation,         // [CFG_ROTATION]
+      &rebootView,          // [REBOOT_VIEW]
+      &screen1View,         // [SCREEN1_VIEW]
+      &splashView,          // [SPLASH_VIEW]
+      &statusView,          // [STATUS_VIEW]
+      &tenMileAlertView,    // [TEN_MILE_ALERT_VIEW]
+      &timeView,            // [TIME_VIEW]
+      &dateView,            // [DATE_VIEW]
+      &volumeView,          // [CFG_VOLUME]
   };
 
-  int currentView = pView->screenID;
-  int nextView = BARO_VIEW; // GRID_VIEW;       // default
+int currentView = pView->screenID;
+int nextView    = BARO_VIEW;   // GRID_VIEW;       // default
+// clang-format off
   if (cmd == GOTO_NEXT_VIEW) {
     // operator requested the next NORMAL user view
     switch (currentView) {
@@ -407,6 +410,7 @@ void selectNewView(int cmd) {
   } else {
     logger.error("Requested view was out of range: %d where maximum is %d", cmd, MAX_VIEWS);
   }
+  // clang-format on
   logger.info("selectNewView() from %d to %d", currentView, nextView);
   pView->endScreen();                   // a goodbye-kiss to the departing view
   pView = viewTable[ nextView ];
@@ -436,17 +440,38 @@ void waitForSerial(int howLong) {
 //      This is MVC (model-view-controller) design pattern
 //
 //==============================================================
-// ----- adjust screen brightness
-const int gNumLevels = 3;
-const int gaBrightness[gNumLevels] = { 255, 80, 20 }; // global array of preselected brightness
-int gCurrentBrightnessIndex = 0;      // current brightness
+#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
+// ----- adjust screen brightness: Feather RP2040
+const int gNumLevels               = 3;
+const int gaBrightness[gNumLevels] = {100, 50, 15};   // global array of preselected brightness
+int gCurrentBrightnessIndex        = 0;               // current brightness
+float frequency                    = 10000;
+float dutyCycle                    = 100;
+
+#include "RP2040_PWM.h"
+RP2040_PWM PWM_backlight           = RP2040_PWM(TFT_BL, frequency, dutyCycle);
+
 void adjustBrightness() {
   // increment display brightness
-  gCurrentBrightnessIndex = (gCurrentBrightnessIndex + 1) % gNumLevels;
-  int brightness = gaBrightness[gCurrentBrightnessIndex];
-  analogWrite(TFT_BL, brightness);
+  gCurrentBrightnessIndex = (gCurrentBrightnessIndex + 1) % gNumLevels;   // incr index
+  int brightness          = gaBrightness[gCurrentBrightnessIndex];        // look up brightness
+  PWM_backlight.setPWM(TFT_BL, frequency, brightness);                    // write to hardware
   logger.info("Set brightness %d", brightness);
 }
+#else
+// ----- adjust screen brightness: Feather M4
+const int gNumLevels               = 3;
+const int gaBrightness[gNumLevels] = {255, 80, 20};   // global array of preselected brightness
+int gCurrentBrightnessIndex        = 0;               // current brightness
+
+void adjustBrightness() {
+  // increment display brightness
+  gCurrentBrightnessIndex = (gCurrentBrightnessIndex + 1) % gNumLevels;   // incr index
+  int brightness          = gaBrightness[gCurrentBrightnessIndex];        // look up brightness
+  analogWrite(TFT_BL, brightness);                                        // write to hardware
+  logger.info("Set brightness %d", brightness);
+}
+#endif
 
 void sendMorseLostSignal() {
   // commented out -- this occurs too frequently and is distracting
@@ -464,7 +489,7 @@ void announceGrid(const String gridName, int length) {
   grid[length] = 0;   // null-terminate string to requested 4- or 6-character length
   Serial.print("Announcing grid: "); Serial.println(grid);
 
-#if defined(ARDUINO_PICO_REVISION)
+#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
   // todo - for now, RP2040 has no DAC, no audio, no speech
 #else
   switch (cfgAudioType.selectedAudio) {
@@ -531,7 +556,7 @@ void sayGrid(const char *name) {
   Serial.print("Say ");
   Serial.println(name);
 
-#if defined(ARDUINO_PICO_REVISION)
+#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
   // todo - for now, RP2040 has no DAC, no audio, no speech
 #else
   for (int ii = 0; ii < strlen(name); ii++) {
@@ -566,6 +591,7 @@ void setup() {
   tft.fillScreen(ILI9341_BLACK);      // note that "begin()" does not clear screen
 
   // ----- init TFT backlight
+  pinMode(A0, INPUT);                 // Griduino v6 uses pin A0 (DAC0) to measure 3v coin battery; don't load down the pin
   pinMode(TFT_BL, OUTPUT);
   analogWrite(TFT_BL, 255);           // start at full brightness
 
@@ -648,7 +674,7 @@ void setup() {
   delay(50);
 
   // ----- query GPS firmware
-  Serial.print("Sending command to query GPS Firmware version: ");
+  Serial.print("Query GPS Firmware version: ");
   Serial.println(PMTK_Q_RELEASE);    // Echo query to console
   GPS.sendCommand(PMTK_Q_RELEASE);   // Send query to GPS unit
                                      // expected reply: $PMTK705,AXN_2.10...
@@ -663,7 +689,7 @@ void setup() {
 //                                          | | | | GPGSA   GPS Satellites Active
 //                                          | | | | | GPGSV GPS Satellites in View
 #define PMTK_SENTENCE_FREQUENCIES "$PMTK314,0,1,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0*28"
-  Serial.print("Sending command to set sentence output frequencies: ");
+  Serial.print("Set sentence output frequencies: ");
   Serial.println(PMTK_SENTENCE_FREQUENCIES);    // Echo command to console
   GPS.sendCommand(PMTK_SENTENCE_FREQUENCIES);   // Send command to GPS unit
   delay(50);
@@ -733,7 +759,7 @@ void setup() {
   }
 
   // ----- init barometer
-#if defined(ARDUINO_PICO_REVISION)
+#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
   // nothing - RP2040 has no barometric pressure sensor
 #else
   if (baroModel.begin()) {

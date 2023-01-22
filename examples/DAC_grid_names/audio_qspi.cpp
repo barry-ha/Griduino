@@ -145,8 +145,8 @@ const int chipDetectPin = 8;
 #define DAC_PIN     DAC0   // onboard DAC0 == pin A0
 #define PIN_SPEAKER DAC0   // uses DAC
 
-Adafruit_FlashTransport_QSPI gFlashTransport;   // Quad-SPI 2MB memory chip
-Adafruit_SPIFlash gFlash(&gFlashTransport);     //
+Adafruit_FlashTransport_QSPI flashTransport;   // Quad-SPI 2MB memory chip
+Adafruit_SPIFlash gFlash(&flashTransport);     //
 FatFileSystem gFatfs;                           // file system object from SdFat
 
 // ========== file system helpers ==============================

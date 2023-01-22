@@ -1,5 +1,4 @@
 // Please format this file with clang before check-in to GitHub
-#ifdef TODO_FOR_RP2040    // temporarily removed 'save/restore' code because of 'File' vs 'SDFile'
 /*
   File:     save_restore.cpp
 
@@ -14,7 +13,7 @@
             Field 1: File name - stored inside file itself as a sanity check
             Field 2: File version - sanity check to ensure 'restore' matches 'save'
             Field 3: Data - base class stores an integer which is sufficient for
-                     simple things like Volume or TimeZone settings
+                     simple numeric settings like Volume or TimeZone settings
 
             There is one config file per C++ object; files are cheap so we don't
             share files for different types of settings. Every 'save' operation
@@ -39,8 +38,14 @@
 int openFlash();
 
 // ========== globals =================================
-Adafruit_FlashTransport_QSPI gFlashTransport;
-Adafruit_SPIFlash gFlash(&gFlashTransport);
+#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
+  // Adafruit Feather RP2040, https://www.adafruit.com/product/4884
+  Adafruit_FlashTransport_RP2040_CPY flashTransport;   // onboard RAM, compatible with CircuitPy
+#else
+  // Adafruit Feather M4, https://www.adafruit.com/product/3857
+  Adafruit_FlashTransport_QSPI flashTransport;   // Quad SPI 2MB memory chip
+#endif
+Adafruit_SPIFlash gFlash(&flashTransport);
 FatFileSystem gFatfs;   // file system object from SdFat
 extern Logger logger;   // Griduino.ino
 
@@ -73,7 +78,7 @@ int SaveRestore::readConfig(byte *pData, const unsigned int sizeData) {
   }
 
   // open config file
-  File readFile = gFatfs.open(fqFilename, FILE_READ);
+  File32 readFile = gFatfs.open(fqFilename, FILE_READ);
   if (!readFile) {
     logger.error("Error, failed to open config file for reading, ", fqFilename);
     return 0;
@@ -140,7 +145,7 @@ int SaveRestore::writeConfig(const byte *pData, const unsigned int sizeData) {
   // initialize configuration file in file system, called by setup() if needed
   // assumes this is Feather M4 Express with 2 MB Quad-SPI flash memory
   // returns 1=success, 0=failure
-  logger.info("Starting to write config to SDRAM...");
+  logger.info("Writing config data to flash");
 
   int result = openFlash();   // open file system and report errors
   if (!result) {
@@ -148,8 +153,7 @@ int SaveRestore::writeConfig(const byte *pData, const unsigned int sizeData) {
   }
 
   // replace an existing config file
-  gFatfs.remove(fqFilename);                              // delete old file (or else it would append data to the end)
-  File writeFile = gFatfs.open(fqFilename, FILE_WRITE);   //
+  File32 writeFile = gFatfs.open(fqFilename, O_RDWR | O_CREAT | O_TRUNC);
   if (!writeFile) {
     logger.error("Error, failed to open config file for writing, ", fqFilename);
     return 0;
@@ -157,7 +161,7 @@ int SaveRestore::writeConfig(const byte *pData, const unsigned int sizeData) {
 
   logger.info(". fqFilename ", fqFilename);
   logger.info(". sVersion ", sVersion);
-  logger.info(". Data length ", sizeData);
+  logger.info(". Data length %d", sizeData);
 
   // write config data to file...
   int count;
@@ -320,7 +324,7 @@ void SaveRestoreStrings::close() {
 int SaveRestore::listFiles(const char *dirname) {
   // Open the root folder to list top-level children (files and directories).
   int rc       = 1;   // assume success
-  File testDir = gFatfs.open(dirname);
+  File32 testDir = gFatfs.open(dirname);
   if (!testDir) {
     logger.error("Error, failed to open directory ", dirname);
     rc = 0;
@@ -335,7 +339,7 @@ int SaveRestore::listFiles(const char *dirname) {
 
     int fileCount = 0;
     int byteCount = 0;
-    File child    = testDir.openNextFile();
+    File32 child  = testDir.openNextFile();
     while (child && rc > 0) {
       char filename[64];
       child.getName(filename, sizeof(filename));
@@ -453,4 +457,3 @@ int SaveRestore::openFlash() {
   }
   return 1;   // indicate success
 }
-#endif  // TODO_FOR_RP2040

@@ -23,13 +23,15 @@
 #define PROSIGN_MIM 'C'   // comma
 #define PROSIGN_AAA '.'   // period
 
-#if defined(ARDUINO_PICO_REVISION)
+#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
 // todo - for now, RP2040 has no DAC, no audio, no speech
 // ========== class DACMorsender ==================================
 class DACMorseSender {
 public:
   DACMorseSender(int outputPin, int iFreq, float fWPM) {}
-  void setup() {}
+  void setup() {
+    pinMode(A0, INPUT);   // Griduino v6 uses DAC0 (A0) to measure 3v coin battery; don't load down the pin
+  }
   void setMessage(const String newMessage) {}
   void sendBlocking() {}
   void unit_test() {}
@@ -106,4 +108,4 @@ public:
 private:
   void send(char c);
 };   // end class DACMorseSender
-#endif  // ARDUINO_PICO_REVISION
+#endif  // ARDUINO_ADAFRUIT_FEATHER_RP2040

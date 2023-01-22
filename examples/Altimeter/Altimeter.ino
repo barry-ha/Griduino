@@ -127,7 +127,7 @@ const int xLabel = 8;      // indent labels, slight margin on left edge of scree
 #define cLABEL      ILI9341_GREEN
 #define cVALUE      ILI9341_YELLOW
 #define cINPUT      ILI9341_WHITE
-//#define cHIGHLIGHT    ILI9341_WHITE
+// #define cHIGHLIGHT    ILI9341_WHITE
 #define cBUTTONFILL    ILI9341_NAVY
 #define cBUTTONOUTLINE ILI9341_CYAN
 #define cBUTTONLABEL   ILI9341_YELLOW
@@ -559,7 +559,12 @@ void setup() {
   */
 
   // ----- init BMP388 or BMP390 barometer
-  if (baro.begin_SPI(BMP_CS)) {
+#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
+  bool initialized = baro.begin_I2C(BMP3XX_DEFAULT_ADDRESS, &Wire1);   // Griduino v6 pcb
+#else
+  bool initialized = baro.begin_SPI(bmp_cs);   // Griduino v4 pcb
+#endif
+  if (initialized) {
     // success
   } else {
     // failed to initialize hardware

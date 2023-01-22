@@ -264,5 +264,5 @@ void ViewCfgRotation::loadConfig() {
 void ViewCfgRotation::saveConfig() {
   SaveRestore config(SCREEN_CONFIG_FILE, CONFIG_SCREEN_VERSION);
   int rc = config.writeConfig((byte *)&screenRotation, sizeof(screenRotation));
-  logger.info("Finished ViewCfgRotation::saveConfig() with rc = ", rc);   // debug
+  logger.info("Finished ViewCfgRotation::saveConfig() with rc = %d", rc);   // debug
 }

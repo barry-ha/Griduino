@@ -175,7 +175,7 @@ void setup() {
   tft.setRotation(SCREEN_ROTATION);   // landscape (default is portrait)
   clearScreen();
 
-#if defined(ARDUINO_PICO_REVISION)
+#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
   Serial.println("Compiled for Adafruit Pi Pico RP2040 and Griduino Rev.6 board");
 
   Wire1.begin();

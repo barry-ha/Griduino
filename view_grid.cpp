@@ -15,7 +15,7 @@
             | CN77 |         CN87                | CN97 |...gMiddleRowY
             | 61.2 |          us                 | 37.1 |
             |      |                             |      |
-            |   47 +-----------------------------+      |
+            |   47 +-----------------------------+ 3.3v |
             | 123' :         CN86  39.0 mi       :  75° |...gBottomGridY
             | 47.5644, -122.0378                 :   5# |...gMessageRowY
             +------:---------:-------------------:------+
@@ -72,8 +72,10 @@ void drawGridOutline() {
 
   // ========== text screen layout ===================================
   // these are names for the array indexes, must be named in same order as array below
+  // clang-format off
 enum txtIndex {
-  GRID4=0, GRID6, LATLONG, ALTITUDE, NUMSAT, TEMPERATURE,
+  GRID4=0, GRID6, LATLONG, 
+  COINBATT,   ALTITUDE,   NUMSAT,     TEMPERATURE,
   N_COMPASS,  S_COMPASS,  E_COMPASS,  W_COMPASS,
   N_DISTANCE, S_DISTANCE, E_DISTANCE, W_DISTANCE,
   N_GRIDNAME, S_GRIDNAME, E_GRIDNAME, W_GRIDNAME,
@@ -86,6 +88,7 @@ TextField txtGrid[] = {
   TextField("CN77",  101,101,  cGRIDNAME),      // GRID4: center of screen
   TextField("tt",    138,141,  cGRIDNAME),      // GRID6: center of screen
   TextField("47.1234,-123.4567", 4,223, cSTATUS), // LATLONG: left-adj on bottom row
+  TextField("1.23v", 316,171,  cSTATUS, ALIGNRIGHT),  // COINBATT: just above altitude
   TextField("123'",   62,196,  cSTATUS, ALIGNRIGHT),  // ALTITUDE: just above bottom row
   TextField("99#",   313,221,  cSTATUS, ALIGNRIGHT),  // NUMSAT: lower right corner
   TextField("75F",   313,196,  cSTATUS, ALIGNRIGHT),  // TEMPERATURE
@@ -107,6 +110,7 @@ TextField txtGrid[] = {
   TextField("124",    72, 20,  cBOXDEGREES, ALIGNRIGHT),  // W_BOX_LONG
 };
 const int numTextGrid = sizeof(txtGrid)/sizeof(TextField);
+// clang-format on
 
 void drawGridName(String newGridName) {
   // huge lettering of current grid square
@@ -171,6 +175,19 @@ void drawNumSatellites() {
   }
   txtGrid[NUMSAT].print(sTemp);       // number of satellites
  
+}
+
+void drawCoinBatteryVoltage() {
+  setFontSize(0);
+  char sVoltage[12];
+  float coinVoltage = model->gpsBattery * (3.3 / 1023.0);
+  if (model->gpsBattery >= 1023) {
+    strcpy(sVoltage, ">3.3v");
+  } else {
+    floatToCharArray(sVoltage, sizeof(sVoltage), coinVoltage, 2);
+    strcat(sVoltage, "v");
+  }
+  txtGrid[COINBATT].print(sVoltage);
 }
 
 void drawAltitude() {
@@ -454,7 +471,8 @@ void ViewGrid::updateScreen() {
   grid.calcLocator(grid6, model->gLatitude, model->gLongitude, 6);
   drawGridName(grid6);                // huge letters centered on screen
   drawAltitude();                     // height above sea level
-  drawNumSatellites();
+  drawCoinBatteryVoltage();           // coin battery voltage
+  drawNumSatellites();                // number of satellites
   drawTemperature(baroModel.getTemperature()); // query temperature from the C++ object, which is updated only by "performReading()"
   drawPositionLL(model->gLatitude, model->gLongitude);  // lat-long of current position
   //drawCompassPoints();              // show N-S-E-W compass points (disabled, it makes the screen too busy)

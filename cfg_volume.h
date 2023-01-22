@@ -41,7 +41,7 @@ extern Logger logger;                                 // Griduino.ino
 extern void announceGrid(String gridName, int len);   // Griduino.ino
 extern DACMorseSender dacMorse;                       // morse code (so we can send audio sample)
 extern DS1804 volume;                                 // digital potentiometer
-#if defined(ARDUINO_PICO_REVISION)
+#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
                         // todo - for now, RP2040 has no DAC, no speech, no audio output
 #else
 #include <Audio_QSPI.h>   // Audio playback library for Arduino, https://github.com/barry-ha/Audio_QSPI

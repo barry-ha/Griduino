@@ -23,8 +23,8 @@
 #include <Adafruit_SPIFlash.h>
 
 // ========== globals =================================
-Adafruit_FlashTransport_QSPI gFlashTransport;
-Adafruit_SPIFlash gFlash(&gFlashTransport);
+Adafruit_FlashTransport_QSPI flashTransport;
+Adafruit_SPIFlash gFlash(&flashTransport);
 FatFileSystem gFatfs;          // file system object from SdFat
 
 // ========== debug helper ============================

@@ -101,8 +101,13 @@ public:
   // init BMP388 or BMP390 barometer
   int begin(void) {
     int rc = 1;   // assume success
-    // logger.fencepost("model_baro.h", __LINE__);
-    if (baro->begin_SPI(bmp_cs)) {
+                  // logger.fencepost("model_baro.h", __LINE__);
+#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
+    bool initialized = baro->begin_I2C(BMP3XX_DEFAULT_ADDRESS, &Wire1);   // Griduino v6 pcb
+#else
+    bool initialized = baro->begin_SPI(bmp_cs);   // Griduino v4 pcb
+#endif
+    if (initialized) {
       // logger.fencepost("model_baro.h", __LINE__);
       //  Bosch BMP388 datasheet:
       //       https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bmp388-ds001.pdf

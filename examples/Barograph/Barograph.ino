@@ -42,7 +42,7 @@
 
 // ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE   "Barograph Demo"
-#define PROGRAM_VERSION "v1.08"
+#define PROGRAM_VERSION "v1.11"
 #define PROGRAM_LINE1   "Barry K7BWH"
 #define PROGRAM_LINE2   "John KM7O"
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
@@ -111,10 +111,13 @@ const int howLongToWait = 6;          // max number of seconds at startup waitin
 #define FEET_PER_METER 3.28084
 #define SEA_LEVEL_PRESSURE_HPA (1013.25)
 
-//efine MILLIBARS_PER_INCHES_MERCURY (33864.0)  // todo - is this wrong? https://www.calculateme.com/pressure/
 #define MILLIBARS_PER_INCHES_MERCURY (0.02953)
-#define BARS_PER_INCHES_MERCURY      (0.033864)
-#define PASCALS_PER_INCHES_MERCURY   (3386.4)
+#define BARS_PER_INCHES_MERCURY      (0.0338639)
+#define PASCALS_PER_INCHES_MERCURY   (3386.39)
+#define PASCALS_PER_HPA              (100.0)
+#define HPA_PER_PASCAL               (0.01)
+#define HPA_PER_INCHES_MERCURY       (33.8639)
+#define INCHES_MERCURY_PER_PASCAL    (0.0002953)
 
 // ----- Griduino color scheme
 // RGB 565 color code: http://www.barth-dev.de/online/rgb565-color-picker/
@@ -726,8 +729,23 @@ void setup() {
   clearScreen();
 
   // ----- init BMP388 or BMP390 barometer
-  if (baro.begin_SPI(BMP_CS)) {
-    // success
+#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
+  bool initialized = baro.begin_I2C(BMP3XX_DEFAULT_ADDRESS, &Wire1);   // Griduino v6 pcb
+#else
+  bool initialized = baro.begin_SPI(BMP_CS);   // Griduino v4 pcb
+#endif
+  if (initialized) {
+      //  Bosch BMP388 datasheet:
+      //       https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bmp388-ds001.pdf
+      //  IIR:
+      //       An "infinite impulse response" filter intended to remove short-term
+      //       fluctuations in pressure, e.g. caused by slamming a door or wind blowing
+      //       on the sensor.
+      //  Oversampling:
+      //       Each oversampling step reduces noise and increases output resolution
+      //       by one bit.
+      //
+
   } else {
     // failed to initialize hardware
     Serial.println("Error, unable to initialize BMP388, check your wiring");
@@ -738,6 +756,7 @@ void setup() {
     delay(4000);
   }
 
+  // ----- Settings recommended by Bosch based on use case for "handheld device dynamic"
   // Set up BMP388 oversampling and filter initialization
   // https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bmp388-ds001.pdf
   // Section 3.5 Filter Selection, page 17
@@ -746,7 +765,8 @@ void setup() {
   baro.setIIRFilterCoeff(BMP3_IIR_FILTER_COEFF_127);
   // baro.setOutputDataRate(BMP3_ODR_50_HZ);
 
-  // Get first data point (done twice because first reading is always bad)
+  // Get and discard the first data point
+  // Repeated because first reading is always bad, until iir oversampling buffers are populated
   getBaroPressure();
   pressureStack[lastIndex].pressure = gPressure + elevCorr;
   showReadings(units);

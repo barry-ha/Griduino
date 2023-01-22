@@ -33,11 +33,13 @@
 #include "view.h"               // Base class for all views
 
 // ========== extern ===========================================
-extern "C" {
-#include <hardware/watchdog.h>
-#include <hardware/resets.h>
-#include <pico/bootrom.h>
-}
+#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
+  extern "C" {
+    #include <hardware/watchdog.h>
+    #include <hardware/resets.h>
+    #include <pico/bootrom.h>
+  }
+#endif
 extern Logger logger;                    // Griduino.ino
 extern void showDefaultTouchTargets();   // Griduino.ino
 void selectNewView(int cmd);             // extern declaration
@@ -143,9 +145,14 @@ enum buttonID {
     delay(1000);
 
     // reboot
+#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
     multicore_reset_core1();
     multicore_launch_core1(0);
     reset_usb_boot(0, 0);
+#else
+    // todo: try to discover a way to put Feather M4 into bootloader mode
+    // todo: for now
+#endif
   }
   void fCancel() {
     logger.info("->->-> Clicked CANCEL button.");

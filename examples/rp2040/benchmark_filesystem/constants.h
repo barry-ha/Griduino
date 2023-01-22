@@ -2,11 +2,7 @@
 
 // ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE    "Griduino"
-#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
 #define PROGRAM_VERSION  "v1.11 rp2040"
-#else
-#define PROGRAM_VERSION  "v1.11 M4"
-#endif
 #define PROGRAM_LINE1    "Barry K7BWH"
 #define PROGRAM_LINE2    "John KM7O"
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
@@ -19,6 +15,9 @@
 //#define SHOW_SCREEN_BORDER          // use this to outline the screen's displayable area
 //#define SHOW_SCREEN_CENTERLINE      // use this visual aid to help layout the screen
 //#define SHOW_IGNORED_PRESSURE       // use this to see barometric pressure readings that are out of range and therefore ignored
+// deleted: #define USE_SIMULATED_GPS   // comment out to use real GPS, or else it simulates driving around (see model_gps.h)
+// deleted: #define RUN_UNIT_TESTS      // comment out to save boot-up time
+// deleted: #define SHOW_TOUCH_TARGETS  // use serial command "show touch" instead
 
 // ------- TFT screen definitions ---------
 #define gScreenWidth  320   // screen pixels wide
@@ -145,10 +144,6 @@ struct Rect {
   }
 };
 
-struct Route {   // screen coordinates
-  uint16_t x, y;
-};
-
 struct Label {
   char text[26];
   int x, y;
@@ -196,9 +191,11 @@ public:
   time_t timestamp;   // has-a GMT time
   void reset() {
     loc.lat = loc.lng = 0.0;
-    timestamp         = 0;
+    //                  s, m, h, dow, dd,mm,yy
+    TimeElements y2k = {0, 0, 0,  1,   1, 1,2000 - 1970};
+    timestamp         = makeTime(y2k);
   }
   bool isEmpty() {
-    return (loc.lat == 0.0 && loc.lng == 0.0);
+    return ((loc.lat == 0.0) && (loc.lng == 0.0));
   }
 };

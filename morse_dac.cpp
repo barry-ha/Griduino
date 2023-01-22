@@ -28,7 +28,7 @@
 #include "logger.h"      // conditional printing to Serial port
 #include "morse_dac.h"   // Morse sending class
 
-#if defined(ARDUINO_PICO_REVISION)
+#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
   // todo - for now, RP2040 has no DAC, no audio, no speech
 #else 
 // ========== extern ===========================================
@@ -338,4 +338,4 @@ void DACMorseSender::unit_test() {
   Serial.println(msg);
   Serial.println("End settings.");
 }
-#endif // ARDUINO_PICO_REVISION
+#endif // ARDUINO_ADAFRUIT_FEATHER_RP2040

@@ -68,15 +68,17 @@ On-board lights:
 #define SD_CD  10   // SD card detect pin - Feather
 #define SD_CCS 11   // SD card select pin - Feather
 
+//#elif defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
 #elif defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
-//#warning ----- Compiling for Arduino Pi Pico RP2040
+#warning ----- Compiling for Arduino Feather RP2040 -----
 // Ref: https://arduino-pico.readthedocs.io/en/latest/index.html
+//warning ----- Compiling for Arduino Pico RP2040 -----
 // Adafruit Feather_RP2040 pin definitions
 // To compile for Feather_RP2040, install "additional boards manager"
 // https://github.com/earlephilhower/arduino-pico/releases/download/global/package_rp2040_index.json
 
-#define TFT_BL 4    // TFT backlight
-#define TFT_CS 5    // TFT chip select pin
+#define TFT_BL 6    // TFT backlight
+#define TFT_CS A1   // TFT chip select pin
 #define TFT_DC 12   // TFT display/command pin
 #define BMP_CS 13   // BMP388 sensor, chip select
 
@@ -107,8 +109,8 @@ On-board lights:
   #define PIN_XP 24   // Touchscreen X+ can be a digital pin
   #define PIN_YM 25   // Touchscreen Y- can be a digital pin
   // ---------- Audio output pins
-  #define DAC_PIN     A0   // do not use - RP2040 has no DAC
-  #define PIN_SPEAKER A0   // rev.6 PCB
+  #define DAC_PIN     0   // do not use - RP2040 has no DAC
+  #define PIN_SPEAKER 0   // do not use - RP2040 has no DAC
 #else
 // ---------- Touch Screen pins - Feather M4
   #define PIN_XP A3   // Touchscreen X+ can be a digital pin

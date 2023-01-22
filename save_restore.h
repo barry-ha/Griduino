@@ -28,36 +28,10 @@
             }
 */
 #include <SdFat.h>   // SDRAM File Allocation Table filesystem
-//#include <Adafruit_SPIFlash.h>   // for FAT filesystems on SPI flash chips.
 #include "logger.h"   // conditional printing to Serial port
 
 // ========== extern ===========================================
 extern Logger logger;   // Griduino.ino
-
-#if defined(ARDUINO_PICO_REVISION)    // temporarily stubbed out 'save/restore' code because of 'File' vs 'SDFile' errors
-class SaveRestore {
-public:
-  SaveRestore(const char *vFilename, const char *vVersion) {}
-  ~SaveRestore() {}
-  int readConfig(byte *pBuffer, const unsigned int sizeBuffer) {return 0;}
-  int writeConfig(const byte *pBuffer, const unsigned int sizeBuffer) {return 0;}
-  int listFiles(const char *dirname) {return 0;}
-  int remove(const char *vFilename) {return 0;}
-};
-
-class SaveRestoreStrings : public SaveRestore {
-public:
-  SaveRestoreStrings(const char *vFilename, const char *vVersion)
-      : SaveRestore{vFilename, vVersion} { }
-  ~SaveRestoreStrings() {}
-  int open(const char *filename, const char *mode) {return 0;};
-  int writeLine(const char *pBuffer) {return 0;}
-  int readLine(char *pBuffer, int bufflen) {return 0;};
-  uint8_t getError() {return 0;}
-  void close() {}
-};
-
-#else
 
 // ========== class SaveRestore =========================
 class SaveRestore {
@@ -146,6 +120,11 @@ public:
   void close();
 
 protected:
-  File handle;   // contains result of gFatfs.open()
+#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
+  // Adafruit Feather RP2040, https://www.adafruit.com/product/4884
+  File32 handle;
+#else
+  // Adafruit Feather M4, https://www.adafruit.com/product/3857
+  File32 handle;   // contains result of gFatfs.open()
+#endif
 };
-#endif  // TODO_FOR_RP2040

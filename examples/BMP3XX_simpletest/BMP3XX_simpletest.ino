@@ -21,6 +21,7 @@
   Updated: Barry Hansen, K7BWH, barry@k7bwh.com
 
   Version history:
+           2022-12-28 - support I2C for Feather rp2040 and also SPI for Feather M4
            2021-01-30 - updated for BMP390
            2020-03-05 - adapted for Griduino with BMP388
 
@@ -31,6 +32,8 @@
 
          3. Adafruit BMP388 - Precision Barometric Pressure https://www.adafruit.com/product/3966
             Adafruit BMP390                                 https://www.adafruit.com/product/4816
+
+         4. Arduino Feather RP2040 (133 MHz Cortex M0+)     https://www.adafruit.com/product/4884
 
 */
 
@@ -64,9 +67,10 @@ Adafruit_BMP3XX bmp;
 void setup() {
 
   // ----- init serial monitor
-  Serial.begin(115200);   // init for debuggging in the Arduino IDE
-  while (!Serial)
-    ;
+  Serial.begin(115200);   // init for debugging in the Arduino IDE
+  while (!Serial) {       // Wait for console in the Arduino IDE
+    yield();
+  }
 
   // now that Serial is ready and connected (or we gave up)...
   Serial.println(PROGRAM_TITLE " " PROGRAM_VERSION);   // Report our program name to console
@@ -74,7 +78,12 @@ void setup() {
   Serial.println(__FILE__);                            // Report our source code file name
 
   // ----- init BMP388 or BMP390 barometer
-  if (bmp.begin_SPI(BMP_CS)) {
+#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
+  bool initialized = bmp.begin_I2C(BMP3XX_DEFAULT_ADDRESS, &Wire1);
+#else
+  bool initialized = bmp.begin_SPI(BMP_CS);
+#endif
+  if (initialized) {
     // success
   } else {
     // failed to initialize hardware
