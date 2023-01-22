@@ -2,7 +2,11 @@
 
 // ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE    "Griduino"
+#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
 #define PROGRAM_VERSION  "v1.11 rp2040"
+#else
+#define PROGRAM_VERSION  "v1.11 M4"
+#endif
 #define PROGRAM_LINE1    "Barry K7BWH"
 #define PROGRAM_LINE2    "John KM7O"
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
@@ -15,9 +19,6 @@
 //#define SHOW_SCREEN_BORDER          // use this to outline the screen's displayable area
 //#define SHOW_SCREEN_CENTERLINE      // use this visual aid to help layout the screen
 //#define SHOW_IGNORED_PRESSURE       // use this to see barometric pressure readings that are out of range and therefore ignored
-// deleted: #define USE_SIMULATED_GPS   // comment out to use real GPS, or else it simulates driving around (see model_gps.h)
-// deleted: #define RUN_UNIT_TESTS      // comment out to save boot-up time
-// deleted: #define SHOW_TOUCH_TARGETS  // use serial command "show touch" instead
 
 // ------- TFT screen definitions ---------
 #define gScreenWidth  320   // screen pixels wide
@@ -142,6 +143,10 @@ struct Rect {
       return false;
     }
   }
+};
+
+struct Route {   // screen coordinates
+  uint16_t x, y;
 };
 
 struct Label {
