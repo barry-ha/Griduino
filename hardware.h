@@ -76,7 +76,7 @@ On-board lights:
 // https://github.com/earlephilhower/arduino-pico/releases/download/global/package_rp2040_index.json
 
 #define TFT_BL 4    // TFT backlight
-#define TFT_CS 5    // TFT chip select pin
+#define TFT_CS A1    // TFT chip select pin
 #define TFT_DC 12   // TFT display/command pin
 #define BMP_CS 13   // BMP388 sensor, chip select
 
