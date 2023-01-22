@@ -36,7 +36,7 @@
 //  Startup information
 //------------------------------------------------------------------------------
 #define PROGRAM_TITLE    "Touch Screen Demo"
-#define PROGRAM_VERSION  "v0.27"
+#define PROGRAM_VERSION  "v1.12"
 #define PROGRAM_LINE1    "Barry K7BWH"
 #define PROGRAM_LINE2    "ACV"
 #define PROGRAM_COMPILED PROGRAM_VERSION " " __DATE__ " " __TIME__

@@ -25,7 +25,7 @@
 
 // constants
 #define PROGRAM_TITLE    "Little FS Demo"
-#define PROGRAM_VERSION  "v1.11 rp2040"
+#define PROGRAM_VERSION  "v1.12 rp2040"
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
 #define PROGRAM_FILE     __FILE__
 #define DATA_FILE        "/SavedFile.txt"

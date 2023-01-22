@@ -17,7 +17,7 @@
 
 // ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE    "Serial_Read_Command"
-#define PROGRAM_VERSION  "v1.07"
+#define PROGRAM_VERSION  "v1.12"
 #define PROGRAM_LINE1    "Barry K7BWH, barry@k7bwh.com"
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
 
