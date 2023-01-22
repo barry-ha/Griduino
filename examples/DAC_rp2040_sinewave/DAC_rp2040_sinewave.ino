@@ -22,7 +22,7 @@ Adafruit_MCP4725 dac;
 
 // ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE    "Generate waveforms with the MCP4725 DAC on v6 Griduino"
-#define PROGRAM_VERSION  "v1.11"
+#define PROGRAM_VERSION  "v1.12"
 #define PROGRAM_LINE1    "Barry K7BWH"
 #define PROGRAM_LINE2    "John KM7O"
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
