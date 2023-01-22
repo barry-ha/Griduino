@@ -55,7 +55,7 @@ On-board lights:
 // TFT display and SD card share the hardware SPI interface, and have
 // separate 'select' pins to identify the active device on the bus.
 #if defined(SAMD_SERIES)
-#warning ----- Compiling for Arduino Feather M4 Express -----
+#warning----- Compiling for Arduino Feather M4 Express -----
 // Adafruit Feather M4 Express pin definitions
 // To compile for Feather M0/M4, install "additional boards manager"
 // https://learn.adafruit.com/adafruit-feather-m4-express-atsamd51/setup
@@ -68,9 +68,9 @@ On-board lights:
 #define SD_CD  10   // SD card detect pin - Feather
 #define SD_CCS 11   // SD card select pin - Feather
 
-#elif defined(ARDUINO_PICO_REVISION)
+#elif defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
 // Ref: https://arduino-pico.readthedocs.io/en/latest/index.html
-//warning ----- Compiling for Arduino Pico RP2040 -----
+// warning ----- Compiling for Arduino Pico RP2040 -----
 // Adafruit Feather_RP2040 pin definitions
 // To compile for Feather_RP2040, install "additional boards manager"
 // https://github.com/earlephilhower/arduino-pico/releases/download/global/package_rp2040_index.json
@@ -100,29 +100,29 @@ On-board lights:
 #define Y_MIN_OHMS 110   // Expected range on touchscreen's Y-axis readings
 #define Y_MAX_OHMS 860
 
-#if defined(ARDUINO_PICO_REVISION)
-  // ---------- Touch Screen pins - Adafruit Feather RP2040
-  #define PIN_XM A2   // Touchscreen X- must be an analog pin, use "An" notation
-  #define PIN_YP A3   // Touchscreen Y+ must be an analog pin, use "An" notation
-  #define PIN_XP 24   // Touchscreen X+ can be a digital pin
-  #define PIN_YM 25   // Touchscreen Y- can be a digital pin
-  // ---------- Audio output pins
-  #define DAC_PIN     0   // do not use - RP2040 has no DAC
-  #define PIN_SPEAKER 0   // do not use - RP2040 has no DAC
+#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
+// ---------- Touch Screen pins - Adafruit Feather RP2040
+#define PIN_XM A2   // Touchscreen X- must be an analog pin, use "An" notation
+#define PIN_YP A3   // Touchscreen Y+ must be an analog pin, use "An" notation
+#define PIN_XP 24   // Touchscreen X+ can be a digital pin
+#define PIN_YM 25   // Touchscreen Y- can be a digital pin
+// ---------- Audio output pins
+#define DAC_PIN     0   // do not use - RP2040 has no DAC
+#define PIN_SPEAKER 0   // do not use - RP2040 has no DAC
 #else
 // ---------- Touch Screen pins - Feather M4
-  #define PIN_XP A3   // Touchscreen X+ can be a digital pin
-  #define PIN_XM A4   // Touchscreen X- must be an analog pin, use "An" notation
-  #define PIN_YP A5   // Touchscreen Y+ must be an analog pin, use "An" notation
-  #define PIN_YM 9    // Touchscreen Y- can be a digital pin
-  // ---------- Audio output pins
-  #define DAC_PIN     DAC0   // onboard DAC0 == pin A0
-  #define PIN_SPEAKER DAC0   // uses DAC
+#define PIN_XP      A3     // Touchscreen X+ can be a digital pin
+#define PIN_XM      A4     // Touchscreen X- must be an analog pin, use "An" notation
+#define PIN_YP      A5     // Touchscreen Y+ must be an analog pin, use "An" notation
+#define PIN_YM      9      // Touchscreen Y- can be a digital pin
+// ---------- Audio output pins
+#define DAC_PIN     DAC0   // onboard DAC0 == pin A0
+#define PIN_SPEAKER DAC0   // uses DAC
 #endif
 
 // ---------- Feather RP2040 onboard led
-#if defined(ARDUINO_PICO_REVISION)
-#define RED_LED 25  // diagnostics RED LED
+#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
+#define RED_LED 25   // diagnostics RED LED
 #else
 #define RED_LED 13   // diagnostics RED LED
 #endif
