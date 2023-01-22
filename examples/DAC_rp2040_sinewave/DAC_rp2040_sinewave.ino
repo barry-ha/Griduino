@@ -66,10 +66,11 @@ void setup(void) {
   Serial.println("Compiled " PROGRAM_COMPILED);       // Report our compiled date
   Serial.println(__FILE__);                           // Report our source code file name
 
-#if defined(ARDUINO_PICO_REVISION)
+#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
   Serial.println("Compiled for Adafruit Feather RP2040 (product id 4884)");
 #else
   Serial.println("Sorry, your hardware platform is not recognized.");
+  #error Sorry, your hardware platform is not recognized.
 #endif
 
   // ----- init onboard DAC
