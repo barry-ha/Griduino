@@ -44,8 +44,9 @@ Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 
 // ============== constants ====================================
 const int howLongToWait = 10;   // max number of seconds before using Serial port to console
-const int maxVolume     = 40;   // maximum allowed wiper position on TPL0401 is 0..127
-                                // but the speaker sounds distorted around XX? so we stop around 30-50 instead of 127
+const int minVolume     =  2;   // 
+const int maxVolume     = 127;  // maximum allowed wiper position on TPL0401 is 0..127
+                                // but the speaker sounds distorted around 100? so use this to stop earlier
 
 // clang-format off
 const int nSine32    = 32;
@@ -90,7 +91,7 @@ void setVolume(int wiperPosition) {
   tft.setCursor(xLabel, yRow6);   // report to TFT display
   tft.print("Wiper position ");
   tft.print(wiperPosition);
-  tft.print(" of 127");
+  tft.print(" of 127 ");
 
   tft.setCursor(xLabel, yRow7);
   tft.print("Pitch ");
@@ -100,11 +101,11 @@ void setVolume(int wiperPosition) {
 void increaseVolume() {
   // send new volume command to DS1804 or TPL0401 digital potentiometer
   if (gVolume >= maxVolume) {
-    gVolume = 0;
+    gVolume = minVolume;
     Serial.println("----- Start over");
   } else {
     // digital pot has linear steps, so to increase by about 3 dB we double the setting
-    gVolume = constrain(gVolume + 1, 0, maxVolume);
+    gVolume = constrain(gVolume + 2, 0, maxVolume);
   }
   setVolume(gVolume);
 }
@@ -218,9 +219,9 @@ void setup() {
 // "millis()" is number of milliseconds since the Arduino began running the current program.
 // This number will overflow after about 50 days.
 uint32_t prevTime                = millis();
-const int VOLUME_CHANGE_INTERVAL = 600;   // msec between changing volume setting
+const int VOLUME_CHANGE_INTERVAL = 700;   // msec between changing volume setting
 
-const int SIDETONE    = 800;                     // 800 Hz sidetone
+const int SIDETONE    = 900;                     // 800 Hz sidetone
 const int MULTIPLIER  = 2085;                    // empirically determined for 800 Hz
 const int CW_I2C_FREQ = SIDETONE * MULTIPLIER;   // I2C clock frequency
 
