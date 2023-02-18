@@ -101,16 +101,6 @@ On-board lights:
 #define Y_MAX_OHMS 860
 
 #if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
-<<<<<<< HEAD
-// ---------- Touch Screen pins - Adafruit Feather RP2040
-#define PIN_XM A2   // Touchscreen X- must be an analog pin, use "An" notation
-#define PIN_YP A3   // Touchscreen Y+ must be an analog pin, use "An" notation
-#define PIN_XP 24   // Touchscreen X+ can be a digital pin
-#define PIN_YM 25   // Touchscreen Y- can be a digital pin
-// ---------- Audio output pins
-#define DAC_PIN     0   // do not use - RP2040 has no DAC
-#define PIN_SPEAKER 0   // do not use - RP2040 has no DAC
-=======
   // ---------- Touch Screen pins - Adafruit Feather RP2040
   #define PIN_XM A2   // Touchscreen X- must be an analog pin, use "An" notation
   #define PIN_YP A3   // Touchscreen Y+ must be an analog pin, use "An" notation
@@ -119,7 +109,6 @@ On-board lights:
   // ---------- Audio output pins
   #define DAC_PIN     0   // do not use - RP2040 has no DAC
   #define PIN_SPEAKER 0   // do not use - RP2040 has no DAC
->>>>>>> rp2040
 #else
 // ---------- Touch Screen pins - Feather M4
 #define PIN_XP      A3     // Touchscreen X+ can be a digital pin
@@ -133,11 +122,7 @@ On-board lights:
 
 // ---------- Feather RP2040 onboard led
 #if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
-<<<<<<< HEAD
 #define RED_LED 25   // diagnostics RED LED
-=======
-#define RED_LED 25  // diagnostics RED LED
->>>>>>> rp2040
 #else
 #define RED_LED 13   // diagnostics RED LED
 #endif
