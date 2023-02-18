@@ -69,6 +69,7 @@ On-board lights:
 #define SD_CCS 11   // SD card select pin - Feather
 
 #elif defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
+#warning ----- Compiling for Arduino RP2040 -----
 // Ref: https://arduino-pico.readthedocs.io/en/latest/index.html
 //warning ----- Compiling for Arduino Pico RP2040 -----
 // Adafruit Feather_RP2040 pin definitions
