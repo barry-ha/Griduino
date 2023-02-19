@@ -159,7 +159,7 @@ Adafruit_NeoPixel pixel = Adafruit_NeoPixel(NUMPIXELS, PIN_NEOPIXEL, NEO_GRB + N
 
 // ---------- Digital potentiometer
 // ctor         DS1804( ChipSel pin, Incr pin,  U/D pin,  maxResistance (K) )
-DS1804 volume = DS1804( PIN_VCS,     PIN_VINC,  PIN_VUD,  DS1804_TEN );
+//DS1804 volume = DS1804( PIN_VCS,     PIN_VINC,  PIN_VUD,  DS1804_TEN );
 
 int gWiper = 15;                      // initial digital potentiometer wiper position, 0..99
 int gFrequency = 1100;                // initial Morse code sidetone pitch
@@ -170,7 +170,7 @@ const int howLongToWait = 6;          // max number of seconds at startup waitin
 
 // ---------- Morse Code ----------
 #include "morse_dac.h"                // Morse Code using digital-audio converter DAC0
-DACMorseSender dacMorse(DAC_PIN, gFrequency, gWordsPerMinute);
+//DACMorseSender dacMorse(DAC_PIN, gFrequency, gWordsPerMinute);
 
 // ----------- Speech PCM Audio Playback
 #if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
@@ -591,7 +591,8 @@ void setup() {
   tft.fillScreen(ILI9341_BLACK);      // note that "begin()" does not clear screen
 
   // ----- init TFT backlight
-  pinMode(A0, INPUT);                 // Griduino v6 uses pin A0 (DAC0) to measure 3v coin battery; don't load down the pin
+  pinMode(A1, INPUT);                 // Griduino v6 uses pin A1 (ADC1) to measure 3v coin battery; don't load down the pin
+ 
   pinMode(TFT_BL, OUTPUT);
   analogWrite(TFT_BL, 255);           // start at full brightness
 
@@ -711,13 +712,14 @@ void setup() {
   //       The realtime clock is not available until after receiving a few NMEA sentences.
 
   // ----- init digital potentiometer, restore volume setting
-  pinMode(PIN_VCS, OUTPUT);           // fix bug that somehow forgets this is an output pin
-  volume.unlock();                    // unlock digipot (in case someone else, like an example pgm, has locked it)
-  volume.setToZero();                 // set digipot hardware to match its ctor (wiper=0) because the chip cannot be read
-                                      // and all "setWiper" commands are really incr/decr pulses. This gets it sync.
-  volume.setWiperPosition( gWiper );  // set default volume in digital pot
+ //  pinMode(PIN_VCS, OUTPUT);           // fix bug that somehow forgets this is an output pin
 
-  volumeView.loadConfig();            // restore volume setting from non-volatile RAM
+ // volume.unlock();                    // unlock digipot (in case someone else, like an example pgm, has locked it)
+ // volume.setToZero();                 // set digipot hardware to match its ctor (wiper=0) because the chip cannot be read
+                                      // and all "setWiper" commands are really incr/decr pulses. This gets it sync.
+//  volume.setWiperPosition( gWiper );  // set default volume in digital pot
+
+////  volumeView.loadConfig();            // restore volume setting from non-volatile RAM
   cfgAudioType.loadConfig();          // restore Morse-vs-Speech setting from non-volatile RAM
 
   // ----- init DAC for audio/morse code
