@@ -55,7 +55,7 @@ public:
   bool gMetric        = false;   // distance reported in miles(false), kilometers(true)
   int gTimeZone       = -7;      // default local time Pacific (-7 hours)
   bool compare4digits = true;    // true=4 digit, false=6 digit comparisons
-  int gpsBattery      = 1023;    // measured coin battery ADC sample
+  //int gpsBattery      = 1023;    // measured coin battery ADC sample  // moved to model_adc.h
 
   float gSeaLevelPressure = DEFAULT_SEALEVEL_HPA;   // todo - unused by 'model_gps.h', delete me
 
@@ -321,7 +321,7 @@ public:
     gTimeZone         = from.gTimeZone;           // offset from GMT to local time
     compare4digits    = from.compare4digits;      //
     gSeaLevelPressure = from.gSeaLevelPressure;   // hPa
-    gpsBattery        = from.gpsBattery;          // measured coin battery ADC sample
+    //gpsBattery        = from.gpsBattery;          // measured coin battery ADC sample
   }
 
   // sanity check data from NVR
@@ -365,7 +365,7 @@ public:
     gSatellites = GPS.satellites;
     gSpeed      = GPS.speed * mphPerKnots;
     gAngle      = GPS.angle;
-    gpsBattery  = analogRead(A0);
+    //gpsBattery  = analogRead(A0);   // moved to model_adc.h
   }
 
   // the Model will update its internal state on a schedule determined by the Controller
