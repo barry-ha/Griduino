@@ -164,7 +164,7 @@ public:
     hPa       = gPressure / 100;
     inchesHg  = 0.0002953 * gPressure;
     Serial.print("Barometer ");
-    Serial.print(gPressure);
+    Serial.print(gPressure,3);
     Serial.print(" Pa [");
     Serial.print(__LINE__);
     Serial.println("]");

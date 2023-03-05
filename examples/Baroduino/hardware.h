@@ -122,7 +122,7 @@ On-board lights:
 
 // ---------- Feather RP2040 onboard led
 #if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
-#define RED_LED 25  // diagnostics RED LED
+#define RED_LED 25   // diagnostics RED LED
 #else
 #define RED_LED 13   // diagnostics RED LED
 #endif
@@ -133,8 +133,8 @@ On-board lights:
 
 // ---------- Audio output
 #if defined(SAMD_SERIES)
-#define DAC_PIN     DAC0   // onboard DAC0 == pin A0
-#define PIN_SPEAKER DAC0   // uses DAC
+  #define DAC_PIN     DAC0   // onboard DAC0 == pin A0
+  #define PIN_SPEAKER DAC0   // uses DAC
 #endif
 
 // ---------- Digital potentiometer
