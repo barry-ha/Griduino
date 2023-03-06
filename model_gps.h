@@ -10,7 +10,7 @@
 
   Units of Time:
          This relies on "TimeLib.h" which uses "time_t" to represent time.
-         The basic unit of time (time_t) is the number of seconds since Jan 1, 1970, 
+         The basic unit of time (time_t) is the number of seconds since Jan 1, 1970,
          a compact 4-byte integer.
          https://github.com/PaulStoffregen/Time
 */
@@ -59,7 +59,6 @@ public:
 
   float gSeaLevelPressure = DEFAULT_SEALEVEL_HPA;   // todo - unused by 'model_gps.h', delete me
 
-  // Location history[1500];     // 2022-06 the GPS breadcrumb trail moved to Griduino.ino
   int nextHistoryItem = 0;   // index of next item to write
 
 protected:
@@ -85,10 +84,10 @@ public:
 
   // ========== load/save config setting =========================
   const char MODEL_FILE[25] = CONFIG_FOLDER "/gpsmodel.cfg";   // CONFIG_FOLDER
-  const char MODEL_VERS[15] = "GPS Data v2";                   // <-- always change version when changing model data
+  const char MODEL_VERS[15] = "GPS Data v3";                   // <-- always change version when changing model data
 
   const char HISTORY_FILE[25]    = CONFIG_FOLDER "/gpshistory.csv";   // CONFIG_FOLDER
-  const char HISTORY_VERSION[25] = "GPS Breadcrumb Trail v1";         // <-- always change version when changing data format
+  const char HISTORY_VERSION[25] = "GPS Breadcrumb Trail v2";         // <-- always change version when changing data format
 
   // ----- save entire C++ object to non-volatile memory as binary object -----
   int save() {   // returns 1=success, 0=failure
@@ -105,7 +104,7 @@ public:
 
   // ----- save GPS history[] to non-volatile memory as CSV file -----
   int saveGPSBreadcrumbTrail() {   // returns 1=success, 0=failure
-    // Internal breadcrumb trail is CSV format -- you can open this Arduino file directly in a spreadsheet
+    // our breadcrumb trail file is CSV format -- you can open this Arduino file directly in a spreadsheet
     // dumpHistoryGPS();   // debug
 
     // delete old file and open new file
@@ -119,7 +118,7 @@ public:
     config.writeLine(msg);
 
     // line 5: column headings
-    config.writeLine("GMT Date, GMT Time, Grid, Latitude, Longitude");
+    config.writeLine("GMT Date, GMT Time, Grid, Latitude, Longitude, Altitude, MPH, Direction, Satellites");
 
     // line 6..x: date-time, grid6, latitude, longitude
     int count = 0;
@@ -140,7 +139,13 @@ public:
         floatToCharArray(sLat, sizeof(sLat), history[ii].loc.lat, 5);
         floatToCharArray(sLng, sizeof(sLng), history[ii].loc.lng, 5);
 
-        snprintf(msg, sizeof(msg), "%s,%s,%s,%s,%s", sDate, sTime, sGrid6, sLat, sLng);
+        char sAlt[12], sSpeed[12], sAngle[12], sSats[6];
+        floatToCharArray(sAlt, sizeof(sAlt), history[ii].altitude, 1);
+        floatToCharArray(sSpeed, sizeof(sSpeed), history[ii].speed, 1);
+        floatToCharArray(sAngle, sizeof(sAngle), history[ii].direction, 1);
+        int numSatellites = history[ii].numSatellites;
+
+        snprintf(msg, sizeof(msg), "%s,%s,%s,%s,%s,%s,%s,%s,%d", sDate, sTime, sGrid6, sLat, sLng, sAlt, sSpeed, sAngle, numSatellites);
         config.writeLine(msg);
       }
     }
@@ -200,8 +205,14 @@ public:
         uint8_t iHour     = atoi(strtok(NULL, delimiter));
         uint8_t iMinute   = atoi(strtok(NULL, delimiter));
         uint8_t iSecond   = atoi(strtok(NULL, delimiter));
-        double fLatitude  = atof(strtok(NULL, delimiter));
+        // must match same order in saveGPSBreadcrumbTrail()
+        // "GMT Date, GMT Time, Grid, Latitude, Longitude, Altitude, MPH, Direction, Satellites"
+        double fLatitude  = atof(strtok(NULL, delimiter));   
         double fLongitude = atof(strtok(NULL, delimiter));
+        double fAltitude  = atof(strtok(NULL, delimiter));
+        double fSpeed     = atof(strtok(NULL, delimiter));
+        double fDirection = atof(strtok(NULL, delimiter));
+        int fSatellites   = atoi(strtok(NULL, delimiter));
 
         // save this return value into history[]
         // https://cplusplus.com/reference/cstring/
@@ -217,9 +228,14 @@ public:
 
           // save values in the history[] array
           TimeElements tm{iSecond, iMinute, iHour, 0, iDay, iMonth, iYear2};
-          history[nextHistoryItem].timestamp = makeTime(tm);   // convert time elements into time_t
-          history[nextHistoryItem].loc.lat   = fLatitude;
-          history[nextHistoryItem].loc.lng   = fLongitude;
+          history[nextHistoryItem].timestamp     = makeTime(tm);   // convert time elements into time_t
+          history[nextHistoryItem].loc.lat       = fLatitude;
+          history[nextHistoryItem].loc.lng       = fLongitude;
+          history[nextHistoryItem].altitude      = fAltitude;
+          history[nextHistoryItem].numSatellites = fSatellites;
+          history[nextHistoryItem].speed         = fSpeed;
+          history[nextHistoryItem].direction     = fDirection;
+          history[nextHistoryItem].numSatellites = fSatellites;
 
           // adjust loop variables
           nextHistoryItem++;
@@ -324,16 +340,6 @@ public:
     gpsBattery        = from.gpsBattery;          // measured coin battery ADC sample
   }
 
-  // sanity check data from NVR
-  void printLocation(int ii, Location item) {
-    Serial.print(". lat/long[");
-    Serial.print(ii);
-    Serial.print("] = ");
-    Serial.print(item.loc.lat);
-    Serial.print(", ");
-    Serial.println(item.loc.lng);
-  }
-
   // given a GPS reading in NMEA format, create a "time_t" timestamp
   // written as a small independent function so it can be unit tested
   time_t NMEAtoTime_t(uint8_t nmeaYear, uint8_t nmeaMonth, uint8_t nmeaDay,
@@ -355,7 +361,7 @@ public:
       // save timestamp as compact 4-byte integer (number of seconds since Jan 1 1970)
       // using https://github.com/PaulStoffregen/Time
       // NMEA sentences contain only the last two digits of year, so add the century
-      gTimestamp = NMEAtoTime_t(GPS.year, GPS.month, GPS.day, GPS.hour, GPS.minute, GPS.seconds);
+      gTimestamp  = NMEAtoTime_t(GPS.year, GPS.month, GPS.day, GPS.hour, GPS.minute, GPS.seconds);
       gHaveGPSfix = true;
     } else {
       gHaveGPSfix = false;
@@ -373,8 +379,15 @@ public:
     getGPS();        // read the hardware for location
     echoGPSinfo();   // send GPS statistics to serial console for debug
 
+    Location whereAmI = makeLocation();
+    remember(whereAmI);
+  }
+
+  Location makeLocation() {
+    // collect GPS information from the Model into an object that can be saved in the history[] buffer
     PointGPS whereAmI{gLatitude, gLongitude};
-    remember(whereAmI, gTimestamp);
+    Location loc{whereAmI, gTimestamp, gSatellites, gSpeed, gAngle, gAltitude};
+    return loc;
   }
 
   int getHistoryCount() {
@@ -397,24 +410,24 @@ public:
     Serial.println("GPS history has been erased");
   }
 
-  void remember(PointGPS vLoc, time_t vTimestamp) {
+  void remember(Location vLoc) {
     // save this GPS location and timestamp in internal array
     // so that we can display it as a breadcrumb trail
+    // optionally write the breadcrumb trail to file
 
     int prevIndex = nextHistoryItem - 1;   // find prev location in circular buffer
     if (prevIndex < 0) {
       prevIndex = numHistory - 1;
     }
     PointGPS prevLoc = history[prevIndex].loc;
-    if (isVisibleDistance(vLoc, prevLoc)) {
-      history[nextHistoryItem].loc       = vLoc;
-      history[nextHistoryItem].timestamp = vTimestamp;
+    if (isVisibleDistance(vLoc.loc, prevLoc)) {
+      history[nextHistoryItem] = vLoc;
 
       nextHistoryItem = (++nextHistoryItem % numHistory);
 
 // now the GPS location is saved in history array, now protect
 // the array in non-volatile memory in case of power loss
-#if defined RUN_UNIT_TESTS      // todo: make this a run-time value selected by "run unittest"
+#if defined RUN_UNIT_TESTS   // todo: make this a run-time value selected by "run unittest"
       const int SAVE_INTERVAL = 9999;
 #else
       const int SAVE_INTERVAL = 2;
@@ -487,7 +500,7 @@ public:
 \t</Style>\r\n"
 
 // ----- Placemark template with timestamp -----
-// From: https://developers.google.com/static/kml/documentation/TimeStamp_example.kml 
+// From: https://developers.google.com/static/kml/documentation/TimeStamp_example.kml
 #define PLACEMARK_WITH_TIMESTAMP "\
 \t<Placemark>\r\n\
 \t\t<description>\
@@ -503,8 +516,8 @@ public:
 
   void dumpHistoryKML() {
 
-    Serial.print(KML_PREFIX);               // begin KML file
-    Serial.print(BREADCRUMB_STYLE);         // add breadcrumb icon style
+    Serial.print(KML_PREFIX);         // begin KML file
+    Serial.print(BREADCRUMB_STYLE);   // add breadcrumb icon style
     int startIndex  = nextHistoryItem + 1;
     bool startFound = false;
 
@@ -524,7 +537,7 @@ public:
         }
 
         // PlaceMark with timestamp
-        TimeElements time;                    // https://github.com/PaulStoffregen/Time
+        TimeElements time;   // https://github.com/PaulStoffregen/Time
         breakTime(item.timestamp, time);
 
         char sLat[12], sLng[12];
@@ -536,20 +549,20 @@ public:
 
         char msg[500];
         snprintf(msg, sizeof(msg), PLACEMARK_WITH_TIMESTAMP,
-            sLat, sLng,   // humans prefer "latitude,longitude"
-            grid6,
-            time.Year+1970, time.Month, time.Day, time.Hour, time.Minute, time.Second, // human readable time
-            time.Year+1970, time.Month, time.Day, time.Hour, time.Minute, time.Second, // kml timestamp
-            sLng, sLat    // kml requires "longitude,latitude"
-            );
+                 sLat, sLng,   // humans prefer "latitude,longitude"
+                 grid6,
+                 time.Year + 1970, time.Month, time.Day, time.Hour, time.Minute, time.Second,   // human readable time
+                 time.Year + 1970, time.Month, time.Day, time.Hour, time.Minute, time.Second,   // kml timestamp
+                 sLng, sLat                                                                     // kml requires "longitude,latitude"
+        );
         Serial.print(msg);
       }
       index = (index + 1) % numHistory;
     }
 
-    if (startFound) {                       // begin pushpin at start of route
-      char pushpinDate[10];                 // strlen("12/24/21") = 9
-      TimeElements time;                    // https://github.com/PaulStoffregen/Time
+    if (startFound) {         // begin pushpin at start of route
+      char pushpinDate[10];   // strlen("12/24/21") = 9
+      TimeElements time;      // https://github.com/PaulStoffregen/Time
       breakTime(history[startIndex].timestamp, time);
       snprintf(pushpinDate, sizeof(pushpinDate), "%02d/%02d/%02d", time.Month, time.Day, time.Year);
 
@@ -568,7 +581,7 @@ public:
 
   int countHistorySaved() {
     int count = 0;
-    for (int ii=0; ii<numHistory; ii++) {
+    for (int ii = 0; ii < numHistory; ii++) {
       Location item = history[ii];
       if (!item.isEmpty()) {
         count++;
@@ -599,7 +612,7 @@ public:
     snprintf(msg, sizeof(msg), "now() = %s GMT", sDate);   // debug
     Serial.println(msg);                                   // debug
 
-    Serial.println("Record, Date GMT, Grid, Lat, Long");
+    Serial.println("Record, Date GMT, Grid, Lat, Long, Alt(m), Speed(mph), Dir, Sats");
     int ii;
     for (ii = 0; ii < numHistory; ii++) {
       Location item = history[ii];
@@ -616,16 +629,21 @@ public:
         floatToCharArray(sLat, sizeof(sLat), history[ii].loc.lat, 5);
         floatToCharArray(sLng, sizeof(sLng), history[ii].loc.lng, 5);
 
+        char sSpeed[12], sDir[12];
+        floatToCharArray(sSpeed, sizeof(sSpeed), history[ii].speed, 1);
+        floatToCharArray(sDir, sizeof(sDir), history[ii].direction, 1);
+        uint8_t nSats = history[ii].numSatellites;
+
         char out[128];
-        snprintf(out, sizeof(out), "%d, %s, %s, %s, %s",
-                 ii, sDate, grid6, sLat, sLng);
+        snprintf(out, sizeof(out), "%d, %s, %s, %s, %s, %s, %s, %d",
+                 ii, sDate, grid6, sLat, sLng, sSpeed, sDir, nSats);
         Serial.println(out);
 
-        //TimeElements time;                 // https://github.com/PaulStoffregen/Time
-        //breakTime(item.timestamp, time);   // debug
-        //snprintf(out, sizeof(out), "item.timestamp = %02d-%02d-%04d %02d:%02d:%02d",
-        //         time.Month, time.Day, 1970+time.Year, time.Hour, time.Minute, time.Second);
-        //Serial.println(out);               // debug
+        // TimeElements time;                 // https://github.com/PaulStoffregen/Time
+        // breakTime(item.timestamp, time);   // debug
+        // snprintf(out, sizeof(out), "item.timestamp = %02d-%02d-%04d %02d:%02d:%02d",
+        //          time.Month, time.Day, 1970+time.Year, time.Hour, time.Minute, time.Second);
+        // Serial.println(out);               // debug
       }
     }
     int remaining = numHistory - ii;
@@ -744,9 +762,9 @@ public:
   }
 
   //=========== local time helpers ===============================
-  //#define TIME_FOLDER  "/GMTclock"     // 8.3 names
-  //#define TIME_FILE    TIME_FOLDER "/AddHours.cfg"
-  //#define TIME_VERSION "v01"
+  // #define TIME_FOLDER  "/GMTclock"     // 8.3 names
+  // #define TIME_FILE    TIME_FOLDER "/AddHours.cfg"
+  // #define TIME_VERSION "v01"
 
   // Formatted Local time
   void getTimeLocal(char *result, int len) {

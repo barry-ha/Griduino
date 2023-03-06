@@ -190,10 +190,16 @@ struct FunctionButton {
   int functionIndex;   // button identifier
 };
 
+// Breadcrumb data definition for history[] circular buffer
 class Location {
 public:
-  PointGPS loc;       // has-a lat/long, degrees
-  time_t timestamp;   // has-a GMT time
+  PointGPS loc;            // has-a lat/long, degrees
+  time_t timestamp;        // has-a GMT time
+  uint8_t numSatellites;   // number of satellites in view
+  float speed;             // current speed over ground in MPH
+  float direction;         // direction of travel, degrees from true north
+  float altitude;          // altitude, meters above MSL
+public:
   void reset() {
     loc.lat = loc.lng = 0.0;
     timestamp         = 0;
@@ -201,4 +207,14 @@ public:
   bool isEmpty() {
     return (loc.lat == 0.0 && loc.lng == 0.0);
   }
+  // sanity check data from NVR
+  void printLocation(int ii, Location item) {
+    Serial.print(". lat/long[");
+    Serial.print(ii);
+    Serial.print("] = ");
+    Serial.print(item.loc.lat);
+    Serial.print(", ");
+    Serial.println(item.loc.lng);
+  }
+
 };

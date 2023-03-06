@@ -11,6 +11,7 @@
 
 */
 
+#include <Arduino.h>      // for Serial
 #include "constants.h"    // Griduino constants and colors
 #include "logger.h"       // conditional printing to Serial port
 #include "model_gps.h"    // Model of a GPS for model-view-controller
@@ -127,7 +128,7 @@ void stop_gmt() {
   logger.print_gmt = false;
 }
 
-void selectNewView(int cmd);      // extern declaration
+void selectNewView(int cmd);   // extern declaration
 void view_help() {
   Serial.println("view Help screen");
   extern /*const*/ int help_view;   // see "Griduino.ino"
@@ -142,8 +143,8 @@ void view_splash() {
 
 void view_screen1() {
   Serial.println("view Screen 1");
-  extern /*const*/ int screen1_view;  // see "Griduino.ino"
-  selectNewView(screen1_view);        // see "Griduino.ino"
+  extern /*const*/ int screen1_view;   // see "Griduino.ino"
+  selectNewView(screen1_view);         // see "Griduino.ino"
 }
 
 void show_touch() {

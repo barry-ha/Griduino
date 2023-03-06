@@ -6,7 +6,7 @@
   Hardware: John Vanderbeck, KM7O, Seattle, WA
 */
 
-//#include <Arduino.h>
+#include <Arduino.h>            // for Serial
 #include "constants.h"          // Griduino constants and colors
 #include "Adafruit_ILI9341.h"   // TFT color display library
 #include "morse_dac.h"          // Morse code
@@ -283,7 +283,7 @@ int testCalcLocator8(const char *sExpected, double lat, double lon) {
   int r = 0;
   char sResult[9];   // strlen("CN87us00") = 8
   grid.calcLocator(sResult, lat, lon, 8);
-  Serial.print("testCalcLocator8: ");
+  Serial.print("testCalcLocator8: (");
   Serial.print(lat, 4);
   Serial.print(",");
   Serial.print(lon, 4);
@@ -540,10 +540,12 @@ int verifyBreadCrumbTrail1() {
 
   model->clearHistory();
   for (int ii = 0; ii < steps; ii++) {
-    PointGPS location{model->gLatitude  = lat + (ii * stepSize),            // "plus" goes upward (north)
+    PointGPS latLong{model->gLatitude  = lat + (ii * stepSize),            // "plus" goes upward (north)
                       model->gLongitude = lon + (ii * stepSize * 5 / 4)};   // "plus" goes rightward (east)
-    time_t stamp = now();                                                   // doesn't matter what timestamp is actually stored during tests
-    model->remember(location, stamp);
+    time_t stamp = now();
+    // doesn't matter what timestamp/sats/speed/direction/altitude is actually stored during tests
+    Location loc{latLong, stamp, 5, 10.0, 45.0, 123.0};
+    model->remember(loc);
   }
 
   // dumpHistory();          // did it remember? dump history to monitor
@@ -567,9 +569,11 @@ void generateSineWave(Model *pModel) {
   for (int ii = 0; ii < steps; ii++) {
     float longitude = startLong + (ii * stepSize);
     float latitude  = startLat + amplitude * sin(longitude * 150 / degreesPerRadian);
-    PointGPS location{latitude, longitude};
-    time_t stamp = now();   // doesn't matter what timestamp is actually stored during tests
-    pModel->remember(location, stamp);
+    PointGPS latLong{latitude, longitude};
+    time_t stamp = now();
+    // doesn't matter what timestamp/sats/speed/direction/altitude is actually stored during tests
+    Location loc{latLong, stamp, 5, 10.0, 45.0, 123.0};
+    pModel->remember(loc);
   }
   // Serial.println("---History as known by generateSineWave()...");
   // pModel->dumpHistory();            // did it remember? (go review serial console)
@@ -760,13 +764,12 @@ void runUnitTest() {
   countDown(5);                       // give user time to inspect display appearance for unit test problems
   model->clearHistory();              // clean up our mess after unit test
 
+  logger.fencepost("unittest.cpp", "End Unit Test", __LINE__);
   if (f) {
     Serial.println("====================");
     Serial.print(f);
     Serial.println(" failures");
   } else {
-    Serial.println("100% Successful!");
+    Serial.println("100% successful");
   }
-  Serial.print("-------- End Unit Test at line ");
-  Serial.println(__LINE__);
 }
