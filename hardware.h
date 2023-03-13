@@ -121,6 +121,11 @@ On-board lights:
   #define PIN_SPEAKER DAC0   // uses DAC
 #endif
 
+// ---------- Battery voltage sensor
+#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
+#define BATTERY_ADC  A1
+#endif
+
 // ---------- Feather RP2040 onboard led
 #if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
 #define RED_LED 25  // diagnostics RED LED

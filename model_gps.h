@@ -18,6 +18,7 @@
 #include <Arduino.h>        //
 #include <Adafruit_GPS.h>   // "Ultimate GPS" library
 #include "constants.h"      // Griduino constants, colors, typedefs
+#include "hardware.h"       //
 #include "logger.h"         // conditional printing to Serial port
 #include "grid_helper.h"    // lat/long conversion routines
 #include "date_helper.h"    // date/time conversions
@@ -365,7 +366,7 @@ public:
     gSatellites = GPS.satellites;
     gSpeed      = GPS.speed * mphPerKnots;
     gAngle      = GPS.angle;
-    gpsBattery  = analogRead(A0);
+    gpsBattery  = analogRead(BATTERY_ADC);
   }
 
   // the Model will update its internal state on a schedule determined by the Controller

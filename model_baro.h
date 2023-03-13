@@ -108,58 +108,59 @@ public:
     bool initialized = baro->begin_SPI(bmp_cs);   // Griduino v4 pcb
 #endif
     if (initialized) {
-      // logger.fencepost("model_baro.h", __LINE__);
-      //  Bosch BMP388 datasheet:
-      //       https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bmp388-ds001.pdf
-      //  IIR:
-      //       An "infinite impulse response" filter intended to remove short-term
-      //       fluctuations in pressure, e.g. caused by slamming a door or wind blowing
-      //       on the sensor.
-      //  Oversampling:
-      //       Each oversampling step reduces noise and increases output resolution
-      //       by one bit.
-      //
+         // logger.fencepost("model_baro.h", __LINE__);
+         //  Bosch BMP388 datasheet:
+         //       https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bmp388-ds001.pdf
+         //  IIR:
+         //       An "infinite impulse response" filter intended to remove short-term
+         //       fluctuations in pressure, e.g. caused by slamming a door or wind blowing
+         //       on the sensor.
+         //  Oversampling:
+         //       Each oversampling step reduces noise and increases output resolution
+         //       by one bit.
+         //
 
-      // ----- Settings recommended by Bosch based on use case for "handheld device dynamic"
-      // https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bmp388-ds001.pdf
-      // Section 3.5 Filter Selection, page 17
-      baro->setTemperatureOversampling(BMP3_NO_OVERSAMPLING);
-      baro->setPressureOversampling(BMP3_OVERSAMPLING_4X);
-      baro->setIIRFilterCoeff(BMP3_IIR_FILTER_COEFF_7);   // was 3, too busy
-      baro->setOutputDataRate(BMP3_ODR_50_HZ);
-      // logger.fencepost("model_baro.h", __LINE__);
+         // ----- Settings recommended by Bosch based on use case for "handheld device dynamic"
+         // https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bmp388-ds001.pdf
+         // Section 3.5 Filter Selection, page 17
+         /*
+         baro->setTemperatureOversampling(BMP3_NO_OVERSAMPLING);
+         baro->setPressureOversampling(BMP3_OVERSAMPLING_4X);
+         baro->setIIRFilterCoeff(BMP3_IIR_FILTER_COEFF_7);   // was 3, too busy
+         baro->setOutputDataRate(BMP3_ODR_50_HZ);
+         // logger.fencepost("model_baro.h", __LINE__);
 
-      /*****
-        // ----- Settings from Adafruit example
-        // https://github.com/adafruit/Adafruit_BMP3XX/blob/master/examples/bmp3xx_simpletest/bmp3xx_simpletest.ino
-        // Set up oversampling and filter initialization
-        baro->setTemperatureOversampling(BMP3_OVERSAMPLING_8X);
-        baro->setPressureOversampling(BMP3_OVERSAMPLING_4X);
-        baro->setIIRFilterCoeff(BMP3_IIR_FILTER_COEFF_3);
-        baro->setOutputDataRate(BMP3_ODR_50_HZ);
-        *****/
+         /*****
+           // ----- Settings from Adafruit example
+           // https://github.com/adafruit/Adafruit_BMP3XX/blob/master/examples/bmp3xx_simpletest/bmp3xx_simpletest.ino
+           // Set up oversampling and filter initialization
+           baro->setTemperatureOversampling(BMP3_OVERSAMPLING_8X);
+           baro->setPressureOversampling(BMP3_OVERSAMPLING_4X);
+           baro->setIIRFilterCoeff(BMP3_IIR_FILTER_COEFF_3);
+           baro->setOutputDataRate(BMP3_ODR_50_HZ);
+           *****/
 
-      /*****
-        // ----- Settings from original Barograph example
-        // Set up BMP388 oversampling and filter initialization
-        baro->setTemperatureOversampling(BMP3_OVERSAMPLING_2X);
-        baro->setPressureOversampling(BMP3_OVERSAMPLING_32X);
-        baro->setIIRFilterCoeff(BMP3_IIR_FILTER_COEFF_127);
-        // baro->setOutputDataRate(BMP3_ODR_50_HZ);
-        *****/
+    /*****
+      // ----- Settings from original Barograph example
+      // Set up BMP388 oversampling and filter initialization
+      baro->setTemperatureOversampling(BMP3_OVERSAMPLING_2X);
+      baro->setPressureOversampling(BMP3_OVERSAMPLING_32X);
+      baro->setIIRFilterCoeff(BMP3_IIR_FILTER_COEFF_127);
+      // baro->setOutputDataRate(BMP3_ODR_50_HZ);
+      *****/
 
-      // Get and discard the first data point
-      // Repeated because first reading is always bad, until iir oversampling buffers are populated
-      for (int ii = 0; ii < 4; ii++) {
-        baro->performReading();   // read hardware
-        delay(50);
-      }
-
+    // Get and discard the first data point
+    // Repeated because first reading is always bad, until iir oversampling buffers are populated
+    //     for (int ii = 0; ii < 4; ii++) {
+    //       baro->performReading();   // read hardware
+    //        delay(50);
+    //      }
+    //
     } else {
-      logger.error("Error, unable to initialize BMP388 / BMP390, check the wiring");
-      rc = 0;   // return failure
+        logger.error("Error, unable to initialize BMP388 / BMP390, check the wiring");
+        rc = 0;   // return failure
     }
-    // logger.fencepost("model_baro.h", __LINE__);
+    logger.fencepost("model_baro.h", __LINE__);
     return rc;
   }
 

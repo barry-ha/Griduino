@@ -184,7 +184,7 @@ void drawCoinBatteryVoltage() {
   if (model->gpsBattery >= 1023) {
     strcpy(sVoltage, ">3.3v");
   } else {
-    floatToCharArray(sVoltage, sizeof(sVoltage), coinVoltage, 2);
+    floatToCharArray(sVoltage, sizeof(sVoltage), coinVoltage, 1);
     strcat(sVoltage, "v");
   }
   txtGrid[COINBATT].print(sVoltage);
