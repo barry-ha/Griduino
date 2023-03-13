@@ -211,6 +211,12 @@ void floatToCharArray(char* result, int maxlen, double fValue, int decimalPlaces
 }
 
 //==============================================================
+//      Coin Battery Voltage model
+//==============================================================
+#include "model_adc.h"                // Model of the analog-digital converter
+BatteryVoltage gpsBattery;
+
+//==============================================================
 //
 //      Model
 //      This is MVC (model-view-controller) design pattern

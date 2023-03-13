@@ -72,7 +72,7 @@
             "defines": [
                 "__SKETCH_NAME__=\"\"\"DAC_rp2040_sine_wave_with_TPL0401_volume_control.ino\"\"\"",
                 "F_CPU=120000000L",
-                "ARDUINO=10819",
+                "ARDUINO=10607",
                 "ARDUINO_FEATHER_M4",
                 "ARDUINO_ARCH_SAMD",
                 "ARDUINO_SAMD_ADAFRUIT",

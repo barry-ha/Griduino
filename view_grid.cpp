@@ -30,6 +30,7 @@
 #include "grid_helper.h"              // lat/long conversion routines
 #include "model_gps.h"                // Model of a GPS for model-view-controller
 #include "model_baro.h"               // Model of a barometer that measures temperature
+#include "model_adc.h"                // Model of analog-digital converter
 #include "TextField.h"                // Optimize TFT display text for proportional fonts
 #include "view.h"                     // Base class for all views
 
@@ -37,8 +38,9 @@
 extern Logger logger;                 // Griduino.ino
 extern Grids grid;                    // grid_helper.h
 extern Adafruit_ILI9341 tft;          // Griduino.ino
-extern Model* model;                  // "model" portion of model-view-controller
-extern BarometerModel baroModel;      // singleton instance of the barometer model
+extern Model* model;                  // GPS "model" portion of model-view-controller
+extern BarometerModel baroModel;      // Barometer "model" is singleton instance
+extern BatteryVoltage gpsBattery;     // Coin battery "model" is singleton instance
 
 extern Location history[];            // GPS breadcrumb trail (Griduino.ino)
 extern const int numHistory;          // Griduino.ino
