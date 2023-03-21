@@ -851,6 +851,9 @@ void loop() {
                                   GPS.year,GPS.month,GPS.day, 
                                   GPS.hour,GPS.minute,GPS.seconds);
     Serial.println(msg);              // debug
+
+    // write this to the GPS breadcrumb trail as indication of "power up" event
+    //model->remember();   // todo: create new event type "PUP" to save in history buffer
   }
 
   // every 1 second update the realtime clock
