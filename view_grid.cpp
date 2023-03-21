@@ -182,13 +182,9 @@ void drawNumSatellites() {
 void drawCoinBatteryVoltage() {
   setFontSize(0);
   char sVoltage[12];
-  float coinVoltage = model->gpsBattery * (3.3 / 1023.0);
-  if (model->gpsBattery >= 1023) {
-    strcpy(sVoltage, ">3.3v");
-  } else {
-    floatToCharArray(sVoltage, sizeof(sVoltage), coinVoltage, 1);
-    strcat(sVoltage, "v");
-  }
+  float coinVoltage = gpsBattery.getCoinBatteryVoltage();
+  floatToCharArray(sVoltage, sizeof(sVoltage), coinVoltage, 2);
+  strcat(sVoltage, "v");
   txtGrid[COINBATT].print(sVoltage);
 }
 

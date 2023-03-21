@@ -54,8 +54,9 @@
             SPI Wiring:  https://learn.adafruit.com/adafruit-2-dot-8-color-tft-touchscreen-breakout-v2/spi-wiring-and-test
             Touchscreen: https://learn.adafruit.com/adafruit-2-dot-8-color-tft-touchscreen-breakout-v2/resistive-touchscreen
 
-         5. Adafruit BMP388 Barometric Pressure             https://www.adafruit.com/product/3966
-
+         5. Adafruit BMP388 Barometric Pressure, SPI        https://www.adafruit.com/product/3966
+            Adafruit BMP280 Barometric Pressure, I2C        https://www.adafruit.com/product/2651
+ 
          5. One-chip audio amplifier, digital potentiometer and mini speaker
             Speaker is a commodity item and many devices and options are available.
             We tested a piezo speaker but they're tuned for a narrow frequency and 
@@ -275,8 +276,8 @@ const int numHistory = sizeof(history) / sizeof(Location);
 //      "Class BarometerModel" is intended to be identical 
 //      for both Griduino and the Barograph example
 //
-//    This model collects data from the BMP388 barometric pressure 
-//    and temperature sensor on a schedule determined by the Controller.
+//    This model collects data from the BMP280 or BMP388 barometric pressure 
+//    and temperature sensors on a schedule determined by the Controller.
 //
 //    288px wide graph ==> 96 px/day ==> 4px/hour ==> log pressure every 15 minutes
 //
@@ -284,6 +285,11 @@ const int numHistory = sizeof(history) / sizeof(Location);
 
 bool waitingForRTC = true;            // true=waiting for GPS hardware to give us the first valid date/time
 
+/// BMP280-only:
+//#include <Adafruit_BMP280.h>   // I2C
+//Adafruit_BMP280 baro;                 // singleton instance to manage hardware
+
+/// BMP388-only:
 #include <Adafruit_BMP3XX.h>          // Precision barometric and temperature sensor
 Adafruit_BMP3XX baro;                 // singleton instance to manage hardware
 
@@ -597,7 +603,7 @@ void setup() {
   tft.fillScreen(ILI9341_BLACK);      // note that "begin()" does not clear screen
 
   // ----- init TFT backlight
-  pinMode(A1, INPUT);                 // Griduino v6 uses pin A1 (ADC1) to measure 3v coin battery; don't load down the pin
+  pinMode(A1, INPUT);                 // Griduino PCB v7 uses pin A1 (ADC1) to measure 3v coin battery; don't load down the pin
  
   pinMode(TFT_BL, OUTPUT);
   analogWrite(TFT_BL, 255);           // start at full brightness
@@ -775,7 +781,7 @@ void setup() {
     tft.setCursor(0, 48);
     tft.setTextColor(cWARN);
     setFontSize(12);
-    tft.println("Error!\n Unable to init\n  BMP388 sensor\n   check wiring");
+    tft.println("Error!\n Unable to init\n  barometric sensor\n   check wiring");
     delay(5000);
   }
 
@@ -855,6 +861,9 @@ void loop() {
                                   GPS.year,GPS.month,GPS.day, 
                                   GPS.hour,GPS.minute,GPS.seconds);
     Serial.println(msg);              // debug
+
+    // write this to the GPS breadcrumb trail as indication of "power up" event
+    //model->remember();   // todo: create new event type "PUP" to save in history buffer
   }
 
   // every 1 second update the realtime clock

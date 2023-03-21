@@ -5,11 +5,11 @@
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
 
-  Purpose:  Measure the voltage on the coin battery that drives
+  Purpose:  Measure the voltage on the coin battery that powers
             the Quectel GPS. If the battery falls below 1.6v then
             the GPS can no longer acquire satellites.
 
-  Note:     PCB v6+ have wiring to measure battery voltage.
+  Note:     PCB v7+ has wiring to measure battery voltage.
             PCB v4 has no such sensor.
 
 */
