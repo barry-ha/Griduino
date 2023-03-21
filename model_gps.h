@@ -198,16 +198,16 @@ public:
         // snprintf(msg, sizeof(msg), ". CSV string[%2d] = \"%s\"",
         //                               csv_line_number, csv_line); // debug
         // logger.info(msg);  // debug
-        int iYear4        = atoi(strtok(csv_line, delimiter));   // YYYY: calendar year
-        uint8_t iYear2    = CalendarYrToTm(iYear4);              // YY: offset from 1970
-        uint8_t iMonth    = atoi(strtok(NULL, delimiter));
-        uint8_t iDay      = atoi(strtok(NULL, delimiter));
-        uint8_t iHour     = atoi(strtok(NULL, delimiter));
-        uint8_t iMinute   = atoi(strtok(NULL, delimiter));
-        uint8_t iSecond   = atoi(strtok(NULL, delimiter));
+        int iYear4      = atoi(strtok(csv_line, delimiter));   // YYYY: calendar year
+        uint8_t iYear2  = CalendarYrToTm(iYear4);              // YY: offset from 1970
+        uint8_t iMonth  = atoi(strtok(NULL, delimiter));
+        uint8_t iDay    = atoi(strtok(NULL, delimiter));
+        uint8_t iHour   = atoi(strtok(NULL, delimiter));
+        uint8_t iMinute = atoi(strtok(NULL, delimiter));
+        uint8_t iSecond = atoi(strtok(NULL, delimiter));
         // must match same order in saveGPSBreadcrumbTrail()
         // "GMT Date, GMT Time, Grid, Latitude, Longitude, Altitude, MPH, Direction, Satellites"
-        double fLatitude  = atof(strtok(NULL, delimiter));   
+        double fLatitude  = atof(strtok(NULL, delimiter));
         double fLongitude = atof(strtok(NULL, delimiter));
         double fAltitude  = atof(strtok(NULL, delimiter));
         double fSpeed     = atof(strtok(NULL, delimiter));
@@ -503,11 +503,12 @@ public:
 // From: https://developers.google.com/static/kml/documentation/TimeStamp_example.kml
 #define PLACEMARK_WITH_TIMESTAMP "\
 \t<Placemark>\r\n\
-\t\t<description>\
-<center>\
-<h2><a target=\"_blank\" href=\"https://maps.google.com/maps?q=%s,%s\">%s</a></h2>\
+\t\t<description>\r\n\
+\t\t\t<center>\r\n\
+\t\t\t\t<h2><a target=\"_blank\" href=\"https://maps.google.com/maps?q=%s,%s\">%s</a></h2>\
 %04d-%02d-%02d <br/> %02d:%02d:%02d GMT\
-</center>\
+%s mph, %s deg, %s m, %d sat\
+\t\t\t</center>\r\n\
 </description>\r\n\
 \t\t<TimeStamp><when>%04d-%02d-%02dT%02d:%02d:%02dZ</when></TimeStamp>\r\n\
 \t\t<Point><coordinates>%s,%s</coordinates></Point>\r\n\
@@ -547,13 +548,21 @@ public:
         char grid6[7];
         grid.calcLocator(grid6, item.loc.lat, item.loc.lng, 6);
 
+        char sSpeed[12], sDirection[12], sAltitude[12];
+        floatToCharArray(sSpeed, sizeof(sSpeed), item.speed, 1);
+        floatToCharArray(sDirection, sizeof(sDirection), item.direction, 1);
+        floatToCharArray(sAltitude, sizeof(sAltitude), item.altitude, 1);
+        int numSats = item.numSatellites;
+
         char msg[500];
         snprintf(msg, sizeof(msg), PLACEMARK_WITH_TIMESTAMP,
                  sLat, sLng,   // humans prefer "latitude,longitude"
                  grid6,
                  time.Year + 1970, time.Month, time.Day, time.Hour, time.Minute, time.Second,   // human readable time
                  time.Year + 1970, time.Month, time.Day, time.Hour, time.Minute, time.Second,   // kml timestamp
-                 sLng, sLat                                                                     // kml requires "longitude,latitude"
+                 sLng, sLat,                                                                    // kml requires "longitude,latitude"
+                 sSpeed, sDirection, sAltitude,                                                 // mph, degrees from North, meters
+                 numSats                                                                        // number of satellites
         );
         Serial.print(msg);
       }
