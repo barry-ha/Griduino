@@ -71,7 +71,6 @@ On-board lights:
 #elif defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
 #warning ----- Compiling for Arduino RP2040 -----
 // Ref: https://arduino-pico.readthedocs.io/en/latest/index.html
-//warning ----- Compiling for Arduino Pico RP2040 -----
 // Adafruit Feather_RP2040 pin definitions
 // To compile for Feather_RP2040, install "additional boards manager"
 // https://github.com/earlephilhower/arduino-pico/releases/download/global/package_rp2040_index.json

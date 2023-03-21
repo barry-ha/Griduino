@@ -247,7 +247,7 @@ The "Ultimate GPS" package shipped from Adafruit comes with a header strip and a
 * Count the pins on the supplied header strip. The GPS requires a 9-pin header and sometimes Adafruit may ship an 8-pin header. If needed, add an extra pin from some extra strip, such as the one leftover from the Feather.
 * Do not solder a battery holder onto the back of the GPS. It won't hurt anything to have this holder, but it will go unused. Its slot will be unreachable after all the parts are installed. Instead, our Griduino board is designed with a separate coin battery holder, BT1, to replace the one on the Ultimate GPS board.
 
-Insert a 9-pin header pin strip onto the Griduino PCB. Break off two single pins from a leftover strip and insert them into the other two corners. Do not solder them yet. Also shown below are the two battery holders and which one goes on the board in the next step.
+Insert a 9-pin header pin strip onto the Griduino PCB. Break off two single pins from a leftover strip and insert them into the other two corners. Do not solder them yet. Also shown below are the two battery holders and which one goes on the board.
 
 ![](img/gps-pins-img7089.jpg)
 
@@ -383,7 +383,7 @@ Gluing or screwing this with the paper cone *in* toward the case will protect it
 
 Note that additional clarity (less distortion) at high audio volume is available when powering the Griduino from a car’s electrical system with 10-15 vdc, compared to powering it from the 5v USB connector. The higher voltage source reduces clipping at higher volume levels. At lower volume levels, the speaker sounds the same regardless of power source.
 
-<h3 id="power">Step 18: Power Plug<h3>
+<h3 id="power">Step 18: Power Plug</h3>
 
 You can optionally power Griduino from a battery or your vehicle:
 

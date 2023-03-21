@@ -448,7 +448,7 @@ void printPressure(float pascals) {
   } else {
     fPressure = pascals / 100;
     sUnits = hPa;
-    decimals = 1;
+    decimals = 2;
   }
 
   txtReading[eTitle].print();
@@ -917,8 +917,9 @@ void loop() {
   }
 
   // every 1 second update the realtime clock
-  if (millis() - prevShowTime > RTC_PROCESS_INTERVAL) {
-    prevShowTime = millis();
+  uint32_t tempMillis = millis();   // only read RTC once, to avoid race conditions
+  if (tempMillis - prevShowTime > RTC_PROCESS_INTERVAL) {
+    prevShowTime = tempMillis;
 
     // update RTC from GPS
     if (isDateValid(GPS.year, GPS.month, GPS.day)) {

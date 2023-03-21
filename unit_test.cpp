@@ -6,7 +6,7 @@
   Hardware: John Vanderbeck, KM7O, Seattle, WA
 */
 
-//#include <Arduino.h>
+#include <Arduino.h>            // for Serial
 #include "constants.h"          // Griduino constants and colors
 #include "Adafruit_ILI9341.h"   // TFT color display library
 #include "morse_dac.h"          // Morse code
@@ -765,7 +765,7 @@ void runUnitTest() {
     Serial.print(f);
     Serial.println(" failures");
   } else {
-    Serial.println("100% Successful!");
+    Serial.println("100% successful");
   }
   Serial.print("-------- End Unit Test at line ");
   Serial.println(__LINE__);

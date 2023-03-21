@@ -11,6 +11,7 @@
 
 */
 
+#include <Arduino.h>      // for Serial
 #include "constants.h"    // Griduino constants and colors
 #include "logger.h"       // conditional printing to Serial port
 #include "model_gps.h"    // Model of a GPS for model-view-controller
