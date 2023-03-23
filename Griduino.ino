@@ -171,7 +171,11 @@ const int howLongToWait = 6;          // max number of seconds at startup waitin
 
 // ---------- Morse Code ----------
 #include "morse_dac.h"                // Morse Code using digital-audio converter DAC0
-//DACMorseSender dacMorse(DAC_PIN, gFrequency, gWordsPerMinute);
+#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
+  // todo - for now, RP2040 has no DAC, no speech, no audio output
+#else
+  DACMorseSender dacMorse(DAC_PIN, gFrequency, gWordsPerMinute);
+#endif
 
 // ----------- Speech PCM Audio Playback
 #if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
@@ -237,7 +241,7 @@ BatteryVoltage gpsBattery;
 //==============================================================
 #include "model_gps.h"                // Model of a GPS for model-view-controller
 
-// create an instance of the model
+// create an instance of the GPS model
 Model modelGPS;                       // normal: use real GPS hardware
 MockModel modelSimulator;             // test: simulated travel (see model_gps.h)
 
@@ -270,6 +274,8 @@ int fGetDataSource() {
 Location history[3000];               // remember a list of GPS coordinates
 const int numHistory = sizeof(history) / sizeof(Location);
 
+bool waitingForRTC = true;   // true=waiting for GPS hardware to give us the first valid date/time
+
 //==============================================================
 //
 //      BarometerModel
@@ -283,18 +289,8 @@ const int numHistory = sizeof(history) / sizeof(Location);
 //
 //==============================================================
 
-bool waitingForRTC = true;            // true=waiting for GPS hardware to give us the first valid date/time
-
-/// BMP280-only:
-//#include <Adafruit_BMP280.h>   // I2C
-//Adafruit_BMP280 baro;                 // singleton instance to manage hardware
-
-/// BMP388-only:
-#include <Adafruit_BMP3XX.h>          // Precision barometric and temperature sensor
-Adafruit_BMP3XX baro;                 // singleton instance to manage hardware
-
-#include "model_baro.h"               // barometer that also stores history
-BarometerModel baroModel( &baro, BMP_CS );    // create instance of the model, giving it ptr to hardware
+#include "model_baro.h"     // a barometer that can also store history
+BarometerModel baroModel;   // create instance of the model
 
 //==============================================================
 //

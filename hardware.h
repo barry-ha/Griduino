@@ -60,10 +60,10 @@ On-board lights:
 // To compile for Feather M0/M4, install "additional boards manager"
 // https://learn.adafruit.com/adafruit-feather-m4-express-atsamd51/setup
 
-//#define TFT_BL 4    // TFT backlight
-//#define TFT_CS 5    // TFT chip select pin
-//#define TFT_DC 12   // TFT display/command pin
-//#define BMP_CS 13   // BMP388 sensor, chip select
+#define TFT_BL 4    // TFT backlight
+#define TFT_CS 5    // TFT chip select pin
+#define TFT_DC 12   // TFT display/command pin
+#define BMP_CS 13   // BMP388 sensor, chip select
 
 #define SD_CD  10   // SD card detect pin - Feather
 #define SD_CCS 11   // SD card select pin - Feather
