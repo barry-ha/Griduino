@@ -22,15 +22,14 @@ private:
   const float voltsPerSample = (3.3 / 1023.0);  // PCB v6+ circuit's reference voltage is Vcc = 3.3 volts
 
 public:
-  // Griduino v7 uses Analog input pin A0 to measure 3v coin battery
-  BatteryVoltage(int inputPin = A0) {}
+  // Griduino v7 uses Analog input pin A1 to measure 3v coin battery
+  BatteryVoltage(int inputPin = A1) {}
 
   void setup() {
-    pinMode(inputPin, INPUT);
   }
 
   float getCoinBatteryVoltage() {
-    coinBattery       = analogRead(inputPin);
+    coinBattery       = analogRead(A1);
     float coinVoltage = coinBattery * voltsPerSample;
     return coinVoltage;
   }
