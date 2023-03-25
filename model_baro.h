@@ -118,7 +118,7 @@ public:
     int rc = 1;   // assume success
 #if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
     logger.fencepost("model_baro.h", __LINE__);   // debug
-    bool initialized = baro.begin(BMP280_ADDRESS, BMP280_CHIPID);             // Griduino v7 pcb, I2C
+    bool initialized = baro.begin(0x76, 0x58);             // Griduino v7 pcb, I2C
 #else
     logger.fencepost("model_baro.h", __LINE__);   // debug
     bool initialized = baro.begin_SPI(bmp_cs);   // Griduino v4 pcb, SPI

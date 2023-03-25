@@ -592,14 +592,15 @@ void sayGrid(const char *name) {
 
 //=========== setup ============================================
 void setup() {
-
+  Wire1.begin();
+ 
   // ----- init TFT display
   tft.begin();                        // initialize TFT display
   tft.setRotation(eSCREEN_ROTATE_0);  // 1=landscape (default is 0=portrait)
   tft.fillScreen(ILI9341_BLACK);      // note that "begin()" does not clear screen
 
   // ----- init TFT backlight
-  pinMode(A1, INPUT);                 // Griduino PCB v7 uses pin A1 (ADC1) to measure 3v coin battery; don't load down the pin
+ // pinMode(A1, INPUT);                 // Griduino PCB v7 uses pin A1 (ADC1) to measure 3v coin battery; don't load down the pin
  
   pinMode(TFT_BL, OUTPUT);
   analogWrite(TFT_BL, 255);           // start at full brightness
