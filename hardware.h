@@ -55,7 +55,6 @@ On-board lights:
 // TFT display and SD card share the hardware SPI interface, and have
 // separate 'select' pins to identify the active device on the bus.
 #if defined(SAMD_SERIES)
-#warning ----- Compiling for Arduino Feather M4 Express -----
 // Adafruit Feather M4 Express pin definitions
 // To compile for Feather M0/M4, install "additional boards manager"
 // https://learn.adafruit.com/adafruit-feather-m4-express-atsamd51/setup
@@ -69,7 +68,6 @@ On-board lights:
 #define SD_CCS 11   // SD card select pin - Feather
 
 #elif defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
-#warning ----- Compiling for Arduino RP2040 -----
 // Ref: https://arduino-pico.readthedocs.io/en/latest/index.html
 // Adafruit Feather_RP2040 pin definitions
 // To compile for Feather_RP2040, install "additional boards manager"

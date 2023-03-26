@@ -106,6 +106,14 @@
 #include "cfg_units.h"                // config english/metric
 #include "cfg_volume.h"               // config volume level
 
+#if defined(SAMD_SERIES)
+  #warning ----- Compiling for Arduino Feather M4 Express -----
+#elif defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
+  #warning ----- Compiling for Arduino RP2040 -----
+#else
+  #error Hardware platform unknown.
+#endif
+
 // ---------- extern
 extern bool newScreenTap(Point* pPoint);       // Touch.cpp
 extern uint16_t myPressure(void);              // Touch.cpp
