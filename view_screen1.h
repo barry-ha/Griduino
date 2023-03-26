@@ -1,6 +1,6 @@
 #pragma once   // Please format this file with clang before check-in to GitHub
 
-#define ANIMATED_LOGO    // Pick one, recompile
+#define ANIMATED_LOGO   // Pick one, recompile
 // #define STARBURST     // Pick one, recompile
 // #define TIME_TUNNEL   // Pick one, recompile
 /*
@@ -33,10 +33,10 @@
             +-----------------------------------+
             |      |                     |      |
             |   ---+---------------------+---   |
-            |      |                     |      |
-            |      |                     |      |
-            |      |          G          |      |
-            |      |                     |      |
+            |      |      GGGGGGG        |      |
+            |      |     G               |      |
+            |      |     G     GGG       |      |
+            |      |       GGGGG         |      |
             |   ---+---------------------+---   |
             |      |                     |      |
             +-----------------------------------+
@@ -247,6 +247,7 @@ bool ViewScreen1::continueViewing() {
   return true;   // false = keep processing, true = finished, exit Screen1
 }
 #endif
+
 // ============== implement Animated Logo ================
 #if defined(ANIMATED_LOGO)
 // ----- icons
@@ -279,8 +280,7 @@ void ViewScreen1::animateVertLine(int top, int bot, int x, int color) {
   }
 }
 
-#define MY_NAVY 0x0014                     /// 0, 0, 20
-//void ViewScreen1::drivePath(Route path[], int count);   // declaration fixes "error: variable or field 'drivePath' declared void", dunno why it's required
+#define MY_NAVY 0x0014   /// 0, 0, 20
 void ViewScreen1::drivePath(Route path[], int count) {
   for (int ii = count - 1; ii >= 0; ii--) {
     tft->drawBitmap(path[ii].x, path[ii].y, icon9, icon9w, icon9h, MY_NAVY);
@@ -365,7 +365,6 @@ void ViewScreen1::startView(int totalDelayMsec) {
   // ----- init TFT backlight
   pinMode(TFT_BL, OUTPUT);
   analogWrite(TFT_BL, 0xC0);   // backlight 75% brightness to reduce glare, screen is mostly white
-
 }
 bool ViewScreen1::continueViewing() {
   // RGB 565 true color: https://chrishewett.com/blog/true-rgb565-colour-picker/
@@ -392,17 +391,20 @@ bool ViewScreen1::continueViewing() {
   delay(100);
   drivePath(stroke1, elements1);
 
-  delay(800);
-
-  tft->setCursor(72, 14);
-  tft->setTextSize(2);
-  tft->setTextColor(ILI9341_NAVY);
-  tft->print("Griduino.com");
-
   delay(700);
 
-  tft->setCursor(72, h - 28);
-  tft->print(PROGRAM_VERSION);
+  TextField txtScreen1[] = {
+      //        text     x,y    color       alignment    font size
+      {PROGRAM_TITLE, 72, 14, ILI9341_NAVY, ALIGNLEFT, eFONTSYSTEM},
+      {PROGRAM_VERSION, 72, h - 28, ILI9341_NAVY, ALIGNLEFT, eFONTSYSTEM},
+  };
+  const int numScreen1Fields = sizeof(txtScreen1) / sizeof(txtScreen1[0]);
+
+  // ----- draw text fields
+  for (int ii = 0; ii < numScreen1Fields; ii++) {
+    txtScreen1[ii].print();
+    delay(700);
+  }
 
   delay(4000);
 
