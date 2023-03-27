@@ -112,6 +112,8 @@ void ViewHelp::startScreen() {
 
   // ----- label this view in upper left corner
   showNameOfView("Hint: ", cWARN, cBACKGROUND);
+
+  delay(2000);   // give user time to read the hint screen
 }   // end startScreen()
 
 bool ViewHelp::onTouch(Point touch) {

@@ -106,6 +106,14 @@
 #include "cfg_units.h"                // config english/metric
 #include "cfg_volume.h"               // config volume level
 
+#if defined(SAMD_SERIES)
+  #warning ----- Compiling for Arduino Feather M4 Express -----
+#elif defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
+  #warning ----- Compiling for Arduino RP2040 -----
+#else
+  #error Hardware platform unknown.
+#endif
+
 // ---------- extern
 extern bool newScreenTap(Point* pPoint);       // Touch.cpp
 extern uint16_t myPressure(void);              // Touch.cpp
@@ -386,9 +394,9 @@ int nextView    = BARO_VIEW;   // GRID_VIEW;       // default
   if (cmd == GOTO_NEXT_VIEW) {
     // operator requested the next NORMAL user view
     switch (currentView) {
-      case SCREEN1_VIEW:   nextView = SPLASH_VIEW; break;
+      case SCREEN1_VIEW:   nextView = HELP_VIEW; break;   // skip SPLASH_VIEW (simplify startup, now that animated logo shows version number)
       case SPLASH_VIEW:    nextView = GRID_VIEW; break;
-      case GRID_VIEW:      nextView = GRID_CROSSINGS_VIEW; break;
+      case GRID_VIEW:      nextView = TEN_MILE_ALERT_VIEW; break;   // skip GRID_CROSSINGS_VIEW (not ready for prime time)
       case GRID_CROSSINGS_VIEW: nextView= TEN_MILE_ALERT_VIEW; break;
       case TEN_MILE_ALERT_VIEW: nextView = BARO_VIEW; break;
       case BARO_VIEW:      nextView = ALTIMETER_VIEW; break;
@@ -617,12 +625,6 @@ void setup() {
   Serial.println("Compiled " PROGRAM_COMPILED);       // Report our compiled date
   Serial.println(__FILE__);                           // Report our source code file name
 
-  #if defined(SAMD_SERIES)
-    Serial.println("Compiled for Adafruit Feather M4 Express (or equivalent)");
-  #else
-    Serial.println("Sorry, your hardware platform is not recognized.");
-  #endif
-
   // ----- init Feather M4 onboard lights
   pixel.begin();
   pixel.clear();                      // turn off NeoPixel
@@ -638,10 +640,11 @@ void setup() {
 #ifdef FASTBOOT
   Serial.println("Fast boot: skip Splash screen");
 #else
-  pView = &splashView;
-  pView->startScreen();
-  pView->updateScreen();
-  delay(2000);
+  // 2023-03-26 removed now that animated logo screen shows version number
+  //pView = &splashView;
+  //pView->startScreen();
+  //pView->updateScreen();
+  //delay(2000);
 #endif
 
   // ----- init GPS
@@ -750,9 +753,10 @@ void setup() {
   Serial.println("Fast boot: skip Help screen");
 #else
   // one-time Help screen
-  pView = &helpView;
-  pView->startScreen();
-  delay(2000);
+  // 2023-03-26 removed now that animated logo screen shows version number
+  //pView = &helpView;
+  //pView->startScreen();
+  //delay(2000);
 #endif
 
   // ----- restore GPS driving track breadcrumb history
