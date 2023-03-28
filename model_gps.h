@@ -18,6 +18,7 @@
 #include <Arduino.h>        //
 #include <Adafruit_GPS.h>   // "Ultimate GPS" library
 #include "constants.h"      // Griduino constants, colors, typedefs
+#include "hardware.h"       //
 #include "logger.h"         // conditional printing to Serial port
 #include "grid_helper.h"    // lat/long conversion routines
 #include "date_helper.h"    // date/time conversions
@@ -55,7 +56,6 @@ public:
   bool gMetric        = false;   // distance reported in miles(false), kilometers(true)
   int gTimeZone       = -7;      // default local time Pacific (-7 hours)
   bool compare4digits = true;    // true=4 digit, false=6 digit comparisons
-  int gpsBattery      = 1023;    // measured coin battery ADC sample
 
   float gSeaLevelPressure = DEFAULT_SEALEVEL_HPA;   // todo - unused by 'model_gps.h', delete me
 
@@ -337,7 +337,6 @@ public:
     gTimeZone         = from.gTimeZone;           // offset from GMT to local time
     compare4digits    = from.compare4digits;      //
     gSeaLevelPressure = from.gSeaLevelPressure;   // hPa
-    gpsBattery        = from.gpsBattery;          // measured coin battery ADC sample
   }
 
   // given a GPS reading in NMEA format, create a "time_t" timestamp
@@ -371,7 +370,6 @@ public:
     gSatellites = GPS.satellites;
     gSpeed      = GPS.speed * mphPerKnots;
     gAngle      = GPS.angle;
-    gpsBattery  = analogRead(A0);
   }
 
   // the Model will update its internal state on a schedule determined by the Controller

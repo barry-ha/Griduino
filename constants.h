@@ -1,11 +1,11 @@
 #pragma once   // Please format this file with clang before check-in to GitHub
 
 // ------- Identity for splash screen and console --------
-#define PROGRAM_TITLE    "Griduino"
+#define PROGRAM_TITLE "Griduino"
 #if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
-#define PROGRAM_VERSION  "v1.12 rp2040"
+#define PROGRAM_VERSION "v1.12 rp2040 PCB v.7"
 #else
-#define PROGRAM_VERSION  "v1.12 M4"
+#define PROGRAM_VERSION "v1.12 M4"
 #endif
 #define PROGRAM_LINE1    "Barry K7BWH"
 #define PROGRAM_LINE2    "John KM7O"
@@ -14,11 +14,11 @@
 #define PROGRAM_GITHUB   "https://github.com/barry-ha/Griduino"
 
 // ------- Select testing features ---------
-//#define FASTBOOT                    // comment out in production, use to skip some startup screen
-//#define ECHO_GPS                    // use this to see GPS detailed info on IDE console for debug
-//#define SHOW_SCREEN_BORDER          // use this to outline the screen's displayable area
-//#define SHOW_SCREEN_CENTERLINE      // use this visual aid to help layout the screen
-//#define SHOW_IGNORED_PRESSURE       // use this to see barometric pressure readings that are out of range and therefore ignored
+// #define FASTBOOT                    // comment out in production, use to skip some startup screen
+// #define ECHO_GPS                    // use this to see GPS detailed info on IDE console for debug
+// #define SHOW_SCREEN_BORDER          // use this to outline the screen's displayable area
+// #define SHOW_SCREEN_CENTERLINE      // use this visual aid to help layout the screen
+// #define SHOW_IGNORED_PRESSURE       // use this to see barometric pressure readings that are out of range and therefore ignored
 
 // ------- TFT screen definitions ---------
 #define gScreenWidth  320   // screen pixels wide
@@ -44,7 +44,7 @@ const double degreesPerRadian = 57.2957795;   // conversion factor = (360 degree
 #define DEFAULT_SEALEVEL_HPA     (1017.40)
 
 // ----- load/save configuration using SDRAM
-//#define EXTERNAL_FLASH_USE_QSPI     // 2020-02-11 added by BarryH, since it seems to be missing from
+// #define EXTERNAL_FLASH_USE_QSPI     // 2020-02-11 added by BarryH, since it seems to be missing from
 // c:\Users\barry\AppData\Local\Arduino15\packages\adafruit\hardware\samd\1.5.7\variants\feather_m4\variant.h
 #define CONFIG_FOLDER "/Griduino"
 

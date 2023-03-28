@@ -55,7 +55,6 @@ On-board lights:
 // TFT display and SD card share the hardware SPI interface, and have
 // separate 'select' pins to identify the active device on the bus.
 #if defined(SAMD_SERIES)
-#warning ----- Compiling for Arduino Feather M4 Express -----
 // Adafruit Feather M4 Express pin definitions
 // To compile for Feather M0/M4, install "additional boards manager"
 // https://learn.adafruit.com/adafruit-feather-m4-express-atsamd51/setup
@@ -70,13 +69,12 @@ On-board lights:
 
 #elif defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
 // Ref: https://arduino-pico.readthedocs.io/en/latest/index.html
-#warning ----- Compiling for Arduino Feather RP2040 -----
 // Adafruit Feather_RP2040 pin definitions
 // To compile for Feather_RP2040, install "additional boards manager"
 // https://github.com/earlephilhower/arduino-pico/releases/download/global/package_rp2040_index.json
 
-#define TFT_BL 6    // TFT backlight
-#define TFT_CS A1   // TFT chip select pin
+#define TFT_BL 4   // TFT backlight
+#define TFT_CS 5   // TFT chip select pin
 #define TFT_DC 12   // TFT display/command pin
 #define BMP_CS 13   // BMP388 sensor, chip select
 
@@ -107,8 +105,8 @@ On-board lights:
   #define PIN_XP 24   // Touchscreen X+ can be a digital pin
   #define PIN_YM 25   // Touchscreen Y- can be a digital pin
   // ---------- Audio output pins
-  #define DAC_PIN     0   // do not use - RP2040 has no DAC
-  #define PIN_SPEAKER 0   // do not use - RP2040 has no DAC
+//  #define DAC_PIN     0   // do not use - RP2040 has no DAC
+//  #define PIN_SPEAKER 0   // do not use - RP2040 has no DAC
 #else
 // ---------- Touch Screen pins - Feather M4
   #define PIN_XP A3   // Touchscreen X+ can be a digital pin
@@ -118,6 +116,11 @@ On-board lights:
   // ---------- Audio output pins
   #define DAC_PIN     DAC0   // onboard DAC0 == pin A0
   #define PIN_SPEAKER DAC0   // uses DAC
+#endif
+
+// ---------- Battery voltage sensor
+#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
+#define BATTERY_ADC  A1
 #endif
 
 // ---------- Feather RP2040 onboard led
@@ -133,8 +136,8 @@ On-board lights:
 
 // ---------- Digital potentiometer
 // Adafruit Feather M4 Express pin definitions
-#define PIN_VCS A1   // volume chip select
-#define PIN_VUD A2   // volume up/down
+//#define PIN_VCS A1   // volume chip select
+//#define PIN_VUD A2   // volume up/down
 
 // Adafruit ItsyBitsy M4 Express potentiometer wiring
 #if defined(ADAFRUIT_ITSYBITSY_M4_EXPRESS)

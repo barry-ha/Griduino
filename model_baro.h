@@ -6,18 +6,25 @@
   Hardware: John Vanderbeck, KM7O, Seattle, WA
 
          The interface to this class provides:
-         1. Read barometer for ongoing display        baro.getBaroPressure();
-         2. Read-and-save barometer for data logger   baro.logPressure( rightnow );
-         3. Load history from NVR                     baro.loadHistory();
-         4. Save history to NVR                       baro.saveHistory();
-         5. A few random functions as needed for unit testing
+         1. Constructor                               BarometerModel baroModel();
+         2. Init hardware                             begin();
+         3. Read barometer for ongoing display        baro.getBaroPressure();
+         4. Read-and-save barometer for data logger   baro.logPressure( rightnow );
+         5. Load history from NVR                     baro.loadHistory();
+         6. Save history to NVR                       baro.saveHistory();
+         7. A few minor functions for unit tests
 
-         Data logger reads BMP388 or BMP390 hardware for pressure, and gets time-of-day
-         from the caller. We don't read the realtime clock in here.
+         Data logger reads BMP280 or BMP388 or BMP390 hardware for pressure.
+         We get time-of-day from the caller. We don't read the realtime clock.
 
   Barometric Sensor:
-         Adafruit BMP388 Barometric Pressure             https://www.adafruit.com/product/3966
-         Adafruit BMP390                                 https://www.adafruit.com/product/4816
+         Goal is to hide hardware from the caller via conditional compile.
+         Adafruit BMP280 Barometric Pressure          https://www.adafruit.com/product/2651
+         Adafruit BMP388 Barometric Pressure          https://www.adafruit.com/product/3966
+         Adafruit BMP390                              https://www.adafruit.com/product/4816
+
+         Bosch BMP280 datasheet:    https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bmp280-ds001.pdf
+         Bosch BMP388 datasheet:    https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bmp388-ds001.pdf
 
   Pressure History:
          This class is basically a data logger for barometric pressure.
@@ -56,7 +63,13 @@
          about +/- 0.5 meter of altitude.
 */
 
-#include <Adafruit_BMP3XX.h>   // Precision barometric and temperature sensor
+#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
+  #include <Wire.h>
+  #include <Adafruit_BMP280.h>   // Precision barometric and temperature sensor
+  #include <Adafruit_Sensor.h>
+#else
+  #include <Adafruit_BMP3XX.h>   // Precision barometric and temperature sensor
+#endif
 #include "constants.h"         // Griduino constants, colors, typedefs
 #include "logger.h"            // conditional printing to Serial port
 #include "date_helper.h"       // date/time conversions
@@ -78,7 +91,17 @@ extern Dates date;      // for "datetimeToString()", Griduino.ino
 class BarometerModel {
 public:
   // Class member variables
-  Adafruit_BMP3XX *baro;   // pointer to the hardware-managing class
+#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
+  // BMP280 Constructor
+  Adafruit_BMP280 baro;   // has-a hardware-managing class object, use I2C interface
+  BarometerModel() : baro(&Wire1) {}
+#else 
+  // BMP388 and BMP390 Constructor
+  Adafruit_BMP3XX baro;   // has-a hardware-managing class object, use SPI interface
+  BarometerModel(int vChipSelect = BMP_CS) {
+    bmp_cs = vChipSelect;
+  }
+#endif
   int bmp_cs;              // Chip Select for BMP388 / BMP390 hardware
   float gPressure;         // pressure in Pascals
   float inchesHg;          // same pressure in inHg
@@ -92,88 +115,107 @@ public:
   //  use difference between altimeter setting and station pressure: https://www.weather.gov/epz/wxcalc_altimetersetting
   float elevCorr = 0;   // todo: unused for now, review and change if needed
 
-  // Constructor - create and initialize member variables
-  BarometerModel(Adafruit_BMP3XX *vBarometerObject, int vChipSelect) {
-    baro   = vBarometerObject;
-    bmp_cs = vChipSelect;
-  }
-
   // init BMP388 or BMP390 barometer
   int begin(void) {
     int rc = 1;   // assume success
-                  // logger.fencepost("model_baro.h", __LINE__);
 #if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
-    bool initialized = baro->begin_I2C(BMP3XX_DEFAULT_ADDRESS, &Wire1);   // Griduino v6 pcb
+    logger.fencepost("model_baro.h", __LINE__);   // debug
+    Wire1.begin();
+    bool initialized = baro.begin(0x76, 0x58);             // Griduino v7 pcb, I2C
 #else
-    bool initialized = baro->begin_SPI(bmp_cs);   // Griduino v4 pcb
+    logger.fencepost("model_baro.h", __LINE__);   // debug
+    bool initialized = baro.begin_SPI(bmp_cs);   // Griduino v4 pcb, SPI
 #endif
     if (initialized) {
-      // logger.fencepost("model_baro.h", __LINE__);
-      //  Bosch BMP388 datasheet:
-      //       https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bmp388-ds001.pdf
-      //  IIR:
-      //       An "infinite impulse response" filter intended to remove short-term
-      //       fluctuations in pressure, e.g. caused by slamming a door or wind blowing
-      //       on the sensor.
-      //  Oversampling:
-      //       Each oversampling step reduces noise and increases output resolution
-      //       by one bit.
-      //
+         logger.fencepost("model_baro.h", __LINE__);   // debug
+         //  IIR:
+         //       An "infinite impulse response" filter intended to remove short-term
+         //       fluctuations in pressure, e.g. caused by slamming a door or wind blowing
+         //       on the sensor.
+         //  Oversampling:
+         //       Each oversampling step reduces noise and increases output resolution
+         //       by one bit.
+         //
 
-      // ----- Settings recommended by Bosch based on use case for "handheld device dynamic"
-      // https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bmp388-ds001.pdf
-      // Section 3.5 Filter Selection, page 17
-      baro->setTemperatureOversampling(BMP3_NO_OVERSAMPLING);
-      baro->setPressureOversampling(BMP3_OVERSAMPLING_4X);
-      baro->setIIRFilterCoeff(BMP3_IIR_FILTER_COEFF_7);   // was 3, too busy
-      baro->setOutputDataRate(BMP3_ODR_50_HZ);
-      // logger.fencepost("model_baro.h", __LINE__);
+         // ----- Settings recommended by Bosch based on use case for "handheld device dynamic"
+         // https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bmp388-ds001.pdf
+         // Section 3.5 Filter Selection, page 17
+         /*
+         baro->setTemperatureOversampling(BMP3_NO_OVERSAMPLING);
+         baro->setPressureOversampling(BMP3_OVERSAMPLING_4X);
+         baro->setIIRFilterCoeff(BMP3_IIR_FILTER_COEFF_7);   // was 3, too busy
+         baro->setOutputDataRate(BMP3_ODR_50_HZ);
+         // logger.fencepost("model_baro.h", __LINE__);
 
-      /*****
-        // ----- Settings from Adafruit example
-        // https://github.com/adafruit/Adafruit_BMP3XX/blob/master/examples/bmp3xx_simpletest/bmp3xx_simpletest.ino
-        // Set up oversampling and filter initialization
-        baro->setTemperatureOversampling(BMP3_OVERSAMPLING_8X);
-        baro->setPressureOversampling(BMP3_OVERSAMPLING_4X);
-        baro->setIIRFilterCoeff(BMP3_IIR_FILTER_COEFF_3);
-        baro->setOutputDataRate(BMP3_ODR_50_HZ);
-        *****/
+         /*****
+           // ----- Settings from Adafruit example
+           // https://github.com/adafruit/Adafruit_BMP3XX/blob/master/examples/bmp3xx_simpletest/bmp3xx_simpletest.ino
+           // Set up oversampling and filter initialization
+           baro->setTemperatureOversampling(BMP3_OVERSAMPLING_8X);
+           baro->setPressureOversampling(BMP3_OVERSAMPLING_4X);
+           baro->setIIRFilterCoeff(BMP3_IIR_FILTER_COEFF_3);
+           baro->setOutputDataRate(BMP3_ODR_50_HZ);
+           *****/
 
-      /*****
-        // ----- Settings from original Barograph example
-        // Set up BMP388 oversampling and filter initialization
-        baro->setTemperatureOversampling(BMP3_OVERSAMPLING_2X);
-        baro->setPressureOversampling(BMP3_OVERSAMPLING_32X);
-        baro->setIIRFilterCoeff(BMP3_IIR_FILTER_COEFF_127);
-        // baro->setOutputDataRate(BMP3_ODR_50_HZ);
-        *****/
+    /*****
+      // ----- Settings from original Barograph example
+      // Set up BMP388 oversampling and filter initialization
+      baro->setTemperatureOversampling(BMP3_OVERSAMPLING_2X);
+      baro->setPressureOversampling(BMP3_OVERSAMPLING_32X);
+      baro->setIIRFilterCoeff(BMP3_IIR_FILTER_COEFF_127);
+      // baro->setOutputDataRate(BMP3_ODR_50_HZ);
+      *****/
 
-      // Get and discard the first data point
-      // Repeated because first reading is always bad, until iir oversampling buffers are populated
-      for (int ii = 0; ii < 4; ii++) {
-        baro->performReading();   // read hardware
-        delay(50);
-      }
-
+    // Get and discard the first data point
+    // Repeated because first reading is always bad, until iir oversampling buffers are populated
+    //     for (int ii = 0; ii < 4; ii++) {
+    //       baro->performReading();   // read hardware
+    //        delay(50);
+    //      }
+    //
     } else {
-      logger.error("Error, unable to initialize BMP388 / BMP390, check the wiring");
+      logger.error("Error, unable to initialize Bosch pressure sensor");
+#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
+      uint8_t id = baro.sensorID();
+      switch (id) {
+        case 0x00:
+          Serial.println("   ID of 0x00 means no response from hardware");
+          break;
+        case 0xFF: 
+          Serial.println("   ID of 0xFF probably means a bad address, a BMP 180 or BMP 085");
+          break;
+        case 0x56:
+        case 0x57:
+        case 0x58:
+          Serial.println("   ID of 0x56-0x58 represents a BMP 280");
+          break;
+        case 0x60:
+          Serial.println("   ID of 0x60 represents a BME 280");
+          break;
+        case 0x61:
+          Serial.println("   ID of 0x61 represents a BME 680");
+          break;
+        default:
+          Serial.println("   ID is not recognized");
+          break;
+      }
+#endif
       rc = 0;   // return failure
     }
-    // logger.fencepost("model_baro.h", __LINE__);
+    logger.fencepost("model_baro.h", __LINE__);
     return rc;
   }
 
   float getAltitude(float sealevelPa) {
     // input: sea level air pressure, Pascals
     // returns: altitude, meters
-    return baro->readAltitude(sealevelPa / 100.0);
+    return baro.readAltitude(sealevelPa / 100.0);
   }
 
   float getTemperature() {
     // updates: celsius (public class var)
     // query temperature from the C++ object, Celsius, not the hardware
-    // note: the C++ object is updated only by "performReading()"
-    celsius = baro->readTemperature();
+    celsius = baro.readTemperature();
     return celsius;
   }
 
@@ -181,14 +223,9 @@ public:
     // returns: float Pascals
     // updates: gPressure (public class var)
     //          inchesHg  (public class var)
-    if (!baro->performReading()) {
-      logger.error("Error, failed to read barometer hardware");
-    }
     // continue anyway, for demo
-    gPressure = baro->pressure + elevCorr;   // Pressure is returned in SI units of Pascals. 100 Pascals = 1 hPa = 1 millibar
-    // hPa = gPressure / 100;
+    gPressure = baro.readPressure();   // Pressure is returned in SI units of Pascals. 100 Pascals = 1 hPa = 1 millibar
     inchesHg = gPressure * INCHES_MERCURY_PER_PASCAL;
-    // Serial.print("Barometer: "); Serial.print(gPressure); Serial.print(" Pa [model_baro.h "); Serial.print(__LINE__); Serial.println("]");  // debug
     return gPressure;
   }
 

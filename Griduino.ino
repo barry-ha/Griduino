@@ -54,8 +54,9 @@
             SPI Wiring:  https://learn.adafruit.com/adafruit-2-dot-8-color-tft-touchscreen-breakout-v2/spi-wiring-and-test
             Touchscreen: https://learn.adafruit.com/adafruit-2-dot-8-color-tft-touchscreen-breakout-v2/resistive-touchscreen
 
-         5. Adafruit BMP388 Barometric Pressure             https://www.adafruit.com/product/3966
-
+         5. Adafruit BMP388 Barometric Pressure, SPI        https://www.adafruit.com/product/3966
+            Adafruit BMP280 Barometric Pressure, I2C        https://www.adafruit.com/product/2651
+ 
          5. One-chip audio amplifier, digital potentiometer and mini speaker
             Speaker is a commodity item and many devices and options are available.
             We tested a piezo speaker but they're tuned for a narrow frequency and 
@@ -104,6 +105,14 @@
 #include "cfg_rotation.h"             // config screen rotation 
 #include "cfg_units.h"                // config english/metric
 #include "cfg_volume.h"               // config volume level
+
+#if defined(SAMD_SERIES)
+  #warning ----- Compiling for Arduino Feather M4 Express -----
+#elif defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
+  #warning ----- Compiling for Arduino RP2040 -----
+#else
+  #error Hardware platform unknown.
+#endif
 
 // ---------- extern
 extern bool newScreenTap(Point* pPoint);       // Touch.cpp
@@ -159,7 +168,7 @@ Adafruit_NeoPixel pixel = Adafruit_NeoPixel(NUMPIXELS, PIN_NEOPIXEL, NEO_GRB + N
 
 // ---------- Digital potentiometer
 // ctor         DS1804( ChipSel pin, Incr pin,  U/D pin,  maxResistance (K) )
-DS1804 volume = DS1804( PIN_VCS,     PIN_VINC,  PIN_VUD,  DS1804_TEN );
+//DS1804 volume = DS1804( PIN_VCS,     PIN_VINC,  PIN_VUD,  DS1804_TEN );
 
 int gWiper = 15;                      // initial digital potentiometer wiper position, 0..99
 int gFrequency = 1100;                // initial Morse code sidetone pitch
@@ -170,7 +179,11 @@ const int howLongToWait = 6;          // max number of seconds at startup waitin
 
 // ---------- Morse Code ----------
 #include "morse_dac.h"                // Morse Code using digital-audio converter DAC0
-DACMorseSender dacMorse(DAC_PIN, gFrequency, gWordsPerMinute);
+#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
+  // todo - for now, RP2040 has no DAC, no speech, no audio output
+#else
+  DACMorseSender dacMorse(DAC_PIN, gFrequency, gWordsPerMinute);
+#endif
 
 // ----------- Speech PCM Audio Playback
 #if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
@@ -211,6 +224,12 @@ void floatToCharArray(char* result, int maxlen, double fValue, int decimalPlaces
 }
 
 //==============================================================
+//      Coin Battery Voltage model
+//==============================================================
+#include "model_adc.h"                // Model of the analog-digital converter
+BatteryVoltage gpsBattery;
+
+//==============================================================
 //
 //      Model
 //      This is MVC (model-view-controller) design pattern
@@ -230,7 +249,7 @@ void floatToCharArray(char* result, int maxlen, double fValue, int decimalPlaces
 //==============================================================
 #include "model_gps.h"                // Model of a GPS for model-view-controller
 
-// create an instance of the model
+// create an instance of the GPS model
 Model modelGPS;                       // normal: use real GPS hardware
 MockModel modelSimulator;             // test: simulated travel (see model_gps.h)
 
@@ -263,26 +282,23 @@ int fGetDataSource() {
 Location history[3000];               // remember a list of GPS coordinates
 const int numHistory = sizeof(history) / sizeof(Location);
 
+bool waitingForRTC = true;   // true=waiting for GPS hardware to give us the first valid date/time
+
 //==============================================================
 //
 //      BarometerModel
 //      "Class BarometerModel" is intended to be identical 
 //      for both Griduino and the Barograph example
 //
-//    This model collects data from the BMP388 barometric pressure 
-//    and temperature sensor on a schedule determined by the Controller.
+//    This model collects data from the BMP280 or BMP388 barometric pressure 
+//    and temperature sensors on a schedule determined by the Controller.
 //
 //    288px wide graph ==> 96 px/day ==> 4px/hour ==> log pressure every 15 minutes
 //
 //==============================================================
 
-bool waitingForRTC = true;            // true=waiting for GPS hardware to give us the first valid date/time
-
-#include <Adafruit_BMP3XX.h>          // Precision barometric and temperature sensor
-Adafruit_BMP3XX baro;                 // singleton instance to manage hardware
-
-#include "model_baro.h"               // barometer that also stores history
-BarometerModel baroModel( &baro, BMP_CS );    // create instance of the model, giving it ptr to hardware
+#include "model_baro.h"     // a barometer that can also store history
+BarometerModel baroModel;   // create instance of the model
 
 //==============================================================
 //
@@ -378,9 +394,9 @@ int nextView    = BARO_VIEW;   // GRID_VIEW;       // default
   if (cmd == GOTO_NEXT_VIEW) {
     // operator requested the next NORMAL user view
     switch (currentView) {
-      case SCREEN1_VIEW:   nextView = SPLASH_VIEW; break;
+      case SCREEN1_VIEW:   nextView = HELP_VIEW; break;   // skip SPLASH_VIEW (simplify startup, now that animated logo shows version number)
       case SPLASH_VIEW:    nextView = GRID_VIEW; break;
-      case GRID_VIEW:      nextView = GRID_CROSSINGS_VIEW; break;
+      case GRID_VIEW:      nextView = TEN_MILE_ALERT_VIEW; break;   // skip GRID_CROSSINGS_VIEW (not ready for prime time)
       case GRID_CROSSINGS_VIEW: nextView= TEN_MILE_ALERT_VIEW; break;
       case TEN_MILE_ALERT_VIEW: nextView = BARO_VIEW; break;
       case BARO_VIEW:      nextView = ALTIMETER_VIEW; break;
@@ -584,14 +600,16 @@ void sayGrid(const char *name) {
 
 //=========== setup ============================================
 void setup() {
-
+  Wire1.begin();
+ 
   // ----- init TFT display
   tft.begin();                        // initialize TFT display
   tft.setRotation(eSCREEN_ROTATE_0);  // 1=landscape (default is 0=portrait)
   tft.fillScreen(ILI9341_BLACK);      // note that "begin()" does not clear screen
 
   // ----- init TFT backlight
-  pinMode(A0, INPUT);                 // Griduino v6 uses pin A0 (DAC0) to measure 3v coin battery; don't load down the pin
+ // pinMode(A1, INPUT);                 // Griduino PCB v7 uses pin A1 (ADC1) to measure 3v coin battery; don't load down the pin
+ 
   pinMode(TFT_BL, OUTPUT);
   analogWrite(TFT_BL, 255);           // start at full brightness
 
@@ -606,12 +624,6 @@ void setup() {
   Serial.println(PROGRAM_TITLE " " PROGRAM_VERSION);  // Report our program name to console
   Serial.println("Compiled " PROGRAM_COMPILED);       // Report our compiled date
   Serial.println(__FILE__);                           // Report our source code file name
-
-  #if defined(SAMD_SERIES)
-    Serial.println("Compiled for Adafruit Feather M4 Express (or equivalent)");
-  #else
-    Serial.println("Sorry, your hardware platform is not recognized.");
-  #endif
 
   // ----- init Feather M4 onboard lights
   pixel.begin();
@@ -628,10 +640,11 @@ void setup() {
 #ifdef FASTBOOT
   Serial.println("Fast boot: skip Splash screen");
 #else
-  pView = &splashView;
-  pView->startScreen();
-  pView->updateScreen();
-  delay(2000);
+  // 2023-03-26 removed now that animated logo screen shows version number
+  //pView = &splashView;
+  //pView->startScreen();
+  //pView->updateScreen();
+  //delay(2000);
 #endif
 
   // ----- init GPS
@@ -711,13 +724,14 @@ void setup() {
   //       The realtime clock is not available until after receiving a few NMEA sentences.
 
   // ----- init digital potentiometer, restore volume setting
-  pinMode(PIN_VCS, OUTPUT);           // fix bug that somehow forgets this is an output pin
-  volume.unlock();                    // unlock digipot (in case someone else, like an example pgm, has locked it)
-  volume.setToZero();                 // set digipot hardware to match its ctor (wiper=0) because the chip cannot be read
-                                      // and all "setWiper" commands are really incr/decr pulses. This gets it sync.
-  volume.setWiperPosition( gWiper );  // set default volume in digital pot
+ //  pinMode(PIN_VCS, OUTPUT);           // fix bug that somehow forgets this is an output pin
 
-  volumeView.loadConfig();            // restore volume setting from non-volatile RAM
+ // volume.unlock();                    // unlock digipot (in case someone else, like an example pgm, has locked it)
+ // volume.setToZero();                 // set digipot hardware to match its ctor (wiper=0) because the chip cannot be read
+                                      // and all "setWiper" commands are really incr/decr pulses. This gets it sync.
+//  volume.setWiperPosition( gWiper );  // set default volume in digital pot
+
+////  volumeView.loadConfig();            // restore volume setting from non-volatile RAM
   cfgAudioType.loadConfig();          // restore Morse-vs-Speech setting from non-volatile RAM
 
   // ----- init DAC for audio/morse code
@@ -739,9 +753,10 @@ void setup() {
   Serial.println("Fast boot: skip Help screen");
 #else
   // one-time Help screen
-  pView = &helpView;
-  pView->startScreen();
-  delay(2000);
+  // 2023-03-26 removed now that animated logo screen shows version number
+  //pView = &helpView;
+  //pView->startScreen();
+  //delay(2000);
 #endif
 
   // ----- restore GPS driving track breadcrumb history
@@ -759,9 +774,6 @@ void setup() {
   }
 
   // ----- init barometer
-#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
-  // nothing - RP2040 has no barometric pressure sensor
-#else
   if (baroModel.begin()) {
     // success
   } else {
@@ -770,10 +782,9 @@ void setup() {
     tft.setCursor(0, 48);
     tft.setTextColor(cWARN);
     setFontSize(12);
-    tft.println("Error!\n Unable to init\n  BMP388 sensor\n   check wiring");
+    tft.println("Error!\n Unable to init\n  barometric sensor\n   check wiring");
     delay(5000);
   }
-#endif
 
   // ----- all done with setup, show opening view screen
   pView = &gridView;
