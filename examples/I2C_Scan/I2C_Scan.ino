@@ -3,7 +3,8 @@
   I2C_Scan -- poll addresses on the I2C bus
 
   Version history:
-            2023-03-26 created from example by John KM7O for Griduino pcb v7
+      2023-03-26 adapted from Adafruit example for Griduino pcb v7
+                 Note the Adafruit Feather rp2040 requires Wire1 (not Wire)
 
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
