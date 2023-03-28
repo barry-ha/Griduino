@@ -64,7 +64,9 @@
 */
 
 #if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
+  #include <Wire.h>
   #include <Adafruit_BMP280.h>   // Precision barometric and temperature sensor
+  #include <Adafruit_Sensor.h>
 #else
   #include <Adafruit_BMP3XX.h>   // Precision barometric and temperature sensor
 #endif
@@ -91,11 +93,11 @@ public:
   // Class member variables
 #if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
   // BMP280 Constructor
-  Adafruit_BMP280 baro;   // has-a hardware-managing class object
-  BarometerModel() {}
+  Adafruit_BMP280 baro;   // has-a hardware-managing class object, use I2C interface
+  BarometerModel() : baro(&Wire1) {}
 #else 
   // BMP388 and BMP390 Constructor
-  Adafruit_BMP3XX baro;   // has-a hardware-managing class object
+  Adafruit_BMP3XX baro;   // has-a hardware-managing class object, use SPI interface
   BarometerModel(int vChipSelect = BMP_CS) {
     bmp_cs = vChipSelect;
   }
@@ -118,6 +120,7 @@ public:
     int rc = 1;   // assume success
 #if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
     logger.fencepost("model_baro.h", __LINE__);   // debug
+    Wire1.begin();
     bool initialized = baro.begin(0x76, 0x58);             // Griduino v7 pcb, I2C
 #else
     logger.fencepost("model_baro.h", __LINE__);   // debug
