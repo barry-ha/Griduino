@@ -1,3 +1,4 @@
+// Please format this file with clang before check-in to GitHub
 /*
   File:     view_grid.cpp
 
@@ -38,9 +39,9 @@
 extern Logger logger;                 // Griduino.ino
 extern Grids grid;                    // grid_helper.h
 extern Adafruit_ILI9341 tft;          // Griduino.ino
-extern Model* model;                  // GPS "model" portion of model-view-controller
-extern BarometerModel baroModel;      // Barometer "model" is singleton instance
-extern BatteryVoltage gpsBattery;     // Coin battery "model" is singleton instance
+extern Model* model;                  // GPS "model" of model-view-controller (model_gps.h)
+extern BarometerModel baroModel;      // Barometer "model" is singleton (model_baro.h)
+extern BatteryVoltage gpsBattery;     // Coin battery "model" is singleton (model_adc.h)
 
 extern Location history[];            // GPS breadcrumb trail (Griduino.ino)
 extern const int numHistory;          // Griduino.ino
@@ -185,7 +186,10 @@ void drawCoinBatteryVoltage() {
   float coinVoltage = gpsBattery.getCoinBatteryVoltage();
   floatToCharArray(sVoltage, sizeof(sVoltage), coinVoltage, 2);
   strcat(sVoltage, "v");
+#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
+  // Show battery voltage only on Griduino PCB v7+
   txtGrid[COINBATT].print(sVoltage);
+#endif
 }
 
 void drawAltitude() {

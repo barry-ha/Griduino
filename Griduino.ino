@@ -168,7 +168,11 @@ Adafruit_NeoPixel pixel = Adafruit_NeoPixel(NUMPIXELS, PIN_NEOPIXEL, NEO_GRB + N
 
 // ---------- Digital potentiometer
 // ctor         DS1804( ChipSel pin, Incr pin,  U/D pin,  maxResistance (K) )
-//DS1804 volume = DS1804( PIN_VCS,     PIN_VINC,  PIN_VUD,  DS1804_TEN );
+#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
+  // todo - for now, RP2040 has no DAC, no volume control, no audio output
+#else
+  DS1804 volume = DS1804( PIN_VCS, PIN_VINC, PIN_VUD, DS1804_TEN );
+#endif
 
 int gWiper = 15;                      // initial digital potentiometer wiper position, 0..99
 int gFrequency = 1100;                // initial Morse code sidetone pitch
@@ -226,6 +230,9 @@ void floatToCharArray(char* result, int maxlen, double fValue, int decimalPlaces
 //==============================================================
 //      Coin Battery Voltage model
 //==============================================================
+// PCB v7 added a sensor for coin battery voltage
+// PCB v4 doesn't measure coin battery
+// The hardware differences are handled in lower level code
 #include "model_adc.h"                // Model of the analog-digital converter
 BatteryVoltage gpsBattery;
 
@@ -600,7 +607,6 @@ void sayGrid(const char *name) {
 
 //=========== setup ============================================
 void setup() {
-  Wire1.begin();
  
   // ----- init TFT display
   tft.begin();                        // initialize TFT display
@@ -724,14 +730,18 @@ void setup() {
   //       The realtime clock is not available until after receiving a few NMEA sentences.
 
   // ----- init digital potentiometer, restore volume setting
- //  pinMode(PIN_VCS, OUTPUT);           // fix bug that somehow forgets this is an output pin
+#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
+  // todo - Griduino PCB v7 has I2C volume control
+#else
+  // Griduino PCB v4 has DS1804 volume control using SPI
+  pinMode(PIN_VCS, OUTPUT);           // fix bug that somehow forgets this is an output pin
 
- // volume.unlock();                    // unlock digipot (in case someone else, like an example pgm, has locked it)
- // volume.setToZero();                 // set digipot hardware to match its ctor (wiper=0) because the chip cannot be read
+  volume.unlock();                    // unlock digipot (in case someone else, like an example pgm, has locked it)
+  volume.setToZero();                 // set digipot hardware to match its ctor (wiper=0) because the chip cannot be read
                                       // and all "setWiper" commands are really incr/decr pulses. This gets it sync.
-//  volume.setWiperPosition( gWiper );  // set default volume in digital pot
-
-////  volumeView.loadConfig();            // restore volume setting from non-volatile RAM
+  volume.setWiperPosition( gWiper );  // set default volume in digital pot
+  volumeView.loadConfig();            // restore volume setting from non-volatile RAM
+#endif
   cfgAudioType.loadConfig();          // restore Morse-vs-Speech setting from non-volatile RAM
 
   // ----- init DAC for audio/morse code
@@ -748,16 +758,6 @@ void setup() {
 
   // ----- init onboard LED
   pinMode(RED_LED, OUTPUT);           // diagnostics RED LED
-
-#ifdef FASTBOOT
-  Serial.println("Fast boot: skip Help screen");
-#else
-  // one-time Help screen
-  // 2023-03-26 removed now that animated logo screen shows version number
-  //pView = &helpView;
-  //pView->startScreen();
-  //delay(2000);
-#endif
 
   // ----- restore GPS driving track breadcrumb history
   model->restore();                   // this takes noticeable time (~0.2 sec)

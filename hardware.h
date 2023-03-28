@@ -105,8 +105,8 @@ On-board lights:
   #define PIN_XP 24   // Touchscreen X+ can be a digital pin
   #define PIN_YM 25   // Touchscreen Y- can be a digital pin
   // ---------- Audio output pins
-//  #define DAC_PIN     0   // do not use - RP2040 has no DAC
-//  #define PIN_SPEAKER 0   // do not use - RP2040 has no DAC
+  //  #define DAC_PIN     0   // do not use - RP2040 has no DAC
+  //  #define PIN_SPEAKER 0   // do not use - RP2040 has no DAC
 #else
 // ---------- Touch Screen pins - Feather M4
   #define PIN_XP A3   // Touchscreen X+ can be a digital pin
@@ -135,9 +135,13 @@ On-board lights:
 // define PIN_NEOPIXEL 8     // already defined in Feather's board variant.h
 
 // ---------- Digital potentiometer
-// Adafruit Feather M4 Express pin definitions
-//#define PIN_VCS A1   // volume chip select
-//#define PIN_VUD A2   // volume up/down
+#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
+  // todo - Griduino PCB v7 uses volume control on I2C
+#else
+  // Griduino PCB v7 uses volume control DS1804 on SPI
+  #define PIN_VCS A1   // volume chip select
+  #define PIN_VUD A2   // volume up/down
+#endif
 
 // Adafruit ItsyBitsy M4 Express potentiometer wiring
 #if defined(ADAFRUIT_ITSYBITSY_M4_EXPRESS)

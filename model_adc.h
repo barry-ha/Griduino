@@ -18,8 +18,8 @@
 class BatteryVoltage {
 private:
   int inputPin;
-  int coinBattery;   // measured coin battery ADC sample (0..1024)
-  const float voltsPerSample = (3.3 / 1023.0);  // PCB v6+ circuit's reference voltage is Vcc = 3.3 volts
+  int coinBattery;                               // measured coin battery ADC sample (0..1024)
+  const float voltsPerSample = (3.3 / 1023.0);   // PCB v6+ circuit's reference voltage is Vcc = 3.3 volts
 
 public:
   // Griduino v7 uses Analog input pin A1 to measure 3v coin battery
@@ -29,9 +29,13 @@ public:
   }
 
   float getCoinBatteryVoltage() {
+#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
     coinBattery       = analogRead(A1);
     float coinVoltage = coinBattery * voltsPerSample;
     return coinVoltage;
+#else
+    return -1.0;    // indicate no coin battery voltage sensor
+#endif
   }
 
 };   // end class BatteryVoltage

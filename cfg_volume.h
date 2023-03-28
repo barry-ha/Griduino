@@ -134,10 +134,14 @@ protected:
     // @param volIndex = 0..10
     int wiperPosition = volLevel[volIndex];
 
-//#define PIN_VCS A1              // chip select pin for DS1804 volume control
-//    pinMode(PIN_VCS, OUTPUT);   // fix bug that somehow forgets this is an output pin
-//    volume.unlock();            // enable (set low)
-//    volume.setWiperPosition(wiperPosition);
+#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
+    // todo - add code to control new I2C volume control chip
+#else
+    #define PIN_VCS A1          // chip select pin for DS1804 volume control via SPI
+    pinMode(PIN_VCS, OUTPUT);   // fix bug that somehow forgets this is an output pin
+    volume.unlock();            // enable (set low)
+    volume.setWiperPosition(wiperPosition);
+#endif
 
     char msg[256];
     snprintf(msg, 256, "Set volume index %d, wiper position %d", volIndex, wiperPosition);   // debug
