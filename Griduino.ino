@@ -514,7 +514,7 @@ void announceGrid(const String gridName, int length) {
 
 #if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
   // todo - for now, RP2040 has no DAC, no audio, no speech
-  logger.error("Unsupported audio in line " __LINE__ );
+  logger.error("Unsupported audio in line ", __LINE__ );
 #else
   switch (cfgAudioType.selectedAudio) {
     case ViewCfgAudioType::MORSE: 
@@ -582,7 +582,7 @@ void sayGrid(const char *name) {
 
 #if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
   // todo - for now, RP2040 has no DAC, no audio, no speech
-  logger.error("Unsupported audio in line " __LINE__ );
+  logger.error("Unsupported audio in line ", __LINE__ );
 #else
   for (int ii = 0; ii < strlen(name); ii++) {
 
