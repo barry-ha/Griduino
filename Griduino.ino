@@ -92,7 +92,7 @@
 #include "view_date.h"                // counting days to/from special event 
 #include "view_grid_crossings.h"      // list of time spent in each grid
 #include "view_help.h"                // help screen
-#include "view_reboot.h"              // confirm reboot operation
+#include "view_reboot.h"              // confirm reboot operation	// moved reboot to settings
 #include "view_screen1.h"             // starting screen animation
 #include "view_splash.h"              // splash screen
 #include "view_status.h"              // status screen 
@@ -202,14 +202,15 @@ const int howLongToWait = 6;          // max number of seconds at startup waitin
 // ============== Touchable spots on all screens ===============
 Rect areaGear { {0,                   0},  {gScreenWidth * 4/10, gScreenHeight * 5/10}};
 Rect areaArrow{ {gScreenWidth *5/10,  0},  {gScreenWidth * 5/10, gScreenHeight * 5/10}};
-Rect areaReboot{{0, gScreenHeight *7/10},  {gScreenWidth * 3/10, gScreenHeight * 3/10}};
-Rect areaBrite{ {gScreenWidth *4/10,gScreenHeight *6/10}, {gScreenWidth *6/10, (gScreenHeight * 4/10)-1}};
+//ct areaReboot{{0, gScreenHeight *7/10},  {gScreenWidth * 3/10, gScreenHeight * 3/10}};
+//ct areaBrite{ {gScreenWidth *4/10,gScreenHeight *6/10}, {gScreenWidth *6/10, (gScreenHeight * 4/10)-1}};
+Rect areaBrite{ {0,gScreenHeight *2/3},  {gScreenWidth,      (gScreenHeight * 1/3)-1}};
 
 void showDefaultTouchTargets() {
   if (showTouchTargets) {
     tft.drawRect(areaGear.ul.x,areaGear.ul.y,   areaGear.size.x, areaGear.size.y,  ILI9341_MAGENTA);
     tft.drawRect(areaArrow.ul.x,areaArrow.ul.y, areaArrow.size.x,areaArrow.size.y, ILI9341_MAGENTA);
-    tft.drawRect(areaReboot.ul.x,areaReboot.ul.y, areaReboot.size.x,areaReboot.size.y, ILI9341_MAGENTA);
+    //t.drawRect(areaReboot.ul.x,areaReboot.ul.y, areaReboot.size.x,areaReboot.size.y, ILI9341_MAGENTA);  // moved reboot to settings
     tft.drawRect(areaBrite.ul.x,areaBrite.ul.y, areaBrite.size.x,areaBrite.size.y, ILI9341_MAGENTA);
   }
 }
@@ -965,8 +966,8 @@ void loop() {
         selectNewView(GOTO_SETTINGS);   // advance to next settings view
       } else if (areaArrow.contains(touch)) {
         selectNewView(GOTO_NEXT_VIEW);   // advance to next normal user view
-      } else if (areaReboot.contains(touch)) {
-        selectNewView(REBOOT_VIEW);
+//    } else if (areaReboot.contains(touch)) {
+//      selectNewView(REBOOT_VIEW);
       } else if (areaBrite.contains(touch)) {
         adjustBrightness();   // change brightness
       } else {

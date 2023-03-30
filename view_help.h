@@ -64,14 +64,13 @@ protected:
 // ----- static screen text
 // const int cl = gScreenWidth/2;
 // clang-format off
-#define nHelpButtons 4
+#define nHelpButtons 3
   Button helpButtons[nHelpButtons] = {
       //       text       x,y                w,h      r      color
-      {"Settings",   margin,       margin,  98, 105, radius, cBUTTONLABEL},   //[SETTINGS]
-      {"Next view",  margin + 108, margin, 192, 105, radius, cBUTTONLABEL},   //[NEXTVIEW]
-      {"Reboot",     margin,       126,     98, 105, radius, cBUTTONLABEL},   //[REBOOT]
-      {"Brightness", margin + 108, 126,    192, 105, radius, cBUTTONLABEL},   //[BRIGHTNESS]
-    //{"Hint",       cl-38, 4,              76,  26, radius/2, cHIGHLIGHT }, //[VIEWNAME]
+      {"Settings",   margin,     margin,  98, 105, radius, cBUTTONLABEL},   //[SETTINGS]
+      {"Next view",  margin+108, margin, 192, 105, radius, cBUTTONLABEL},   //[NEXTVIEW]
+      {"Brightness", margin,     126,    300, 105, radius, cBUTTONLABEL},   //[BRIGHTNESS]
+    //{"Hint",       cl-38,      4,       76,  26, radius/2, cHIGHLIGHT},   //[VIEWNAME]
   };
 // clang-format on
 
