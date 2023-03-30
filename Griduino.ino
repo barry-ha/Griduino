@@ -92,7 +92,6 @@
 #include "view_date.h"                // counting days to/from special event 
 #include "view_grid_crossings.h"      // list of time spent in each grid
 #include "view_help.h"                // help screen
-#include "view_reboot.h"              // confirm reboot operation	// moved reboot to settings
 #include "view_screen1.h"             // starting screen animation
 #include "view_splash.h"              // splash screen
 #include "view_status.h"              // status screen 
@@ -102,6 +101,7 @@
 #include "cfg_audio_type.h"           // config audio Morse/speech
 #include "cfg_crossing.h"             // config 4/6 digit crossing
 #include "cfg_gps.h"                  // config GPS (alphabetical order)
+#include "cfg_reboot.h"               // show firmware update option
 #include "cfg_rotation.h"             // config screen rotation 
 #include "cfg_units.h"                // config english/metric
 #include "cfg_volume.h"               // config volume level
@@ -200,17 +200,14 @@ const int howLongToWait = 6;          // max number of seconds at startup waitin
 
 // 2. Helper Functions
 // ============== Touchable spots on all screens ===============
-Rect areaGear { {0,                   0},  {gScreenWidth * 4/10, gScreenHeight * 5/10}};
-Rect areaArrow{ {gScreenWidth *5/10,  0},  {gScreenWidth * 5/10, gScreenHeight * 5/10}};
-//ct areaReboot{{0, gScreenHeight *7/10},  {gScreenWidth * 3/10, gScreenHeight * 3/10}};
-//ct areaBrite{ {gScreenWidth *4/10,gScreenHeight *6/10}, {gScreenWidth *6/10, (gScreenHeight * 4/10)-1}};
-Rect areaBrite{ {0,gScreenHeight *2/3},  {gScreenWidth,      (gScreenHeight * 1/3)-1}};
+Rect areaGear { {0,                  0},  {gScreenWidth * 4/10, gScreenHeight * 5/10}};
+Rect areaArrow{ {gScreenWidth *5/10, 0},  {gScreenWidth * 5/10, gScreenHeight * 5/10}};
+Rect areaBrite{ {0, gScreenHeight *2/3},  {gScreenWidth,       (gScreenHeight * 1/3)-1}};
 
 void showDefaultTouchTargets() {
   if (showTouchTargets) {
     tft.drawRect(areaGear.ul.x,areaGear.ul.y,   areaGear.size.x, areaGear.size.y,  ILI9341_MAGENTA);
     tft.drawRect(areaArrow.ul.x,areaArrow.ul.y, areaArrow.size.x,areaArrow.size.y, ILI9341_MAGENTA);
-    //t.drawRect(areaReboot.ul.x,areaReboot.ul.y, areaReboot.size.x,areaReboot.size.y, ILI9341_MAGENTA);  // moved reboot to settings
     tft.drawRect(areaBrite.ul.x,areaBrite.ul.y, areaBrite.size.x,areaBrite.size.y, ILI9341_MAGENTA);
   }
 }
@@ -319,23 +316,23 @@ BarometerModel baroModel;   // create instance of the model
 
 // alias names for all views - MUST be in same order as "viewTable" array below, alphabetical by class name
 enum VIEW_INDEX {
-  GRID_VIEW = 0,
-  GRID_CROSSINGS_VIEW,   // log of time in each grid
-  ALTIMETER_VIEW,        // altimeter
+  ALTIMETER_VIEW = 0,        // altimeter
   BARO_VIEW,             // barometer graph
-  HELP_VIEW,             // hints at startup
-  CFG_GPS,               // gps/simulator
-  CFG_UNITS,             // english/metric
-  CFG_CROSSING,          // announce grid crossing 4/6 digit boundaries
   CFG_AUDIO_TYPE,        // audio output Morse/speech
+  CFG_CROSSING,          // announce grid crossing 4/6 digit boundaries
+  CFG_GPS,               // gps/simulator
+  CFG_REBOOT,            // confirm reboot
   CFG_ROTATION,          // screen rotation
-  REBOOT_VIEW,           // confirm reboot
+  CFG_UNITS,             // english/metric
+  DATE_VIEW,             // Groundhog Day, Halloween, or other day-counting screen
+  GRID_VIEW,
+  GRID_CROSSINGS_VIEW,   // log of time in each grid
+  HELP_VIEW,             // hints at startup
   SCREEN1_VIEW,          // first bootup screen
   SPLASH_VIEW,           // startup
   STATUS_VIEW,           // size and scale of this grid
   TEN_MILE_ALERT_VIEW,   // microwave rover view
   TIME_VIEW,             //
-  DATE_VIEW,             // Groundhog Day, Halloween, or other day-counting screen
   CFG_VOLUME,            //
   GOTO_SETTINGS,         // command the state machine to show control panel
   GOTO_NEXT_VIEW,        // command the state machine to show next screen
@@ -346,23 +343,24 @@ enum VIEW_INDEX {
 /*const*/ int screen1_view   = SCREEN1_VIEW;
 /*const*/ int grid_view      = GRID_VIEW;
 /*const*/ int goto_next_view = GOTO_NEXT_VIEW;
+/*const*/ int goto_next_cfg  = GOTO_SETTINGS;
 
 // list of objects derived from "class View", in alphabetical order
 // clang-format off
 View* pView;      // pointer to a derived class
-
+// vvv sort vvv
 ViewAltimeter     altimeterView(&tft, ALTIMETER_VIEW);  // alphabetical order by class name
 ViewBaro          baroView(&tft, BARO_VIEW);            // instantiate derived classes
 ViewCfgAudioType  cfgAudioType(&tft, CFG_AUDIO_TYPE);
 ViewCfgCrossing   cfgCrossing(&tft, CFG_CROSSING);
 ViewCfgGPS        cfgGPS(&tft, CFG_GPS);
+ViewCfgReboot     cfgReboot(&tft, CFG_REBOOT);
 ViewCfgRotation   cfgRotation(&tft, CFG_ROTATION);
 ViewCfgUnits      cfgUnits(&tft, CFG_UNITS);
 ViewDate          dateView(&tft, DATE_VIEW);
 ViewGrid          gridView(&tft, GRID_VIEW);
 ViewGridCrossings gridCrossingsView(&tft, GRID_CROSSINGS_VIEW);
 ViewHelp          helpView(&tft, HELP_VIEW);
-ViewReboot        rebootView(&tft, REBOOT_VIEW);
 ViewScreen1       screen1View(&tft, SCREEN1_VIEW);
 ViewSplash        splashView(&tft, SPLASH_VIEW);
 ViewStatus        statusView(&tft, STATUS_VIEW);
@@ -376,29 +374,29 @@ void selectNewView(int cmd) {
   // this is a state machine to select next view, given current view and type of command
   View *viewTable[] = {
       // vvv same order as enum vvv
-      &gridView,            // [GRID_VIEW]
-      &gridCrossingsView,   // [GRID_CROSSINGS_VIEW]
       &altimeterView,       // [ALTIMETER_VIEW]
       &baroView,            // [BARO_VIEW]
-      &helpView,            // [HELP_VIEW]
-      &cfgGPS,              // [CFG_GPS]
-      &cfgUnits,            // [CFG_UNITS]
-      &cfgCrossing,         // [CFG_CROSSING]
       &cfgAudioType,        // [CFG_AUDIO_TYPE]
+      &cfgCrossing,         // [CFG_CROSSING]
+      &cfgGPS,              // [CFG_GPS]
+      &cfgReboot,           // [CFG_REBOOT]
       &cfgRotation,         // [CFG_ROTATION]
-      &rebootView,          // [REBOOT_VIEW]
+      &cfgUnits,            // [CFG_UNITS]
+      &dateView,            // [DATE_VIEW]
+      &gridView,            // [GRID_VIEW]
+      &gridCrossingsView,   // [GRID_CROSSINGS_VIEW]
+      &helpView,            // [HELP_VIEW]
       &screen1View,         // [SCREEN1_VIEW]
       &splashView,          // [SPLASH_VIEW]
       &statusView,          // [STATUS_VIEW]
       &tenMileAlertView,    // [TEN_MILE_ALERT_VIEW]
       &timeView,            // [TIME_VIEW]
-      &dateView,            // [DATE_VIEW]
       &volumeView,          // [CFG_VOLUME]
   };
 
-int currentView = pView->screenID;
-int nextView    = BARO_VIEW;   // GRID_VIEW;       // default
-// clang-format off
+  int currentView = pView->screenID;
+  int nextView    = BARO_VIEW;   // GRID_VIEW;       // default
+  // clang-format off
   if (cmd == GOTO_NEXT_VIEW) {
     // operator requested the next NORMAL user view
     switch (currentView) {
@@ -424,7 +422,8 @@ int nextView    = BARO_VIEW;   // GRID_VIEW;       // default
       case CFG_CROSSING:   nextView = CFG_GPS; break;
       case CFG_GPS:        nextView = CFG_UNITS; break;
       case CFG_UNITS:      nextView = CFG_ROTATION; break;
-      case CFG_ROTATION:   nextView = CFG_VOLUME; break;
+      case CFG_ROTATION:   nextView = CFG_REBOOT; break;
+      case CFG_REBOOT:     nextView = CFG_VOLUME; break;
       // none of above: we must be showing some normal user view, so go to the first settings view
       default:             nextView = CFG_VOLUME; break;
     }
@@ -966,8 +965,6 @@ void loop() {
         selectNewView(GOTO_SETTINGS);   // advance to next settings view
       } else if (areaArrow.contains(touch)) {
         selectNewView(GOTO_NEXT_VIEW);   // advance to next normal user view
-//    } else if (areaReboot.contains(touch)) {
-//      selectNewView(REBOOT_VIEW);
       } else if (areaBrite.contains(touch)) {
         adjustBrightness();   // change brightness
       } else {

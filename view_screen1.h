@@ -73,6 +73,7 @@
 // ========== extern ===========================================
 extern Logger logger;                    // Griduino.ino
 extern void showDefaultTouchTargets();   // Griduino.ino
+extern void selectNewView(int cmd);      // Griduino.ino
 extern int goto_next_view;               // Griduino.ino
 
 // ========== class ViewScreen1 =================================

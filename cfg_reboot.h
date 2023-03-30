@@ -1,9 +1,10 @@
 #pragma once   // Please format this file with clang before check-in to GitHub
 /*
-  File:     view_reboot.h   (based on view_status.h)
+  File:     cfg_reboot.h
 
   Version history:
-            2022-12-12 written for rp2040
+            2023-03-30 moved 'reboot' from 'view' to a configuration screen
+            2022-12-12 written for rp2040 (feature is only available of rp2040, not Feather M4)
 
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
@@ -11,7 +12,7 @@
   Purpose:  Ask operator to confirm reboot.
 
             +-----------------------------------------+
-            |  *           Griduino Reboot         >  |... yRow1
+            |  *       7. Griduino Reboot          >  |... yRow1
             |                                         |
             |  Use this option to update firmware.    |... yRow2
             |  Do you have a UF2 file?                |... yRow3
@@ -22,7 +23,7 @@
             |  |             |       |             |  |
             |  +=============+       +-------------+  |
             |                                         |
-            |           v1.11, Dec 13 2022            |... yRow9
+            |           v1.12, Mar 30 2023            |... yRow9
             +-----------------------------------------+
 */
 
@@ -34,22 +35,23 @@
 
 // ========== extern ===========================================
 #if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
-  extern "C" {
-    #include <hardware/watchdog.h>
-    #include <hardware/resets.h>
-    #include <pico/bootrom.h>
-  }
+extern "C" {
+#include <hardware/watchdog.h>
+#include <hardware/resets.h>
+#include <pico/bootrom.h>
+}
 #endif
 extern Logger logger;                    // Griduino.ino
 extern void showDefaultTouchTargets();   // Griduino.ino
-void selectNewView(int cmd);             // extern declaration
+extern void selectNewView(int cmd);      // Griduino.ino
+extern int goto_next_cfg;                // Griduino.ino
 
-// ========== class ViewReboot ===================================
-class ViewReboot : public View {
+// ========== class ViewCfgReboot ================================
+class ViewCfgReboot : public View {
 public:
   // ---------- public interface ----------
   // This derived class must implement the public interface:
-  ViewReboot(Adafruit_ILI9341 *vtft, int vid)   // ctor
+  ViewCfgReboot(Adafruit_ILI9341 *vtft, int vid)   // ctor
       : View{vtft, vid} {
     background = cBACKGROUND;   // every view can have its own background color
   }
@@ -67,12 +69,12 @@ protected:
   const int space = 30;
   const int half  = space / 2;
 
-  const int yRow1 = 20;                  // title "Confirm reboot"
-  const int yRow2 = yRow1 + space;       // "Use this option to update firmware."
+  const int yRow1 = 20;                  // title "Firmware Update"
+  const int yRow2 = yRow1 + space;       // "This option starts bootloader mode."
   const int yRow3 = yRow2 + space;       // "Do you have a UF2 file?"
   const int yRow4 = yRow3 + space;       // "Do you want to install it?""
   const int yRow5 = yRow4 + half;        // "Cancel", "Install UF2" buttons
-  const int yRow9 = gScreenHeight - 4;   // "v1.11, Dec 13 2022"
+  const int yRow9 = gScreenHeight - 4;   // "v1.12, Mar 30 2023"
 
   // ----- screen text
   // names for the array indexes, must be named in same order as array below
@@ -91,12 +93,12 @@ protected:
 // clang-format off
 #define nRebootValues 5
   TextField txtValues[nRebootValues] = {
-    //       text                     x,y       color,  alignment,   font size
-    {"Confirm Reboot",               -1, yRow1, cHIGHLIGHT, ALIGNCENTER, eFONTSMALLEST},    // [TITLE] centered
-    {"Use this option to update firmware.", -1, yRow2, cLABEL, ALIGNCENTER, eFONTSMALLEST}, // [LINE1] centered
-    {"Do you have a UF2 file?",    left, yRow3, cVALUE,     ALIGNLEFT,   eFONTSMALL},       // [LINE2]
-    {"Do you want to install it?", left, yRow4, cVALUE,     ALIGNLEFT,   eFONTSMALL},       // [LINE3]
-    {PROGRAM_VERSION ", " __DATE__,  -1, yRow9, cLABEL,     ALIGNCENTER, eFONTSMALLEST},    // [COMPILED]
+    //       text                            x,y       color,  alignment,   font size
+    {"7. Firmware Update",                  -1, yRow1, cHIGHLIGHT, ALIGNCENTER, eFONTSMALLEST},   // [TITLE] centered
+    {"This option starts bootloader mode.", -1, yRow2, cLABEL, ALIGNCENTER, eFONTSMALLEST},       // [LINE1] centered
+    {"Do you have a UF2 file?",           left, yRow3, cVALUE, ALIGNLEFT,   eFONTSMALL},          // [LINE2]
+    {"Do you want to install it?",        left, yRow4, cVALUE, ALIGNLEFT,   eFONTSMALL},          // [LINE3]
+    {PROGRAM_VERSION ", " __DATE__,         -1, yRow9, cLABEL, ALIGNCENTER, eFONTSMALLEST},       // [COMPILED]
   };
 
 enum buttonID {
@@ -115,11 +117,11 @@ enum buttonID {
   // ---------- local functions for this derived class ----------
   void rebootGriduino() {   // operator confirmed: reboot to USB for software update
     // Do The Thing!
-    Serial.println("---> REBOOTING");   // the end of our world is nigh
-    delay(100);                         // allow time for Serial to send message
+    logger.info("---> REBOOTING");   // the end of our world is nigh
+    delay(100);                      // allow time for Serial to send message
 
-    this->clearScreen(this->background);   // clear screen
-    // post message
+    this->clearScreen(this->background);   // clear screen and post message
+
     const int left = 28;   // x: left text edge
     const int top  = 40;   // y: top text row
     setFontSize(eFONTSMALLEST);
@@ -151,28 +153,27 @@ enum buttonID {
     reset_usb_boot(0, 0);
 #else
     // todo: try to discover a way to put Feather M4 into bootloader mode
-    // todo: for now
+    // todo: for now, display a message
 #endif
   }
   void fCancel() {
     logger.info("->->-> Clicked CANCEL button.");
-    extern /*const*/ int grid_view;   // see "Griduino.ino"
-    selectNewView(grid_view);
+    selectNewView(goto_next_cfg);
   }
   void fReboot() {
     logger.info("->->-> Clicked REBOOT button.");
     rebootGriduino();
   }
 
-};   // end class ViewReboot
+};   // end class ViewCfgReboot
 
 // ============== implement public interface ================
-void ViewReboot::updateScreen() {
+void ViewCfgReboot::updateScreen() {
   // called on every pass through main()
   // nothing to do in the main loop - this screen has no dynamic items
 }   // end updateScreen
 
-void ViewReboot::startScreen() {
+void ViewCfgReboot::startScreen() {
   // called once each time this view becomes active
   this->clearScreen(this->background);                 // clear screen
   txtValues[0].setBackground(this->background);        // set background for all TextFields in this view
@@ -207,7 +208,7 @@ void ViewReboot::startScreen() {
   updateScreen();   // update UI immediately, don't wait for the main loop to eventually get around to it
 }   // end startScreen()
 
-bool ViewReboot::onTouch(Point touch) {
+bool ViewCfgReboot::onTouch(Point touch) {
   logger.info("->->-> Touched reboot screen.");
   bool handled = false;   // assume a touch target was not hit
   for (int ii = 0; ii < nRebootButtons; ii++) {
@@ -223,7 +224,7 @@ bool ViewReboot::onTouch(Point touch) {
         fReboot();
         break;
       default:
-        logger.error("Error, unknown function ", item.functionIndex);
+        logger.error("Internal error, unknown function ", item.functionIndex);
         break;
       }
     }
