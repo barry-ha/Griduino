@@ -388,6 +388,9 @@ void plotVehicle(const Point car, uint16_t carColor) {
   }
 }
 // =============================================================
+Point carHistory[8];    // screen coords, keep track of previous dots, tail length empirically determined
+const int carHistoryLength = sizeof(carHistory)/sizeof(carHistory[0]);
+
 void plotCurrentPosition(const PointGPS loc, const PointGPS origin) {
   // Draw a vehicle icon inside the grid's box proportional to our location
   // Only draw vehicle when visible position changes. Performance is important.
@@ -439,8 +442,6 @@ void plotCurrentPosition(const PointGPS loc, const PointGPS origin) {
         // overwriting a little bit of the breadcrumb trail
         // so restore the last few bits of the trail
         // for performance reasons, we remember the last N screen positions and redraw them
-        static Point carHistory[8];    // tail length empirically determined
-        const int carHistoryLength = sizeof(carHistory)/sizeof(carHistory[0]);
         for (int ii=0; ii<carHistoryLength; ii++) {   // plot
           tft.drawPixel(carHistory[ii].x, carHistory[ii].y, cBREADCRUMB);
         }
@@ -528,6 +529,10 @@ void ViewGrid::startScreen() {
   updateScreen();                     // fill in values immediately, don't wait for the main loop to eventually get around to it
 
   PointGPS gridOrigin{ grid.nextGridLineSouth(model->gLatitude), grid.nextGridLineWest(model->gLongitude) };
+  // restart vehicle trail stack
+  for (int ii=0; ii<carHistoryLength-1; ii++) {
+    carHistory[ii].x = carHistory[ii].y = -1;
+  }
   plotRoute(history, numHistory, gridOrigin);   // restore the visible route track on top of everything else already drawn
 }
 
