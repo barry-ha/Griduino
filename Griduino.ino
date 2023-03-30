@@ -538,7 +538,7 @@ void announceGrid(const String gridName, int length) {
       break;
     default:
       // should not happen
-      Serial.print("Internal error: unsupported audio in line "); Serial.println(__LINE__);
+      logger.error("Internal error: unsupported audio, line ", __LINE__);
       break;
   }
 #endif
