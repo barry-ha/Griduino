@@ -761,17 +761,17 @@ void setup() {
   // ----- init onboard LED
   pinMode(RED_LED, OUTPUT);           // diagnostics RED LED
 
-  // ----- restore GPS driving track breadcrumb history
+  // ----- restore GPS driving track breadcrumb trail
   model->restore();                   // this takes noticeable time (~0.2 sec)
   model->restoreGPSBreadcrumbTrail(); // 
   model->gHaveGPSfix = false;         // assume no satellite signal yet
   model->gSatellites = 0;
 
-  // ----- restore barometric pressure history
+  // ----- restore barometric pressure log
   if (baroModel.loadHistory()) {
-    logger.info("Successfully restored barometric pressure history");
+    logger.info("Successfully restored barometric pressure log");
   } else {
-    logger.error("Failed to load barometric pressure history, re-initializing config file");
+    logger.error("Failed to load barometric pressure log, re-initializing config file");
     baroModel.saveHistory();
   }
 

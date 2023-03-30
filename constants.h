@@ -89,7 +89,6 @@ const int OFF       = 0;     // = turned off
 #define cHIGHLIGHT     ILI9341_WHITE    //
 #define cBUTTONFILL    ILI9341_NAVY     //
 #define cBUTTONOUTLINE 0x0514           // was ILI9341_CYAN
-#define cBREADCRUMB    ILI9341_CYAN     //
 #define cTITLE         ILI9341_GREEN    //
 #define cTEXTCOLOR     0x67FF           // rgb(102,255,255) = hsl(180,100,70%)
 #define cCYAN          ILI9341_CYAN     // rgb(0,255,255) = hsl(180,100,50%)
@@ -101,6 +100,10 @@ const int OFF       = 0;     // = turned off
 #define cSTATUS        0xFC10           // 255, 128, 128 = lavender
 #define cWARN          0xF844           // brighter than ILI9341_RED but not pink
 #define cTOUCHTARGET   ILI9341_RED      // outline touch-sensitive areas
+
+// plot vehicle and breadcrumb trail
+#define cBREADCRUMB    ILI9341_CYAN     //
+#define cVEHICLE       0xef7d           // light gray (white is too bright)
 
 // barometric pressure graph
 #define cSCALECOLOR ILI9341_DARKGREEN   // pressure graph, I tried yellow but it's too bright

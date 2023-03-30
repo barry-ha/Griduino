@@ -340,46 +340,17 @@ void plotRoute(Location* marker, const int numMarkers, const PointGPS origin) {
       } else {
         /*
          * this works great for simple horiz/vert movement
-         * but not so much for diagonal lines
+         * but not quite as well for diagonal lines
          */
         if (prevPixel.y == screen.y) {
           // horizontal movement
           tft.drawPixel(screen.x, screen.y-1, ILI9341_BLACK);
           tft.drawPixel(screen.x, screen.y+1, ILI9341_BLACK);
-        } else if (prevPixel.x == screen.x) {
+        }
+        if (prevPixel.x == screen.x) {
           // vertical movement
           tft.drawPixel(screen.x-1, screen.y, ILI9341_BLACK);
           tft.drawPixel(screen.x+1, screen.y, ILI9341_BLACK);
-        } else {
-          // let's try constructing the perpendicular and drawing a 3-pixel long line
-          // y = mx+b, where m is the slope, b is the y-intercept
-          /* 
-           * Result: the below is ugly because it uses fine details that are not 
-           * smooth nor anti-aliased. It works but it's commented out.
-           */
-          /*
-          float slope = (screen.y - prevPixel.y)/(screen.x - prevPixel.x);
-          float m = -1.0 / slope;
-          float b = float(screen.y) - (m * screen.x);
-
-          if (abs(m) > 1.0) {
-            // the perpendicular line is closer to vertical
-            // so erase in x-direction a little left/right
-            int xLeft = screen.x-1;
-            int xRight = screen.x+1;
-            int yLeft = (int)m*xLeft + b; // y=mx+b
-            int yRight = (int)m*xRight + b;
-            tft.drawLine(xLeft,yLeft, xRight,yRight, ILI9341_BLACK);
-          } else {
-            // the perpendicular line is closer to horizontal
-            // so erase in y-direction a little above/below
-            int yTop = screen.y-1;
-            int yBot = screen.y+1;
-            int xTop = (int)(yTop-b)/m; // x=(y-b)/m
-            int xBot = (int)(yBot-b)/m;
-            tft.drawLine(xTop,yTop, xBot,yBot, ILI9341_BLACK);
-          }
-          */
         }
       }
 
@@ -417,52 +388,91 @@ void plotVehicle(const Point car, uint16_t carColor) {
   }
 }
 // =============================================================
-Point prevVehicle = {0,0};
 void plotCurrentPosition(const PointGPS loc, const PointGPS origin) {
-  // drop a bread crumb inside the grid's box, proportional to your position within the grid
+  // Draw a vehicle icon inside the grid's box proportional to our location
+  // Only draw vehicle when visible position changes. Performance is important.
+  // Icon must be bigger than one pixel so it's visible on the screen.
   // input:  loc    = double precision float, GPS coordinates of current position
   //         origin = GPS coordinates of currently displayed grid square, lower left corner
 
-  if (loc.lat != 0.0) {                             // ignore uninitialized lat/long
+  static PointGPS prevGPS = {0,0};
+  //if (loc.lat != prevGPS.lat || loc.lng != prevGPS.lng) 
+  {
+    prevGPS = loc;
 
-    float degreesX = loc.lng - origin.lng;          // longitude: distance from left edge of grid (degrees)
-    float degreesY = loc.lat - origin.lat;          // latitude: distance from bottom edge of grid
-  
-    float fracGridX = degreesX / gridWidthDegrees;  // E-W position as fraction of grid width, 0-1
-    float fracGridY = degreesY / gridHeightDegrees; // N-S position as fraction of grid height, 0-1
-  
-    // our drawing canvas is the entire screen
-    Point result;
-    translateGPStoScreen(&result, loc, origin);
+    if (loc.lat != 0.0) {   // ignore uninitialized lat/long
 
-    /* ... 
-    // ----- start debug messages
-    char sLat[12], sLng[12];    // debug
-    floatToCharArray(sLat, sizeof(sLat), loc.lat, 4);
-    floatToCharArray(sLng, sizeof(sLng), loc.lng, 4);
+      float degreesX = loc.lng - origin.lng;   // longitude: distance from left edge of grid (degrees)
+      float degreesY = loc.lat - origin.lat;   // latitude: distance from bottom edge of grid
 
-    char sOriginLat[16], sOriginLng[16];  // debug
-    floatToCharArray(sOriginLat, sizeof(sOriginLat), origin.lat, 4);
-    floatToCharArray(sOriginLng, sizeof(sOriginLng), origin.lng, 4);
-    
-    char msg[128];              // debug
-    snprintf(msg, sizeof(msg), "Plot vehicle gps(%s,%s) with origin(%s,%s) on screen(%d,%d)",
-                                sLat, sLng, sOriginLat, sOriginLng, result.x, result.y);
-    Serial.println(msg);        // debug
-    // ----- end debug messages
-    /* ... */
+      float fracGridX = degreesX / gridWidthDegrees;    // E-W position as fraction of grid width, 0-1
+      float fracGridY = degreesY / gridHeightDegrees;   // N-S position as fraction of grid height, 0-1
 
-    //if ((result.x != prevVehicle.x) || (result.y != prevVehicle.y)) 
-    {
-      plotVehicle( prevVehicle, ILI9341_BLACK );    // erase old vehicle
-      plotVehicle( result, ILI9341_CYAN );          // plot new vehicle
+      // our drawing canvas is the entire screen
+      Point result;
+      translateGPStoScreen(&result, loc, origin);
+
+      /* ...
+      // ----- start debug messages
+      char sLat[12], sLng[12];    // debug
+      floatToCharArray(sLat, sizeof(sLat), loc.lat, 4);
+      floatToCharArray(sLng, sizeof(sLng), loc.lng, 4);
+
+      char sOriginLat[16], sOriginLng[16];  // debug
+      floatToCharArray(sOriginLat, sizeof(sOriginLat), origin.lat, 4);
+      floatToCharArray(sOriginLng, sizeof(sOriginLng), origin.lng, 4);
+
+      char msg[128];              // debug
+      snprintf(msg, sizeof(msg), "Plot vehicle gps(%s,%s) with origin(%s,%s) on screen(%d,%d)",
+                                  sLat, sLng, sOriginLat, sOriginLng, result.x, result.y);
+      Serial.println(msg);        // debug
+      // ----- end debug messages
+      /* ... */
+
+      static Point prevVehicle = {0,0};
+      if ((result.x != prevVehicle.x) || (result.y != prevVehicle.y))
+      {
+        plotVehicle(prevVehicle, ILI9341_BLACK);   // erase old vehicle
+        plotVehicle(result, cVEHICLE);             // plot new vehicle
+
+        // however, this erased an area the size of the vehicle's icon, 
+        // overwriting a little bit of the breadcrumb trail
+        // so restore the last few bits of the trail
+        // for performance reasons, we remember the last N screen positions and redraw them
+        static Point carHistory[8];    // tail length empirically determined
+        const int carHistoryLength = sizeof(carHistory)/sizeof(carHistory[0]);
+        for (int ii=0; ii<carHistoryLength; ii++) {   // plot
+          tft.drawPixel(carHistory[ii].x, carHistory[ii].y, cBREADCRUMB);
+        }
+        for (int ii=0; ii<carHistoryLength-1; ii++) {   // push stack down
+          carHistory[ii] = carHistory[ii+1];
+        }
+        carHistory[carHistoryLength - 1] = result;          // push latest on top of stack
+        /***** begin debug
+        static int nn                    = 0;               // debug - echo status once in awhile
+        if (++nn % 100) {                                   // debug
+          nn = 0;                                           // debug
+          Serial.print("carHistory: ");                     // debug
+          for (int ii = 0; ii < carHistoryLength; ii++) {   // debug
+            char msg[24];                                   // debug
+            snprintf(msg, sizeof(msg), "(%d,%d), ", carHistory[ii].x, carHistory[ii].y);
+            Serial.print(msg);                              // debug
+          }                                                 // debug
+          Serial.println();                                 // debug
+        }                                                   // debug
+        *****/
+      }
+      prevVehicle = result;
     }
-    prevVehicle = result;
   }
 }
 // ========== class ViewGrid
 void ViewGrid::updateScreen() {
   // called on every pass through main()
+
+  // start scope output
+  pinMode(A0, OUTPUT);           // debug - mostly unused pin on rp2040
+  digitalWrite(A0, HIGH);        // debug - output for oscilloscope
 
   // coordinates of lower-left corner of currently displayed grid square
   PointGPS gridOrigin{ grid.nextGridLineSouth(model->gLatitude), grid.nextGridLineWest(model->gLongitude) };
@@ -482,7 +492,12 @@ void ViewGrid::updateScreen() {
   drawNeighborGridNames();            // show 4-digit names of nearby squares
   drawNeighborDistances();            // this is the main goal of the whole project
   plotCurrentPosition(myLocation, gridOrigin);    // show current pushpin
-  plotRoute(history, numHistory, gridOrigin);   // show route track
+  // plotRoute(history, numHistory, gridOrigin);   // show route track
+  
+  // end scope output
+  digitalWrite(A0, LOW);         // debug - output for oscilloscope
+  delay(1);                      // debug
+
 }
 
 void ViewGrid::startScreen() {
@@ -511,6 +526,9 @@ void ViewGrid::startScreen() {
   showScreenBorder();                 // optionally outline visible area
 
   updateScreen();                     // fill in values immediately, don't wait for the main loop to eventually get around to it
+
+  PointGPS gridOrigin{ grid.nextGridLineSouth(model->gLatitude), grid.nextGridLineWest(model->gLongitude) };
+  plotRoute(history, numHistory, gridOrigin);   // restore the visible route track on top of everything else already drawn
 }
 
 bool ViewGrid::onTouch(Point touch) {
