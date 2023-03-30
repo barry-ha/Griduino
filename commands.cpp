@@ -128,7 +128,7 @@ void stop_gmt() {
   logger.print_gmt = false;
 }
 
-void selectNewView(int cmd);   // extern declaration
+extern void selectNewView(int cmd);   // extern declaration
 void view_help() {
   Serial.println("view Help screen");
   extern /*const*/ int help_view;   // see "Griduino.ino"
