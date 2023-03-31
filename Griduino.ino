@@ -89,7 +89,7 @@
 #include "view.h"                     // Griduino screens base class, followed by derived classes in alphabetical order
 #include "view_altimeter.h"           // altimeter
 #include "view_baro.h"                // barometric pressure graph
-#include "view_date.h"                // counting days to/from special event 
+#include "view_events.h"              // counting days to/from calendar events
 #include "view_grid_crossings.h"      // list of time spent in each grid
 #include "view_help.h"                // help screen
 #include "view_screen1.h"             // starting screen animation
@@ -324,7 +324,7 @@ enum VIEW_INDEX {
   CFG_REBOOT,            // confirm reboot
   CFG_ROTATION,          // screen rotation
   CFG_UNITS,             // english/metric
-  DATE_VIEW,             // Groundhog Day, Halloween, or other day-counting screen
+  EVENTS_VIEW,           // Groundhog Day, Halloween, or other day-counting screen
   GRID_VIEW,
   GRID_CROSSINGS_VIEW,   // log of time in each grid
   HELP_VIEW,             // hints at startup
@@ -343,6 +343,7 @@ enum VIEW_INDEX {
 /*const*/ int screen1_view   = SCREEN1_VIEW;
 /*const*/ int grid_view      = GRID_VIEW;
 /*const*/ int grid_crossings_view = GRID_CROSSINGS_VIEW;
+/*const*/ int events_view    = EVENTS_VIEW;
 /*const*/ int goto_next_view = GOTO_NEXT_VIEW;
 /*const*/ int goto_next_cfg  = GOTO_SETTINGS;
 
@@ -358,7 +359,7 @@ ViewCfgGPS        cfgGPS(&tft, CFG_GPS);
 ViewCfgReboot     cfgReboot(&tft, CFG_REBOOT);
 ViewCfgRotation   cfgRotation(&tft, CFG_ROTATION);
 ViewCfgUnits      cfgUnits(&tft, CFG_UNITS);
-ViewDate          dateView(&tft, DATE_VIEW);
+ViewEvents        eventsView(&tft, EVENTS_VIEW);
 ViewGrid          gridView(&tft, GRID_VIEW);
 ViewGridCrossings gridCrossingsView(&tft, GRID_CROSSINGS_VIEW);
 ViewHelp          helpView(&tft, HELP_VIEW);
@@ -383,7 +384,7 @@ void selectNewView(int cmd) {
       &cfgReboot,           // [CFG_REBOOT]
       &cfgRotation,         // [CFG_ROTATION]
       &cfgUnits,            // [CFG_UNITS]
-      &dateView,            // [DATE_VIEW]
+      &eventsView,          // [EVENTS_VIEW]
       &gridView,            // [GRID_VIEW]
       &gridCrossingsView,   // [GRID_CROSSINGS_VIEW]
       &helpView,            // [HELP_VIEW]
@@ -404,13 +405,13 @@ void selectNewView(int cmd) {
       case SCREEN1_VIEW:   nextView = HELP_VIEW; break;   // skip SPLASH_VIEW (simplify startup, now that animated logo shows version number)
       case SPLASH_VIEW:    nextView = GRID_VIEW; break;
       case GRID_VIEW:      nextView = TIME_VIEW; break;
-      case GRID_CROSSINGS_VIEW: nextView= TIME_VIEW; break;   // skip GRID_CROSSINGS_VIEW (not ready for prime time)
+      case GRID_CROSSINGS_VIEW: nextView= GRID_VIEW; break;   // skip GRID_CROSSINGS_VIEW (not ready for prime time)
       case TIME_VIEW:      nextView = BARO_VIEW; break;
       case BARO_VIEW:      nextView = ALTIMETER_VIEW; break;
       case ALTIMETER_VIEW: nextView = STATUS_VIEW; break;
       case STATUS_VIEW:    nextView = TEN_MILE_ALERT_VIEW; break;
       case TEN_MILE_ALERT_VIEW: nextView = GRID_VIEW; break;
-      case DATE_VIEW:      nextView = GRID_VIEW; break;   // skip DATE_VIEW (nobody uses it)
+      case EVENTS_VIEW:    nextView = GRID_VIEW; break;   // skip EVENTS_VIEW (nobody uses it)
       // none of above: we must be showing some settings view, so go to the first normal user view
       default:             nextView = GRID_VIEW; break;
     }

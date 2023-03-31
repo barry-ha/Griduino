@@ -30,7 +30,7 @@ extern View *pView;                   // Griduino.ino
 void help(), version();
 void dump_kml(), dump_gps_history(), erase_gps_history(), list_files();
 void start_nmea(), stop_nmea(), start_gmt(), stop_gmt();
-void view_help(), view_screen1(), view_splash(), view_crossings();
+void view_help(), view_screen1(), view_splash(), view_crossings(), view_events();
 void show_touch(), hide_touch();
 void run_unittest();
 
@@ -62,6 +62,7 @@ Command cmdList[] = {
     {"view splash", view_splash, 0},
     {"view screen1", view_screen1, 0},
     {"view crossings", view_crossings, 0},
+    {"view events", view_events, 0},
 
     {"list files", list_files, Newline},
     {"run unittest", run_unittest, 0},
@@ -149,9 +150,15 @@ void view_screen1() {
 }
 
 void view_crossings() {
-  logger.info("view grid corssings");
+  logger.info("view grid crossings");
   extern /*const*/ int grid_crossings_view;   // see Griduino.com
   selectNewView(grid_crossings_view);
+}
+
+void view_events() {
+  logger.info("view calendar events");
+  extern /*const*/ int events_view;   // see Griduino.com
+  selectNewView(events_view);
 }
 
 void show_touch() {

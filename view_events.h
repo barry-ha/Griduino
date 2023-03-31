@@ -1,6 +1,6 @@
 #pragma once   // Please format this file with clang before check-in to GitHub
 /*
-  File:     view_date.h
+  File:     view_events.h
 
   Special Event Calendar Count - "How many days since Groundhog Day 2020"
             or "How many days until June VHF Contest"
@@ -95,10 +95,10 @@ DefinedEvent aug_microwave{
     COUNTDOWN_TO,
     SHOW_HMS,
     "Countdown to",
-    "Aug 13, 2022, 6 am local",
+    "Aug 19, 2023, 6 am local",
     "ARRL 10 GHz & Up Contest",
     // s,m,h, dow, dd, mm, yy
-    {0, 0, 13, 1, 17, 9, 2022 - 1970},
+    {0, 0, 13, 1, 19, 8, 2023 - 1970},
 };
 
 DefinedEvent sept_vhf{
@@ -108,10 +108,10 @@ DefinedEvent sept_vhf{
     COUNTDOWN_TO,
     SHOW_HMS,
     "Countdown to",
-    "Sept 10, 2022 at 1800z",
+    "Sept 9, 2023 at 1800z",
     "ARRL Sept VHF Contest",
     // s,m,h, dow, dd, mm, yy
-    {0, 0, 18, 1,   9, 9, 2023 - 1970},
+    {0, 0, 18, 1, 9, 9, 2023 - 1970},
 };
 
 DefinedEvent june_vhf{
@@ -146,7 +146,7 @@ DefinedEvent halloween{
     "Halloween 6pm",
     "Days til Trick'r Treaters",
     // s,m,h,     dow, dd, mm, yy
-    {0, 0, 7 + 18, 1, 31, 10, 2022 - 1970},   // 6pm Halloween in Pacific time (encoded in GMT by adding 7 hours)
+    {0, 0, 7 + 18, 1, 31, 10, 2023 - 1970},   // 6pm Halloween in Pacific time (encoded in GMT by adding 7 hours)
 };
 
 DefinedEvent christmas{
@@ -157,7 +157,7 @@ DefinedEvent christmas{
     "Santa's Arrival",
     "Christmas Eve",
     // s,m,h,    dow, dd, mm, yy
-    {0, 0, 7 + 0, 1, 25, 12, 2022 - 1970},   // Midnight in Pacific time (encoded in GMT by adding 7 hours)
+    {0, 0, 7 + 0, 1, 25, 12, 2023 - 1970},   // Midnight in Pacific time (encoded in GMT by adding 7 hours)
 };
 
 DefinedEvent valentines{
@@ -168,7 +168,7 @@ DefinedEvent valentines{
     "Monday, Feb 14, 2023",
     "Valentine's Day",
     // s,m,h,    dow, dd, mm, yy
-    {0, 0, 7 + 0, 1, 14, 02, 2022 - 1970},   // Midnight in Pacific time (encoded in GMT by adding 7 hours PDT)
+    {0, 0, 7 + 0, 1, 14, 02, 2023 - 1970},   // Midnight in Pacific time (encoded in GMT by adding 7 hours PDT)
 };
 
 // ---- list of target events
@@ -186,12 +186,12 @@ DefinedEvent eventList[] = {
 // ----- choose target event
 DefinedEvent target = eventList[0];
 
-// ========== class ViewDate ===================================
-class ViewDate : public View {
+// ========== class ViewEvents ===================================
+class ViewEvents : public View {
 public:
   // ---------- public interface ----------
   // This derived class must implement the public interface:
-  ViewDate(Adafruit_ILI9341 *vtft, int vid)   // ctor
+  ViewEvents(Adafruit_ILI9341 *vtft, int vid)   // ctor
       : View{vtft, vid} {
     background = cBACKGROUND;   // every view can have its own background color
   }
@@ -271,9 +271,9 @@ protected:
              hh, mm, ss);
   }
 
-};   // end class ViewDate
+};   // end class ViewEvents
 // ============== implement public interface ================
-void ViewDate::updateScreen() {
+void ViewEvents::updateScreen() {
   // called on every pass through main()
   if (GPS.seconds == 0) {
     // report GMT to console, but not too often
@@ -337,7 +337,7 @@ void ViewDate::updateScreen() {
   // txtDate[NUMSATS].dump();          // debug
 }   // end updateScreen
 
-void ViewDate::startScreen() {
+void ViewEvents::startScreen() {
   // called once each time this view becomes active
   this->clearScreen(this->background);               // clear screen
   txtDate[0].setBackground(this->background);        // set background for all TextFields in this view
@@ -380,7 +380,7 @@ void ViewDate::startScreen() {
   updateScreen();   // update UI immediately, don't wait for laggy mainline loop
 }   // end startScreen()
 
-void ViewDate::endScreen() {
+void ViewEvents::endScreen() {
   // Called once each time this view becomes INactive
   // This is a 'goodbye kiss' to do cleanup work
   // For the altimeter view, save our settings here instead of on each
@@ -389,7 +389,7 @@ void ViewDate::endScreen() {
   // saveConfig();   // todo - save/restore which of several count-down displays is active
 }
 
-bool ViewDate::onTouch(Point touch) {
+bool ViewEvents::onTouch(Point touch) {
   logger.info("->->-> Touched date screen.");
 
   bool handled = false;   // assume a touch target was not hit
@@ -409,9 +409,6 @@ bool ViewDate::onTouch(Point touch) {
       startScreen();
       updateScreen();   // update UI immediately, don't wait for laggy mainline loop
     }
-  }
-  if (!handled) {
-    // logger.info("No match to my hit targets.");   // debug
   }
   return handled;   // true=handled, false=controller uses default action
 }   // end onTouch()
