@@ -342,6 +342,7 @@ enum VIEW_INDEX {
 /*const*/ int splash_view    = SPLASH_VIEW;
 /*const*/ int screen1_view   = SCREEN1_VIEW;
 /*const*/ int grid_view      = GRID_VIEW;
+/*const*/ int grid_crossings_view = GRID_CROSSINGS_VIEW;
 /*const*/ int goto_next_view = GOTO_NEXT_VIEW;
 /*const*/ int goto_next_cfg  = GOTO_SETTINGS;
 
@@ -402,14 +403,14 @@ void selectNewView(int cmd) {
     switch (currentView) {
       case SCREEN1_VIEW:   nextView = HELP_VIEW; break;   // skip SPLASH_VIEW (simplify startup, now that animated logo shows version number)
       case SPLASH_VIEW:    nextView = GRID_VIEW; break;
-      case GRID_VIEW:      nextView = TEN_MILE_ALERT_VIEW; break;   // skip GRID_CROSSINGS_VIEW (not ready for prime time)
-      case GRID_CROSSINGS_VIEW: nextView= TEN_MILE_ALERT_VIEW; break;
-      case TEN_MILE_ALERT_VIEW: nextView = BARO_VIEW; break;
+      case GRID_VIEW:      nextView = TIME_VIEW; break;
+      case GRID_CROSSINGS_VIEW: nextView= TIME_VIEW; break;   // skip GRID_CROSSINGS_VIEW (not ready for prime time)
+      case TIME_VIEW:      nextView = BARO_VIEW; break;
       case BARO_VIEW:      nextView = ALTIMETER_VIEW; break;
       case ALTIMETER_VIEW: nextView = STATUS_VIEW; break;
-      case STATUS_VIEW:    nextView = TIME_VIEW; break;
-      case TIME_VIEW:      nextView = DATE_VIEW; break;
-      case DATE_VIEW:      nextView = GRID_VIEW; break;
+      case STATUS_VIEW:    nextView = TEN_MILE_ALERT_VIEW; break;
+      case TEN_MILE_ALERT_VIEW: nextView = GRID_VIEW; break;
+      case DATE_VIEW:      nextView = GRID_VIEW; break;   // skip DATE_VIEW (nobody uses it)
       // none of above: we must be showing some settings view, so go to the first normal user view
       default:             nextView = GRID_VIEW; break;
     }

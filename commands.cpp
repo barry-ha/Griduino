@@ -19,17 +19,18 @@
 #include "view.h"         // View base class, public interface
 
 // ========== extern ===========================================
-extern Logger logger;              // Griduino.ino
-extern bool showTouchTargets;      // Griduino.ino
-extern Model *model;               // "model" portion of model-view-controller
-extern BarometerModel baroModel;   // singleton instance of the barometer model
-extern View *pView;                // Griduino.ino
+extern Logger logger;                 // Griduino.ino
+extern bool showTouchTargets;         // Griduino.ino
+extern Model *model;                  // "model" portion of model-view-controller
+extern BarometerModel baroModel;      // singleton instance of the barometer model
+extern void selectNewView(int cmd);   // Griduino.ino
+extern View *pView;                   // Griduino.ino
 
 // ----- forward references
 void help(), version();
 void dump_kml(), dump_gps_history(), erase_gps_history(), list_files();
 void start_nmea(), stop_nmea(), start_gmt(), stop_gmt();
-void view_help(), view_screen1(), view_splash();
+void view_help(), view_screen1(), view_splash(), view_crossings();
 void show_touch(), hide_touch();
 void run_unittest();
 
@@ -60,6 +61,7 @@ Command cmdList[] = {
     {"view help", view_help, Newline},
     {"view splash", view_splash, 0},
     {"view screen1", view_screen1, 0},
+    {"view crossings", view_crossings, 0},
 
     {"list files", list_files, Newline},
     {"run unittest", run_unittest, 0},
@@ -128,7 +130,6 @@ void stop_gmt() {
   logger.print_gmt = false;
 }
 
-extern void selectNewView(int cmd);   // extern declaration
 void view_help() {
   Serial.println("view Help screen");
   extern /*const*/ int help_view;   // see "Griduino.ino"
@@ -145,6 +146,12 @@ void view_screen1() {
   Serial.println("view Screen 1");
   extern /*const*/ int screen1_view;   // see "Griduino.ino"
   selectNewView(screen1_view);         // see "Griduino.ino"
+}
+
+void view_crossings() {
+  logger.info("view grid corssings");
+  extern /*const*/ int grid_crossings_view;   // see Griduino.com
+  selectNewView(grid_crossings_view);
 }
 
 void show_touch() {
