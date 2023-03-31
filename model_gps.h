@@ -619,7 +619,7 @@ public:
     snprintf(msg, sizeof(msg), "now() = %s GMT", sDate);   // debug
     Serial.println(msg);                                   // debug
 
-    Serial.println("Record, Date GMT, Grid, Lat, Long, Alt(m), Speed(mph), Dir, Sats");
+    Serial.println("Record, Date GMT, Grid, Lat, Long, Alt(m), Speed(mph), Direction(Degrees), Sats");
     int ii;
     for (ii = 0; ii < numHistory; ii++) {
       Location item = history[ii];
@@ -636,14 +636,15 @@ public:
         floatToCharArray(sLat, sizeof(sLat), history[ii].loc.lat, 5);
         floatToCharArray(sLng, sizeof(sLng), history[ii].loc.lng, 5);
 
-        char sSpeed[12], sDir[12];
-        floatToCharArray(sSpeed, sizeof(sSpeed), history[ii].speed, 1);
-        floatToCharArray(sDir, sizeof(sDir), history[ii].direction, 1);
-        uint8_t nSats = history[ii].numSatellites;
+        char sSpeed[12], sDirection[12], sAltitude[12];
+        floatToCharArray(sSpeed, sizeof(sSpeed), item.speed, 1);
+        floatToCharArray(sDirection, sizeof(sDirection), item.direction, 1);
+        floatToCharArray(sAltitude, sizeof(sAltitude), item.altitude, 0);
+        uint8_t nSats = item.numSatellites;
 
         char out[128];
-        snprintf(out, sizeof(out), "%d, %s, %s, %s, %s, %s, %s, %d",
-                 ii, sDate, grid6, sLat, sLng, sSpeed, sDir, nSats);
+        snprintf(out, sizeof(out), "%d, %s, %s, %s, %s, %s, %s, %s, %d",
+                 ii, sDate, grid6, sLat, sLng, sSpeed, sDirection, sAltitude, nSats);
         Serial.println(out);
 
         // TimeElements time;                 // https://github.com/PaulStoffregen/Time
