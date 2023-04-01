@@ -390,6 +390,7 @@ void plotVehicle(const Point car, uint16_t carColor) {
 // =============================================================
 Point carHistory[8];    // screen coords, keep track of previous dots, tail length empirically determined
 const int carHistoryLength = sizeof(carHistory)/sizeof(carHistory[0]);
+static Point prevVehicle = {0,0};
 
 void plotCurrentPosition(const PointGPS loc, const PointGPS origin) {
   // Draw a vehicle icon inside the grid's box proportional to our location
@@ -432,7 +433,6 @@ void plotCurrentPosition(const PointGPS loc, const PointGPS origin) {
       // ----- end debug messages
       /* ... */
 
-      static Point prevVehicle = {0,0};
       if ((result.x != prevVehicle.x) || (result.y != prevVehicle.y))
       {
         plotVehicle(prevVehicle, ILI9341_BLACK);   // erase old vehicle
@@ -528,12 +528,16 @@ void ViewGrid::startScreen() {
 
   updateScreen();                     // fill in values immediately, don't wait for the main loop to eventually get around to it
 
-  PointGPS gridOrigin{ grid.nextGridLineSouth(model->gLatitude), grid.nextGridLineWest(model->gLongitude) };
   // restart vehicle trail stack
   for (int ii=0; ii<carHistoryLength-1; ii++) {
     carHistory[ii].x = carHistory[ii].y = -1;
   }
+  prevVehicle = {0,0};
+
+  PointGPS gridOrigin{ grid.nextGridLineSouth(model->gLatitude), grid.nextGridLineWest(model->gLongitude) };
   plotRoute(history, numHistory, gridOrigin);   // restore the visible route track on top of everything else already drawn
+  PointGPS myLocation{ model->gLatitude, model->gLongitude }; // current location
+  plotCurrentPosition(myLocation, gridOrigin);    // show current pushpin
 }
 
 bool ViewGrid::onTouch(Point touch) {
