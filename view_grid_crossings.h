@@ -35,8 +35,7 @@
 #include "view.h"               // Base class for all views
 
 // ========== extern ===========================================
-extern Location history[];   // Griduino.ino, GPS breadcrumb trail
-// extern const int numHistory;             // Griduino.ino, number of elements in history[]
+extern Location history[];               // model_breadcrumbs.h, GPS breadcrumb trail
 extern void showDefaultTouchTargets();   // Griduino.ino
 extern Logger logger;                    // Griduino.ino
 extern Grids grid;                       // grid_helper.h
@@ -377,7 +376,7 @@ protected:
 
       char msg[24];
       date.datetimeToString(msg, sizeof(msg), enterTime, " ?");
-      //logger.error("Internal Error, entered grid before 2020: ", msg);
+      // logger.error("Internal Error, entered grid before 2020: ", msg);
     }
 
     // if the "enter time" is after now() then we don't want to show negative elapsed time

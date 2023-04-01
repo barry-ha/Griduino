@@ -25,38 +25,38 @@
 */
 
 #include <Arduino.h>
-#include <Adafruit_ILI9341.h>         // TFT color display library
-#include "constants.h"                // Griduino constants and colors
-#include "logger.h"                   // conditional printing to Serial port
-#include "grid_helper.h"              // lat/long conversion routines
-#include "model_gps.h"                // Model of a GPS for model-view-controller
-#include "model_baro.h"               // Model of a barometer that measures temperature
-#include "model_adc.h"                // Model of analog-digital converter
-#include "TextField.h"                // Optimize TFT display text for proportional fonts
-#include "view.h"                     // Base class for all views
+#include <Adafruit_ILI9341.h>   // TFT color display library
+#include "constants.h"          // Griduino constants and colors
+#include "logger.h"             // conditional printing to Serial port
+#include "grid_helper.h"        // lat/long conversion routines
+#include "model_gps.h"          // Model of a GPS for model-view-controller
+#include "model_baro.h"         // Model of a barometer that measures temperature
+#include "model_adc.h"          // Model of analog-digital converter
+#include "TextField.h"          // Optimize TFT display text for proportional fonts
+#include "view.h"               // Base class for all views
 
 // ========== extern ===========================================
-extern Logger logger;                 // Griduino.ino
-extern Grids grid;                    // grid_helper.h
-extern Adafruit_ILI9341 tft;          // Griduino.ino
-extern Model* model;                  // GPS "model" of model-view-controller (model_gps.h)
-extern BarometerModel baroModel;      // Barometer "model" is singleton (model_baro.h)
-extern BatteryVoltage gpsBattery;     // Coin battery "model" is singleton (model_adc.h)
+extern Logger logger;               // Griduino.ino
+extern Grids grid;                  // grid_helper.h
+extern Adafruit_ILI9341 tft;        // Griduino.ino
+extern Model *model;                // GPS "model" of model-view-controller (model_gps.h)
+extern BarometerModel baroModel;    // Barometer "model" is singleton (model_baro.h)
+extern BatteryVoltage gpsBattery;   // Coin battery "model" is singleton (model_adc.h)
 
-extern Location history[];            // GPS breadcrumb trail (Griduino.ino)
-extern const int numHistory;          // Griduino.ino
+extern Location history[];     // model_breadcrumbs.h, GPS breadcrumb trail
+extern const int numHistory;   // Griduino.ino
 
-extern void showDefaultTouchTargets();  // Griduino.ino
-extern void setFontSize(int font);      // TextField.cpp
-extern void floatToCharArray(char* result, int maxlen, double fValue, int decimalPlaces);  // Griduino.ino
+extern void showDefaultTouchTargets();                                                      // Griduino.ino
+extern void setFontSize(int font);                                                          // TextField.cpp
+extern void floatToCharArray(char *result, int maxlen, double fValue, int decimalPlaces);   // Griduino.ino
 
 // ============== constants ====================================
-const int gMarginX = 70;              // define space for grid outline on screen
-const int gMarginY = 26;              // and position text relative to this outline
+const int gMarginX = 70;   // define space for grid outline on screen
+const int gMarginY = 26;   // and position text relative to this outline
 
 // ========== helpers ==========================================
-const double minLong = gridWidthDegrees / gBoxWidth;  // longitude degrees from one pixel to the next (minimum visible movement)
-const double minLat = gridHeightDegrees / gBoxHeight; // latitude degrees from one pixel to the next
+const double minLong = gridWidthDegrees / gBoxWidth;     // longitude degrees from one pixel to the next (minimum visible movement)
+const double minLat  = gridHeightDegrees / gBoxHeight;   // latitude degrees from one pixel to the next
 
 bool isVisibleDistance(const PointGPS from, const PointGPS to) {
   // has the vehicle moved some minimum amount, enough to be visible?
@@ -73,9 +73,9 @@ void drawGridOutline() {
   tft.drawRect(gMarginX, gMarginY, gBoxWidth, gBoxHeight, ILI9341_CYAN);
 }
 
-  // ========== text screen layout ===================================
-  // these are names for the array indexes, must be named in same order as array below
-  // clang-format off
+// ========== text screen layout ===================================
+// these are names for the array indexes, must be named in same order as array below
+// clang-format off
 enum txtIndex {
   GRID4=0, GRID6, LATLONG, 
   COINBATT,   ALTITUDE,   NUMSAT,     TEMPERATURE,
@@ -132,7 +132,7 @@ void drawPositionLL(double fLat, double fLong) {
   setFontSize(0);
 
   // the message line shows either or a position (lat,long) or a message (waiting for GPS)
-  char sTemp[27];       // why 27? Small system font will fit 26 characters on one row (smallest fits >32)
+  char sTemp[27];   // why 27? Small system font will fit 26 characters on one row (smallest fits >32)
   if (model->gHaveGPSfix) {
     char latitude[10], longitude[10];
     floatToCharArray(latitude, sizeof(latitude), fLat, 4);
@@ -141,28 +141,27 @@ void drawPositionLL(double fLat, double fLong) {
   } else {
     strcpy(sTemp, "Waiting for GPS");
   }
-  txtGrid[LATLONG].print(sTemp);      // latitude-longitude
-
+  txtGrid[LATLONG].print(sTemp);   // latitude-longitude
 }
 
 void drawTemperature(float celsius) {
   setFontSize(0);
-  float temperature; 
+  float temperature;
   char units[2] = "?";
   if (model->gMetric) {
     temperature = celsius;
-    units[0] = 'c';
+    units[0]    = 'c';
   } else {
-    temperature = celsius * 9/5 + 32;
-    units[0] = 'F';
+    temperature = celsius * 9 / 5 + 32;
+    units[0]    = 'F';
   }
-  if (celsius < 43) {   // 43C = 110F. Try this awhile and see how it goes.
-    txtGrid[TEMPERATURE].color = cSTATUS; // normal temperature
+  if (celsius < 43) {                       // 43C = 110F. Try this awhile and see how it goes.
+    txtGrid[TEMPERATURE].color = cSTATUS;   // normal temperature
   } else {
-    txtGrid[TEMPERATURE].color = cWARN; // internal case temperature warning
+    txtGrid[TEMPERATURE].color = cWARN;   // internal case temperature warning
   }
-  char sFloat[8];    // strlen("123F") = 4
-  floatToCharArray(sFloat, sizeof(sFloat)-sizeof(units), temperature, 0);
+  char sFloat[8];   // strlen("123F") = 4
+  floatToCharArray(sFloat, sizeof(sFloat) - sizeof(units), temperature, 0);
   strcat(sFloat, units);
   txtGrid[TEMPERATURE].print(sFloat);   // Griduino's internal temperature
 }
@@ -170,14 +169,13 @@ void drawTemperature(float celsius) {
 void drawNumSatellites() {
   setFontSize(0);
 
-  char sTemp[4];    // strlen("12#") = 3
-  if (model->gSatellites<10) {
+  char sTemp[4];   // strlen("12#") = 3
+  if (model->gSatellites < 10) {
     snprintf(sTemp, sizeof(sTemp), " %d#", model->gSatellites);
   } else {
     snprintf(sTemp, sizeof(sTemp), "%d#", model->gSatellites);
   }
-  txtGrid[NUMSAT].print(sTemp);       // number of satellites
- 
+  txtGrid[NUMSAT].print(sTemp);   // number of satellites
 }
 
 void drawCoinBatteryVoltage() {
@@ -195,7 +193,7 @@ void drawCoinBatteryVoltage() {
 void drawAltitude() {
   setFontSize(0);
 
-  char sTemp[8];                      // strlen("12345'") = 6
+  char sTemp[8];   // strlen("12345'") = 6
   if (model->gMetric) {
     int altMeters = model->gAltitude;
     snprintf(sTemp, sizeof(sTemp), "%dm", altMeters);
@@ -203,39 +201,39 @@ void drawAltitude() {
     int altFeet = model->gAltitude * feetPerMeters;
     snprintf(sTemp, sizeof(sTemp), "%d'", altFeet);
   }
-  txtGrid[ALTITUDE].print(sTemp);     // altitude
+  txtGrid[ALTITUDE].print(sTemp);   // altitude
 }
 
 void drawCompassPoints() {
   setFontSize(12);
-  for (int ii=N_COMPASS; ii<N_COMPASS+4; ii++) {
+  for (int ii = N_COMPASS; ii < N_COMPASS + 4; ii++) {
     txtGrid[ii].print();
   }
 }
 
 void drawBoxLatLong() {
   setFontSize(12);
-  txtGrid[N_BOX_LAT].print( ceil(model->gLatitude) );    // latitude of N,S box edges
-  txtGrid[S_BOX_LAT].print( floor(model->gLatitude) );
-  txtGrid[E_BOX_LONG].print( grid.nextGridLineEast( model->gLongitude ) ); // longitude of E,W box edges
-  txtGrid[W_BOX_LONG].print( grid.nextGridLineWest( model->gLongitude ) );
-  
+  txtGrid[N_BOX_LAT].print(ceil(model->gLatitude));   // latitude of N,S box edges
+  txtGrid[S_BOX_LAT].print(floor(model->gLatitude));
+  txtGrid[E_BOX_LONG].print(grid.nextGridLineEast(model->gLongitude));   // longitude of E,W box edges
+  txtGrid[W_BOX_LONG].print(grid.nextGridLineWest(model->gLongitude));
+
   int radius = 3;
   // draw "degree" symbol at:       x                        y        r     color
-  tft.drawCircle(txtGrid[N_BOX_LAT].x+7,  txtGrid[N_BOX_LAT].y-14,  radius, cBOXDEGREES); // draw circle to represent "degrees"
-  tft.drawCircle(txtGrid[S_BOX_LAT].x+7,  txtGrid[S_BOX_LAT].y-14,  radius, cBOXDEGREES);
-  //t.drawCircle(txtGrid[E_BOX_LONG].x+7, txtGrid[E_BOX_LONG].y-14, radius, cBOXDEGREES); // no room for "degrees" on ALIGNLEFT number?
-  tft.drawCircle(txtGrid[W_BOX_LONG].x+7, txtGrid[W_BOX_LONG].y-14, radius, cBOXDEGREES);
+  tft.drawCircle(txtGrid[N_BOX_LAT].x + 7, txtGrid[N_BOX_LAT].y - 14, radius, cBOXDEGREES);   // draw circle to represent "degrees"
+  tft.drawCircle(txtGrid[S_BOX_LAT].x + 7, txtGrid[S_BOX_LAT].y - 14, radius, cBOXDEGREES);
+  // t.drawCircle(txtGrid[E_BOX_LONG].x+7, txtGrid[E_BOX_LONG].y-14, radius, cBOXDEGREES); // no room for "degrees" on ALIGNLEFT number?
+  tft.drawCircle(txtGrid[W_BOX_LONG].x + 7, txtGrid[W_BOX_LONG].y - 14, radius, cBOXDEGREES);
 }
 
 void drawNeighborGridNames() {
   setFontSize(12);
   char nGrid[5], sGrid[5], eGrid[5], wGrid[5];
 
-  grid.calcLocator(nGrid, model->gLatitude+1.0, model->gLongitude, 4);
-  grid.calcLocator(sGrid, model->gLatitude-1.0, model->gLongitude, 4);
-  grid.calcLocator(eGrid, model->gLatitude, model->gLongitude+2.0, 4);
-  grid.calcLocator(wGrid, model->gLatitude, model->gLongitude-2.0, 4);
+  grid.calcLocator(nGrid, model->gLatitude + 1.0, model->gLongitude, 4);
+  grid.calcLocator(sGrid, model->gLatitude - 1.0, model->gLongitude, 4);
+  grid.calcLocator(eGrid, model->gLatitude, model->gLongitude + 2.0, 4);
+  grid.calcLocator(wGrid, model->gLatitude, model->gLongitude - 2.0, 4);
 
   txtGrid[N_GRIDNAME].print(nGrid);
   txtGrid[S_GRIDNAME].print(sGrid);
@@ -249,40 +247,40 @@ void drawNeighborDistances() {
   // N-S: grid lines occur on nearest INTEGER degree
   float fNorth = grid.calcDistanceLat(model->gLatitude, ceil(model->gLatitude), model->gMetric);
   if (fNorth < 2.0) {
-    txtGrid[N_DISTANCE].print( fNorth, 2 );
+    txtGrid[N_DISTANCE].print(fNorth, 2);
   } else {
-    txtGrid[N_DISTANCE].print( fNorth, 1 );
+    txtGrid[N_DISTANCE].print(fNorth, 1);
   }
   float fSouth = grid.calcDistanceLat(model->gLatitude, floor(model->gLatitude), model->gMetric);
   if (fSouth < 2.0) {
-    txtGrid[S_DISTANCE].print( fSouth, 2 );
+    txtGrid[S_DISTANCE].print(fSouth, 2);
   } else {
-    txtGrid[S_DISTANCE].print( fSouth, 1 );
+    txtGrid[S_DISTANCE].print(fSouth, 1);
   }
-  
+
   // E-W: grid lines occur on nearest EVEN degrees
-  int eastLine = grid.nextGridLineEast( model->gLongitude );
-  int westLine = grid.nextGridLineWest( model->gLongitude );
-  float fEast = grid.calcDistanceLong(model->gLatitude, model->gLongitude, eastLine, model->gMetric);
-  float fWest = grid.calcDistanceLong(model->gLatitude, model->gLongitude, westLine, model->gMetric);
+  int eastLine = grid.nextGridLineEast(model->gLongitude);
+  int westLine = grid.nextGridLineWest(model->gLongitude);
+  float fEast  = grid.calcDistanceLong(model->gLatitude, model->gLongitude, eastLine, model->gMetric);
+  float fWest  = grid.calcDistanceLong(model->gLatitude, model->gLongitude, westLine, model->gMetric);
   if (fEast < 2.0) {
-    txtGrid[E_DISTANCE].print( fEast, 2 );
+    txtGrid[E_DISTANCE].print(fEast, 2);
   } else {
-    txtGrid[E_DISTANCE].print( fEast, 1 );
+    txtGrid[E_DISTANCE].print(fEast, 1);
   }
   if (fWest < 2.0) {
-    txtGrid[W_DISTANCE].print( fWest, 2 );
+    txtGrid[W_DISTANCE].print(fWest, 2);
   } else {
-    txtGrid[W_DISTANCE].print( fWest, 1 );
+    txtGrid[W_DISTANCE].print(fWest, 1);
   }
 }
 
 // =============================================================
-void translateGPStoScreen(Point* result, const PointGPS loc, const PointGPS origin) {
+void translateGPStoScreen(Point *result, const PointGPS loc, const PointGPS origin) {
   // result = screen coordinates of given GPS coordinates
   // loc    = GPS coordinates of target
   // origin = GPS coordinates of currently displayed grid square, lower left corner
-  // 
+  //
   // Example calculations
   //         -124                                 -122
   //         48 +----------------------------------+- - y=0
@@ -295,47 +293,46 @@ void translateGPStoScreen(Point* result, const PointGPS loc, const PointGPS orig
   //            |       :                  :       |
   //         47 +-------:------------------:-------+- - y=240
   //            :       :                  :       :
-  // Screen   x=0   gMarginX   gMarginX+gBoxWidth  gScreenWidth  
+  // Screen   x=0   gMarginX   gMarginX+gBoxWidth  gScreenWidth
   //                    :                  :
   // Longitude =    degreesX   degreesX+gWidthDegrees
-    
-  result->x = -1;            // assume result is off-screen
+
+  result->x = -1;   // assume result is off-screen
   result->y = -1;
 
-  const float xPixelsPerDegree = gBoxWidth / gridWidthDegrees;    // one grid square = 2.0 degrees wide E-W
-  const float yPixelsPerDegree = gBoxHeight / gridHeightDegrees;  // one grid square = 1.0 degrees high N-S
+  const float xPixelsPerDegree = gBoxWidth / gridWidthDegrees;     // one grid square = 2.0 degrees wide E-W
+  const float yPixelsPerDegree = gBoxHeight / gridHeightDegrees;   // one grid square = 1.0 degrees high N-S
 
-  result->x = gMarginX + (int)( (loc.lng - origin.lng)*xPixelsPerDegree );
-  result->y = gMarginY + gBoxHeight - (int)( (loc.lat - origin.lat)*yPixelsPerDegree );
+  result->x = gMarginX + (int)((loc.lng - origin.lng) * xPixelsPerDegree);
+  result->y = gMarginY + gBoxHeight - (int)((loc.lat - origin.lat) * yPixelsPerDegree);
 
-  //Serial.print("~ From ("); Serial.print(loc.lat,3); Serial.print(","); Serial.print(loc.lng,3); Serial.print(")");
-  //Serial.print(" to ("); Serial.print(result->x); Serial.print(","); Serial.print(result->y); Serial.print(")");
-  //Serial.print(" using grid corner("); Serial.print(origin.lat,1); Serial.print(","); Serial.print(origin.lng,1); Serial.print(")");
-  //Serial.println("");
+  // Serial.print("~ From ("); Serial.print(loc.lat,3); Serial.print(","); Serial.print(loc.lng,3); Serial.print(")");
+  // Serial.print(" to ("); Serial.print(result->x); Serial.print(","); Serial.print(result->y); Serial.print(")");
+  // Serial.print(" using grid corner("); Serial.print(origin.lat,1); Serial.print(","); Serial.print(origin.lng,1); Serial.print(")");
+  // Serial.println("");
 }
 // =============================================================
-void plotRoute(Location* marker, const int numMarkers, const PointGPS origin) {
+void plotRoute(Location *marker, const int numMarkers, const PointGPS origin) {
   // show route track history bread crumb trail
-  //Serial.print("plotRoute() at line "); Serial.println(__LINE__);   // debug
-  //Serial.print("~ Plot relative to origin("); Serial.print(origin.lat); Serial.print(","); Serial.print(origin.lng); Serial.println(")");
-  //model->dumpHistory();    // debug
+  // Serial.print("plotRoute() at line "); Serial.println(__LINE__);   // debug
+  // Serial.print("~ Plot relative to origin("); Serial.print(origin.lat); Serial.print(","); Serial.print(origin.lng); Serial.println(")");
+  // model->dumpHistory();    // debug
 
-  Point prevPixel{0,0};     // keep track of previous dot plotted
+  Point prevPixel{0, 0};   // keep track of previous dot plotted
 
-  for (int ii=0; ii<numMarkers; ii++) {     // loop through Location[] array of history
+  for (int ii = 0; ii < numMarkers; ii++) {   // loop through Location[] array of history
     Location mark = marker[ii];
     if (!mark.isEmpty()) {
       Point screen;
       PointGPS spot{mark.loc.lat, mark.loc.lng};
       translateGPStoScreen(&screen, spot, origin);
-      
+
       // erase a few dots around this to make it more visible
       // but! which dots to erase depend on what direction we're moving
       // let's try detecting the giant green grid letters, and selectively erasing them
       //       (fail - there is no API to read a pixel)
       // let's try detecting the direction of travel
-      if (prevPixel.x == screen.x
-       && prevPixel.y == screen.y) {
+      if (prevPixel.x == screen.x && prevPixel.y == screen.y) {
         // nothing changed, erase nothing
       } else {
         /*
@@ -344,13 +341,13 @@ void plotRoute(Location* marker, const int numMarkers, const PointGPS origin) {
          */
         if (prevPixel.y == screen.y) {
           // horizontal movement
-          tft.drawPixel(screen.x, screen.y-1, ILI9341_BLACK);
-          tft.drawPixel(screen.x, screen.y+1, ILI9341_BLACK);
+          tft.drawPixel(screen.x, screen.y - 1, ILI9341_BLACK);
+          tft.drawPixel(screen.x, screen.y + 1, ILI9341_BLACK);
         }
         if (prevPixel.x == screen.x) {
           // vertical movement
-          tft.drawPixel(screen.x-1, screen.y, ILI9341_BLACK);
-          tft.drawPixel(screen.x+1, screen.y, ILI9341_BLACK);
+          tft.drawPixel(screen.x - 1, screen.y, ILI9341_BLACK);
+          tft.drawPixel(screen.x + 1, screen.y, ILI9341_BLACK);
         }
       }
 
@@ -367,30 +364,30 @@ void plotVehicle(const Point car, uint16_t carColor) {
   // if you're an over-achiever, write new code so a triangle indicates direction of travel
   int radius, size, w, h;
   switch (3) {
-    case 1:   // ----- circle
-      radius = 3;
-      tft.fillCircle(car.x, car.y, radius-1, ILI9341_BLACK);  // erase the circle's background
-      tft.drawCircle(car.x, car.y, radius, carColor);         // draw new circle
-      break;
+  case 1:   // ----- circle
+    radius = 3;
+    tft.fillCircle(car.x, car.y, radius - 1, ILI9341_BLACK);   // erase the circle's background
+    tft.drawCircle(car.x, car.y, radius, carColor);            // draw new circle
+    break;
 
-    case 2:   // ----- triangle
-      size = 4;
-      tft.drawTriangle(car.x-size, car.y+size,
-                       car.x+size, car.y+size,
-                       car.x,      car.y-size,
-                       carColor);
-      break;
+  case 2:   // ----- triangle
+    size = 4;
+    tft.drawTriangle(car.x - size, car.y + size,
+                     car.x + size, car.y + size,
+                     car.x, car.y - size,
+                     carColor);
+    break;
 
-    case 3:   // ----- square
-      w = h = 8;
-      tft.drawRect(car.x-w/2, car.y-h/2, w, h, carColor);
-      break;
+  case 3:   // ----- square
+    w = h = 8;
+    tft.drawRect(car.x - w / 2, car.y - h / 2, w, h, carColor);
+    break;
   }
 }
 // =============================================================
-Point carHistory[8];    // screen coords, keep track of previous dots, tail length empirically determined
-const int carHistoryLength = sizeof(carHistory)/sizeof(carHistory[0]);
-static Point prevVehicle = {0,0};
+Point carHistory[8];   // screen coords, keep track of previous dots, tail length empirically determined
+const int carHistoryLength = sizeof(carHistory) / sizeof(carHistory[0]);
+static Point prevVehicle   = {0, 0};
 
 void plotCurrentPosition(const PointGPS loc, const PointGPS origin) {
   // Draw a vehicle icon inside the grid's box proportional to our location
@@ -399,8 +396,8 @@ void plotCurrentPosition(const PointGPS loc, const PointGPS origin) {
   // input:  loc    = double precision float, GPS coordinates of current position
   //         origin = GPS coordinates of currently displayed grid square, lower left corner
 
-  static PointGPS prevGPS = {0,0};
-  //if (loc.lat != prevGPS.lat || loc.lng != prevGPS.lng) 
+  static PointGPS prevGPS = {0, 0};
+  // if (loc.lat != prevGPS.lat || loc.lng != prevGPS.lng)
   {
     prevGPS = loc;
 
@@ -433,22 +430,21 @@ void plotCurrentPosition(const PointGPS loc, const PointGPS origin) {
       // ----- end debug messages
       /* ... */
 
-      if ((result.x != prevVehicle.x) || (result.y != prevVehicle.y))
-      {
+      if ((result.x != prevVehicle.x) || (result.y != prevVehicle.y)) {
         plotVehicle(prevVehicle, ILI9341_BLACK);   // erase old vehicle
         plotVehicle(result, cVEHICLE);             // plot new vehicle
 
-        // however, this erased an area the size of the vehicle's icon, 
+        // however, this erased an area the size of the vehicle's icon,
         // overwriting a little bit of the breadcrumb trail
         // so restore the last few bits of the trail
         // for performance reasons, we remember the last N screen positions and redraw them
-        for (int ii=0; ii<carHistoryLength; ii++) {   // plot
+        for (int ii = 0; ii < carHistoryLength; ii++) {   // plot
           tft.drawPixel(carHistory[ii].x, carHistory[ii].y, cBREADCRUMB);
         }
-        for (int ii=0; ii<carHistoryLength-1; ii++) {   // push stack down
-          carHistory[ii] = carHistory[ii+1];
+        for (int ii = 0; ii < carHistoryLength - 1; ii++) {   // push stack down
+          carHistory[ii] = carHistory[ii + 1];
         }
-        carHistory[carHistoryLength - 1] = result;          // push latest on top of stack
+        carHistory[carHistoryLength - 1] = result;   // push latest on top of stack
         /***** begin debug
         static int nn                    = 0;               // debug - echo status once in awhile
         if (++nn % 100) {                                   // debug
@@ -472,75 +468,78 @@ void ViewGrid::updateScreen() {
   // called on every pass through main()
 
   // start scope output
-  pinMode(A0, OUTPUT);           // debug - mostly unused pin on rp2040
-  digitalWrite(A0, HIGH);        // debug - output for oscilloscope
+  pinMode(A0, OUTPUT);      // debug - mostly unused pin on rp2040
+  digitalWrite(A0, HIGH);   // debug - output for oscilloscope
 
   // coordinates of lower-left corner of currently displayed grid square
-  PointGPS gridOrigin{ grid.nextGridLineSouth(model->gLatitude), grid.nextGridLineWest(model->gLongitude) };
+  PointGPS gridOrigin{grid.nextGridLineSouth(model->gLatitude), grid.nextGridLineWest(model->gLongitude)};
 
-  PointGPS myLocation{ model->gLatitude, model->gLongitude }; // current location
-  
+  PointGPS myLocation{model->gLatitude, model->gLongitude};   // current location
+
   char grid6[7];
   grid.calcLocator(grid6, model->gLatitude, model->gLongitude, 6);
-  drawGridName(grid6);                // huge letters centered on screen
-  drawAltitude();                     // height above sea level
-  drawCoinBatteryVoltage();           // coin battery voltage
-  drawNumSatellites();                // number of satellites
-  drawTemperature(baroModel.getTemperature()); // query temperature from the C++ object, which is updated only by "performReading()"
-  drawPositionLL(model->gLatitude, model->gLongitude);  // lat-long of current position
-  //drawCompassPoints();              // show N-S-E-W compass points (disabled, it makes the screen too busy)
-  //drawBoxLatLong();                 // show coordinates of box (disabled, it makes the screen too busy)
-  drawNeighborGridNames();            // show 4-digit names of nearby squares
-  drawNeighborDistances();            // this is the main goal of the whole project
-  plotCurrentPosition(myLocation, gridOrigin);    // show current pushpin
+  drawGridName(grid6);                                   // huge letters centered on screen
+  drawAltitude();                                        // height above sea level
+  drawCoinBatteryVoltage();                              // coin battery voltage
+  drawNumSatellites();                                   // number of satellites
+  drawTemperature(baroModel.getTemperature());           // query temperature from the C++ object, which is updated only by "performReading()"
+  drawPositionLL(model->gLatitude, model->gLongitude);   // lat-long of current position
+  // drawCompassPoints();              // show N-S-E-W compass points (disabled, it makes the screen too busy)
+  // drawBoxLatLong();                 // show coordinates of box (disabled, it makes the screen too busy)
+  drawNeighborGridNames();                       // show 4-digit names of nearby squares
+  drawNeighborDistances();                       // this is the main goal of the whole project
+  plotCurrentPosition(myLocation, gridOrigin);   // show current pushpin
   // plotRoute(history, numHistory, gridOrigin);   // show route track
-  
-  // end scope output
-  digitalWrite(A0, LOW);         // debug - output for oscilloscope
-  delay(1);                      // debug
 
+  // end scope output
+  digitalWrite(A0, LOW);   // debug - output for oscilloscope
+  delay(1);                // debug
 }
 
 void ViewGrid::startScreen() {
   // called once each time this view becomes active
-  this->clearScreen(this->background);                  // clear screen
-  txtGrid[0].setBackground(this->background);           // set background for all TextFields in this view
-  TextField::setTextDirty( txtGrid, numTextGrid );
+  this->clearScreen(this->background);          // clear screen
+  txtGrid[0].setBackground(this->background);   // set background for all TextFields in this view
+  TextField::setTextDirty(txtGrid, numTextGrid);
 
   double lngMiles = grid.calcDistanceLong(model->gLatitude, 0.0, minLong, model->gMetric);
   if (logger.print_info) {
-    Serial.print("Minimum visible E-W movement x=long="); 
-    Serial.print(minLong,6); Serial.print(" degrees = "); 
-    Serial.print(lngMiles,2); Serial.println(" miles");
-  
+    Serial.print("Minimum visible E-W movement x=long=");
+    Serial.print(minLong, 6);
+    Serial.print(" degrees = ");
+    Serial.print(lngMiles, 2);
+    Serial.println(" miles");
+
     double latMiles = grid.calcDistanceLat(0.0, minLat, model->gMetric);
-    Serial.print("Minimum visible N-S movement y=lat="); 
-    Serial.print(minLat,6); Serial.print(" degrees = "); 
-    Serial.print(latMiles,2); Serial.println(" miles");
+    Serial.print("Minimum visible N-S movement y=lat=");
+    Serial.print(minLat, 6);
+    Serial.print(" degrees = ");
+    Serial.print(latMiles, 2);
+    Serial.println(" miles");
   }
 
   setFontSize(12);
-  drawGridOutline();                  // box outline around grid
-  drawAllIcons();                     // draw gear (settings) and arrow (next screen)
-  showDefaultTouchTargets();          // optionally draw boxes around button-touch area
+  drawGridOutline();           // box outline around grid
+  drawAllIcons();              // draw gear (settings) and arrow (next screen)
+  showDefaultTouchTargets();   // optionally draw boxes around button-touch area
   // showMyTouchTargets(gridButtons, nGridButtons);   // no buttons on this screen
-  showScreenBorder();                 // optionally outline visible area
+  showScreenBorder();   // optionally outline visible area
 
-  updateScreen();                     // fill in values immediately, don't wait for the main loop to eventually get around to it
+  updateScreen();   // fill in values immediately, don't wait for the main loop to eventually get around to it
 
   // restart vehicle trail stack
-  for (int ii=0; ii<carHistoryLength-1; ii++) {
+  for (int ii = 0; ii < carHistoryLength - 1; ii++) {
     carHistory[ii].x = carHistory[ii].y = -1;
   }
-  prevVehicle = {0,0};
+  prevVehicle = {0, 0};
 
-  PointGPS gridOrigin{ grid.nextGridLineSouth(model->gLatitude), grid.nextGridLineWest(model->gLongitude) };
-  plotRoute(history, numHistory, gridOrigin);   // restore the visible route track on top of everything else already drawn
-  PointGPS myLocation{ model->gLatitude, model->gLongitude }; // current location
-  plotCurrentPosition(myLocation, gridOrigin);    // show current pushpin
+  PointGPS gridOrigin{grid.nextGridLineSouth(model->gLatitude), grid.nextGridLineWest(model->gLongitude)};
+  plotRoute(history, numHistory, gridOrigin);                 // restore the visible route track on top of everything else already drawn
+  PointGPS myLocation{model->gLatitude, model->gLongitude};   // current location
+  plotCurrentPosition(myLocation, gridOrigin);                // show current pushpin
 }
 
 bool ViewGrid::onTouch(Point touch) {
   logger.info("->->-> Touched grid detail screen.");
-  return false;                       // true=handled, false=controller uses default action
+  return false;   // true=handled, false=controller uses default action
 }

@@ -26,7 +26,7 @@
 
 // ========== extern ===========================================
 extern Adafruit_GPS GPS;       // Griduino.ino
-extern Location history[];     // Griduino.ino, GPS breadcrumb trail
+extern Location history[];     // model_breadcrumbs.h, GPS breadcrumb trail
 extern const int numHistory;   // Griduino.ino, number of elements in history[]
 extern Logger logger;          // Griduino.ino
 extern Grids grid;             // grid_helper.h

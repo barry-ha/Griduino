@@ -26,12 +26,12 @@ extern void clearScreen();           // Griduino.ino
 extern Adafruit_ILI9341 tft;             // Griduino.ino
 extern DACMorseSender dacMorse;          // Morse code
 extern Model *model;                     // "model" portion of model-view-controller
-extern const int numHistory;             // Griduino.ino, number of elements in history[]
 extern ViewGrid gridView;                // Griduino.ino
 extern Logger logger;                    // Griduino.ino
 extern void showDefaultTouchTargets();   // Griduino.ino
 extern Grids grid;                       // grid_helper.h
 extern Dates date;                       // date_helper.h
+// extern const int numHistory;          // model_breadcrumbs.h, number of elements in history[]
 
 TextField txtTest("test", 1, 21, ILI9341_WHITE);
 
@@ -541,7 +541,7 @@ int verifyBreadCrumbTrail1() {
   model->clearHistory();
   for (int ii = 0; ii < steps; ii++) {
     PointGPS latLong{model->gLatitude  = lat + (ii * stepSize),            // "plus" goes upward (north)
-                      model->gLongitude = lon + (ii * stepSize * 5 / 4)};   // "plus" goes rightward (east)
+                     model->gLongitude = lon + (ii * stepSize * 5 / 4)};   // "plus" goes rightward (east)
     time_t stamp = now();
     // doesn't matter what timestamp/sats/speed/direction/altitude is actually stored during tests
     Location loc{latLong, stamp, 5, 10.0, 45.0, 123.0};

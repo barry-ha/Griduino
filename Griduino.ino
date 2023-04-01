@@ -226,7 +226,13 @@ void floatToCharArray(char* result, int maxlen, double fValue, int decimalPlaces
 }
 
 //==============================================================
-//      Coin Battery Voltage model
+//    Breadcrumb Trail model
+//==============================================================
+#include "model_breadcrumbs.h"
+Breadcrumbs trail;
+
+//==============================================================
+//    Coin Battery Voltage model
 //==============================================================
 // PCB v7 added a sensor for coin battery voltage
 // PCB v4 doesn't measure coin battery
@@ -236,8 +242,8 @@ BatteryVoltage gpsBattery;
 
 //==============================================================
 //
-//      Model
-//      This is MVC (model-view-controller) design pattern
+//    GPS Model
+//    This is MVC (model-view-controller) design pattern
 //
 //    This model collects data from the GPS sensor
 //    on a schedule determined by the Controller.
@@ -277,15 +283,6 @@ int fGetDataSource() {
     return eGPSSIMULATOR;
   }
 }
-
-// Size of GPS breadcrumb trail:
-// Our goal is to keep track of at least one long day's travel, 500 miles or more.
-// If 180 pixels horiz = 100 miles, then we need (500*180/100) = 900 entries.
-// If 160 pixels vert = 70 miles, then we need (500*160/70) = 1,140 entries.
-// In reality, with a drunken-sailor route around the Olympic Peninsula,
-// we need at least 800 entries to capture the whole out-and-back 500-mile loop.
-Location history[3000];               // remember a list of GPS coordinates
-const int numHistory = sizeof(history) / sizeof(Location);
 
 bool waitingForRTC = true;   // true=waiting for GPS hardware to give us the first valid date/time
 
