@@ -33,17 +33,27 @@
 // If 160 pixels vert = 70 miles, then we need (500*160/70) = 1,140 entries.
 // In reality, with a drunken-sailor route around the Olympic Peninsula,
 // we need at least 800 entries to capture the whole out-and-back 500-mile loop.
-Location history[3000];               // remember a list of GPS coordinates and stuff
-const int numHistory = sizeof(history) / sizeof(Location);
 
 // ========== class History ======================
 class Breadcrumbs {
 public:
   // Class member variables
+  int nextHistoryItem = 0;   // index of next item to write
+  Location history[3000];    // remember a list of GPS coordinates and stuff
+  const int numHistory = sizeof(history) / sizeof(Location);
 
 protected:
 public:
   // Constructor - create and initialize member variables
   Breadcrumbs() {}
+
+  void clearHistory() {
+    // wipe clean the array of lat/long that we remember
+    for (uint ii = 0; ii < numHistory; ii++) {
+      history[ii].reset();
+    }
+    nextHistoryItem = 0;
+    Serial.println("Breadcrumb trail has been erased");
+  }
 
 };   // end class History

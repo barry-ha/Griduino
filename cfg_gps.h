@@ -23,16 +23,18 @@
             +-----------------------------------------+
 */
 
-#include <Adafruit_ILI9341.h>   // TFT color display library
-#include "constants.h"          // Griduino constants and colors
-#include "logger.h"             // conditional printing to Serial port
-#include "model_gps.h"          // Model of a GPS for model-view-controller
-#include "TextField.h"          // Optimize TFT display text for proportional fonts
-#include "view.h"               // Base class for all views
+#include <Adafruit_ILI9341.h>    // TFT color display library
+#include "constants.h"           // Griduino constants and colors
+#include "logger.h"              // conditional printing to Serial port
+#include "model_breadcrumbs.h"   // breadcrumb trail
+#include "model_gps.h"           // Model of a GPS for model-view-controller
+#include "TextField.h"           // Optimize TFT display text for proportional fonts
+#include "view.h"                // Base class for all views
 
 // ========== extern ===========================================
-extern Logger logger;   // Griduino.ino
-extern Model *model;    // "model" portion of model-view-controller
+extern Logger logger;       // Griduino.ino
+extern Model *model;        // "model" portion of model-view-controller
+extern Breadcrumbs trail;   // model of breadcrumb trail
 
 extern void showDefaultTouchTargets();   // Griduino.ino
 extern void fSetReceiver();              // Griduino.ino
@@ -105,7 +107,7 @@ protected:
   // ---------- local functions for this derived class ----------
   void fClear() {
     logger.info("->->-> Clicked CLEAR button.");
-    model->clearHistory();
+    trail.clearHistory();
     model->save();
   }
   void fReceiver() {
@@ -131,7 +133,7 @@ void ViewCfgGPS::updateScreen() {
 
   // ----- fill in replacment string text
   char temp[100];
-  snprintf(temp, sizeof(temp), "%d of %d", model->getHistoryCount(), numHistory);
+  snprintf(temp, sizeof(temp), "%d of %d", model->getHistoryCount(), trail.numHistory);
   txtSettings2[TRAILCOUNT].print(temp);
 
   // ----- show selected radio buttons by filling in the circle
@@ -158,11 +160,11 @@ void ViewCfgGPS::startScreen() {
   TextField::setTextDirty(txtSettings2, nTextGPS);   // make sure all fields get re-printed on screen change
   setFontSize(eFONTSMALLEST);
 
-  drawAllIcons();              // draw gear (settings) and arrow (next screen)
-  showDefaultTouchTargets();   // optionally draw box around default button-touch areas
+  drawAllIcons();                                      // draw gear (settings) and arrow (next screen)
+  showDefaultTouchTargets();                           // optionally draw box around default button-touch areas
   showMyTouchTargets(settings2Buttons, nButtonsGPS);   // optionally show this view's touch targets
-  showScreenBorder();          // optionally outline visible area
-  showScreenCenterline();      // optionally draw visual alignment bar
+  showScreenBorder();                                  // optionally outline visible area
+  showScreenCenterline();                              // optionally draw visual alignment bar
 
   // ----- draw text fields
   for (int ii = 0; ii < nTextGPS; ii++) {
@@ -182,7 +184,6 @@ void ViewCfgGPS::startScreen() {
     tft->setCursor(xx, item.y + item.h / 2 + 5);   // place text centered inside button
     tft->setTextColor(item.color);
     tft->print(item.text);
-
   }
 
   // ----- draw outlines of radio buttons

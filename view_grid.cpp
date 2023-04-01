@@ -25,26 +25,25 @@
 */
 
 #include <Arduino.h>
-#include <Adafruit_ILI9341.h>   // TFT color display library
-#include "constants.h"          // Griduino constants and colors
-#include "logger.h"             // conditional printing to Serial port
-#include "grid_helper.h"        // lat/long conversion routines
-#include "model_gps.h"          // Model of a GPS for model-view-controller
-#include "model_baro.h"         // Model of a barometer that measures temperature
-#include "model_adc.h"          // Model of analog-digital converter
-#include "TextField.h"          // Optimize TFT display text for proportional fonts
-#include "view.h"               // Base class for all views
+#include <Adafruit_ILI9341.h>    // TFT color display library
+#include "constants.h"           // Griduino constants and colors
+#include "logger.h"              // conditional printing to Serial port
+#include "grid_helper.h"         // lat/long conversion routines
+#include "model_breadcrumbs.h"   // breadcrumb trail
+#include "model_gps.h"           // Model of a GPS for model-view-controller
+#include "model_baro.h"          // Model of a barometer that measures temperature
+#include "model_adc.h"           // Model of analog-digital converter
+#include "TextField.h"           // Optimize TFT display text for proportional fonts
+#include "view.h"                // Base class for all views
 
 // ========== extern ===========================================
 extern Logger logger;               // Griduino.ino
 extern Grids grid;                  // grid_helper.h
 extern Adafruit_ILI9341 tft;        // Griduino.ino
 extern Model *model;                // GPS "model" of model-view-controller (model_gps.h)
+extern Breadcrumbs trail;           // model of breadcrumb trail
 extern BarometerModel baroModel;    // Barometer "model" is singleton (model_baro.h)
 extern BatteryVoltage gpsBattery;   // Coin battery "model" is singleton (model_adc.h)
-
-extern Location history[];     // model_breadcrumbs.h, GPS breadcrumb trail
-extern const int numHistory;   // Griduino.ino
 
 extern void showDefaultTouchTargets();                                                      // Griduino.ino
 extern void setFontSize(int font);                                                          // TextField.cpp
@@ -489,7 +488,7 @@ void ViewGrid::updateScreen() {
   drawNeighborGridNames();                       // show 4-digit names of nearby squares
   drawNeighborDistances();                       // this is the main goal of the whole project
   plotCurrentPosition(myLocation, gridOrigin);   // show current pushpin
-  // plotRoute(history, numHistory, gridOrigin);   // show route track
+  // plotRoute(history, trail.numHistory, gridOrigin);   // show route track
 
   // end scope output
   digitalWrite(A0, LOW);   // debug - output for oscilloscope
@@ -534,7 +533,7 @@ void ViewGrid::startScreen() {
   prevVehicle = {0, 0};
 
   PointGPS gridOrigin{grid.nextGridLineSouth(model->gLatitude), grid.nextGridLineWest(model->gLongitude)};
-  plotRoute(history, numHistory, gridOrigin);                 // restore the visible route track on top of everything else already drawn
+  plotRoute(trail.history, trail.numHistory, gridOrigin);     // restore the visible route track on top of everything else already drawn
   PointGPS myLocation{model->gLatitude, model->gLongitude};   // current location
   plotCurrentPosition(myLocation, gridOrigin);                // show current pushpin
 }

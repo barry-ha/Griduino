@@ -15,22 +15,22 @@
          https://github.com/PaulStoffregen/Time
 */
 
-#include <Arduino.h>        //
-#include <Adafruit_GPS.h>   // "Ultimate GPS" library
-#include "constants.h"      // Griduino constants, colors, typedefs
-#include "hardware.h"       //
-#include "logger.h"         // conditional printing to Serial port
-#include "grid_helper.h"    // lat/long conversion routines
-#include "date_helper.h"    // date/time conversions
-#include "save_restore.h"   // Configuration data in nonvolatile RAM
+#include <Arduino.h>             //
+#include <Adafruit_GPS.h>        // "Ultimate GPS" library
+#include "constants.h"           // Griduino constants, colors, typedefs
+#include "hardware.h"            //
+#include "logger.h"              // conditional printing to Serial port
+#include "model_breadcrumbs.h"   // breadcrumb trail
+#include "grid_helper.h"         // lat/long conversion routines
+#include "date_helper.h"         // date/time conversions
+#include "save_restore.h"        // Configuration data in nonvolatile RAM
 
 // ========== extern ===========================================
-extern Adafruit_GPS GPS;       // Griduino.ino
-extern Location history[];     // model_breadcrumbs.h, GPS breadcrumb trail
-extern const int numHistory;   // Griduino.ino, number of elements in history[]
-extern Logger logger;          // Griduino.ino
-extern Grids grid;             // grid_helper.h
-extern Dates date;             // date_helper.h
+extern Adafruit_GPS GPS;    // Griduino.ino
+extern Breadcrumbs trail;   // model of breadcrumb trail
+extern Logger logger;       // Griduino.ino
+extern Grids grid;          // grid_helper.h
+extern Dates date;          // date_helper.h
 
 void floatToCharArray(char *result, int maxlen, double fValue, int decimalPlaces);   // Griduino.ino
 bool isVisibleDistance(const PointGPS from, const PointGPS to);                      // view_grid.cpp
@@ -58,8 +58,6 @@ public:
   bool compare4digits = true;    // true=4 digit, false=6 digit comparisons
 
   float gSeaLevelPressure = DEFAULT_SEALEVEL_HPA;   // todo - unused by 'model_gps.h', delete me
-
-  int nextHistoryItem = 0;   // index of next item to write
 
 protected:
   int gPrevFix       = false;        // previous value of gHaveGPSfix, to help detect "signal lost"
@@ -122,28 +120,28 @@ public:
 
     // line 6..x: date-time, grid6, latitude, longitude
     int count = 0;
-    for (uint ii = 0; ii < numHistory; ii++) {
-      if (!history[ii].isEmpty()) {
+    for (uint ii = 0; ii < trail.numHistory; ii++) {
+      if (!trail.history[ii].isEmpty()) {
         count++;
 
         char sDate[12];   // sizeof("2022-11-10") = 10
-        date.dateToString(sDate, sizeof(sDate), history[ii].timestamp);
+        date.dateToString(sDate, sizeof(sDate), trail.history[ii].timestamp);
 
         char sTime[12];   // sizeof("12:34:56") = 8
-        date.timeToString(sTime, sizeof(sTime), history[ii].timestamp);
+        date.timeToString(sTime, sizeof(sTime), trail.history[ii].timestamp);
 
         char sGrid6[7];
-        grid.calcLocator(sGrid6, history[ii].loc.lat, history[ii].loc.lng, 6);
+        grid.calcLocator(sGrid6, trail.history[ii].loc.lat, trail.history[ii].loc.lng, 6);
 
         char sLat[12], sLng[12];
-        floatToCharArray(sLat, sizeof(sLat), history[ii].loc.lat, 5);
-        floatToCharArray(sLng, sizeof(sLng), history[ii].loc.lng, 5);
+        floatToCharArray(sLat, sizeof(sLat), trail.history[ii].loc.lat, 5);
+        floatToCharArray(sLng, sizeof(sLng), trail.history[ii].loc.lng, 5);
 
         char sAlt[12], sSpeed[12], sAngle[12], sSats[6];
-        floatToCharArray(sAlt, sizeof(sAlt), history[ii].altitude, 1);
-        floatToCharArray(sSpeed, sizeof(sSpeed), history[ii].speed, 1);
-        floatToCharArray(sAngle, sizeof(sAngle), history[ii].direction, 1);
-        int numSatellites = history[ii].numSatellites;
+        floatToCharArray(sAlt, sizeof(sAlt), trail.history[ii].altitude, 1);
+        floatToCharArray(sSpeed, sizeof(sSpeed), trail.history[ii].speed, 1);
+        floatToCharArray(sAngle, sizeof(sAngle), trail.history[ii].direction, 1);
+        int numSatellites = trail.history[ii].numSatellites;
 
         snprintf(msg, sizeof(msg), "%s,%s,%s,%s,%s,%s,%s,%s,%d", sDate, sTime, sGrid6, sLat, sLng, sAlt, sSpeed, sAngle, numSatellites);
         config.writeLine(msg);
@@ -158,7 +156,7 @@ public:
   }
 
   int restoreGPSBreadcrumbTrail() {   // returns 1=success, 0=failure
-    clearHistory();                   // clear breadcrumb memory
+    trail.clearHistory();             // clear breadcrumb memory
 
     // open file
     SaveRestoreStrings config(HISTORY_FILE, HISTORY_VERSION);
@@ -228,17 +226,17 @@ public:
 
           // save values in the history[] array
           TimeElements tm{iSecond, iMinute, iHour, 0, iDay, iMonth, iYear2};
-          history[nextHistoryItem].timestamp     = makeTime(tm);   // convert time elements into time_t
-          history[nextHistoryItem].loc.lat       = fLatitude;
-          history[nextHistoryItem].loc.lng       = fLongitude;
-          history[nextHistoryItem].altitude      = fAltitude;
-          history[nextHistoryItem].numSatellites = fSatellites;
-          history[nextHistoryItem].speed         = fSpeed;
-          history[nextHistoryItem].direction     = fDirection;
-          history[nextHistoryItem].numSatellites = fSatellites;
+          trail.history[trail.nextHistoryItem].timestamp     = makeTime(tm);   // convert time elements into time_t
+          trail.history[trail.nextHistoryItem].loc.lat       = fLatitude;
+          trail.history[trail.nextHistoryItem].loc.lng       = fLongitude;
+          trail.history[trail.nextHistoryItem].altitude      = fAltitude;
+          trail.history[trail.nextHistoryItem].numSatellites = fSatellites;
+          trail.history[trail.nextHistoryItem].speed         = fSpeed;
+          trail.history[trail.nextHistoryItem].direction     = fDirection;
+          trail.history[trail.nextHistoryItem].numSatellites = fSatellites;
 
           // adjust loop variables
-          nextHistoryItem++;
+          trail.nextHistoryItem++;
           items_restored++;
         } else {
           snprintf(msg, sizeof(msg), ". CSV string[%2d] = \"%s\" - ignored",
@@ -248,7 +246,7 @@ public:
       }
       csv_line[0] = 0;
       csv_line_number++;
-      if (nextHistoryItem >= numHistory) {
+      if (trail.nextHistoryItem >= trail.numHistory) {
         done = true;
       }
     }
@@ -266,8 +264,8 @@ public:
     time_t newest = makeTime(past);
 
     // find the oldest item (unused slots contain zero and are automatically the oldest)
-    for (int ii = 0; ii < numHistory; ii++) {
-      time_t tm = history[ii].timestamp;
+    for (int ii = 0; ii < trail.numHistory; ii++) {
+      time_t tm = trail.history[ii].timestamp;
       if (tm < oldest) {
         // keep track of oldest GPS bread crumb
         indexOldest = ii;
@@ -280,7 +278,7 @@ public:
       }
     }
     // here's the real meat of the potato
-    nextHistoryItem = indexOldest;
+    trail.nextHistoryItem = indexOldest;
 
     // report statistics for a visible sanity check to aid debug
     char sOldest[24], sNewest[24];
@@ -308,7 +306,7 @@ public:
 
     logger.info(". source: sizeof(tempModel) = %d", sizeof(tempModel));
     logger.info(". target: sizeof(modelGPS) = %d", sizeof(modelGPS));
-    logger.info(". GPS history buffer, sizeof(history) = %d", numHistory * sizeof(Location));
+    logger.info(". GPS history buffer, sizeof(history) = %d", trail.numHistory * sizeof(Location));
 
     if (sdram.readConfig((byte *)&tempModel, sizeof(Model))) {
       // warning: this can corrupt our object's data if something failed
@@ -391,21 +389,12 @@ public:
   int getHistoryCount() {
     // how many history slots currently have valid position data
     int count = 0;
-    for (uint ii = 0; ii < numHistory; ii++) {
-      if (!history[ii].isEmpty()) {
+    for (uint ii = 0; ii < trail.numHistory; ii++) {
+      if (!trail.history[ii].isEmpty()) {
         count++;
       }
     }
     return count;
-  }
-
-  void clearHistory() {
-    // wipe clean the array of lat/long that we remember
-    for (uint ii = 0; ii < numHistory; ii++) {
-      history[ii].reset();
-    }
-    nextHistoryItem = 0;
-    Serial.println("GPS history has been erased");
   }
 
   void remember(Location vLoc) {
@@ -413,15 +402,15 @@ public:
     // so that we can display it as a breadcrumb trail
     // optionally write the breadcrumb trail to file
 
-    int prevIndex = nextHistoryItem - 1;   // find prev location in circular buffer
+    int prevIndex = trail.nextHistoryItem - 1;   // find prev location in circular buffer
     if (prevIndex < 0) {
-      prevIndex = numHistory - 1;
+      prevIndex = trail.numHistory - 1;
     }
-    PointGPS prevLoc = history[prevIndex].loc;
+    PointGPS prevLoc = trail.history[prevIndex].loc;
     if (isVisibleDistance(vLoc.loc, prevLoc)) {
-      history[nextHistoryItem] = vLoc;
+      trail.history[trail.nextHistoryItem] = vLoc;
 
-      nextHistoryItem = (++nextHistoryItem % numHistory);
+      trail.nextHistoryItem = (++trail.nextHistoryItem % trail.numHistory);
 
 // now the GPS location is saved in history array, now protect
 // the array in non-volatile memory in case of power loss
@@ -430,7 +419,7 @@ public:
 #else
       const int SAVE_INTERVAL = 2;
 #endif
-      if (nextHistoryItem % SAVE_INTERVAL == 0) {
+      if (trail.nextHistoryItem % SAVE_INTERVAL == 0) {
         save();   // filename is #define MODEL_FILE[25] above
       }
     }
@@ -517,15 +506,15 @@ public:
 
     Serial.print(KML_PREFIX);         // begin KML file
     Serial.print(BREADCRUMB_STYLE);   // add breadcrumb icon style
-    int startIndex  = nextHistoryItem + 1;
+    int startIndex  = trail.nextHistoryItem + 1;
     bool startFound = false;
 
     // start right AFTER the most recently written slot in circular buffer
-    int index = nextHistoryItem;
+    int index = trail.nextHistoryItem;
 
     // loop through the entire GPS history buffer
-    for (int ii = 0; ii < numHistory; ii++) {
-      Location item = history[index];
+    for (int ii = 0; ii < trail.numHistory; ii++) {
+      Location item = trail.history[index];
       if ((item.loc.lat != 0) || (item.loc.lng != 0)) {
         if (!startFound) {
           // this is the first non-empty lat/long found,
@@ -564,19 +553,19 @@ public:
         );
         Serial.print(msg);
       }
-      index = (index + 1) % numHistory;
+      index = (index + 1) % trail.numHistory;
     }
 
     if (startFound) {         // begin pushpin at start of route
       char pushpinDate[10];   // strlen("12/24/21") = 9
       TimeElements time;      // https://github.com/PaulStoffregen/Time
-      breakTime(history[startIndex].timestamp, time);
+      breakTime(trail.history[startIndex].timestamp, time);
       snprintf(pushpinDate, sizeof(pushpinDate), "%02d/%02d/%02d", time.Month, time.Day, time.Year);
 
       Serial.print(PUSHPIN_PREFIX_PART1);
       Serial.print(pushpinDate);
       Serial.print(PUSHPIN_PREFIX_PART3);
-      Location start = history[startIndex];
+      Location start = trail.history[startIndex];
       Serial.print(start.loc.lng, 4);   // KML demands longitude first
       Serial.print(",");
       Serial.print(start.loc.lat, 4);
@@ -588,8 +577,8 @@ public:
 
   int countHistorySaved() {
     int count = 0;
-    for (int ii = 0; ii < numHistory; ii++) {
-      Location item = history[ii];
+    for (int ii = 0; ii < trail.numHistory; ii++) {
+      Location item = trail.history[ii];
       if (!item.isEmpty()) {
         count++;
       }
@@ -599,14 +588,14 @@ public:
 
   void dumpHistoryGPS() {
     Serial.print("\nMaximum saved GPS records = ");
-    Serial.println(numHistory);
+    Serial.println(trail.numHistory);
 
     Serial.print("Current number of records saved = ");
     int count = countHistorySaved();
     Serial.println(count);
 
     Serial.print("Next record to be written = ");
-    Serial.println(nextHistoryItem);
+    Serial.println(trail.nextHistoryItem);
 
     time_t tm = now();                           // debug: show current time in seconds
     Serial.print("now() = ");                    // debug
@@ -621,8 +610,8 @@ public:
 
     Serial.println("Record, Date GMT, Grid, Lat, Long, Alt(m), Speed(mph), Direction(Degrees), Sats");
     int ii;
-    for (ii = 0; ii < numHistory; ii++) {
-      Location item = history[ii];
+    for (ii = 0; ii < trail.numHistory; ii++) {
+      Location item = trail.history[ii];
       if (!item.isEmpty()) {
 
         time_t tm = item.timestamp;                        // https://github.com/PaulStoffregen/Time
@@ -633,8 +622,8 @@ public:
         grid.calcLocator(grid6, item.loc.lat, item.loc.lng, 6);
 
         char sLat[12], sLng[12];
-        floatToCharArray(sLat, sizeof(sLat), history[ii].loc.lat, 5);
-        floatToCharArray(sLng, sizeof(sLng), history[ii].loc.lng, 5);
+        floatToCharArray(sLat, sizeof(sLat), trail.history[ii].loc.lat, 5);
+        floatToCharArray(sLng, sizeof(sLng), trail.history[ii].loc.lng, 5);
 
         char sSpeed[12], sDirection[12], sAltitude[12];
         floatToCharArray(sSpeed, sizeof(sSpeed), item.speed, 1);
@@ -654,7 +643,7 @@ public:
         // Serial.println(out);               // debug
       }
     }
-    int remaining = numHistory - ii;
+    int remaining = trail.numHistory - ii;
     if (remaining > 0) {
       Serial.print("... and ");
       Serial.print(remaining);

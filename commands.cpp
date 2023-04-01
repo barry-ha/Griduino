@@ -11,17 +11,19 @@
 
 */
 
-#include <Arduino.h>      // for Serial
-#include "constants.h"    // Griduino constants and colors
-#include "logger.h"       // conditional printing to Serial port
-#include "model_gps.h"    // Model of a GPS for model-view-controller
-#include "model_baro.h"   // Model of a barometer that stores 3-day history
-#include "view.h"         // View base class, public interface
+#include <Arduino.h>             // for Serial
+#include "constants.h"           // Griduino constants and colors
+#include "logger.h"              // conditional printing to Serial port
+#include "model_breadcrumbs.h"   // breadcrumb trail
+#include "model_gps.h"           // Model of a GPS for model-view-controller
+#include "model_baro.h"          // Model of a barometer that stores 3-day history
+#include "view.h"                // View base class, public interface
 
 // ========== extern ===========================================
 extern Logger logger;                 // Griduino.ino
 extern bool showTouchTargets;         // Griduino.ino
 extern Model *model;                  // "model" portion of model-view-controller
+extern Breadcrumbs trail;             // model of breadcrumb trail
 extern BarometerModel baroModel;      // singleton instance of the barometer model
 extern void selectNewView(int cmd);   // Griduino.ino
 extern View *pView;                   // Griduino.ino
@@ -103,7 +105,7 @@ void dump_gps_history() {
 }
 
 void erase_gps_history() {
-  model->clearHistory();
+  trail.clearHistory();
 }
 
 void list_files() {

@@ -24,22 +24,24 @@
               xGrid  xEnter        xExit       xDuration
 */
 
-#include <Arduino.h>            //
-#include <Adafruit_ILI9341.h>   // TFT color display library
-#include "constants.h"          // Griduino constants and colors
-#include "logger.h"             // conditional printing to Serial port
-#include "grid_helper.h"        // lat/long conversion routines
-#include "date_helper.h"        // date/time conversions
-#include "model_gps.h"          // Model of a GPS for model-view-controller
-#include "TextField.h"          // Optimize TFT display text for proportional fonts
-#include "view.h"               // Base class for all views
+#include <Arduino.h>             //
+#include <Adafruit_ILI9341.h>    // TFT color display library
+#include "constants.h"           // Griduino constants and colors
+#include "logger.h"              // conditional printing to Serial port
+#include "grid_helper.h"         // lat/long conversion routines
+#include "date_helper.h"         // date/time conversions
+#include "model_breadcrumbs.h"   // breadcrumb trail
+#include "model_gps.h"           // Model of a GPS for model-view-controller
+#include "TextField.h"           // Optimize TFT display text for proportional fonts
+#include "view.h"                // Base class for all views
 
 // ========== extern ===========================================
-extern Location history[];               // model_breadcrumbs.h, GPS breadcrumb trail
+// extern Location history[];               // model_breadcrumbs.h, GPS breadcrumb trail
 extern void showDefaultTouchTargets();   // Griduino.ino
 extern Logger logger;                    // Griduino.ino
 extern Grids grid;                       // grid_helper.h
 extern Adafruit_ILI9341 tft;             // Griduino.ino
+extern Breadcrumbs trail;                // model of breadcrumb trail
 extern Model *model;                     // "model" portion of model-view-controller
 
 // ========== class ViewGridCrossing ===========================
@@ -77,15 +79,15 @@ public:
     // - if the data is still in this grid, then continue
     // - if the data is a different grid, then update [GRID1]
 
-    // int currentIndex = previousIndex(model->nextHistoryItem);
+    // int currentIndex = previousIndex(trail.nextHistoryItem);
     // Location item    = history[currentIndex];
 
     // char currentGrid4[5];
     // grid.calcLocator(currentGrid4, item.loc.lat, item.loc.lng, 4);
     //  logger.info("Current grid = ", currentGrid4);   // debug
 
-    extractGridCrossings(history, numHistory, model->nextHistoryItem, timeInGrid);   // read GPS history array
-    showGridCrossings(timeInGrid);                                                   // show result on screen
+    extractGridCrossings(trail.history, trail.numHistory, trail.nextHistoryItem, timeInGrid);   // read GPS history array
+    showGridCrossings(timeInGrid);                                                              // show result on screen
 
     // ----- GMT date & time
     char sDate[15];   // strlen("Aug 26, 2022") = 13

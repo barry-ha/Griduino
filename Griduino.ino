@@ -719,7 +719,7 @@ void setup() {
   Serial.println("Large resources:");
   snprintf(temp, sizeof(temp), 
           ". Model.history[%d] uses %d bytes/entry = %d bytes total",
-             numHistory, sizeof(Location), sizeof(history));
+             trail.numHistory, sizeof(Location), sizeof(trail.history));
   Serial.println(temp);
   snprintf(temp, sizeof(temp),
           ". baroModel.pressureStack[%d] uses %d bytes/entry = %d bytes total",

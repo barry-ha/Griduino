@@ -6,17 +6,18 @@
   Hardware: John Vanderbeck, KM7O, Seattle, WA
 */
 
-#include <Arduino.h>            // for Serial
-#include "constants.h"          // Griduino constants and colors
-#include "Adafruit_ILI9341.h"   // TFT color display library
-#include "morse_dac.h"          // Morse code
-#include "save_restore.h"       // Configuration data in nonvolatile RAM
-#include "model_gps.h"          // Class Model (for model-view-controller)
-#include "TextField.h"          // Optimize TFT display text for proportional fonts
-#include "view.h"               // Base class for all views
-#include "logger.h"             // conditional printing to Serial port
-#include "grid_helper.h"        // lat/long conversion routines
-#include "date_helper.h"        // date/time conversions
+#include <Arduino.h>             // for Serial
+#include "constants.h"           // Griduino constants and colors
+#include "Adafruit_ILI9341.h"    // TFT color display library
+#include "morse_dac.h"           // Morse code
+#include "save_restore.h"        // Configuration data in nonvolatile RAM
+#include "logger.h"              // conditional printing to Serial port
+#include "model_breadcrumbs.h"   // breadcrumb trail
+#include "model_gps.h"           // Class Model (for model-view-controller)
+#include "TextField.h"           // Optimize TFT display text for proportional fonts
+#include "view.h"                // Base class for all views
+#include "grid_helper.h"         // lat/long conversion routines
+#include "date_helper.h"         // date/time conversions
 
 // ========== extern ===========================================
 extern void setFontSize(int font);   // TextField.cpp
@@ -28,10 +29,10 @@ extern DACMorseSender dacMorse;          // Morse code
 extern Model *model;                     // "model" portion of model-view-controller
 extern ViewGrid gridView;                // Griduino.ino
 extern Logger logger;                    // Griduino.ino
+extern Breadcrumbs trail;                // model of breadcrumb trail
 extern void showDefaultTouchTargets();   // Griduino.ino
 extern Grids grid;                       // grid_helper.h
 extern Dates date;                       // date_helper.h
-// extern const int numHistory;          // model_breadcrumbs.h, number of elements in history[]
 
 TextField txtTest("test", 1, 21, ILI9341_WHITE);
 
@@ -535,10 +536,10 @@ int verifyBreadCrumbTrail1() {
   // test 2: loop through locations that cross this grid
   float lat      = 47.0 - 0.2;     // 10% outside of CN87
   float lon      = -124.0 - 0.1;   //
-  int steps      = 10;             // = numHistory;     // number of loops
+  int steps      = 10;             // = trail.numHistory;     // number of loops
   float stepSize = 15.0 / 250.0;   // number of degrees to move each loop
 
-  model->clearHistory();
+  trail.clearHistory();
   for (int ii = 0; ii < steps; ii++) {
     PointGPS latLong{model->gLatitude  = lat + (ii * stepSize),            // "plus" goes upward (north)
                      model->gLongitude = lon + (ii * stepSize * 5 / 4)};   // "plus" goes rightward (east)
@@ -550,7 +551,7 @@ int verifyBreadCrumbTrail1() {
 
   // dumpHistory();          // did it remember? dump history to monitor
   gridView.updateScreen();   //
-  model->clearHistory();     // clean up so it is not re-displayed by main program
+  trail.clearHistory();      // clean up so it is not re-displayed by main program
   return r;
 }
 // =============================================================
@@ -560,7 +561,7 @@ void generateSineWave(Model *pModel) {
   // fill history table with a sine wave
   double startLat  = 47.5;   // 10% outside of CN87
   double startLong = -124.0 - 0.6;
-  // don't use "steps = numHistory" because remember() will write each one to SdFat,
+  // don't use "steps = trail.numHistory" because remember() will write each one to SdFat,
   // filling the console log and taking a very long time
   int steps        = 13;                        // number of loops, pref prime number
   double stepSize  = (125.3 - 123.7) / steps;   // degrees longitude to move each loop
@@ -589,7 +590,7 @@ int verifyBreadCrumbTrail2() {
   txtTest.dirty = true;     // paint big "Test" in upper left
   txtTest.print();
 
-  model->clearHistory();
+  trail.clearHistory();
   generateSineWave(model);   // fill GPS model with known test data
 
   Serial.println(". History as known by verifyBreadCrumbTrail2()...");
@@ -762,7 +763,7 @@ void runUnitTest() {
   f += verifyComputingDistance();     // verify computing distance
   f += verifyComputingGridLines();    // verify finding grid lines on E and W
   countDown(5);                       // give user time to inspect display appearance for unit test problems
-  model->clearHistory();              // clean up our mess after unit test
+  trail.clearHistory();               // clean up our mess after unit test
 
   logger.fencepost("unittest.cpp", "End Unit Test", __LINE__);
   if (f) {
