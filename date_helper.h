@@ -39,19 +39,19 @@ public:
              hour(tm), minute(tm), second(tm));
     return msg;
   }
-  char *datetimeToString(char *msg, int len, time_t tm, const char* suffix) {
+  char *datetimeToString(char *msg, int len, time_t tm, const char *suffix) {
     datetimeToString(msg, len, tm);
-    strncat(msg, suffix, len-1);
+    strncat(msg, suffix, len - 1);
     return msg;
   }
 
   char *dateToString(char *msg, int len, time_t tm) {
-    snprintf(msg, len, "%04d-%d-%d", year(tm), month(tm), day(tm));
+    snprintf(msg, len, "%04d-%02d-%02d", year(tm), month(tm), day(tm));
     return msg;
   }
-  char *dateToString(char *msg, int len, time_t tm, const char* suffix) {
+  char *dateToString(char *msg, int len, time_t tm, const char *suffix) {
     dateToString(msg, len, tm);
-    strncat(msg, suffix, len-1);
+    strncat(msg, suffix, len - 1);
     return msg;
   }
 
@@ -61,7 +61,7 @@ public:
   }
   char *timeToString(char *msg, int len, time_t tm, const char *suffix) {
     timeToString(msg, len, tm);
-    strncat(msg, suffix, len-1);
+    strncat(msg, suffix, len - 1);
     return msg;
   }
 
