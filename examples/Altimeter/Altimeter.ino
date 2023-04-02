@@ -290,8 +290,9 @@ void getGPSData() {
   }
   gSatellites = GPS.satellites;
 }
+
 // Provide formatted GMT date/time "2019-12-31  10:11:12"
-void getDateTime(char *result) {
+void getCurrentDateTime(char *result) {
   // result = char[25] = string buffer to modify
   // if (GPS.fix) {
   int yy = GPS.year;
@@ -314,7 +315,7 @@ void getDateTime(char *result) {
 void echoGPSinfo() {
   // send GPS statistics to serial console for desktop debugging
   char sDate[20];   // strlen("0000-00-00 hh:mm:ss") = 19
-  getDateTime(sDate);
+  getCurrentDateTime(sDate);
   Serial.print("GPS: ");
   Serial.print(sDate);
   Serial.print("  Fix(");
