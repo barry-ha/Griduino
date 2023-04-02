@@ -11,16 +11,12 @@
 */
 
 // #include <Arduino.h>        //
-// #include <Adafruit_GPS.h>   // "Ultimate GPS" library
-// #include "constants.h"      // Griduino constants, colors, typedefs
-// #include "hardware.h"       //
 #include "logger.h"         // conditional printing to Serial port
 #include "grid_helper.h"    // lat/long conversion routines
 #include "date_helper.h"    // date/time conversions
 #include "save_restore.h"   // Configuration data in nonvolatile RAM
 
 // ========== extern ===========================================
-// extern Adafruit_GPS GPS;       // Griduino.ino
 extern Logger logger;   // Griduino.ino
 extern Grids grid;      // grid_helper.h
 extern Dates date;      // date_helper.h
@@ -82,7 +78,7 @@ public:
 
   int saveGPSBreadcrumbTrail() {   // returns 1=success, 0=failure
     // our breadcrumb trail file is CSV format -- you can open this Arduino file directly in a spreadsheet
-    // dumpHistoryGPS();   // debug
+    // trail.dumpHistoryGPS();   // debug
 
     // delete old file and open new file
     SaveRestoreStrings config(HISTORY_FILE, HISTORY_VERSION);
@@ -293,6 +289,72 @@ public:
     }
     nextHistoryItem = 0;
     Serial.println("Breadcrumb trail has been erased");
+  }
+
+  void dumpHistoryGPS() {
+    Serial.print("\nMaximum saved GPS records = ");
+    Serial.println(numHistory);
+
+    Serial.print("Current number of records saved = ");
+    int count = getHistoryCount();
+    Serial.println(count);
+
+    Serial.print("Next record to be written = ");
+    Serial.println(nextHistoryItem);
+
+    time_t tm = now();                           // debug: show current time in seconds
+    Serial.print("now() = ");                    // debug
+    Serial.print(tm);                            // debug
+    Serial.println(" seconds since 1-1-1970");   // debug
+
+    char sDate[24];                                        // debug: show current time decoded
+    date.datetimeToString(sDate, sizeof(sDate), tm);       // date_helper.h
+    char msg[40];                                          // sizeof("Today is 12-31-2022  12:34:56 GMT") = 32
+    snprintf(msg, sizeof(msg), "now() = %s GMT", sDate);   // debug
+    Serial.println(msg);                                   // debug
+
+    Serial.println("Record, Date GMT, Time GMT, Grid, Lat, Long, Alt(m), Speed(mph), Direction(Degrees), Sats");
+    int ii;
+    for (ii = 0; ii < numHistory; ii++) {
+      Location item = history[ii];
+      if (!item.isEmpty()) {
+
+        time_t tm = item.timestamp;                    // https://github.com/PaulStoffregen/Time
+        char sDate[12], sTime[10];                     // sizeof("2022-11-25 12:34:56") = 19
+        date.dateToString(sDate, sizeof(sDate), tm);   // date_helper.h
+        date.timeToString(sTime, sizeof(sTime), tm);   //
+
+        char grid6[7];
+        grid.calcLocator(grid6, item.loc.lat, item.loc.lng, 6);
+
+        char sLat[12], sLng[12];
+        floatToCharArray(sLat, sizeof(sLat), history[ii].loc.lat, 5);
+        floatToCharArray(sLng, sizeof(sLng), history[ii].loc.lng, 5);
+
+        char sSpeed[12], sDirection[12], sAltitude[12];
+        floatToCharArray(sSpeed, sizeof(sSpeed), item.speed, 1);
+        floatToCharArray(sDirection, sizeof(sDirection), item.direction, 1);
+        floatToCharArray(sAltitude, sizeof(sAltitude), item.altitude, 0);
+        uint8_t nSats = item.numSatellites;
+
+        char out[128];
+        snprintf(out, sizeof(out), "%d, %s, %s, %s, %s, %s, %s, %s, %s, %d",
+                 ii, sDate, sTime, grid6, sLat, sLng, sSpeed, sDirection, sAltitude, nSats);
+        Serial.println(out);
+
+        // TimeElements time;                 // https://github.com/PaulStoffregen/Time
+        // breakTime(item.timestamp, time);   // debug
+        // snprintf(out, sizeof(out), "item.timestamp = %02d-%02d-%04d %02d:%02d:%02d",
+        //          time.Month, time.Day, 1970+time.Year, time.Hour, time.Minute, time.Second);
+        // Serial.println(out);               // debug
+      }
+    }
+    int remaining = numHistory - ii;
+    if (remaining > 0) {
+      Serial.print("... and ");
+      Serial.print(remaining);
+      Serial.println(" more");
+    }
   }
 
 };   // end class History

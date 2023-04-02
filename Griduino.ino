@@ -858,10 +858,9 @@ void loop() {
     waitingForRTC = false;
 
     char msg[128];                    // debug
-    Serial.println("Received first valid date/time from GPS");  // debug
-    snprintf(msg, sizeof(msg), ". GPS time %d-%02d-%02d at %02d:%02d:%02d",
-                                  GPS.year,GPS.month,GPS.day, 
-                                  GPS.hour,GPS.minute,GPS.seconds);
+    snprintf(msg, sizeof(msg), "Received first valid GPS time: %d-%02d-%02d at %02d:%02d:%02d",
+                                GPS.year,GPS.month,GPS.day, 
+                                GPS.hour,GPS.minute,GPS.seconds);
     Serial.println(msg);              // debug
 
     // write this to the GPS breadcrumb trail as indication of "power up" event

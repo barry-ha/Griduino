@@ -101,7 +101,7 @@ void dump_kml() {
 }
 
 void dump_gps_history() {
-  model->dumpHistoryGPS();
+  trail.dumpHistoryGPS();
 }
 
 void erase_gps_history() {

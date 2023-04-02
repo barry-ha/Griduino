@@ -524,7 +524,7 @@ int verifyBreadCrumbs() {
   gridView.updateScreen();
   delay(500);
   trail.saveInterval = 2;   // restore setting
-  return fails;   //
+  return fails;             //
 }
 // =============================================================
 // verify painting a trail of bread crumbs (locations)
@@ -598,7 +598,7 @@ int verifyBreadCrumbTrail2() {
   generateSineWave(model);   // fill GPS model with known test data
 
   Serial.println(". History as known by verifyBreadCrumbTrail2()...");
-  model->dumpHistoryGPS();   // did it remember? (go review serial console)
+  trail.dumpHistoryGPS();    // did it remember? (go review serial console)
   gridView.updateScreen();   // does it look like a sine wave? (go look at TFT display)
   return r;
 }
