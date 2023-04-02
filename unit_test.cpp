@@ -489,6 +489,9 @@ int verifyBreadCrumbs() {
   model->gLatitude  = 47.737451;     // CN87
   model->gLongitude = -122.274711;   // CN87
 
+  // reduce the frequency of saving to memory
+  trail.saveInterval = 100;   // default 2 is too often
+
   // initialize the canvas that we will draw upon
   gridView.startScreen();   // clear and draw normal screen
   txtTest.print();
@@ -520,6 +523,7 @@ int verifyBreadCrumbs() {
   model->gLongitude = -124.0 + 0.1;
   gridView.updateScreen();
   delay(500);
+  trail.saveInterval = 2;   // restore setting
   return fails;   //
 }
 // =============================================================
@@ -546,7 +550,7 @@ int verifyBreadCrumbTrail1() {
     time_t stamp = now();
     // doesn't matter what timestamp/sats/speed/direction/altitude is actually stored during tests
     Location loc{latLong, stamp, 5, 10.0, 45.0, 123.0};
-    model->remember(loc);
+    trail.remember(loc);
   }
 
   // dumpHistory();          // did it remember? dump history to monitor
@@ -574,7 +578,7 @@ void generateSineWave(Model *pModel) {
     time_t stamp = now();
     // doesn't matter what timestamp/sats/speed/direction/altitude is actually stored during tests
     Location loc{latLong, stamp, 5, 10.0, 45.0, 123.0};
-    pModel->remember(loc);
+    trail.remember(loc);
   }
   // Serial.println("---History as known by generateSineWave()...");
   // pModel->dumpHistory();            // did it remember? (go review serial console)
@@ -607,7 +611,7 @@ int verifySaveTrail() {
 
   generateSineWave(&testModel);   // generate known data to be saved
 
-  // this is automatically saved to non-volatile memory by the model->remember()
+  // this is automatically saved to non-volatile memory by the trail.remember()
   return 0;   // this routine does not detect errors, it exists to check for clean compile
 }
 // =============================================================

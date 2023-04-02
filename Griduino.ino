@@ -226,21 +226,6 @@ void floatToCharArray(char* result, int maxlen, double fValue, int decimalPlaces
 }
 
 //==============================================================
-//    Breadcrumb Trail model
-//==============================================================
-#include "model_breadcrumbs.h"
-Breadcrumbs trail;
-
-//==============================================================
-//    Coin Battery Voltage model
-//==============================================================
-// PCB v7 added a sensor for coin battery voltage
-// PCB v4 doesn't measure coin battery
-// The hardware differences are handled in lower level code
-#include "model_adc.h"                // Model of the analog-digital converter
-BatteryVoltage gpsBattery;
-
-//==============================================================
 //
 //    GPS Model
 //    This is MVC (model-view-controller) design pattern
@@ -285,6 +270,21 @@ int fGetDataSource() {
 }
 
 bool waitingForRTC = true;   // true=waiting for GPS hardware to give us the first valid date/time
+
+//==============================================================
+//    Breadcrumb Trail model
+//==============================================================
+#include "model_breadcrumbs.h"
+Breadcrumbs trail;
+
+//==============================================================
+//    Coin Battery Voltage model
+//==============================================================
+// PCB v7 added a sensor for coin battery voltage
+// PCB v4 doesn't measure coin battery
+// The hardware differences are handled in lower level code
+#include "model_adc.h"                // Model of the analog-digital converter
+BatteryVoltage gpsBattery;
 
 //==============================================================
 //
@@ -750,19 +750,19 @@ void setup() {
     // Only set DAC resolution on devices that have a DAC
     analogWriteResolution(12);        // 1..32, sets DAC output resolution to 12 bit (4096 levels)
                                       // because Feather M4 maximum output resolution is 12 bit
-  dacMorse.setup();                   // required Morse Code initialization
-  dacMorse.dump();                    // debug
+    dacMorse.setup();                 // required Morse Code initialization
+    dacMorse.dump();                  // debug
   
-  dacSpeech.begin();                  // required Audio_QSPI initialization
-  //sayGrid("k7bwh");                 // debug test 
+    dacSpeech.begin();                // required Audio_QSPI initialization
+    //sayGrid("k7bwh");               // debug test 
   #endif
 
   // ----- init onboard LED
   pinMode(RED_LED, OUTPUT);           // diagnostics RED LED
 
   // ----- restore GPS driving track breadcrumb trail
-  model->restore();                   // this takes noticeable time (~0.2 sec)
-  model->restoreGPSBreadcrumbTrail(); // 
+  trail.restoreGPSBreadcrumbTrail();  // this takes noticeable time (~0.2 sec)
+  model->restore();                   //
   model->gHaveGPSfix = false;         // assume no satellite signal yet
   model->gSatellites = 0;
 
@@ -865,7 +865,7 @@ void loop() {
     Serial.println(msg);              // debug
 
     // write this to the GPS breadcrumb trail as indication of "power up" event
-    //model->remember();   // todo: create new event type "PUP" to save in history buffer
+    // trail.remember();   // todo: create new event type "PUP" to save in history buffer
   }
 
   // every 1 second update the realtime clock
