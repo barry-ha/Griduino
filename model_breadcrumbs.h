@@ -78,7 +78,7 @@ public:
 
   int saveGPSBreadcrumbTrail() {   // returns 1=success, 0=failure
     // our breadcrumb trail file is CSV format -- you can open this Arduino file directly in a spreadsheet
-    // trail.dumpHistoryGPS();   // debug
+    // dumpHistoryGPS();   // debug
 
     // delete old file and open new file
     SaveRestoreStrings config(HISTORY_FILE, HISTORY_VERSION);
@@ -355,6 +355,156 @@ public:
       Serial.print(remaining);
       Serial.println(" more");
     }
+  }
+
+// ----- Beginning/end of each KML file -----
+#define KML_PREFIX "\r\n\
+<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\
+<kml xmlns=\"http://www.opengis.net/kml/2.2\"\
+ xmlns:gx=\"http://www.google.com/kml/ext/2.2\"\
+ xmlns:kml=\"http://www.opengis.net/kml/2.2\"\
+ xmlns:atom=\"http://www.w3.org/2005/Atom\">\r\n\
+<Document>\r\n\
+\t<name>Griduino Track</name>\r\n\
+\t<Style id=\"gstyle\">\r\n\
+\t\t<LineStyle>\r\n\
+\t\t\t<color>ffffff00</color>\r\n\
+\t\t\t<width>4</width>\r\n\
+\t\t</LineStyle>\r\n\
+\t</Style>\r\n\
+\t<StyleMap id=\"gstyle0\">\r\n\
+\t\t<Pair>\r\n\
+\t\t\t<key>normal</key>\r\n\
+\t\t\t<styleUrl>#gstyle1</styleUrl>\r\n\
+\t\t</Pair>\r\n\
+\t\t<Pair>\r\n\
+\t\t\t<key>highlight</key>\r\n\
+\t\t\t<styleUrl>#gstyle</styleUrl>\r\n\
+\t\t</Pair>\r\n\
+\t</StyleMap>\r\n\
+\t<Style id=\"gstyle1\">\r\n\
+\t\t<LineStyle>\r\n\
+\t\t\t<color>ffffff00</color>\r\n\
+\t\t\t<width>4</width>\r\n\
+\t\t</LineStyle>\r\n\
+\t</Style>\r\n"
+
+#define KML_SUFFIX "\
+</Document>\r\n\
+</kml>\r\n"
+
+// ----- Beginning/end of a pushpin in a KML file -----
+#define PUSHPIN_PREFIX_PART1 "\
+\t<Placemark>\r\n\
+\t\t<name>Start "
+// PUSHPIN_PREFIX_PART2 contains the date "mm/dd/yy"
+#define PUSHPIN_PREFIX_PART3 "\
+</name>\r\n\
+\t\t<styleUrl>#m_ylw-pushpin0</styleUrl>\r\n\
+\t\t<Point>\r\n\
+\t\t\t<gx:drawOrder>1</gx:drawOrder>\r\n\
+\t\t\t<coordinates>"
+
+#define PUSHPIN_SUFFIX "</coordinates>\r\n\
+\t\t</Point>\r\n\
+\t</Placemark>\r\n"
+
+// ----- Icon for breadcrumbs along route -----
+#define BREADCRUMB_STYLE "\
+\t<Style id=\"crumb\">\r\n\
+\t\t<IconStyle>\r\n\
+\t\t\t<Icon><href>https://www.coilgun.info/images/bullet.png</href></Icon>\r\n\
+\t\t\t<hotSpot x=\".5\" y=\".5\" xunits=\"fraction\" yunits=\"fraction\"/>\r\n\
+\t\t</IconStyle>\r\n\
+\t</Style>\r\n"
+
+// ----- Placemark template with timestamp -----
+// From: https://developers.google.com/static/kml/documentation/TimeStamp_example.kml
+#define PLACEMARK_WITH_TIMESTAMP "\
+\t<Placemark>\r\n\
+\t\t<description>\r\n\
+\t\t\t<center>\r\n\
+\t\t\t\t<h2><a target=\"_blank\" href=\"https://maps.google.com/maps?q=%s,%s\">%s</a></h2>\
+%04d-%02d-%02d <br/> %02d:%02d:%02d GMT\
+%s mph, %s deg, %s m, %d sat\
+\t\t\t</center>\r\n\
+</description>\r\n\
+\t\t<TimeStamp><when>%04d-%02d-%02dT%02d:%02d:%02dZ</when></TimeStamp>\r\n\
+\t\t<Point><coordinates>%s,%s</coordinates></Point>\r\n\
+\t\t<styleUrl>#crumb</styleUrl>\r\n\
+\t</Placemark>\r\n"
+
+  void dumpHistoryKML() {
+
+    Serial.print(KML_PREFIX);         // begin KML file
+    Serial.print(BREADCRUMB_STYLE);   // add breadcrumb icon style
+    int startIndex  = nextHistoryItem + 1;
+    bool startFound = false;
+
+    // start right AFTER the most recently written slot in circular buffer
+    int index = nextHistoryItem;
+
+    // loop through the entire GPS history buffer
+    for (int ii = 0; ii < numHistory; ii++) {
+      Location item = history[index];
+      if ((item.loc.lat != 0) || (item.loc.lng != 0)) {
+        if (!startFound) {
+          // this is the first non-empty lat/long found,
+          // so this must be chronologically the oldest entry recorded
+          // Remember it for the "Start" pushpin
+          startIndex = index;
+          startFound = true;
+        }
+
+        // PlaceMark with timestamp
+        TimeElements time;   // https://github.com/PaulStoffregen/Time
+        breakTime(item.timestamp, time);
+
+        char sLat[12], sLng[12];
+        floatToCharArray(sLat, sizeof(sLat), item.loc.lat, 5);
+        floatToCharArray(sLng, sizeof(sLng), item.loc.lng, 5);
+
+        char grid6[7];
+        grid.calcLocator(grid6, item.loc.lat, item.loc.lng, 6);
+
+        char sSpeed[12], sDirection[12], sAltitude[12];
+        floatToCharArray(sSpeed, sizeof(sSpeed), item.speed, 1);
+        floatToCharArray(sDirection, sizeof(sDirection), item.direction, 1);
+        floatToCharArray(sAltitude, sizeof(sAltitude), item.altitude, 1);
+        int numSats = item.numSatellites;
+
+        char msg[500];
+        snprintf(msg, sizeof(msg), PLACEMARK_WITH_TIMESTAMP,
+                 sLat, sLng,   // humans prefer "latitude,longitude"
+                 grid6,
+                 time.Year + 1970, time.Month, time.Day, time.Hour, time.Minute, time.Second,   // human readable time
+                 time.Year + 1970, time.Month, time.Day, time.Hour, time.Minute, time.Second,   // kml timestamp
+                 sLng, sLat,                                                                    // kml requires "longitude,latitude"
+                 sSpeed, sDirection, sAltitude,                                                 // mph, degrees from North, meters
+                 numSats                                                                        // number of satellites
+        );
+        Serial.print(msg);
+      }
+      index = (index + 1) % numHistory;
+    }
+
+    if (startFound) {         // begin pushpin at start of route
+      char pushpinDate[10];   // strlen("12/24/21") = 9
+      TimeElements time;      // https://github.com/PaulStoffregen/Time
+      breakTime(history[startIndex].timestamp, time);
+      snprintf(pushpinDate, sizeof(pushpinDate), "%02d/%02d/%02d", time.Month, time.Day, time.Year);
+
+      Serial.print(PUSHPIN_PREFIX_PART1);
+      Serial.print(pushpinDate);
+      Serial.print(PUSHPIN_PREFIX_PART3);
+      Location start = history[startIndex];
+      Serial.print(start.loc.lng, 4);   // KML demands longitude first
+      Serial.print(",");
+      Serial.print(start.loc.lat, 4);
+      Serial.print(",0");
+      Serial.print(PUSHPIN_SUFFIX);   // end pushpin at start of route
+    }
+    Serial.println(KML_SUFFIX);   // end KML file
   }
 
 };   // end class History

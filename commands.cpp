@@ -97,7 +97,7 @@ void version() {
 }
 
 void dump_kml() {
-  model->dumpHistoryKML();
+  trail.dumpHistoryKML();
 }
 
 void dump_gps_history() {
