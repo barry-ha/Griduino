@@ -54,11 +54,11 @@ Command cmdList[] = {
     {"start nmea", start_nmea, Newline},
     {"stop nmea", stop_nmea, 0},
 
-    {"show touch", show_touch, Newline},
-    {"hide touch", hide_touch, 0},
-
     {"start gmt", start_gmt, Newline},
     {"stop gmt", stop_gmt, 0},
+
+    {"show touch", show_touch, Newline},
+    {"hide touch", hide_touch, 0},
 
     {"view help", view_help, Newline},
     {"view splash", view_splash, 0},
