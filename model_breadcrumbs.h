@@ -46,6 +46,11 @@ public:
   // Constructor - create and initialize member variables
   Breadcrumbs() {}
 
+  // todo: 1. refactor "class Location" into this file
+  // todo: 2. refactor "makeLocation()" into ctor (or public member) of "class Location"
+  // todo: 3. replace remember(Location) with remember(a,b,c,d,e,f)
+  // todo: 4. add rememberPUP(), rememberPDN(), rememberTOD()
+
   void remember(Location vLoc) {
     // save this GPS location and timestamp in internal array
     // so that we can display it as a breadcrumb trail

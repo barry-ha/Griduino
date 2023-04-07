@@ -183,7 +183,7 @@ public:
   Location makeLocation() {
     // collect GPS information from the Model into an object that can be saved in the history[] buffer
     PointGPS whereAmI{gLatitude, gLongitude};
-    Location loc{whereAmI, gTimestamp, gSatellites, gSpeed, gAngle, gAltitude};
+    Location loc{rGPS, whereAmI, gTimestamp, gSatellites, gSpeed, gAngle, gAltitude};
     return loc;
   }
 

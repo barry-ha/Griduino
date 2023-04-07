@@ -549,7 +549,7 @@ int verifyBreadCrumbTrail1() {
                      model->gLongitude = lon + (ii * stepSize * 5 / 4)};   // "plus" goes rightward (east)
     time_t stamp = now();
     // doesn't matter what timestamp/sats/speed/direction/altitude is actually stored during tests
-    Location loc{latLong, stamp, 5, 10.0, 45.0, 123.0};
+    Location loc{rGPS, latLong, stamp, 5, 10.0, 45.0, 123.0};
     trail.remember(loc);
   }
 
@@ -577,7 +577,7 @@ void generateSineWave(Model *pModel) {
     PointGPS latLong{latitude, longitude};
     time_t stamp = now();
     // doesn't matter what timestamp/sats/speed/direction/altitude is actually stored during tests
-    Location loc{latLong, stamp, 5, 10.0, 45.0, 123.0};
+    Location loc{rGPS, latLong, stamp, 5, 10.0, 45.0, 123.0};
     trail.remember(loc);
   }
   // Serial.println("---History as known by generateSineWave()...");
