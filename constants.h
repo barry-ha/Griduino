@@ -3,13 +3,13 @@
 // ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE "Griduino"
 #if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
-#define PROGRAM_VERSION "v1.12 rp2040 PCB v.7"
+#define PROGRAM_VERSION "v1.12 PCB v.7"
 #else
-#define PROGRAM_VERSION "v1.12 M4"
+#define PROGRAM_VERSION "v1.12 GZR"
 #endif
 #define PROGRAM_LINE1    "Barry K7BWH"
 #define PROGRAM_LINE2    "John KM7O"
-#define PROGRAM_COMPILED __DATE__ " " __TIME__
+#define PROGRAM_COMPILED __DATE__ " " __TIME__ 
 #define PROGRAM_FILE     __FILE__
 #define PROGRAM_GITHUB   "https://github.com/barry-ha/Griduino"
 
@@ -102,8 +102,8 @@ const int OFF       = 0;     // = turned off
 #define cTOUCHTARGET   ILI9341_RED      // outline touch-sensitive areas
 
 // plot vehicle and breadcrumb trail
-#define cBREADCRUMB    ILI9341_CYAN     //
-#define cVEHICLE       0xef7d           // light gray (white is too bright)
+#define cBREADCRUMB ILI9341_CYAN   //
+#define cVEHICLE    0xef7d         // light gray (white is too bright)
 
 // barometric pressure graph
 #define cSCALECOLOR ILI9341_DARKGREEN   // pressure graph, I tried yellow but it's too bright
@@ -193,9 +193,17 @@ struct FunctionButton {
   int functionIndex;   // button identifier
 };
 
+// Breadcrumb record types
+#define rGPS       "GPS"
+#define rPOWERUP   "PUP"
+#define rPOWERDOWN "PDN"
+#define rVALIDTIME "TIM"
+#define rRESET     "\0\0\0"
+
 // Breadcrumb data definition for history[] circular buffer
 class Location {
 public:
+  char recordType[4];      // GPS, power-up, first valid time, etc
   PointGPS loc;            // has-a lat/long, degrees
   time_t timestamp;        // has-a GMT time
   uint8_t numSatellites;   // number of satellites in view
@@ -212,7 +220,9 @@ public:
   }
   // sanity check data from NVR
   void printLocation(int ii, Location item) {
-    Serial.print(". lat/long[");
+    Serial.print(". ");
+    Serial.print(item.recordType);
+    Serial.print(" lat/long[");
     Serial.print(ii);
     Serial.print("] = ");
     Serial.print(item.loc.lat);
