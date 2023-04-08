@@ -216,17 +216,19 @@ public:
     loc.lat = loc.lng = 0.0;
     timestamp         = 0;
     numSatellites     = 0;
-    speed             = -1.0;
-    direction = altitude = -1.0;
+    speed             = 0.0;
+    direction = altitude = 0.0;
   }
   bool isEmpty() {
-    return (loc.lat == 0.0 && loc.lng == 0.0);
+    // all unused history[] entries have reset recordType to zeroes
+    return (recordType[0] == 0);
   }
+
   bool isGPS() {
     if (strncmp(recordType, rGPS, sizeof(recordType)) == 0) {
-      return true;
-    } else {
       return false;
+    } else {
+      return true;
     }
   }
   // sanity check data from NVR
