@@ -37,7 +37,14 @@ class Breadcrumbs {
 public:
   // Class member variables
   int nextHistoryItem = 0;   // index of next item to write
-  Location history[3000];    // remember a list of GPS coordinates and stuff
+  Location history[2500];    // remember a list of GPS coordinates and stuff
+  // array  bytes        total          2023-04-08
+  // size   per entry    memory         comment
+  // 2500     48 bytes  120,000 bytes   ok
+  // 2900     48 bytes  139,200 bytes   ok
+  // 2950     48 bytes  141,600 bytes   ok
+  // 2980     48 bytes  143,040 bytes   ok
+  // 3000     48 bytes  144,000 bytes   crash on "list files" command
   const int numHistory = sizeof(history) / sizeof(Location);
   int saveInterval     = 2;
 
@@ -49,7 +56,16 @@ public:
   // todo: 1. refactor "class Location" into this file
   // todo: 2. refactor "makeLocation()" into ctor (or public member) of "class Location"
   // todo: 3. replace remember(Location) with remember(a,b,c,d,e,f)
-  // todo: 4. add rememberPUP(), rememberPDN(), rememberTOD()
+  // todo: 4. add rememberPDN(), rememberTOD()
+
+  void rememberPUP() {
+    logger.fencepost("rememberPUP", __LINE__);
+    PointGPS whereAmI{0.0, 0.0};
+    Location pup{rPOWERUP, whereAmI, now(), 0, -1.0, -1.0, -1.0};
+
+    history[nextHistoryItem] = pup;
+    nextHistoryItem          = (++nextHistoryItem % numHistory);
+  }
 
   void remember(Location vLoc) {
     // save this GPS location and timestamp in internal array
@@ -96,7 +112,7 @@ public:
     config.writeLine(msg);
 
     // line 5: column headings
-    config.writeLine("GMT Date, GMT Time, Grid, Latitude, Longitude, Altitude, MPH, Direction, Satellites");
+    config.writeLine("Type, GMT Date, GMT Time, Grid, Latitude, Longitude, Altitude, MPH, Direction, Satellites");
 
     // line 6..x: date-time, grid6, latitude, longitude
     int count = 0;
@@ -113,6 +129,8 @@ public:
         char sGrid6[7];
         grid.calcLocator(sGrid6, history[ii].loc.lat, history[ii].loc.lng, 6);
 
+        logger.fencepost("model_breadcrumbs.h", "saveGPSBreadcrumbTrail", __LINE__);   // debug
+
         char sLat[12], sLng[12];
         floatToCharArray(sLat, sizeof(sLat), history[ii].loc.lat, 5);
         floatToCharArray(sLng, sizeof(sLng), history[ii].loc.lng, 5);
@@ -123,7 +141,10 @@ public:
         floatToCharArray(sAngle, sizeof(sAngle), history[ii].direction, 1);
         int numSatellites = history[ii].numSatellites;
 
-        snprintf(msg, sizeof(msg), "%s,%s,%s,%s,%s,%s,%s,%s,%d", sDate, sTime, sGrid6, sLat, sLng, sAlt, sSpeed, sAngle, numSatellites);
+        logger.fencepost("model_breadcrumbs.h", "saveGPSBreadcrumbTrail", __LINE__);   // debug
+        //                           1  2  3  4  5  6  7  8  9
+        snprintf(msg, sizeof(msg), "%s,%s,%s,%s,%s,%s,%s,%s,%s,%d",
+                 history[ii].recordType, sTime, sGrid6, sLat, sLng, sAlt, sSpeed, sAngle, numSatellites);
         config.writeLine(msg);
       }
     }
@@ -297,7 +318,7 @@ public:
   }
 
   void dumpHistoryGPS() {
-    Serial.print("\nMaximum saved GPS records = ");
+    Serial.print("\nMaximum saved records = ");
     Serial.println(numHistory);
 
     Serial.print("Current number of records saved = ");
@@ -318,7 +339,7 @@ public:
     snprintf(msg, sizeof(msg), "now() = %s GMT", sDate);   // debug
     Serial.println(msg);                                   // debug
 
-    Serial.println("Record, Date GMT, Time GMT, Grid, Lat, Long, Alt(m), Speed(mph), Direction(Degrees), Sats");
+    Serial.println("Record, Type, Date GMT, Time GMT, Grid, Lat, Long, Alt(m), Speed(mph), Direction(Degrees), Sats");
     int ii;
     for (ii = 0; ii < numHistory; ii++) {
       Location item = history[ii];
@@ -343,8 +364,9 @@ public:
         uint8_t nSats = item.numSatellites;
 
         char out[128];
-        snprintf(out, sizeof(out), "%d, %s, %s, %s, %s, %s, %s, %s, %s, %d",
-                 ii, sDate, sTime, grid6, sLat, sLng, sSpeed, sDirection, sAltitude, nSats);
+        //                           1   2   3   4   5   6   7   8   9  10
+        snprintf(out, sizeof(out), "%d, %s, %s, %s, %s, %s, %s, %s, %s, %s, %d",
+                 ii, item.recordType, sDate, sTime, grid6, sLat, sLng, sSpeed, sDirection, sAltitude, nSats);
         Serial.println(out);
 
         // TimeElements time;                 // https://github.com/PaulStoffregen/Time

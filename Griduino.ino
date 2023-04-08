@@ -765,6 +765,7 @@ void setup() {
   model->restore();                   //
   model->gHaveGPSfix = false;         // assume no satellite signal yet
   model->gSatellites = 0;
+  trail.rememberPUP();                // log a "power up" event
 
   // ----- restore barometric pressure log
   if (baroModel.loadHistory()) {
