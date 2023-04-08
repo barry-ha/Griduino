@@ -204,13 +204,9 @@ int testNextGridLineEast(float fExpected, double fLongitude) {
   // unit test helper for finding grid line crossings
   int r        = 0;
   float result = grid.nextGridLineEast(fLongitude);
-  // clang off
-  Serial.print("Grid Crossing East: given = ");
-  ~Serial.print(fLongitude);
-  Serial.print(", expected = ");
-  ~Serial.print(fExpected);
-  Serial.print(", result = ");
-  ~Serial.print(result);
+  Serial.print("Grid Crossing East: given = ");   //~Serial.print(fLongitude);
+  Serial.print(", expected = ");                  //~Serial.print(fExpected);
+  Serial.print(", result = ");                    //~Serial.print(result);
   // clang on
   if (result == fExpected) {
     ~Serial.println("");
@@ -497,7 +493,7 @@ int verifyBreadCrumbs() {
   model->gLongitude = -122.274711;   // CN87
 
   // reduce the frequency of saving to memory
-  trail.saveInterval = 20;   // 100;   // default 2 is too often
+  trail.saveInterval = 20;           // default 2 is too often, 100 is not often enough
 
   // initialize the canvas that we will draw upon
   gridView.startScreen();   // clear and draw normal screen
@@ -547,7 +543,7 @@ int verifyBreadCrumbTrail1() {
   // test 2: loop through locations that cross this grid
   float lat      = 47.0 - 0.2;     // 10% outside of CN87
   float lon      = -124.0 - 0.1;   //
-  int steps      = 15;             // = trail.numHistory;     // number of loops
+  int steps      = 10;             // = trail.numHistory;     // number of loops
   float stepSize = 15.0 / 250.0;   // number of degrees to move each loop
 
   trail.clearHistory();
@@ -559,7 +555,6 @@ int verifyBreadCrumbTrail1() {
     PointGPS latLong{model->gLatitude  = lat + (ii * stepSize),            // "plus" goes upward (north)
                      model->gLongitude = lon + (ii * stepSize * 5 / 4)};   // "plus" goes rightward (east)
     time_t stamp = now();
-    delay(100);
     // doesn't matter what timestamp/sats/speed/direction/altitude is actually stored during tests
     Location loc{rGPS, latLong, stamp, 5, 10.0, 45.0, 123.0};
     trail.remember(loc);
@@ -756,21 +751,19 @@ void runUnitTest() {
   delay(1000);
 
   int f = 0;
-  /*****
-    f += verifyNMEAtime();              // verify conversions from GPS' time (NMEA) to time_t
-    countDown(5);                       //
-    f += verifyCalcTimeDiff();          // verify human-friendly time intervals
-    countDown(5);                       //
-    f += verifyMorseCode();             // verify Morse code
-    f += verifySaveRestoreVolume();     // verify save/restore an integer setting in SDRAM
-    countDown(5);                       //
-    f += verifySaveRestoreArray();      // verify save/restore an array in SDRAM
-    countDown(5);                       //
-    f += verifySaveRestoreGPSModel();   // verify save/restore GPS model state in SDRAM
-    countDown(5);                       //
-    f += verifyBreadCrumbs();           // verify pushpins near the four corners
-    countDown(5);                       //
-  *****/
+  f += verifyNMEAtime();              // verify conversions from GPS' time (NMEA) to time_t
+  countDown(5);                       //
+  f += verifyCalcTimeDiff();          // verify human-friendly time intervals
+  countDown(5);                       //
+  f += verifyMorseCode();             // verify Morse code
+  f += verifySaveRestoreVolume();     // verify save/restore an integer setting in SDRAM
+  countDown(5);                       //
+  f += verifySaveRestoreArray();      // verify save/restore an array in SDRAM
+  countDown(5);                       //
+  f += verifySaveRestoreGPSModel();   // verify save/restore GPS model state in SDRAM
+  countDown(5);                       //
+  f += verifyBreadCrumbs();           // verify pushpins near the four corners
+  countDown(5);                       //
   f += verifyBreadCrumbTrail1();   // verify painting the bread crumb trail
   countDown(5);                    //
   f += verifyBreadCrumbTrail2();   // verify painting the bread crumb trail
@@ -779,13 +772,11 @@ void runUnitTest() {
   countDown(5);                    //
   f += verifyRestoreTrail();       // restore GPS route from non-volatile memory
   countDown(5);                    //
-                                   /*****
-                                     f += verifyDerivingGridSquare();    // verify deriving grid square from lat-long coordinates
-                                     countDown(5);                       //
-                                     f += verifyComputingDistance();     // verify computing distance
-                                     f += verifyComputingGridLines();    // verify finding grid lines on E and W
-                                     countDown(5);                       // give user time to inspect display appearance for unit test problems
-                                   *****/
+  f += verifyDerivingGridSquare();    // verify deriving grid square from lat-long coordinates
+  countDown(5);                       //
+  f += verifyComputingDistance();     // verify computing distance
+  f += verifyComputingGridLines();    // verify finding grid lines on E and W
+  countDown(5);                       // give user time to inspect display appearance for unit test problems
   trail.clearHistory();            // clean up our mess after unit test
   trail.rememberPUP();
 
