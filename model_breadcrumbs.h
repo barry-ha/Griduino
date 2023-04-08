@@ -59,8 +59,7 @@ public:
   // todo: 4. add rememberPDN(), rememberTOD()
 
   void rememberPUP() {
-    logger.fencepost("rememberPUP", __LINE__);
-    PointGPS whereAmI{0.0, 0.0};
+    PointGPS whereAmI{-1.0, -1.0};               // eye-catching value, and nonzero for "isEmpty()"
     Location pup{rPOWERUP, whereAmI, now(), 0, -1.0, -1.0, -1.0};
 
     history[nextHistoryItem] = pup;
@@ -129,7 +128,7 @@ public:
         char sGrid6[7];
         grid.calcLocator(sGrid6, history[ii].loc.lat, history[ii].loc.lng, 6);
 
-        logger.fencepost("model_breadcrumbs.h", "saveGPSBreadcrumbTrail", __LINE__);   // debug
+        logger.fencepost("model_breadcrumbs.h", __LINE__);   // debug
 
         char sLat[12], sLng[12];
         floatToCharArray(sLat, sizeof(sLat), history[ii].loc.lat, 5);
@@ -141,7 +140,7 @@ public:
         floatToCharArray(sAngle, sizeof(sAngle), history[ii].direction, 1);
         int numSatellites = history[ii].numSatellites;
 
-        logger.fencepost("model_breadcrumbs.h", "saveGPSBreadcrumbTrail", __LINE__);   // debug
+        logger.fencepost("model_breadcrumbs.h", __LINE__);   // debug
         //                           1  2  3  4  5  6  7  8  9
         snprintf(msg, sizeof(msg), "%s,%s,%s,%s,%s,%s,%s,%s,%s,%d",
                  history[ii].recordType, sTime, sGrid6, sLat, sLng, sAlt, sSpeed, sAngle, numSatellites);
@@ -309,12 +308,18 @@ public:
   }
 
   void clearHistory() {
-    // wipe clean the array of lat/long that we remember
+    // wipe clean the trail of breadcrumbs
     for (uint ii = 0; ii < numHistory; ii++) {
       history[ii].reset();
     }
     nextHistoryItem = 0;
     Serial.println("Breadcrumb trail has been erased");
+  }
+
+  void deleteFile() {
+    SaveRestoreStrings config(HISTORY_FILE, HISTORY_VERSION);
+    config.deleteFile(HISTORY_FILE);
+    Serial.println("Breadcrumb trail erased and file deleted");
   }
 
   void dumpHistoryGPS() {
@@ -364,16 +369,15 @@ public:
         uint8_t nSats = item.numSatellites;
 
         char out[128];
-        //                           1   2   3   4   5   6   7   8   9  10
-        snprintf(out, sizeof(out), "%d, %s, %s, %s, %s, %s, %s, %s, %s, %s, %d",
-                 ii, item.recordType, sDate, sTime, grid6, sLat, sLng, sSpeed, sDirection, sAltitude, nSats);
+        if (item.isGPS()) {
+          snprintf(out, sizeof(out), "%d, %s, %s, %s",
+                  ii, item.recordType, sDate, sTime);
+        } else {
+          //                           1   2   3   4   5   6   7   8   9  10
+          snprintf(out, sizeof(out), "%d, %s, %s, %s, %s, %s, %s, %s, %s, %s, %d",
+                  ii, item.recordType, sDate, sTime, grid6, sLat, sLng, sSpeed, sDirection, sAltitude, nSats);
+        }
         Serial.println(out);
-
-        // TimeElements time;                 // https://github.com/PaulStoffregen/Time
-        // breakTime(item.timestamp, time);   // debug
-        // snprintf(out, sizeof(out), "item.timestamp = %02d-%02d-%04d %02d:%02d:%02d",
-        //          time.Month, time.Day, 1970+time.Year, time.Hour, time.Minute, time.Second);
-        // Serial.println(out);               // debug
       }
     }
     int remaining = numHistory - ii;
@@ -474,7 +478,7 @@ public:
     // loop through the entire GPS history buffer
     for (int ii = 0; ii < numHistory; ii++) {
       Location item = history[index];
-      if ((item.loc.lat != 0) || (item.loc.lng != 0)) {
+      if (!item.isEmpty()) {
         if (!startFound) {
           // this is the first non-empty lat/long found,
           // so this must be chronologically the oldest entry recorded
