@@ -9,7 +9,7 @@
 #endif
 #define PROGRAM_LINE1    "Barry K7BWH"
 #define PROGRAM_LINE2    "John KM7O"
-#define PROGRAM_COMPILED __DATE__ " " __TIME__ 
+#define PROGRAM_COMPILED __DATE__ " " __TIME__
 #define PROGRAM_FILE     __FILE__
 #define PROGRAM_GITHUB   "https://github.com/barry-ha/Griduino"
 
@@ -212,11 +212,22 @@ public:
   float altitude;          // altitude, meters above MSL
 public:
   void reset() {
+    recordType[0] = 0;
     loc.lat = loc.lng = 0.0;
     timestamp         = 0;
+    numSatellites     = 0;
+    speed             = -1.0;
+    direction = altitude = -1.0;
   }
   bool isEmpty() {
     return (loc.lat == 0.0 && loc.lng == 0.0);
+  }
+  bool isGPS() {
+    if (strncmp(recordType, rGPS, sizeof(recordType)) == 0) {
+      return true;
+    } else {
+      return false;
+    }
   }
   // sanity check data from NVR
   void printLocation(int ii, Location item) {
@@ -229,5 +240,4 @@ public:
     Serial.print(", ");
     Serial.println(item.loc.lng);
   }
-
 };
