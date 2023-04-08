@@ -27,7 +27,7 @@
               }
             }
 */
-#include <SdFat.h>   // SDRAM File Allocation Table filesystem
+#include <SdFat.h>    // SDRAM File Allocation Table filesystem
 #include "logger.h"   // conditional printing to Serial port
 
 // ========== extern ===========================================
@@ -84,11 +84,7 @@ public:
   /*
    * Delete file
    */
-  int remove(const char *vFilename) {
-    // todo
-    logger.error("Todo: implement SaveRestore:remove()");
-    return 0;
-  }
+  int deleteFile(const char *vFilename);
 
 protected:
   int openFlash();   // helper

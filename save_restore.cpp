@@ -39,11 +39,11 @@ int openFlash();
 
 // ========== globals =================================
 #if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
-  // Adafruit Feather RP2040, https://www.adafruit.com/product/4884
-  Adafruit_FlashTransport_RP2040_CPY flashTransport;   // onboard RAM, compatible with CircuitPy
+// Adafruit Feather RP2040, https://www.adafruit.com/product/4884
+Adafruit_FlashTransport_RP2040_CPY flashTransport;   // onboard RAM, compatible with CircuitPy
 #else
-  // Adafruit Feather M4, https://www.adafruit.com/product/3857
-  Adafruit_FlashTransport_QSPI flashTransport;   // Quad SPI 2MB memory chip
+// Adafruit Feather M4, https://www.adafruit.com/product/3857
+Adafruit_FlashTransport_QSPI flashTransport;   // Quad SPI 2MB memory chip
 #endif
 Adafruit_SPIFlash gFlash(&flashTransport);
 FatFileSystem gFatfs;   // file system object from SdFat
@@ -60,6 +60,14 @@ static void dumpHex(const char *text, char *buff, int len) {
     Serial.print(out);
   }
   Serial.println("");
+}
+
+// ========== delete file =============================
+int SaveRestore::deleteFile(const char *vFilename) {
+  int result = 1;   // assume success
+  logger.info("Delete file from SDRAM: ", vFilename);
+  gFatfs.remove(fqFilename);   // delete file
+  return result;
 }
 
 // ========== load configuration ======================
@@ -323,7 +331,7 @@ void SaveRestoreStrings::close() {
  */
 int SaveRestore::listFiles(const char *dirname) {
   // Open the root folder to list top-level children (files and directories).
-  int rc       = 1;   // assume success
+  int rc         = 1;   // assume success
   File32 testDir = gFatfs.open(dirname);
   if (!testDir) {
     logger.error("Error, failed to open directory ", dirname);
