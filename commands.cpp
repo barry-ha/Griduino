@@ -106,11 +106,13 @@ void dump_gps_history() {
 
 void erase_gps_history() {
   trail.clearHistory();
+  trail.rememberPUP();
+  trail.deleteFile();
 }
 
 void list_files() {
   SaveRestore saver("x", "y");   // dummy config object, we won't actually save anything
-  saver.listFiles("/");          // list them starting at root
+  saver.listFiles("/");          // list all files starting at root
 }
 
 void start_nmea() {
