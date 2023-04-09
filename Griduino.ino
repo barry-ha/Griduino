@@ -855,7 +855,6 @@ void loop() {
     // assuming "class Adafruit_GPS" contains 2000-01-01 00:00 until 
     // it receives an update via NMEA sentences
     // the next step (1 second timer) will actually set the clock
-    //redrawGraph = true;
     waitingForRTC = false;
 
     char msg[128];                    // debug
@@ -864,8 +863,10 @@ void loop() {
                                 GPS.hour,GPS.minute,GPS.seconds);
     Serial.println(msg);              // debug
 
-    // write this to the GPS breadcrumb trail as indication of "power up" event
-    // trail.remember();   // todo: create new event type "PUP" to save in history buffer
+    // write this to the breadcrumb trail as preliminary indication of acquiring satellites
+    TimeElements tm{GPS.seconds, GPS.minute, GPS.hour, 0, GPS.day, GPS.month, (byte)(2000-1970+GPS.year)};
+    time_t firstTime = makeTime(tm);
+    trail.rememberFirstValidTime(firstTime, GPS.satellites);
   }
 
   // every 1 second update the realtime clock

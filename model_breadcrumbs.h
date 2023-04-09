@@ -47,6 +47,10 @@ public:
   // 3000     48 bytes  144,000 bytes   crash on "list files" command
   const int numHistory = sizeof(history) / sizeof(Location);
   int saveInterval     = 2;
+  PointGPS noLocation{-1.0, -1.0};   // eye-catching value, and nonzero for "isEmpty()"
+  const float noSpeed     = -1.0;
+  const float noDirection = -1.0;
+  const float noAltitude  = -1.0;
 
 protected:
 public:
@@ -59,8 +63,16 @@ public:
   // todo: 4. add rememberPDN(), rememberTOD()
 
   void rememberPUP() {
-    PointGPS whereAmI{-1.0, -1.0};               // eye-catching value, and nonzero for "isEmpty()"
-    Location pup{rPOWERUP, whereAmI, now(), 0, -1.0, -1.0, -1.0};
+    Location pup{rPOWERUP, noLocation, now(), 0, noSpeed, noDirection, noAltitude};
+
+    history[nextHistoryItem] = pup;
+    nextHistoryItem          = (++nextHistoryItem % numHistory);
+  }
+
+  void rememberFirstValidTime(time_t vTime, uint8_t vSats) {
+    // "first valid time" can happen _without_ a satellite fix,
+    // so all we store is the GMT timestamp
+    Location pup{rVALIDTIME, noLocation, vTime, vSats, noSpeed, noDirection, noAltitude};
 
     history[nextHistoryItem] = pup;
     nextHistoryItem          = (++nextHistoryItem % numHistory);
@@ -369,13 +381,22 @@ public:
         uint8_t nSats = item.numSatellites;
 
         char out[128];
-        if (item.isGPS()) {
+        if (item.isPUP()) {
           snprintf(out, sizeof(out), "%d, %s, %s, %s",
-                  ii, item.recordType, sDate, sTime);
-        } else {
+                   ii, item.recordType, sDate, sTime);
+
+        } else if (item.isFirstValidTime()) {
+          snprintf(out, sizeof(out), "%d, %s, %s, %s, , , , , , , %d",
+                   ii, item.recordType, sDate, sTime, nSats);
+
+        } else if (item.isGPS()) {
           //                           1   2   3   4   5   6   7   8   9  10
           snprintf(out, sizeof(out), "%d, %s, %s, %s, %s, %s, %s, %s, %s, %s, %d",
-                  ii, item.recordType, sDate, sTime, grid6, sLat, sLng, sSpeed, sDirection, sAltitude, nSats);
+                   ii, item.recordType, sDate, sTime, grid6, sLat, sLng, sSpeed, sDirection, sAltitude, nSats);
+
+        } else {
+          snprintf(out, sizeof(out), "%d, Record type '%s' not recognized",
+                   ii, item.recordType);
         }
         Serial.println(out);
       }
@@ -478,43 +499,45 @@ public:
     // loop through the entire GPS history buffer
     for (int ii = 0; ii < numHistory; ii++) {
       Location item = history[index];
-      if (!item.isEmpty()) {
-        if (!startFound) {
-          // this is the first non-empty lat/long found,
-          // so this must be chronologically the oldest entry recorded
-          // Remember it for the "Start" pushpin
-          startIndex = index;
-          startFound = true;
+      if (item.isGPS()) {
+        if (!item.isEmpty()) {
+          if (!startFound) {
+            // this is the first non-empty lat/long found,
+            // so this must be chronologically the oldest entry recorded
+            // Remember it for the "Start" pushpin
+            startIndex = index;
+            startFound = true;
+          }
+
+          // PlaceMark with timestamp
+          TimeElements time;   // https://github.com/PaulStoffregen/Time
+          breakTime(item.timestamp, time);
+
+          char sLat[12], sLng[12];
+          floatToCharArray(sLat, sizeof(sLat), item.loc.lat, 5);
+          floatToCharArray(sLng, sizeof(sLng), item.loc.lng, 5);
+
+          char grid6[7];
+          grid.calcLocator(grid6, item.loc.lat, item.loc.lng, 6);
+
+          char sSpeed[12], sDirection[12], sAltitude[12];
+          floatToCharArray(sSpeed, sizeof(sSpeed), item.speed, 1);
+          floatToCharArray(sDirection, sizeof(sDirection), item.direction, 1);
+          floatToCharArray(sAltitude, sizeof(sAltitude), item.altitude, 1);
+          int numSats = item.numSatellites;
+
+          char msg[500];
+          snprintf(msg, sizeof(msg), PLACEMARK_WITH_TIMESTAMP,
+                   sLat, sLng,   // humans prefer "latitude,longitude"
+                   grid6,
+                   time.Year + 1970, time.Month, time.Day, time.Hour, time.Minute, time.Second,   // human readable time
+                   time.Year + 1970, time.Month, time.Day, time.Hour, time.Minute, time.Second,   // kml timestamp
+                   sLng, sLat,                                                                    // kml requires "longitude,latitude"
+                   sSpeed, sDirection, sAltitude,                                                 // mph, degrees from North, meters
+                   numSats                                                                        // number of satellites
+          );
+          Serial.print(msg);
         }
-
-        // PlaceMark with timestamp
-        TimeElements time;   // https://github.com/PaulStoffregen/Time
-        breakTime(item.timestamp, time);
-
-        char sLat[12], sLng[12];
-        floatToCharArray(sLat, sizeof(sLat), item.loc.lat, 5);
-        floatToCharArray(sLng, sizeof(sLng), item.loc.lng, 5);
-
-        char grid6[7];
-        grid.calcLocator(grid6, item.loc.lat, item.loc.lng, 6);
-
-        char sSpeed[12], sDirection[12], sAltitude[12];
-        floatToCharArray(sSpeed, sizeof(sSpeed), item.speed, 1);
-        floatToCharArray(sDirection, sizeof(sDirection), item.direction, 1);
-        floatToCharArray(sAltitude, sizeof(sAltitude), item.altitude, 1);
-        int numSats = item.numSatellites;
-
-        char msg[500];
-        snprintf(msg, sizeof(msg), PLACEMARK_WITH_TIMESTAMP,
-                 sLat, sLng,   // humans prefer "latitude,longitude"
-                 grid6,
-                 time.Year + 1970, time.Month, time.Day, time.Hour, time.Minute, time.Second,   // human readable time
-                 time.Year + 1970, time.Month, time.Day, time.Hour, time.Minute, time.Second,   // kml timestamp
-                 sLng, sLat,                                                                    // kml requires "longitude,latitude"
-                 sSpeed, sDirection, sAltitude,                                                 // mph, degrees from North, meters
-                 numSats                                                                        // number of satellites
-        );
-        Serial.print(msg);
       }
       index = (index + 1) % numHistory;
     }

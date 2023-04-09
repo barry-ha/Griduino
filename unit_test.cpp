@@ -204,10 +204,11 @@ int testNextGridLineEast(float fExpected, double fLongitude) {
   // unit test helper for finding grid line crossings
   int r        = 0;
   float result = grid.nextGridLineEast(fLongitude);
+  // clang-format off
   Serial.print("Grid Crossing East: given = ");   //~Serial.print(fLongitude);
   Serial.print(", expected = ");                  //~Serial.print(fExpected);
   Serial.print(", result = ");                    //~Serial.print(result);
-  // clang on
+  // clang-format on
   if (result == fExpected) {
     ~Serial.println("");
   } else {
@@ -221,14 +222,11 @@ int testNextGridLineWest(float fExpected, double fLongitude) {
   // unit test helper for finding grid line crossings
   int r        = 0;
   float result = grid.nextGridLineWest(fLongitude);
-  // clang off
-  Serial.print("Grid Crossing West: given = ");
-  Serial.print(fLongitude);
-  Serial.print(", expected = ");
-  Serial.print(fExpected);
-  Serial.print(", result = ");
-  Serial.print(result);
-  // clang on
+  // clang-format off
+  Serial.print("Grid Crossing West: given = ");  Serial.print(fLongitude);
+  Serial.print(", expected = ");  Serial.print(fExpected);
+  Serial.print(", result = ");  Serial.print(result);
+  // clang-format on
   if (result == fExpected) {
     Serial.println("");
   } else {
@@ -493,7 +491,7 @@ int verifyBreadCrumbs() {
   model->gLongitude = -122.274711;   // CN87
 
   // reduce the frequency of saving to memory
-  trail.saveInterval = 20;           // default 2 is too often, 100 is not often enough
+  trail.saveInterval = 20;   // default 2 is too often, 100 is not often enough
 
   // initialize the canvas that we will draw upon
   gridView.startScreen();   // clear and draw normal screen
@@ -764,20 +762,20 @@ void runUnitTest() {
   countDown(5);                       //
   f += verifyBreadCrumbs();           // verify pushpins near the four corners
   countDown(5);                       //
-  f += verifyBreadCrumbTrail1();   // verify painting the bread crumb trail
-  countDown(5);                    //
-  f += verifyBreadCrumbTrail2();   // verify painting the bread crumb trail
-  countDown(5);                    //
-  f += verifySaveTrail();          // save GPS route to non-volatile memory
-  countDown(5);                    //
-  f += verifyRestoreTrail();       // restore GPS route from non-volatile memory
-  countDown(5);                    //
+  f += verifyBreadCrumbTrail1();      // verify painting the bread crumb trail
+  countDown(5);                       //
+  f += verifyBreadCrumbTrail2();      // verify painting the bread crumb trail
+  countDown(5);                       //
+  f += verifySaveTrail();             // save GPS route to non-volatile memory
+  countDown(5);                       //
+  f += verifyRestoreTrail();          // restore GPS route from non-volatile memory
+  countDown(5);                       //
   f += verifyDerivingGridSquare();    // verify deriving grid square from lat-long coordinates
   countDown(5);                       //
   f += verifyComputingDistance();     // verify computing distance
   f += verifyComputingGridLines();    // verify finding grid lines on E and W
   countDown(5);                       // give user time to inspect display appearance for unit test problems
-  trail.clearHistory();            // clean up our mess after unit test
+  trail.clearHistory();               // clean up our mess after unit test
   trail.rememberPUP();
 
   logger.fencepost("unittest.cpp", "End Unit Test", __LINE__);
