@@ -220,17 +220,23 @@ public:
     direction = altitude = 0.0;
   }
   bool isEmpty() {
-    // all unused history[] entries have reset recordType to zeroes
+    // we take advantage of the fact that all unused history[] entries
+    // whill have reset their recordType field to zeroes
     return (recordType[0] == 0);
   }
 
   bool isGPS() {
-    if (strncmp(recordType, rGPS, sizeof(recordType)) == 0) {
-      return false;
-    } else {
-      return true;
-    }
+    return (strncmp(recordType, rGPS, sizeof(recordType)) == 0) ? true : false;
   }
+
+  bool isPUP() {
+    return (strncmp(recordType, rPOWERUP, sizeof(recordType)) == 0) ? true : false;
+  }
+
+  bool isFirstValidTime() {
+    return (strncmp(recordType, rVALIDTIME, sizeof(recordType)) == 0) ? true : false;
+  }
+
   // sanity check data from NVR
   void printLocation(int ii, Location item) {
     Serial.print(". ");
