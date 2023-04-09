@@ -315,7 +315,7 @@ void plotRoute(Location *marker, const int numMarkers, const PointGPS origin) {
   // show route track history bread crumb trail
   // Serial.print("plotRoute() at line "); Serial.println(__LINE__);   // debug
   // Serial.print("~ Plot relative to origin("); Serial.print(origin.lat); Serial.print(","); Serial.print(origin.lng); Serial.println(")");
-  // model->dumpHistory();    // debug
+  // trail.dumpHistoryGPS();    // debug
 
   Point prevPixel{0, 0};   // keep track of previous dot plotted
 

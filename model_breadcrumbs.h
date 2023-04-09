@@ -63,6 +63,9 @@ public:
   // todo: 4. add rememberPDN(), rememberTOD()
 
   void rememberPUP() {
+    // Save a "power-up" event in the history array.
+    // Note: This is a low-level subroutine with minimal side effects. 
+    //       The caller is responsible for writing it to a file, if that's needed.
     Location pup{rPOWERUP, noLocation, now(), 0, noSpeed, noDirection, noAltitude};
 
     history[nextHistoryItem] = pup;
@@ -71,24 +74,27 @@ public:
 
   void rememberFirstValidTime(time_t vTime, uint8_t vSats) {
     // "first valid time" can happen _without_ a satellite fix,
-    // so all we store is the GMT timestamp
-    Location pup{rVALIDTIME, noLocation, vTime, vSats, noSpeed, noDirection, noAltitude};
+    // so the only data stored is the GMT timestamp
+    // Note: This is a low-level subroutine with minimal side effects. 
+    //       The caller is responsible for writing it to a file, if that's needed.
+    Location fvt{rVALIDTIME, noLocation, vTime, vSats, noSpeed, noDirection, noAltitude};
 
-    history[nextHistoryItem] = pup;
+    history[nextHistoryItem] = fvt;
     nextHistoryItem          = (++nextHistoryItem % numHistory);
   }
 
   void remember(Location vLoc) {
     // save this GPS location and timestamp in internal array
     // so that we can display it as a breadcrumb trail
-    // optionally write the breadcrumb trail to file
+    // Note: This is a low-level subroutine with minimal side effects. 
+    //       The caller is responsible for writing it to a file, if that's needed.
 
     int prevIndex = nextHistoryItem - 1;   // find prev location in circular buffer
     if (prevIndex < 0) {
       prevIndex = numHistory - 1;
     }
     PointGPS prevLoc = history[prevIndex].loc;
-    if (isVisibleDistance(vLoc.loc, prevLoc)) {
+    if (isVisibleDistance(vLoc.loc, prevLoc)) {   // todo: refactor into Controller
       history[nextHistoryItem] = vLoc;
 
       nextHistoryItem = (++nextHistoryItem % numHistory);
@@ -140,8 +146,6 @@ public:
         char sGrid6[7];
         grid.calcLocator(sGrid6, history[ii].loc.lat, history[ii].loc.lng, 6);
 
-        logger.fencepost("model_breadcrumbs.h", __LINE__);   // debug
-
         char sLat[12], sLng[12];
         floatToCharArray(sLat, sizeof(sLat), history[ii].loc.lat, 5);
         floatToCharArray(sLng, sizeof(sLng), history[ii].loc.lng, 5);
@@ -152,10 +156,9 @@ public:
         floatToCharArray(sAngle, sizeof(sAngle), history[ii].direction, 1);
         int numSatellites = history[ii].numSatellites;
 
-        logger.fencepost("model_breadcrumbs.h", __LINE__);   // debug
-        //                           1  2  3  4  5  6  7  8  9
+        //                           1  2  3  4  5  6  7  8  9 10
         snprintf(msg, sizeof(msg), "%s,%s,%s,%s,%s,%s,%s,%s,%s,%d",
-                 history[ii].recordType, sTime, sGrid6, sLat, sLng, sAlt, sSpeed, sAngle, numSatellites);
+                 history[ii].recordType, sDate, sTime, sGrid6, sLat, sLng, sAlt, sSpeed, sAngle, numSatellites);
         config.writeLine(msg);
       }
     }
@@ -165,6 +168,21 @@ public:
     config.close();
 
     return 1;   // success
+  }
+
+  bool isValidBreadcrumb(const char *crumb) {
+    // examine an input line from saved breadcrumb trail to see if it's a plausible GPS record type
+    // clang-format off
+    if ((strlen(crumb) > 4)
+      &&(',' == crumb[3])
+      &&('A' <= crumb[0] && crumb[0] <= 'Z')
+      &&('A' <= crumb[1] && crumb[1] <= 'Z')
+      &&('A' <= crumb[2] && crumb[2] <= 'Z')) {
+      return true;
+    } else {
+      return false;
+    }
+    // clang-format on
   }
 
   int restoreGPSBreadcrumbTrail() {   // returns 1=success, 0=failure
@@ -186,7 +204,7 @@ public:
     int csv_line_number = 0;
     int items_restored  = 0;
     char csv_line[256], original_line[256];
-    const char delimiter[] = ",/:";
+    const char delimiter[] = ",-/:";   // separators for: CSV, date, date, time
     int count;
     bool done = false;
     while (count = config.readLine(csv_line, sizeof(csv_line)) && !done) {
@@ -204,57 +222,51 @@ public:
         logger.error(". File error %d", err);   // 1=write, 2=read
         done = true;
         break;
-      } else {
-        // snprintf(msg, sizeof(msg), ". CSV string[%2d] = \"%s\"",
-        //                               csv_line_number, csv_line); // debug
-        // logger.info(msg);  // debug
-        int iYear4      = atoi(strtok(csv_line, delimiter));   // YYYY: calendar year
-        uint8_t iYear2  = CalendarYrToTm(iYear4);              // YY: offset from 1970
-        uint8_t iMonth  = atoi(strtok(NULL, delimiter));
-        uint8_t iDay    = atoi(strtok(NULL, delimiter));
-        uint8_t iHour   = atoi(strtok(NULL, delimiter));
-        uint8_t iMinute = atoi(strtok(NULL, delimiter));
-        uint8_t iSecond = atoi(strtok(NULL, delimiter));
-        // must match same order in saveGPSBreadcrumbTrail()
-        // "GMT Date, GMT Time, Grid, Latitude, Longitude, Altitude, MPH, Direction, Satellites"
+      } else if (isValidBreadcrumb(original_line)) {
+        // parsing text must match same order in saveGPSBreadcrumbTrail()
+        // "Type, GMT Date, GMT Time, Grid, Latitude, Longitude, Altitude, MPH, Direction, Satellites"
+        char sType[4];
+        strncpy(sType, strtok(csv_line, delimiter), sizeof(sType));
+        int iYear4        = atoi(strtok(NULL, delimiter));   // YYYY: actual calendar year
+        uint8_t iYear2    = CalendarYrToTm(iYear4);          // YY: offset from 1970
+        uint8_t iMonth    = atoi(strtok(NULL, delimiter));
+        uint8_t iDay      = atoi(strtok(NULL, delimiter));
+        uint8_t iHour     = atoi(strtok(NULL, delimiter));
+        uint8_t iMinute   = atoi(strtok(NULL, delimiter));
+        uint8_t iSecond   = atoi(strtok(NULL, delimiter));
         double fLatitude  = atof(strtok(NULL, delimiter));
         double fLongitude = atof(strtok(NULL, delimiter));
         double fAltitude  = atof(strtok(NULL, delimiter));
         double fSpeed     = atof(strtok(NULL, delimiter));
         double fDirection = atof(strtok(NULL, delimiter));
-        int fSatellites   = atoi(strtok(NULL, delimiter));
+        int nSatellites   = atoi(strtok(NULL, delimiter));
+
+        // echo info for debug
+        // logger.info(".       Source = ", original_line);
+        // char msg[256];
+        // snprintf(msg, sizeof(msg), ".       Parsed = %s,%02d-%02d-%02d,%02d:%02d:%02d",
+        //         sType, iYear4, iMonth, iDay, iHour, iMinute, iSecond);
+        // logger.info(msg);
 
         // save this return value into history[]
-        // https://cplusplus.com/reference/cstring/
-        if (iYear2 > 0 && fLatitude != 0.0 && fLongitude != 0.0) {
-          // echo info for debug
-          // char msg[256];
-          // snprintf(msg, sizeof(msg), ".       Internal =  %d-%d-%d, %02d:%02d:%02d",
-          //         iYear4, iMonth, iDay, iHour, iMinute, iSecond);
-          // logger.info(msg);
-          // Serial.print(fLatitude, 5);    // todo: replace with 'printLocation(index,Location item)'
-          // Serial.print(", ");
-          // Serial.println(fLongitude, 5);
+        strncpy(history[nextHistoryItem].recordType, sType, sizeof(sType));
+        TimeElements tm{iSecond, iMinute, iHour, 0, iDay, iMonth, iYear2};
+        history[nextHistoryItem].timestamp     = makeTime(tm);   // convert time elements into time_t
+        history[nextHistoryItem].loc.lat       = fLatitude;
+        history[nextHistoryItem].loc.lng       = fLongitude;
+        history[nextHistoryItem].altitude      = fAltitude;
+        history[nextHistoryItem].numSatellites = nSatellites;
+        history[nextHistoryItem].speed         = fSpeed;
+        history[nextHistoryItem].direction     = fDirection;
+        history[nextHistoryItem].numSatellites = nSatellites;
 
-          // save values in the history[] array
-          TimeElements tm{iSecond, iMinute, iHour, 0, iDay, iMonth, iYear2};
-          history[nextHistoryItem].timestamp     = makeTime(tm);   // convert time elements into time_t
-          history[nextHistoryItem].loc.lat       = fLatitude;
-          history[nextHistoryItem].loc.lng       = fLongitude;
-          history[nextHistoryItem].altitude      = fAltitude;
-          history[nextHistoryItem].numSatellites = fSatellites;
-          history[nextHistoryItem].speed         = fSpeed;
-          history[nextHistoryItem].direction     = fDirection;
-          history[nextHistoryItem].numSatellites = fSatellites;
-
-          // adjust loop variables
-          nextHistoryItem++;
-          items_restored++;
-        } else {
-          snprintf(msg, sizeof(msg), ". CSV string[%2d] = \"%s\" - ignored",
-                   csv_line_number, original_line);   // debug
-          logger.warning(msg);                        // debug
-        }
+        // adjust loop variables
+        nextHistoryItem++;
+        items_restored++;
+      } else {
+        snprintf(msg, sizeof(msg), ". CSV string[%2d] = \"%s\" - ignored",
+                 csv_line_number, original_line);   // debug
+        logger.warning(msg);                        // debug
       }
       csv_line[0] = 0;
       csv_line_number++;
@@ -321,6 +333,8 @@ public:
 
   void clearHistory() {
     // wipe clean the trail of breadcrumbs
+    // Note: This is a low-level subroutine with minimal side effects. 
+    //       The caller is responsible for writing it to a file, if that's needed.
     for (uint ii = 0; ii < numHistory; ii++) {
       history[ii].reset();
     }
@@ -334,13 +348,20 @@ public:
     Serial.println("Breadcrumb trail erased and file deleted");
   }
 
-  void dumpHistoryGPS() {
+  void dumpHistoryGPS(int limit = 0) {
+    // limit = for unit tests, how many entries to dump from 0..limit
     Serial.print("\nMaximum saved records = ");
     Serial.println(numHistory);
 
     Serial.print("Current number of records saved = ");
     int count = getHistoryCount();
     Serial.println(count);
+
+    if (limit) {
+      logger.info("Limited to first %d records", limit);
+    } else {
+      limit = numHistory;   // default to all records
+    }
 
     Serial.print("Next record to be written = ");
     Serial.println(nextHistoryItem);
@@ -358,7 +379,7 @@ public:
 
     Serial.println("Record, Type, Date GMT, Time GMT, Grid, Lat, Long, Alt(m), Speed(mph), Direction(Degrees), Sats");
     int ii;
-    for (ii = 0; ii < numHistory; ii++) {
+    for (ii = 0; ii < limit; ii++) {
       Location item = history[ii];
       if (!item.isEmpty()) {
 
@@ -395,8 +416,11 @@ public:
                    ii, item.recordType, sDate, sTime, grid6, sLat, sLng, sSpeed, sDirection, sAltitude, nSats);
 
         } else {
-          snprintf(out, sizeof(out), "%d, Record type '%s' not recognized",
-                   ii, item.recordType);
+          snprintf(out, sizeof(out), "--> Type '%s' unknown: ", item.recordType);
+          Serial.print(out);
+          //                           1   2   3   4   5   6   7   8   9  10
+          snprintf(out, sizeof(out), "%d, %s, %s, %s, %s, %s, %s, %s, %s, %s, %d",
+                   ii, item.recordType, sDate, sTime, grid6, sLat, sLng, sSpeed, sDirection, sAltitude, nSats);
         }
         Serial.println(out);
       }

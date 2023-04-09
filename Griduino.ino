@@ -30,6 +30,14 @@
          The basic unit of time (time_t) is the number of seconds since Jan 1, 1970, 
          a compact 4-byte integer.
          https://github.com/PaulStoffregen/Time
+  
+  Scheduling:
+         This uses the simple but powerful elapsedMillis library originally written
+         by Paul Stoffregen at PJRC (manufacturer of the Teensy line).
+         The key is that elapsedMillis objects can be reset to zero at any time, 
+         allowing the value to be directly compared with a task delay value.
+         https://github.com/pfeerick/elapsedMillis/wiki
+         https://electricfiredesign.com/2021/03/18/simple-multi-tasking-for-arduino/
 
   Real Time Clock:
          The real time clock in the Adafruit Ultimate GPS is not directly readable nor 
@@ -766,6 +774,7 @@ void setup() {
   model->gHaveGPSfix = false;         // assume no satellite signal yet
   model->gSatellites = 0;
   trail.rememberPUP();                // log a "power up" event
+  trail.saveGPSBreadcrumbTrail();     // ensure its saved for posterity
 
   // ----- restore barometric pressure log
   if (baroModel.loadHistory()) {
@@ -867,6 +876,7 @@ void loop() {
     TimeElements tm{GPS.seconds, GPS.minute, GPS.hour, 0, GPS.day, GPS.month, (byte)(2000-1970+GPS.year)};
     time_t firstTime = makeTime(tm);
     trail.rememberFirstValidTime(firstTime, GPS.satellites);
+    trail.saveGPSBreadcrumbTrail();   // ensure its saved for posterity
   }
 
   // every 1 second update the realtime clock

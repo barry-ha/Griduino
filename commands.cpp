@@ -107,7 +107,8 @@ void dump_gps_history() {
 void erase_gps_history() {
   trail.clearHistory();
   trail.rememberPUP();
-  trail.deleteFile();
+  trail.deleteFile();               // out with the old history
+  trail.saveGPSBreadcrumbTrail();   // start over with new history
 }
 
 void list_files() {

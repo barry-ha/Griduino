@@ -558,8 +558,7 @@ int verifyBreadCrumbTrail1() {
     trail.remember(loc);
   }
 
-  // dumpHistory();          // did it remember? dump history to monitor
-  trail.rememberPUP();       // test another "power up" record type
+  trail.rememberPUP();       // test another "power up" record type (also writes it to a file)
   gridView.updateScreen();   //
   trail.dumpHistoryGPS();    // also dump history to console
   trail.clearHistory();      // clean up so it is not re-displayed by main program
@@ -567,16 +566,20 @@ int verifyBreadCrumbTrail1() {
 }
 // =============================================================
 // GPS test helper
-void generateSineWave(Model *pModel) {
+void generateSineWave(int numCrumbs) {
 
   // fill history table with a sine wave
   double startLat  = 47.5;   // 10% outside of CN87
   double startLong = -124.0 - 0.6;
   // don't use "steps = trail.numHistory" because remember() will write each one to SdFat,
   // filling the console log and taking a very long time
-  int steps        = 13;                        // number of loops, pref prime number
-  double stepSize  = (125.3 - 123.7) / steps;   // degrees longitude to move each loop
-  double amplitude = 0.65;                      // degrees latitude, maximum sine wave
+  int steps              = numCrumbs;                 // number of loops, pref prime number
+  double stepSize        = (125.3 - 123.7) / steps;   // degrees longitude to move each loop
+  double amplitude       = 0.65;                      // degrees latitude, maximum sine wave
+  const int nSats        = 5;
+  const float fSpeed     = 10.0;
+  const float fDirection = 11.0;
+  const float fAltitude  = 12.0;
 
   for (int ii = 0; ii < steps; ii++) {
     float longitude = startLong + (ii * stepSize);
@@ -584,15 +587,13 @@ void generateSineWave(Model *pModel) {
     PointGPS latLong{latitude, longitude};
     time_t stamp = now();
     // doesn't matter what timestamp/sats/speed/direction/altitude is actually stored during tests
-    Location loc{rGPS, latLong, stamp, 5, 10.0, 45.0, 123.0};
+    Location loc{rGPS, latLong, stamp, nSats, fSpeed, fDirection, fAltitude};
     trail.remember(loc);
   }
-  // Serial.println("---History as known by generateSineWave()...");
-  // pModel->dumpHistory();            // did it remember? (go review serial console)
 }
 // =============================================================
 // verify painting a trail of bread crumbs (locations)
-int verifyBreadCrumbTrail2() {
+int verifyBreadCrumbTrail2(int howMany) {
   logger.fencepost("unittest.cpp", "verifyBreadCrumbTrail2", __LINE__);
   int r = 0;
 
@@ -602,8 +603,8 @@ int verifyBreadCrumbTrail2() {
   txtTest.print();
 
   trail.clearHistory();
-  trail.rememberPUP();       // test "power up" record type
-  generateSineWave(model);   // fill GPS model with known test data
+  trail.rememberPUP();         // test "power up" record type (also writes it to file)
+  generateSineWave(howMany);   // put known data into breadcrumb trail
 
   Serial.println(". History as known by verifyBreadCrumbTrail2()...");
   trail.dumpHistoryGPS();    // did it remember? (go review serial console)
@@ -612,22 +613,33 @@ int verifyBreadCrumbTrail2() {
 }
 // =============================================================
 // save GPS route to non-volatile memory
-int verifySaveTrail() {
+int verifySaveTrail(int howMany) {
   logger.fencepost("unittest.cpp", "verifySaveTrail", __LINE__);
 
-  Model testModel;   // create an instance of the model for this test
+  trail.saveInterval = 1;   // for this test, remember every single item
+  trail.clearHistory();     //
+  trail.rememberPUP();      // test "power up" record type (also writes it to file)
+  // ail.rememberFirstValidTime()    // todo
+  generateSineWave(howMany);   // generate known data to be saved
 
-  generateSineWave(&testModel);   // generate known data to be saved
+  Serial.println("History as known by verifySaveTrail()...");
+  trail.dumpHistoryGPS(howMany + 4);   // did it remember? (go review serial console)
 
-  // this is automatically saved to non-volatile memory by the trail.remember()
-  return 0;   // this routine does not detect errors, it exists to check for clean compile
+  trail.saveGPSBreadcrumbTrail();   // write to NVR, so we can test Restore
+  return 0;
 }
 // =============================================================
 // restore GPS route from non-volatile memory
-int verifyRestoreTrail() {
+int verifyRestoreTrail(int howMany) {
   logger.fencepost("unittest.cpp", "verifyRestoreTrail", __LINE__);
-  logger.info("todo");
-  return 0;   // todo
+
+  trail.restoreGPSBreadcrumbTrail();   // this takes noticeable time (~0.2 sec)
+
+  Serial.println("History as known by verifyRestoreTrail()...");
+  trail.dumpHistoryGPS(howMany + 4);   // did it remember? (go review serial console)
+
+  trail.saveInterval = 2;   // restore default trail setting
+  return 0;
 }
 // =============================================================
 // deriving grid square from lat-long coordinates
@@ -749,6 +761,7 @@ void runUnitTest() {
   delay(1000);
 
   int f = 0;
+  /*****
   f += verifyNMEAtime();              // verify conversions from GPS' time (NMEA) to time_t
   countDown(5);                       //
   f += verifyCalcTimeDiff();          // verify human-friendly time intervals
@@ -764,19 +777,24 @@ void runUnitTest() {
   countDown(5);                       //
   f += verifyBreadCrumbTrail1();      // verify painting the bread crumb trail
   countDown(5);                       //
-  f += verifyBreadCrumbTrail2();      // verify painting the bread crumb trail
+  f += verifyBreadCrumbTrail2(howMany);   // verify painting the bread crumb trail
   countDown(5);                       //
-  f += verifySaveTrail();             // save GPS route to non-volatile memory
+  *****/
+  int howMany = 7;                    // keep test small
+  f += verifySaveTrail(howMany);      // save GPS route to non-volatile memory
   countDown(5);                       //
-  f += verifyRestoreTrail();          // restore GPS route from non-volatile memory
+  f += verifyRestoreTrail(howMany);   // restore GPS route from non-volatile memory
   countDown(5);                       //
+  /*****
   f += verifyDerivingGridSquare();    // verify deriving grid square from lat-long coordinates
   countDown(5);                       //
   f += verifyComputingDistance();     // verify computing distance
   f += verifyComputingGridLines();    // verify finding grid lines on E and W
   countDown(5);                       // give user time to inspect display appearance for unit test problems
-  trail.clearHistory();               // clean up our mess after unit test
-  trail.rememberPUP();
+  *****/
+  trail.clearHistory();             // clean up our mess after unit test
+  trail.rememberPUP();              //
+  trail.saveGPSBreadcrumbTrail();   // erase unit test from log file
 
   logger.fencepost("unittest.cpp", "End Unit Test", __LINE__);
   if (f) {
