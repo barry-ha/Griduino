@@ -773,14 +773,14 @@ void runUnitTest() {
   countDown(5);                       //
   f += verifySaveRestoreGPSModel();   // verify save/restore GPS model state in SDRAM
   countDown(5);                       //
+  *****/
   f += verifyBreadCrumbs();           // verify pushpins near the four corners
   countDown(5);                       //
   f += verifyBreadCrumbTrail1();      // verify painting the bread crumb trail
   countDown(5);                       //
+  int howMany = 7;                    // keep test small
   f += verifyBreadCrumbTrail2(howMany);   // verify painting the bread crumb trail
   countDown(5);                       //
-  *****/
-  int howMany = 7;                    // keep test small
   f += verifySaveTrail(howMany);      // save GPS route to non-volatile memory
   countDown(5);                       //
   f += verifyRestoreTrail(howMany);   // restore GPS route from non-volatile memory

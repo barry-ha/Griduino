@@ -78,9 +78,6 @@ public:
     // - if the data is still in this grid, then continue
     // - if the data is a different grid, then update [GRID1]
 
-    // int currentIndex = previousIndex(trail.nextHistoryItem);
-    // Location item    = history[currentIndex];
-
     // char currentGrid4[5];
     // grid.calcLocator(currentGrid4, item.loc.lat, item.loc.lng, 4);
     //  logger.info("Current grid = ", currentGrid4);   // debug

@@ -14,6 +14,8 @@
 #include "save_restore.h"        // Configuration data in nonvolatile RAM
 #include "model_breadcrumbs.h"   // breadcrumb trail
 
+void floatToCharArray(char *result, int maxlen, double fValue, int decimalPlaces);   // Griduino.ino
+
 // ----- save GPS history[] to non-volatile memory as CSV file -----
 const char HISTORY_FILE[25]    = CONFIG_FOLDER "/gpshistory.csv";   // CONFIG_FOLDER
 const char HISTORY_VERSION[25] = "GPS Breadcrumb Trail v2";         // <-- always change version when changing data format
@@ -40,7 +42,7 @@ void Breadcrumbs::dumpHistoryGPS(int limit) {
   }
 
   Serial.print("Next record to be written = ");
-  Serial.println(nextHistoryItem);
+  Serial.println(head);
 
   time_t tm = now();                           // debug: show current time in seconds
   Serial.print("now() = ");                    // debug
@@ -207,19 +209,19 @@ int Breadcrumbs::restoreGPSBreadcrumbTrail() {   // returns 1=success, 0=failure
       // "Type, GMT Date, GMT Time, Grid, Latitude, Longitude, Altitude, MPH, Direction, Satellites"
       char sType[4];
       strncpy(sType, strtok(csv_line, delimiter), sizeof(sType));
-      int iYear4        = atoi(strtok(NULL, delimiter));   // YYYY: actual calendar year
-      uint8_t iYear2    = CalendarYrToTm(iYear4);          // YY: offset from 1970
-      uint8_t iMonth    = atoi(strtok(NULL, delimiter));
-      uint8_t iDay      = atoi(strtok(NULL, delimiter));
-      uint8_t iHour     = atoi(strtok(NULL, delimiter));
-      uint8_t iMinute   = atoi(strtok(NULL, delimiter));
-      uint8_t iSecond   = atoi(strtok(NULL, delimiter));
-      double fLatitude  = atof(strtok(NULL, delimiter));
-      double fLongitude = atof(strtok(NULL, delimiter));
-      double fAltitude  = atof(strtok(NULL, delimiter));
-      double fSpeed     = atof(strtok(NULL, delimiter));
-      double fDirection = atof(strtok(NULL, delimiter));
-      int nSatellites   = atoi(strtok(NULL, delimiter));
+      int iYear4          = atoi(strtok(NULL, delimiter));   // YYYY: actual calendar year
+      uint8_t iYear2      = CalendarYrToTm(iYear4);          // YY: offset from 1970
+      uint8_t iMonth      = atoi(strtok(NULL, delimiter));
+      uint8_t iDay        = atoi(strtok(NULL, delimiter));
+      uint8_t iHour       = atoi(strtok(NULL, delimiter));
+      uint8_t iMinute     = atoi(strtok(NULL, delimiter));
+      uint8_t iSecond     = atoi(strtok(NULL, delimiter));
+      double fLatitude    = atof(strtok(NULL, delimiter));
+      double fLongitude   = atof(strtok(NULL, delimiter));
+      float fAltitude     = atof(strtok(NULL, delimiter));
+      float fSpeed        = atof(strtok(NULL, delimiter));
+      float fDirection    = atof(strtok(NULL, delimiter));
+      uint8_t nSatellites = atoi(strtok(NULL, delimiter));
 
       // echo info for debug
       // logger.info(".       Source = ", original_line);
@@ -228,20 +230,17 @@ int Breadcrumbs::restoreGPSBreadcrumbTrail() {   // returns 1=success, 0=failure
       //         sType, iYear4, iMonth, iDay, iHour, iMinute, iSecond);
       // logger.info(msg);
 
-      // save this return value into history[]
-      strncpy(history[nextHistoryItem].recordType, sType, sizeof(sType));
+      // save this return value into breadcrumb trail buffer
+      PointGPS whereAmI{fLatitude, fLongitude};
+
       TimeElements tm{iSecond, iMinute, iHour, 0, iDay, iMonth, iYear2};
-      history[nextHistoryItem].timestamp     = makeTime(tm);   // convert time elements into time_t
-      history[nextHistoryItem].loc.lat       = fLatitude;
-      history[nextHistoryItem].loc.lng       = fLongitude;
-      history[nextHistoryItem].altitude      = fAltitude;
-      history[nextHistoryItem].numSatellites = nSatellites;
-      history[nextHistoryItem].speed         = fSpeed;
-      history[nextHistoryItem].direction     = fDirection;
-      history[nextHistoryItem].numSatellites = nSatellites;
+      time_t csvTime = makeTime(tm);   // convert time elements into time_t
+
+      Location csvloc{sType[0], sType[1], sType[2], 0, whereAmI, csvTime, nSatellites, fSpeed, fDirection, fAltitude};
+      remember(csvloc);
 
       // adjust loop variables
-      nextHistoryItem++;
+      advance_pointer();
       items_restored++;
     } else {
       snprintf(msg, sizeof(msg), ". CSV string[%2d] = \"%s\" - ignored",
@@ -250,9 +249,6 @@ int Breadcrumbs::restoreGPSBreadcrumbTrail() {   // returns 1=success, 0=failure
     }
     csv_line[0] = 0;
     csv_line_number++;
-    if (nextHistoryItem >= capacity) {
-      done = true;
-    }
   }
   logger.info(". Restored %d breadcrumbs from %d lines in CSV file", items_restored, csv_line_number);
 
@@ -268,21 +264,26 @@ int Breadcrumbs::restoreGPSBreadcrumbTrail() {   // returns 1=success, 0=failure
   time_t newest = makeTime(past);
 
   // find the oldest item (unused slots contain zero and are automatically the oldest)
-  for (int ii = 0; ii < capacity; ii++) {
-    time_t tm = history[ii].timestamp;
+  Location *loc = begin();
+  while (loc) {
+    time_t tm = loc->timestamp;
     if (tm < oldest) {
       // keep track of oldest GPS bread crumb
-      indexOldest = ii;
+      indexOldest = current;
       oldest      = tm;
     }
     if (tm > newest) {
       // keep track of most recent GPS bread crumb, out of curiosity
-      indexNewest = ii;
+      indexNewest = current;
       newest      = tm;
     }
+    loc = next();
   }
   // here's the real meat of the potato
-  nextHistoryItem = indexOldest;
+  // todo: do we even care about restoring the original head/tail values?
+  //       if so, the only way to get it right is to make sure the 'output CSV' routine
+  //       writes from tail to head into the file
+  // nextHistoryItem = indexOldest;
 
   // report statistics for a visible sanity check to aid debug
   char sOldest[24], sNewest[24];
@@ -379,10 +380,16 @@ int Breadcrumbs::restoreGPSBreadcrumbTrail() {   // returns 1=success, 0=failure
 
 void Breadcrumbs::dumpHistoryKML() {
 
+  // todo: redesign dumpHistoryKML() with new head/tail pointers
+  logger.error("***********************************************************");
+  logger.error("Todo: redesign dumpHistoryKML() with new head/tail pointers");
+  logger.error("***********************************************************");
+
+  /*********************************************************************
   Serial.print(KML_PREFIX);         // begin KML file
   Serial.print(BREADCRUMB_STYLE);   // add breadcrumb icon style
-  int startIndex  = nextHistoryItem + 1;
-  bool startFound = false;
+  //int startIndex  = nextHistoryItem + 1;  // deleted - use 'tail' instead'
+  //bool startFound = false;    // deleted - we always know the start is 'tail'
 
   // start right AFTER the most recently written slot in circular buffer
   int index = nextHistoryItem;
@@ -450,4 +457,5 @@ void Breadcrumbs::dumpHistoryKML() {
     Serial.print(PUSHPIN_SUFFIX);   // end pushpin at start of route
   }
   Serial.println(KML_SUFFIX);   // end KML file
+  *********************************************************************/
 }

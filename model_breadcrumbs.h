@@ -30,22 +30,37 @@
             We need to save and restore the buffer to/from a file
             We want to hide implementation details from other modules
 
+  Full and Empty:
+            The "full" and "empty" cases look the same: head and tail pointer are equal.
+            There are two approaches to differentiating between full and empty:
+            1. Waste a slot in the buffer:
+                  Full state is head + 1 == tail
+                  Empty state is head == tail
+            2. Use a bool flag and additional logic:    <-- Griduino chooses this approach
+                  Full state has "bool full"
+                  Empty state is (head == tail) && !full
+            Griduino wants efficient memory usage and doesn't need thread safety.
+
+  Scope:
+            This is a low-level subroutine with minimal side effects.
+            This "Breadcrumbs" object will just only manage itself.
+            The caller is responsible for asking us to write to a file when it's needed.
+            Don't reach into the "model" from here and tell it what to do.
+            When the caller tells us to save to file, don't tell the "model" to do anything.
+
   Size of GPS breadcrumb trail:
-              Our goal is to keep track of at least one long day's travel, 500 miles or more.
-              If 180 pixels horiz = 100 miles, then we need (500*180/100) = 900 entries.
-              If 160 pixels vert = 70 miles, then we need (500*160/70) = 1,140 entries.
-              For example, with a drunken-sailor route around the Olympic Peninsula,
-              we need at least 800 entries to capture the whole out-and-back 500-mile loop.
+            Our goal is to keep track of at least one long day's travel, 500 miles or more.
+            If 180 pixels horiz = 100 miles, then we need (500*180/100) = 900 entries.
+            If 160 pixels vert = 70 miles, then we need (500*160/70) = 1,140 entries.
+            For example, with a drunken-sailor route around the Olympic Peninsula,
+            we need at least 800 entries to capture the whole out-and-back 500-mile loop.
 
-              array  bytes        total          2023-04-08
-              size   per entry    memory         comment
-              2500     48 bytes  120,000 bytes   ok
-              2950     48 bytes  141,600 bytes   ok
-              2980     48 bytes  143,040 bytes   ok
-              3000     48 bytes  144,000 bytes   crash on "list files" command
-
-  Note:       This is a low-level subroutine with minimal side effects.
-              The caller is responsible for asking us to write to a file when it's needed.
+            array  bytes        total          2023-04-08
+            size   per entry    memory         comment
+            2500     48 bytes  120,000 bytes   ok
+            2950     48 bytes  141,600 bytes   ok
+            2980     48 bytes  143,040 bytes   ok
+            3000     48 bytes  144,000 bytes   crash on "list files" command
 
   Inspiration:
             https://embeddedartistry.com/blog/2017/05/17/creating-a-circular-buffer-in-c-and-c/
@@ -65,24 +80,23 @@ extern Logger logger;   // Griduino.ino
 extern Grids grid;      // grid_helper.h
 extern Dates date;      // date_helper.h
 
-void floatToCharArray(char *result, int maxlen, double fValue, int decimalPlaces);   // Griduino.ino
-bool isVisibleDistance(const PointGPS from, const PointGPS to);                      // view_grid.cpp
+bool isVisibleDistance(const PointGPS from, const PointGPS to);   // view_grid.cpp
 
 // ========== class History ======================
 class Breadcrumbs {
 public:
   // Class member variables
-  const int totalSize  = sizeof(history);
-  const int recordSize = sizeof(Location);
-  const int capacity   = sizeof(history) / sizeof(Location);
+  const int totalSize  = sizeof(history);          // bytes
+  const int recordSize = sizeof(Location);         // bytes
+  const int capacity   = totalSize / recordSize;   // max number of records
   int saveInterval     = 2;
 
 private:
-  Location history[2500];    // remember a list of GPS coordinates and stuff
-  int nextHistoryItem = 0;   // index of next item to write
-  int head            = 0;   // index of most recently added item
-  int tail            = 0;   // index of oldest item
-  int current         = 0;   // index used for iterators begin(), next()
+  Location history[2500];   // remember a list of GPS coordinates and stuff
+  bool full   = false;      //
+  int head    = 0;          // index of next item to write = nextHistoryItem
+  int tail    = 0;          // index of oldest item
+  int current = 0;          // index used for iterators begin(), next()
 
   const PointGPS noLocation{-1.0, -1.0};   // eye-catching value, and nonzero for "isEmpty()"
   const float noSpeed     = -1.0;
@@ -93,14 +107,12 @@ public:
   // ----- Initialization -----
   Breadcrumbs() {}   // Constructor - create and initialize member variables
 
-  void clearHistory() {
-    // wipe clean the trail of breadcrumbs
-    // Note: This is a low-level subroutine with minimal side effects.
-    //       The caller is responsible for writing it to a file, if that's needed.
+  void clearHistory() {   // wipe clean the trail of breadcrumbs
+    head = tail = 0;
+    full        = false;
     for (uint ii = 0; ii < capacity; ii++) {
       history[ii].reset();
     }
-    nextHistoryItem = 0;
     Serial.println("Breadcrumb trail has been erased");
   }
 
@@ -116,51 +128,39 @@ public:
     return count;
   }
 
-  const int empty() {
+  const int isEmpty() {   // indicate empty
     return (head == tail);
   }
-  const bool full() {
-    return false;   // buffer is never full; we can always add more records
+
+  const bool isFull() {   // buffer is never full; we can always add more records
+    return false;
   }
 
   // ----- Add or read records
   void rememberPUP() {   // save "power-up" event in the history buffer
     Location pup{rPOWERUP, noLocation, now(), 0, noSpeed, noDirection, noAltitude};
-
-    history[nextHistoryItem] = pup;
-    nextHistoryItem          = (++nextHistoryItem % capacity);
+    remember(pup);
   }
 
   void rememberFirstValidTime(time_t vTime, uint8_t vSats) {   // save "first valid time received from GPS"
     // "first valid time" can happen _without_ a satellite fix,
     // so the only data stored is the GMT timestamp
     Location fvt{rVALIDTIME, noLocation, vTime, vSats, noSpeed, noDirection, noAltitude};
-
-    history[nextHistoryItem] = fvt;
-    nextHistoryItem          = (++nextHistoryItem % capacity);
+    remember(fvt);
   }
 
   void remember(Location vLoc) {   // save GPS location and timestamp in history buffer
     // so that we can display it as a breadcrumb trail
-    int prevIndex = nextHistoryItem - 1;   // find prev location in circular buffer
-    if (prevIndex < 0) {
-      prevIndex = capacity - 1;
-    }
-    PointGPS prevLoc = history[prevIndex].loc;
-    if (isVisibleDistance(vLoc.loc, prevLoc)) {   // todo: refactor into Controller
-      history[nextHistoryItem] = vLoc;
+    history[head] = vLoc;
+    advance_pointer();
+  }
 
-      nextHistoryItem = (++nextHistoryItem % capacity);
-
-      // 2023-04-01 todo:
-      //  . don't reach into the "model" from here and tell it what to do
-      //  . this "breadcrumbs" object should just only manage itself
-      // now the GPS location is saved in history array, now protect
-      // the array in non-volatile memory in case of power loss
-      // if (nextHistoryItem % saveInterval == 0) {
-      //  model->save();   // filename is #define MODEL_FILE[25] above
-      // }
+  void advance_pointer() {
+    if (full) {
+      tail = (tail + 1) % capacity;   // if buffer full, advance tail pointer
     }
+    head = (head + 1) % capacity;   // always advance head pointer
+    full = (head == tail);          // check if adding a record triggers the full condition
   }
 
   Location *begin() {   // returns pointer to tail of buffer, or null if buffer is empty
