@@ -72,7 +72,8 @@ bool isVisibleDistance(const PointGPS from, const PointGPS to);                 
 class Breadcrumbs {
 public:
   // Class member variables
-  Location history[2500];   // remember a list of GPS coordinates and stuff
+  int totalSize        = sizeof(history);
+  int recordSize       = sizeof(Location);
   const int numHistory = sizeof(history) / sizeof(Location);
   int saveInterval     = 2;
   PointGPS noLocation{-1.0, -1.0};   // eye-catching value, and nonzero for "isEmpty()"
@@ -81,6 +82,7 @@ public:
   const float noAltitude  = -1.0;
 
 private:
+  Location history[2500];    // remember a list of GPS coordinates and stuff
   int nextHistoryItem = 0;   // index of next item to write
   int head            = 0;   // index of most recently added item
   int tail            = 0;   // index of oldest item

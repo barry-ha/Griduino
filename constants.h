@@ -200,7 +200,7 @@ struct FunctionButton {
 #define rVALIDTIME "TIM"
 #define rRESET     "\0\0\0"
 
-// Breadcrumb data definition for history[] circular buffer
+// Breadcrumb data definition for circular buffer
 class Location {
 public:
   char recordType[4];      // GPS, power-up, first valid time, etc
@@ -220,8 +220,8 @@ public:
     direction = altitude = 0.0;
   }
   bool isEmpty() {
-    // we take advantage of the fact that all unused history[] entries
-    // whill have reset their recordType field to zeroes
+    // we take advantage of the fact that all unused records
+    // will have reset their recordType field to zeroes
     return (recordType[0] == 0);
   }
 

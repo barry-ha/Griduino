@@ -311,19 +311,19 @@ void translateGPStoScreen(Point *result, const PointGPS loc, const PointGPS orig
   // Serial.println("");
 }
 // =============================================================
-void plotRoute(Location *marker, const int numMarkers, const PointGPS origin) {
-  // show route track history bread crumb trail
+void plotRoute(Breadcrumbs *trail, const PointGPS origin) {
+  // show route track using history saved in bread crumb trail
   // Serial.print("plotRoute() at line "); Serial.println(__LINE__);   // debug
   // Serial.print("~ Plot relative to origin("); Serial.print(origin.lat); Serial.print(","); Serial.print(origin.lng); Serial.println(")");
-  // trail.dumpHistoryGPS();    // debug
+  // trail->dumpHistoryGPS();    // debug
 
   Point prevPixel{0, 0};   // keep track of previous dot plotted
 
-  for (int ii = 0; ii < numMarkers; ii++) {   // loop through Location[] array of history
-    Location mark = marker[ii];
-    if (!mark.isEmpty()) {
+  Location *mark = trail->begin();
+  while (mark) {   // loop through Location[] array of history
+    if (!mark->isEmpty()) {
       Point screen;
-      PointGPS spot{mark.loc.lat, mark.loc.lng};
+      PointGPS spot{mark->loc.lat, mark->loc.lng};
       translateGPStoScreen(&screen, spot, origin);
 
       // erase a few dots around this to make it more visible
@@ -354,6 +354,7 @@ void plotRoute(Location *marker, const int numMarkers, const PointGPS origin) {
       tft.drawPixel(screen.x, screen.y, cBREADCRUMB);
       prevPixel = screen;
     }
+    mark = trail->next();
   }
 }
 // =============================================================
@@ -462,6 +463,7 @@ void plotCurrentPosition(const PointGPS loc, const PointGPS origin) {
     }
   }
 }
+
 // ========== class ViewGrid
 void ViewGrid::updateScreen() {
   // called on every pass through main()
@@ -488,7 +490,6 @@ void ViewGrid::updateScreen() {
   drawNeighborGridNames();                       // show 4-digit names of nearby squares
   drawNeighborDistances();                       // this is the main goal of the whole project
   plotCurrentPosition(myLocation, gridOrigin);   // show current pushpin
-  // plotRoute(history, trail.numHistory, gridOrigin);   // show route track
 
   // end scope output
   digitalWrite(A0, LOW);   // debug - output for oscilloscope
@@ -533,7 +534,7 @@ void ViewGrid::startScreen() {
   prevVehicle = {0, 0};
 
   PointGPS gridOrigin{grid.nextGridLineSouth(model->gLatitude), grid.nextGridLineWest(model->gLongitude)};
-  plotRoute(trail.history, trail.numHistory, gridOrigin);     // restore the visible route track on top of everything else already drawn
+  plotRoute(&trail, gridOrigin);                              // restore the visible route track on top of everything else already drawn
   PointGPS myLocation{model->gLatitude, model->gLongitude};   // current location
   plotCurrentPosition(myLocation, gridOrigin);                // show current pushpin
 }

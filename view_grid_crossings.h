@@ -36,7 +36,6 @@
 #include "view.h"                // Base class for all views
 
 // ========== extern ===========================================
-// extern Location history[];               // model_breadcrumbs.h, GPS breadcrumb trail
 extern void showDefaultTouchTargets();   // Griduino.ino
 extern Logger logger;                    // Griduino.ino
 extern Grids grid;                       // grid_helper.h
@@ -259,11 +258,6 @@ protected:
   };
   // clang-format on
 
-  // Iterator helper
-  int previousIndex(int ii, const int numHist) {
-    return (ii > 0) ? (ii - 1) : (numHist - 1);
-  }
-
   // helper that actually does all the work
   void extractGridCrossings(CrossingInfo *timeInGrid) {
     // Find the most recent 5 grids crossed (just find them, don't show results yet)
@@ -273,9 +267,7 @@ protected:
     //      timeInGrid[5] - array of results
     //
     // loop through ALL entries in the GPS history array
-    // assume the entries are in chronological order, most recent first
-    // int historyIndex = previousIndex(nextItem, numHist);
-    // Serial.print("First item examined is index "); Serial.println(historyIndex);   // debug
+    // assume the entries are in reverse chronological order, most recent first (todo!!!)
     int maxResults  = 5;   // number of rows displayed on screen
     int resultIndex = 0;   //
 
@@ -295,6 +287,7 @@ protected:
     Location *item = trail.begin();
     while (item) {
       if (!item->isEmpty()) {
+        // todo: exclude non-GPS items such as "power up" events
         char thisGrid[5];
         grid.calcLocator(thisGrid, item->loc.lat, item->loc.lng, 4);
 
