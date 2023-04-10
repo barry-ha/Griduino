@@ -86,8 +86,8 @@ public:
     // grid.calcLocator(currentGrid4, item.loc.lat, item.loc.lng, 4);
     //  logger.info("Current grid = ", currentGrid4);   // debug
 
-    extractGridCrossings(trail.history, trail.numHistory, trail.nextHistoryItem, timeInGrid);   // read GPS history array
-    showGridCrossings(timeInGrid);                                                              // show result on screen
+    extractGridCrossings(timeInGrid);   // read GPS history array
+    showGridCrossings(timeInGrid);      // show result on screen
 
     // ----- GMT date & time
     char sDate[15];   // strlen("Aug 26, 2022") = 13
@@ -265,18 +265,16 @@ protected:
   }
 
   // helper that actually does all the work
-  void extractGridCrossings(const Location *hist, const int numHist, const int nextItem, CrossingInfo *timeInGrid) {
-    // Find the most recent 5 grids crossed (just find them, don't show results)
+  void extractGridCrossings(CrossingInfo *timeInGrid) {
+    // Find the most recent 5 grids crossed (just find them, don't show results yet)
     // input:
-    //      *hist - pointer to GPS history circular array, typ. =model->history
-    //      nHist - array size of *history
-    //      nextItem - array index of next element to be overwritten
+    //      trail - global GPS history circular buffer
     // output:
     //      timeInGrid[5] - array of results
     //
     // loop through ALL entries in the GPS history array
     // assume the entries are in chronological order, most recent first
-    int historyIndex = previousIndex(nextItem, numHist);
+    // int historyIndex = previousIndex(nextItem, numHist);
     // Serial.print("First item examined is index "); Serial.println(historyIndex);   // debug
     int maxResults  = 5;   // number of rows displayed on screen
     int resultIndex = 0;   //
@@ -294,11 +292,11 @@ protected:
     // Serial.print("At entry: "); dumpCrossingInfo(timeInGrid, 0);   // debug
 
     // walk the entire GPS breadcrumb array
-    for (int ii = 0; ii < numHist; ii++) {
-      Location item = hist[historyIndex];
-      if (!item.isEmpty()) {
+    Location *item = trail.begin();
+    while (item) {
+      if (!item->isEmpty()) {
         char thisGrid[5];
-        grid.calcLocator(thisGrid, item.loc.lat, item.loc.lng, 4);
+        grid.calcLocator(thisGrid, item->loc.lat, item->loc.lng, 4);
 
         // compare this slot's grid to previous slot's grid
         if (strcmp(thisGrid, currentGrid4) == 0) {
@@ -306,7 +304,7 @@ protected:
         } else {
           // we encountered a different grid, so write this grid-crossing info into result
           strcpy(timeInGrid[resultIndex].grid4, thisGrid);
-          timeInGrid[resultIndex].enterTimestamp = item.timestamp;
+          timeInGrid[resultIndex].enterTimestamp = item->timestamp;
           // timeInGrid[resultIndex].exitTimestamp  = item[prevResultIndex].enterTimestamp?; // exit time is unused
           timeInGrid[resultIndex].isSet = true;
 
@@ -314,7 +312,7 @@ protected:
           strncpy(currentGrid4, thisGrid, sizeof(currentGrid4));
         }
       }
-      historyIndex = previousIndex(historyIndex, numHist);
+      item = trail.next();
     }
     dumpCrossingInfo(&timeInGrid[0], 0);   // debug
     /* ...

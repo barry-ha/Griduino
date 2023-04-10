@@ -4,6 +4,7 @@
 
             Contains everything about the breadcrumb history trail.
             This is a circular buffer in memory, which periodically written to a CSV file.
+            Buffer is never full; we can always add more records and overwrite the oldest.
 
   Todo:     1. encapsulate implementation
             2. refactor "class Location" into this file
@@ -19,7 +20,7 @@
             We need to know whether the buffer is full or empty
             We need to know the current number of elements in the buffer
             We need to know the max capacity of the buffer
-      Add/remove data:
+      Add/read records:
             We need to be able to add data to the buffer
             We need to be able to read values by iterating through the buffer
             We don't need to remove elements from the buffer
@@ -71,14 +72,19 @@ bool isVisibleDistance(const PointGPS from, const PointGPS to);                 
 class Breadcrumbs {
 public:
   // Class member variables
-  int nextHistoryItem = 0;   // index of next item to write
-  Location history[2500];    // remember a list of GPS coordinates and stuff
+  Location history[2500];   // remember a list of GPS coordinates and stuff
   const int numHistory = sizeof(history) / sizeof(Location);
   int saveInterval     = 2;
   PointGPS noLocation{-1.0, -1.0};   // eye-catching value, and nonzero for "isEmpty()"
   const float noSpeed     = -1.0;
   const float noDirection = -1.0;
   const float noAltitude  = -1.0;
+
+private:
+  int nextHistoryItem = 0;   // index of next item to write
+  int head            = 0;   // index of most recently added item
+  int tail            = 0;   // index of oldest item
+  int current         = 0;   // index used for iterators begin(), next()
 
 public:
   // ----- Initialization -----
@@ -107,16 +113,22 @@ public:
     return count;
   }
 
-  // ----- Add/remove data
-  void rememberPUP() {
-    // Save a "power-up" event in the history array.
+  const int empty() {
+    return (head == tail);
+  }
+  const bool full() {
+    return false;   // buffer is never full; we can always add more records
+  }
+
+  // ----- Add or read records
+  void rememberPUP() {   // save "power-up" event in the history buffer
     Location pup{rPOWERUP, noLocation, now(), 0, noSpeed, noDirection, noAltitude};
 
     history[nextHistoryItem] = pup;
     nextHistoryItem          = (++nextHistoryItem % numHistory);
   }
 
-  void rememberFirstValidTime(time_t vTime, uint8_t vSats) {
+  void rememberFirstValidTime(time_t vTime, uint8_t vSats) {   // save "first valid time received from GPS"
     // "first valid time" can happen _without_ a satellite fix,
     // so the only data stored is the GMT timestamp
     Location fvt{rVALIDTIME, noLocation, vTime, vSats, noSpeed, noDirection, noAltitude};
@@ -125,8 +137,7 @@ public:
     nextHistoryItem          = (++nextHistoryItem % numHistory);
   }
 
-  void remember(Location vLoc) {
-    // save this GPS location and timestamp in internal array
+  void remember(Location vLoc) {   // save GPS location and timestamp in history buffer
     // so that we can display it as a breadcrumb trail
     int prevIndex = nextHistoryItem - 1;   // find prev location in circular buffer
     if (prevIndex < 0) {
@@ -147,6 +158,22 @@ public:
       //  model->save();   // filename is #define MODEL_FILE[25] above
       // }
     }
+  }
+
+  Location *begin() {   // returns pointer to tail of buffer, or null if buffer is empty
+    current = tail;
+    return &history[current];
+  }
+
+  Location *next() {   // returns pointer to next element, or null if buffer is empty
+    Location *ptr = nullptr;
+    if (tail == head) {
+      // nothing returned - end of data
+    } else {
+      current = (current + 1) % numHistory;
+      ptr     = &history[current];
+    }
+    return ptr;
   }
 
   // ----- I/O
