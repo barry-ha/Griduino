@@ -107,7 +107,6 @@ public:
 
     logger.info(". source: sizeof(tempModel) = %d", sizeof(tempModel));
     logger.info(". target: sizeof(modelGPS) = %d", sizeof(modelGPS));
-    logger.info(". GPS history buffer, sizeof(history) = %d", trail.numHistory * sizeof(Location));
 
     if (sdram.readConfig((byte *)&tempModel, sizeof(Model))) {
       // warning: this can corrupt our object's data if something failed
@@ -181,7 +180,7 @@ public:
   }
 
   Location makeLocation() {
-    // collect GPS information from the Model into an object that can be saved in the history[] buffer
+    // collect GPS information from the Model into an object that can be saved in the breadcrumb trail
     PointGPS whereAmI{gLatitude, gLongitude};
     Location loc{rGPS, whereAmI, gTimestamp, gSatellites, gSpeed, gAngle, gAltitude};
     return loc;

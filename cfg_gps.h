@@ -133,7 +133,7 @@ void ViewCfgGPS::updateScreen() {
 
   // ----- fill in replacement string text
   char temp[100];
-  snprintf(temp, sizeof(temp), "%d of %d", trail.getHistoryCount(), trail.numHistory);
+  snprintf(temp, sizeof(temp), "%d of %d", trail.getHistoryCount(), trail.capacity);
   txtSettings2[TRAILCOUNT].print(temp);
 
   // ----- show selected radio buttons by filling in the circle

@@ -541,7 +541,7 @@ int verifyBreadCrumbTrail1() {
   // test 2: loop through locations that cross this grid
   float lat      = 47.0 - 0.2;     // 10% outside of CN87
   float lon      = -124.0 - 0.1;   //
-  int steps      = 10;             // = trail.numHistory;     // number of loops
+  int steps      = 10;             // = trail.capacity;     // number of loops
   float stepSize = 15.0 / 250.0;   // number of degrees to move each loop
 
   trail.clearHistory();
@@ -571,7 +571,7 @@ void generateSineWave(int numCrumbs) {
   // fill history table with a sine wave
   double startLat  = 47.5;   // 10% outside of CN87
   double startLong = -124.0 - 0.6;
-  // don't use "steps = trail.numHistory" because remember() will write each one to SdFat,
+  // don't use "steps = trail.capacity" because remember() will write each one to SdFat,
   // filling the console log and taking a very long time
   int steps              = numCrumbs;                 // number of loops, pref prime number
   double stepSize        = (125.3 - 123.7) / steps;   // degrees longitude to move each loop

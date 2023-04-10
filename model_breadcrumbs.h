@@ -72,14 +72,10 @@ bool isVisibleDistance(const PointGPS from, const PointGPS to);                 
 class Breadcrumbs {
 public:
   // Class member variables
-  int totalSize        = sizeof(history);
-  int recordSize       = sizeof(Location);
-  const int numHistory = sizeof(history) / sizeof(Location);
+  const int totalSize  = sizeof(history);
+  const int recordSize = sizeof(Location);
+  const int capacity   = sizeof(history) / sizeof(Location);
   int saveInterval     = 2;
-  PointGPS noLocation{-1.0, -1.0};   // eye-catching value, and nonzero for "isEmpty()"
-  const float noSpeed     = -1.0;
-  const float noDirection = -1.0;
-  const float noAltitude  = -1.0;
 
 private:
   Location history[2500];    // remember a list of GPS coordinates and stuff
@@ -87,6 +83,11 @@ private:
   int head            = 0;   // index of most recently added item
   int tail            = 0;   // index of oldest item
   int current         = 0;   // index used for iterators begin(), next()
+
+  const PointGPS noLocation{-1.0, -1.0};   // eye-catching value, and nonzero for "isEmpty()"
+  const float noSpeed     = -1.0;
+  const float noDirection = -1.0;
+  const float noAltitude  = -1.0;
 
 public:
   // ----- Initialization -----
@@ -96,7 +97,7 @@ public:
     // wipe clean the trail of breadcrumbs
     // Note: This is a low-level subroutine with minimal side effects.
     //       The caller is responsible for writing it to a file, if that's needed.
-    for (uint ii = 0; ii < numHistory; ii++) {
+    for (uint ii = 0; ii < capacity; ii++) {
       history[ii].reset();
     }
     nextHistoryItem = 0;
@@ -107,7 +108,7 @@ public:
   const int getHistoryCount() {
     // how many history slots currently have valid position data
     int count = 0;
-    for (uint ii = 0; ii < numHistory; ii++) {
+    for (uint ii = 0; ii < capacity; ii++) {
       if (!history[ii].isEmpty()) {
         count++;
       }
@@ -127,7 +128,7 @@ public:
     Location pup{rPOWERUP, noLocation, now(), 0, noSpeed, noDirection, noAltitude};
 
     history[nextHistoryItem] = pup;
-    nextHistoryItem          = (++nextHistoryItem % numHistory);
+    nextHistoryItem          = (++nextHistoryItem % capacity);
   }
 
   void rememberFirstValidTime(time_t vTime, uint8_t vSats) {   // save "first valid time received from GPS"
@@ -136,20 +137,20 @@ public:
     Location fvt{rVALIDTIME, noLocation, vTime, vSats, noSpeed, noDirection, noAltitude};
 
     history[nextHistoryItem] = fvt;
-    nextHistoryItem          = (++nextHistoryItem % numHistory);
+    nextHistoryItem          = (++nextHistoryItem % capacity);
   }
 
   void remember(Location vLoc) {   // save GPS location and timestamp in history buffer
     // so that we can display it as a breadcrumb trail
     int prevIndex = nextHistoryItem - 1;   // find prev location in circular buffer
     if (prevIndex < 0) {
-      prevIndex = numHistory - 1;
+      prevIndex = capacity - 1;
     }
     PointGPS prevLoc = history[prevIndex].loc;
     if (isVisibleDistance(vLoc.loc, prevLoc)) {   // todo: refactor into Controller
       history[nextHistoryItem] = vLoc;
 
-      nextHistoryItem = (++nextHistoryItem % numHistory);
+      nextHistoryItem = (++nextHistoryItem % capacity);
 
       // 2023-04-01 todo:
       //  . don't reach into the "model" from here and tell it what to do
@@ -172,7 +173,7 @@ public:
     if (tail == head) {
       // nothing returned - end of data
     } else {
-      current = (current + 1) % numHistory;
+      current = (current + 1) % capacity;
       ptr     = &history[current];
     }
     return ptr;

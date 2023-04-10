@@ -27,7 +27,7 @@ void Breadcrumbs::deleteFile() {
 void Breadcrumbs::dumpHistoryGPS(int limit) {
   // limit = for unit tests, how many entries to dump from 0..limit
   Serial.print("\nMaximum saved records = ");
-  Serial.println(numHistory);
+  Serial.println(capacity);
 
   Serial.print("Current number of records saved = ");
   int count = getHistoryCount();
@@ -36,7 +36,7 @@ void Breadcrumbs::dumpHistoryGPS(int limit) {
   if (limit) {
     logger.info("Limited to first %d records", limit);
   } else {
-    limit = numHistory;   // default to all records
+    limit = capacity;   // default to all records
   }
 
   Serial.print("Next record to be written = ");
@@ -101,7 +101,7 @@ void Breadcrumbs::dumpHistoryGPS(int limit) {
       Serial.println(out);
     }
   }
-  int remaining = numHistory - ii;
+  int remaining = capacity - ii;
   if (remaining > 0) {
     Serial.print("... and ");
     Serial.print(remaining);
@@ -128,7 +128,7 @@ int Breadcrumbs::saveGPSBreadcrumbTrail() {   // returns 1=success, 0=failure
 
   // line 6..x: date-time, grid6, latitude, longitude
   int count = 0;
-  for (uint ii = 0; ii < numHistory; ii++) {
+  for (uint ii = 0; ii < capacity; ii++) {
     if (!history[ii].isEmpty()) {
       count++;
 
@@ -250,7 +250,7 @@ int Breadcrumbs::restoreGPSBreadcrumbTrail() {   // returns 1=success, 0=failure
     }
     csv_line[0] = 0;
     csv_line_number++;
-    if (nextHistoryItem >= numHistory) {
+    if (nextHistoryItem >= capacity) {
       done = true;
     }
   }
@@ -268,7 +268,7 @@ int Breadcrumbs::restoreGPSBreadcrumbTrail() {   // returns 1=success, 0=failure
   time_t newest = makeTime(past);
 
   // find the oldest item (unused slots contain zero and are automatically the oldest)
-  for (int ii = 0; ii < numHistory; ii++) {
+  for (int ii = 0; ii < capacity; ii++) {
     time_t tm = history[ii].timestamp;
     if (tm < oldest) {
       // keep track of oldest GPS bread crumb
@@ -388,7 +388,7 @@ void Breadcrumbs::dumpHistoryKML() {
   int index = nextHistoryItem;
 
   // loop through the entire GPS history buffer
-  for (int ii = 0; ii < numHistory; ii++) {
+  for (int ii = 0; ii < capacity; ii++) {
     Location item = history[index];
     if (item.isGPS()) {
       if (!item.isEmpty()) {
@@ -430,7 +430,7 @@ void Breadcrumbs::dumpHistoryKML() {
         Serial.print(msg);
       }
     }
-    index = (index + 1) % numHistory;
+    index = (index + 1) % capacity;
   }
 
   if (startFound) {         // begin pushpin at start of route

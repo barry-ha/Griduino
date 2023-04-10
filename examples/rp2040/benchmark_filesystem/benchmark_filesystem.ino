@@ -136,7 +136,7 @@ void calcLocator(char *result, double lat, double lon, int precision) {
 Dates date = Dates();
 
 Location history[3000];   // remember a list of GPS coordinates
-const int numHistory = sizeof(history) / sizeof(Location);
+const int capacity = sizeof(history) / sizeof(Location);
 
 #define HISTORY_FILE "bench3.csv"
 const char HISTORY_VERSION[25] = "GPS Breadcrumb Trail v1";   // <-- always change version when changing data format
@@ -175,7 +175,7 @@ int saveGPSBreadcrumbTrail() {   // returns 1=success, 0=failure
 
   // line 6..x: date-time, grid6, latitude, longitude
   int count = 0;
-  for (uint ii = 0; ii < numHistory; ii++) {
+  for (uint ii = 0; ii < capacity; ii++) {
     // if (!history[ii].isEmpty()) {
     if (true) {   // for sake of performance test, we save all breadcrumbs even if empty
       count++;
@@ -283,7 +283,7 @@ void setup() {
   Serial.println(__FILE__);                            // Report our source code file name
 
   // init gps history array
-  for (int ii = 0; ii < numHistory; ii++) {
+  for (int ii = 0; ii < capacity; ii++) {
     history[ii].reset();
   }
 }
