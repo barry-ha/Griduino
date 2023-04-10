@@ -24,6 +24,91 @@ void Breadcrumbs::deleteFile() {
   Serial.println("Breadcrumb trail erased and file deleted");
 }
 
+void Breadcrumbs::dumpHistoryGPS(int limit) {
+  // limit = for unit tests, how many entries to dump from 0..limit
+  Serial.print("\nMaximum saved records = ");
+  Serial.println(numHistory);
+
+  Serial.print("Current number of records saved = ");
+  int count = getHistoryCount();
+  Serial.println(count);
+
+  if (limit) {
+    logger.info("Limited to first %d records", limit);
+  } else {
+    limit = numHistory;   // default to all records
+  }
+
+  Serial.print("Next record to be written = ");
+  Serial.println(nextHistoryItem);
+
+  time_t tm = now();                           // debug: show current time in seconds
+  Serial.print("now() = ");                    // debug
+  Serial.print(tm);                            // debug
+  Serial.println(" seconds since 1-1-1970");   // debug
+
+  char sDate[24];                                        // debug: show current time decoded
+  date.datetimeToString(sDate, sizeof(sDate), tm);       // date_helper.h
+  char msg[40];                                          // sizeof("Today is 12-31-2022  12:34:56 GMT") = 32
+  snprintf(msg, sizeof(msg), "now() = %s GMT", sDate);   // debug
+  Serial.println(msg);                                   // debug
+
+  Serial.println("Record, Type, Date GMT, Time GMT, Grid, Lat, Long, Alt(m), Speed(mph), Direction(Degrees), Sats");
+  int ii;
+  for (ii = 0; ii < limit; ii++) {
+    Location item = history[ii];
+    if (!item.isEmpty()) {
+
+      time_t tm = item.timestamp;                    // https://github.com/PaulStoffregen/Time
+      char sDate[12], sTime[10];                     // sizeof("2022-11-25 12:34:56") = 19
+      date.dateToString(sDate, sizeof(sDate), tm);   // date_helper.h
+      date.timeToString(sTime, sizeof(sTime), tm);   //
+
+      char grid6[7];
+      grid.calcLocator(grid6, item.loc.lat, item.loc.lng, 6);
+
+      char sLat[12], sLng[12];
+      floatToCharArray(sLat, sizeof(sLat), history[ii].loc.lat, 5);
+      floatToCharArray(sLng, sizeof(sLng), history[ii].loc.lng, 5);
+
+      char sSpeed[12], sDirection[12], sAltitude[12];
+      floatToCharArray(sSpeed, sizeof(sSpeed), item.speed, 1);
+      floatToCharArray(sDirection, sizeof(sDirection), item.direction, 1);
+      floatToCharArray(sAltitude, sizeof(sAltitude), item.altitude, 0);
+      uint8_t nSats = item.numSatellites;
+
+      char out[128];
+      if (item.isPUP()) {
+        snprintf(out, sizeof(out), "%d, %s, %s, %s",
+                 ii, item.recordType, sDate, sTime);
+
+      } else if (item.isFirstValidTime()) {
+        snprintf(out, sizeof(out), "%d, %s, %s, %s, , , , , , , %d",
+                 ii, item.recordType, sDate, sTime, nSats);
+
+      } else if (item.isGPS()) {
+        //                           1   2   3   4   5   6   7   8   9  10
+        snprintf(out, sizeof(out), "%d, %s, %s, %s, %s, %s, %s, %s, %s, %s, %d",
+                 ii, item.recordType, sDate, sTime, grid6, sLat, sLng, sSpeed, sDirection, sAltitude, nSats);
+
+      } else {
+        snprintf(out, sizeof(out), "--> Type '%s' unknown: ", item.recordType);
+        Serial.print(out);
+        //                           1   2   3   4   5   6   7   8   9  10
+        snprintf(out, sizeof(out), "%d, %s, %s, %s, %s, %s, %s, %s, %s, %s, %d",
+                 ii, item.recordType, sDate, sTime, grid6, sLat, sLng, sSpeed, sDirection, sAltitude, nSats);
+      }
+      Serial.println(out);
+    }
+  }
+  int remaining = numHistory - ii;
+  if (remaining > 0) {
+    Serial.print("... and ");
+    Serial.print(remaining);
+    Serial.println(" more");
+  }
+}
+
 int Breadcrumbs::saveGPSBreadcrumbTrail() {   // returns 1=success, 0=failure
   // our breadcrumb trail file is CSV format -- you can open this Arduino file directly in a spreadsheet
   // dumpHistoryGPS();   // debug
