@@ -88,6 +88,7 @@
 #include <Adafruit_GPS.h>             // Ultimate GPS library
 #include <Adafruit_NeoPixel.h>        // On-board color addressable LED
 #include <DS1804.h>                   // DS1804 digital potentiometer library
+#include <elapsedMillis.h>            // Scheduling intervals in main loop
 #include "save_restore.h"             // save/restore configuration data to SDRAM
 #include "constants.h"                // Griduino constants, colors, typedefs
 #include "hardware.h"                 // Griduino pin definitions
@@ -811,6 +812,7 @@ uint32_t prevTimeBaro = millis();
 //uint32_t prevTimeMorse = millis();
 uint32_t prevCheckRTC = 0;            // timer to update time-of-day (1 second)
 time_t prevTimeRTC = 0;               // timer to print RTC to serial port (1 second)
+elapsedMillis autoLogTimer;           // timer to save GPS trail periodically no matter what
 
 //time_t nextShowPressure = 0;        // timer to update displayed value (5 min), init to take a reading soon after startup
 time_t nextSavePressure = 0;          // timer to log pressure reading (15 min)
@@ -825,6 +827,7 @@ time_t nextSavePressure = 0;          // timer to log pressure reading (15 min)
 // the GPS hardware. Todo - fix the colon's flicker then reduce this interval to 10 msec.
 const int GPS_PROCESS_INTERVAL =  47;   // milliseconds between updating the model's GPS data
 const int RTC_PROCESS_INTERVAL = 1000;          // Timer RTC = 1 second
+const uint32_t GPS_AUTOSAVE_INTERVAL = SECS_PER_5MIN * 1000; // msec between saving breadcrumb trail to file
 //const int BAROMETRIC_PROCESS_INTERVAL = 15*60*1000;  // fifteen minutes in milliseconds
 const int LOG_PRESSURE_INTERVAL = 15*60*1000;   // 15 minutes, in milliseconds
 
@@ -957,6 +960,15 @@ void loop() {
         announceGrid( newGrid6, 6 );  // announce with Morse code or speech, according to user's config
       }
     }
+  }
+
+  // automatically log GPS position every 5 minutes, in case they haven't moved
+  if (autoLogTimer > GPS_AUTOSAVE_INTERVAL) {
+    autoLogTimer = 0;
+
+    Location whereAmI = model->makeLocation();
+    trail.remember(whereAmI);
+    trail.saveGPSBreadcrumbTrail();
   }
 
   // if there's touchscreen input, handle it
