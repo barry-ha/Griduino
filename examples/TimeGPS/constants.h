@@ -1,21 +1,24 @@
 #pragma once   // Please format this file with clang before check-in to GitHub
 
 // ------- Identity for splash screen and console --------
-#define PROGRAM_TITLE    "Griduino"
-#define PROGRAM_VERSION  "v1.12"
+#define PROGRAM_TITLE "Griduino"
+#define PROGRAM_VERSION "v1.12"
 #define PROGRAM_LINE1    "Barry K7BWH"
 #define PROGRAM_LINE2    "John KM7O"
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
+#define PROGRAM_FILE     __FILE__
+#define PROGRAM_GITHUB   "https://github.com/barry-ha/Griduino"
 
 // ------- Select testing features ---------
-//#define ECHO_GPS                    // use this to see GPS detailed info on IDE console for debug
-//#define SHOW_SCREEN_BORDER          // use this to outline the screen's displayable area
-//#define SHOW_SCREEN_CENTERLINE      // use this visual aid to help layout the screen
+// #define FASTBOOT                    // comment out in production, use to skip some startup screen
+// #define ECHO_GPS                    // use this to see GPS detailed info on IDE console for debug
+// #define SHOW_SCREEN_BORDER          // use this to outline the screen's displayable area
+// #define SHOW_SCREEN_CENTERLINE      // use this visual aid to help layout the screen
+// #define SHOW_IGNORED_PRESSURE       // use this to see barometric pressure readings that are out of range and therefore ignored
 
 // ------- TFT screen definitions ---------
-#define SCREEN_ROTATION 1     // 1=landscape, 3=landscape 180-degrees
-#define gScreenWidth    320   // screen pixels wide
-#define gScreenHeight   240   // screen pixels high                                                        \
+#define gScreenWidth  320   // screen pixels wide
+#define gScreenHeight 240   // screen pixels high                                                        \
                             // we use #define here instead of reading it from "tft.width()" because this \
                             // screen layout is specifically designed for landscape orientation on 3.2" ILI9341
 
@@ -37,7 +40,7 @@ const double degreesPerRadian = 57.2957795;   // conversion factor = (360 degree
 #define DEFAULT_SEALEVEL_HPA     (1017.40)
 
 // ----- load/save configuration using SDRAM
-//#define EXTERNAL_FLASH_USE_QSPI     // 2020-02-11 added by BarryH, since it seems to be missing from
+// #define EXTERNAL_FLASH_USE_QSPI     // 2020-02-11 added by BarryH, since it seems to be missing from
 // c:\Users\barry\AppData\Local\Arduino15\packages\adafruit\hardware\samd\1.5.7\variants\feather_m4\variant.h
 #define CONFIG_FOLDER "/Griduino"
 
@@ -63,82 +66,6 @@ enum {
   eFONTUNSPEC   = -1,
 };
 
-// ---------- Hardware Wiring ----------
-/*                                Arduino       Adafruit
-  ___Label__Description______________Mega_______Feather M4__________Resource____
-TFT Power:
-   GND  - Ground                  - ground      - J2 Pin 13
-   VIN  - VCC                     - 5v          - Pin 10 J5 Vusb
-TFT SPI:
-   SCK  - SPI Serial Clock        - Digital 52  - SCK (J2 Pin 6)  - uses hardw SPI
-   MISO - SPI Master In Slave Out - Digital 50  - MI  (J2 Pin 4)  - uses hardw SPI
-   MOSI - SPI Master Out Slave In - Digital 51  - MO  (J2 Pin 5)  - uses hardw SPI
-   CS   - SPI Chip Select         - Digital 10  - D5  (Pin 3 J5)
-   D/C  - SPI Data/Command        - Digital  9  - D12 (Pin 8 J5)
-TFT MicroSD:
-   CD   - SD Card Detection       - Digital  8  - D10 (Pin 6 J5)
-   CCS  - SD Card Chip Select     - Digital  7  - D11 (Pin 7 J5)
-TFT Backlight:
-   BL   - Backlight               - Digital 12  - D4  (J2 Pin 1)  - uses hardw PWM
-TFT Resistive touch:
-   X+   - Touch Horizontal axis   - Digital  4  - A3  (Pin 4 J5)
-   X-   - Touch Horizontal        - Analog  A3  - A4  (J2 Pin 8)  - uses analog A/D
-   Y+   - Touch Vertical axis     - Analog  A2  - A5  (J2 Pin 7)  - uses analog A/D
-   Y-   - Touch Vertical          - Digital  5  - D9  (Pin 5 J5)
-TFT No connection:
-   3.3  - 3.3v output             - n/c         - n/c
-   RST  - Reset                   - n/c         - n/c
-   IM0/3- Interface Control Pins  - n/c         - n/c
-GPS:
-   VIN  - VCC                     - 5v          - Vin
-   GND  - Ground                  - ground      - ground
-   >RX  - data into GPS           - TX1 pin 18  - TX  (J2 Pin 2)  - uses hardware UART
-   <TX  - data out of GPS         - RX1 pin 19  - RX  (J2 Pin 3)  - uses hardware UART
-Audio Out:
-   DAC0 - audio signal            - n/a         - A0  (J2 Pin 12) - uses onboard digital-analog converter
-Digital potentiometer:
-   VINC - volume increment        - n/a         - D6
-   VUD  - volume up/down          - n/a         - A2
-   CS   - volume chip select      - n/a         - A1
-On-board lights:
-   LED  - red activity led        - Digital 13  - D13             - reserved for onboard LED
-   NP   - NeoPixel                - n/a         - D8              - reserved for onboard NeoPixel
-*/
-
-// TFT display and SD card share the hardware SPI interface, and have
-// separate 'select' pins to identify the active device on the bus.
-#if defined(SAMD_SERIES)
-// Adafruit Feather M4 Express pin definitions
-// To compile for Feather M0/M4, install "additional boards manager"
-// https://learn.adafruit.com/adafruit-feather-m4-express-atsamd51/setup
-
-#define TFT_BL 4    // TFT backlight
-#define TFT_CS 5    // TFT chip select pin
-#define TFT_DC 12   // TFT display/command pin
-#define BMP_CS 13   // BMP388 sensor, chip select
-
-#define SD_CD  10   // SD card detect pin - Feather
-#define SD_CCS 11   // SD card select pin - Feather
-
-#elif defined(ARDUINO_AVR_MEGA2560)
-#define TFT_BL 6    // TFT backlight
-#define SD_CCS 7    // SD card select pin - Mega
-#define SD_CD  8    // SD card detect pin - Mega
-#define TFT_DC 9    // TFT display/command pin
-#define TFT_CS 10   // TFT chip select pin
-#define BMP_CS 13   // BMP388 sensor, chip select
-
-#else
-#warning You need to define pins for your hardware
-
-#endif
-
-// ---------- Feather's onboard lights
-// efine PIN_NEOPIXEL 8      // already defined in Feather's board variant.h
-// efine PIN_LED 13          // already defined in Feather's board variant.h
-
-#define NUMPIXELS 1   // Feather M4 has one NeoPixel on board
-
 // ------- NeoPixel brightness ---------
 const int MAXBRIGHT = 255;   // = 100% brightness = maximum allowed on individual LED
 const int BRIGHT    = 32;    // = tolerably bright indoors
@@ -158,8 +85,9 @@ const int OFF       = 0;     // = turned off
 #define cHIGHLIGHT     ILI9341_WHITE    //
 #define cBUTTONFILL    ILI9341_NAVY     //
 #define cBUTTONOUTLINE 0x0514           // was ILI9341_CYAN
-#define cBREADCRUMB    ILI9341_CYAN     //
-#define cTEXTCOLOR     ILI9341_CYAN     // 0, 255, 255
+#define cTITLE         ILI9341_GREEN    //
+#define cTEXTCOLOR     0x67FF           // rgb(102,255,255) = hsl(180,100,70%)
+#define cCYAN          ILI9341_CYAN     // rgb(0,255,255) = hsl(180,100,50%)
 #define cFAINT         0x0555           // rgb(0,168,168) = hsl(180,100,33%) = blue, between CYAN and DARKCYAN
 #define cFAINTER       0x04B2           // rgb(0,128,128) = hsl(180,100,29%) = blue, between CYAN and DARKCYAN
 #define cBOXDEGREES    0x0410           // rgb(0,128,128) = hsl(180,100,25%) = blue, between CYAN and DARKCYAN
@@ -168,6 +96,19 @@ const int OFF       = 0;     // = turned off
 #define cSTATUS        0xFC10           // 255, 128, 128 = lavender
 #define cWARN          0xF844           // brighter than ILI9341_RED but not pink
 #define cTOUCHTARGET   ILI9341_RED      // outline touch-sensitive areas
+
+// plot vehicle and breadcrumb trail
+#define cBREADCRUMB ILI9341_CYAN   //
+#define cVEHICLE    0xef7d         // light gray (white is too bright)
+
+// barometric pressure graph
+#define cSCALECOLOR ILI9341_DARKGREEN   // pressure graph, I tried yellow but it's too bright
+#define cGRAPHCOLOR ILI9341_WHITE       // graphed line of baro pressure
+
+#define cDARKPURPLE 0x2809   // debug: 2809 = very dark purple
+#define cDARKRED    0x4000   // debug: 4000 = very dark red
+#define cDARKBROWN  0x49A0   // debug: 49A0 = dark orange
+#define cDARKGREEN  0x01A0   // debug: #0x01A0 = very dark green
 
 // ------------ typedef's
 struct Point {
@@ -178,6 +119,7 @@ public:
   double lat, lng;
 };
 
+#include <TimeLib.h>   // https://github.com/PaulStoffregen/Time for "time_t"
 class BaroReading {
 public:
   float pressure;   // in millibars, from BMP388 sensor
@@ -200,6 +142,10 @@ struct Rect {
       return false;
     }
   }
+};
+
+struct Route {   // screen coordinates
+  uint16_t x, y;
 };
 
 struct Label {
@@ -243,15 +189,59 @@ struct FunctionButton {
   int functionIndex;   // button identifier
 };
 
+// Breadcrumb record types
+#define rGPS       "GPS"
+#define rPOWERUP   "PUP"
+#define rPOWERDOWN "PDN"
+#define rVALIDTIME "TIM"
+#define rRESET     "\0\0\0"
+
+// Breadcrumb data definition for circular buffer
 class Location {
 public:
-  PointGPS loc;     // has-a lat/long, degrees
-  int hh, mm, ss;   // has-a GMT time
+  char recordType[4];      // GPS, power-up, first valid time, etc
+  PointGPS loc;            // has-a lat/long, degrees
+  time_t timestamp;        // has-a GMT time
+  uint8_t numSatellites;   // number of satellites in view
+  float speed;             // current speed over ground in MPH
+  float direction;         // direction of travel, degrees from true north
+  float altitude;          // altitude, meters above MSL
+public:
   void reset() {
+    recordType[0] = 0;
     loc.lat = loc.lng = 0.0;
-    hh = mm = ss = 0;
+    timestamp         = 0;
+    numSatellites     = 0;
+    speed             = 0.0;
+    direction = altitude = 0.0;
   }
   bool isEmpty() {
-    return (loc.lat == 0.0 && loc.lng == 0.0);
+    // we take advantage of the fact that all unused records
+    // will have reset their recordType field to zeroes
+    return (recordType[0] == 0);
+  }
+
+  bool isGPS() {
+    return (strncmp(recordType, rGPS, sizeof(recordType)) == 0) ? true : false;
+  }
+
+  bool isPUP() {
+    return (strncmp(recordType, rPOWERUP, sizeof(recordType)) == 0) ? true : false;
+  }
+
+  bool isFirstValidTime() {
+    return (strncmp(recordType, rVALIDTIME, sizeof(recordType)) == 0) ? true : false;
+  }
+
+  // sanity check data from NVR
+  void printLocation(int ii, Location item) {
+    Serial.print(". ");
+    Serial.print(item.recordType);
+    Serial.print(" lat/long[");
+    Serial.print(ii);
+    Serial.print("] = ");
+    Serial.print(item.loc.lat);
+    Serial.print(", ");
+    Serial.println(item.loc.lng);
   }
 };
