@@ -41,73 +41,71 @@ void Breadcrumbs::dumpHistoryGPS(int limit) {
     limit = capacity;   // default to all records
   }
 
-  Serial.print("Next record to be written = ");
-  Serial.println(head);
+  logger.info("Next record to be written = ", head);
 
   time_t tm = now();                           // debug: show current time in seconds
   Serial.print("now() = ");                    // debug
   Serial.print(tm);                            // debug
   Serial.println(" seconds since 1-1-1970");   // debug
 
-  char sDate[24];                                        // debug: show current time decoded
+  char sDate[24];                                        // show current time decoded
   date.datetimeToString(sDate, sizeof(sDate), tm);       // date_helper.h
   char msg[40];                                          // sizeof("Today is 12-31-2022  12:34:56 GMT") = 32
-  snprintf(msg, sizeof(msg), "now() = %s GMT", sDate);   // debug
-  Serial.println(msg);                                   // debug
+  snprintf(msg, sizeof(msg), "now() = %s GMT", sDate);   //
+  logger.info(msg);
 
   Serial.println("Record, Type, Date GMT, Time GMT, Grid, Lat, Long, Alt(m), Speed(mph), Direction(Degrees), Sats");
-  int ii;
-  for (ii = 0; ii < limit; ii++) {
-    Location item = history[ii];
-    if (!item.isEmpty()) {
+  int ii         = 0;
+  Location *item = begin();
+  while (item) {
 
-      time_t tm = item.timestamp;                    // https://github.com/PaulStoffregen/Time
-      char sDate[12], sTime[10];                     // sizeof("2022-11-25 12:34:56") = 19
-      date.dateToString(sDate, sizeof(sDate), tm);   // date_helper.h
-      date.timeToString(sTime, sizeof(sTime), tm);   //
+    time_t tm = item->timestamp;                   // https://github.com/PaulStoffregen/Time
+    char sDate[12], sTime[10];                     // sizeof("2022-11-25 12:34:56") = 19
+    date.dateToString(sDate, sizeof(sDate), tm);   // date_helper.h
+    date.timeToString(sTime, sizeof(sTime), tm);   //
 
-      char grid6[7];
-      grid.calcLocator(grid6, item.loc.lat, item.loc.lng, 6);
+    char grid6[7];
+    grid.calcLocator(grid6, item->loc.lat, item->loc.lng, 6);
 
-      char sLat[12], sLng[12];
-      floatToCharArray(sLat, sizeof(sLat), history[ii].loc.lat, 5);
-      floatToCharArray(sLng, sizeof(sLng), history[ii].loc.lng, 5);
+    char sLat[12], sLng[12];
+    floatToCharArray(sLat, sizeof(sLat), item->loc.lat, 5);
+    floatToCharArray(sLng, sizeof(sLng), item->loc.lng, 5);
 
-      char sSpeed[12], sDirection[12], sAltitude[12];
-      floatToCharArray(sSpeed, sizeof(sSpeed), item.speed, 1);
-      floatToCharArray(sDirection, sizeof(sDirection), item.direction, 1);
-      floatToCharArray(sAltitude, sizeof(sAltitude), item.altitude, 0);
-      uint8_t nSats = item.numSatellites;
+    char sSpeed[12], sDirection[12], sAltitude[12];
+    floatToCharArray(sSpeed, sizeof(sSpeed), item->speed, 1);
+    floatToCharArray(sDirection, sizeof(sDirection), item->direction, 1);
+    floatToCharArray(sAltitude, sizeof(sAltitude), item->altitude, 0);
+    uint8_t nSats = item->numSatellites;
 
-      char out[128];
-      if (item.isPUP()) {
-        snprintf(out, sizeof(out), "%d, %s, %s, %s",
-                 ii, item.recordType, sDate, sTime);
+    char out[128];
+    if (item->isPUP()) {
+      snprintf(out, sizeof(out), "%d, %s, %s, %s",
+               ii, item->recordType, sDate, sTime);
 
-      } else if (item.isFirstValidTime()) {
-        snprintf(out, sizeof(out), "%d, %s, %s, %s, , , , , , , %d",
-                 ii, item.recordType, sDate, sTime, nSats);
+    } else if (item->isFirstValidTime()) {
+      snprintf(out, sizeof(out), "%d, %s, %s, %s, , , , , , , %d",
+               ii, item->recordType, sDate, sTime, nSats);
 
-      } else if (item.isGPS()) {
-        //                           1   2   3   4   5   6   7   8   9  10
-        snprintf(out, sizeof(out), "%d, %s, %s, %s, %s, %s, %s, %s, %s, %s, %d",
-                 ii, item.recordType, sDate, sTime, grid6, sLat, sLng, sSpeed, sDirection, sAltitude, nSats);
+    } else if (item->isGPS()) {
+      //                           1   2   3   4   5   6   7   8   9  10  11
+      snprintf(out, sizeof(out), "%d, %s, %s, %s, %s, %s, %s, %s, %s, %s, %d",
+               ii, item->recordType, sDate, sTime, grid6, sLat, sLng, sSpeed, sDirection, sAltitude, nSats);
 
-      } else {
-        snprintf(out, sizeof(out), "--> Type '%s' unknown: ", item.recordType);
-        Serial.print(out);
-        //                           1   2   3   4   5   6   7   8   9  10
-        snprintf(out, sizeof(out), "%d, %s, %s, %s, %s, %s, %s, %s, %s, %s, %d",
-                 ii, item.recordType, sDate, sTime, grid6, sLat, sLng, sSpeed, sDirection, sAltitude, nSats);
-      }
-      Serial.println(out);
+    } else {
+      snprintf(out, sizeof(out), "--> Type '%s' unknown: ", item->recordType);
+      Serial.print(out);
+      //                           1   2   3   4   5   6   7   8   9  10  11
+      snprintf(out, sizeof(out), "%d, %s, %s, %s, %s, %s, %s, %s, %s, %s, %d",
+               ii, item->recordType, sDate, sTime, grid6, sLat, sLng, sSpeed, sDirection, sAltitude, nSats);
     }
+    Serial.println(out);
+    ii++;
+    item = next();
   }
-  int remaining = capacity - ii;
+
+  int remaining = getHistoryCount() - limit;
   if (remaining > 0) {
-    Serial.print("... and ");
-    Serial.print(remaining);
-    Serial.println(" more");
+    logger.info("... and %d more", remaining);
   }
 }
 
@@ -129,37 +127,34 @@ int Breadcrumbs::saveGPSBreadcrumbTrail() {   // returns 1=success, 0=failure
   config.writeLine("Type, GMT Date, GMT Time, Grid, Latitude, Longitude, Altitude, MPH, Direction, Satellites");
 
   // line 6..x: date-time, grid6, latitude, longitude
-  int count = 0;
-  for (uint ii = 0; ii < capacity; ii++) {
-    if (!history[ii].isEmpty()) {
-      count++;
+  Location *loc = begin();
+  while (loc) {
 
-      char sDate[12];   // sizeof("2022-11-10") = 10
-      date.dateToString(sDate, sizeof(sDate), history[ii].timestamp);
+    char sDate[12];   // sizeof("2022-11-10") = 10
+    date.dateToString(sDate, sizeof(sDate), loc->timestamp);
 
-      char sTime[12];   // sizeof("12:34:56") = 8
-      date.timeToString(sTime, sizeof(sTime), history[ii].timestamp);
+    char sTime[12];   // sizeof("12:34:56") = 8
+    date.timeToString(sTime, sizeof(sTime), loc->timestamp);
 
-      char sGrid6[7];
-      grid.calcLocator(sGrid6, history[ii].loc.lat, history[ii].loc.lng, 6);
+    char sGrid6[7];
+    grid.calcLocator(sGrid6, loc->loc.lat, loc->loc.lng, 6);
 
-      char sLat[12], sLng[12];
-      floatToCharArray(sLat, sizeof(sLat), history[ii].loc.lat, 5);
-      floatToCharArray(sLng, sizeof(sLng), history[ii].loc.lng, 5);
+    char sLat[12], sLng[12];
+    floatToCharArray(sLat, sizeof(sLat), loc->loc.lat, 5);
+    floatToCharArray(sLng, sizeof(sLng), loc->loc.lng, 5);
 
-      char sAlt[12], sSpeed[12], sAngle[12], sSats[6];
-      floatToCharArray(sAlt, sizeof(sAlt), history[ii].altitude, 1);
-      floatToCharArray(sSpeed, sizeof(sSpeed), history[ii].speed, 1);
-      floatToCharArray(sAngle, sizeof(sAngle), history[ii].direction, 1);
-      int numSatellites = history[ii].numSatellites;
+    char sAlt[12], sSpeed[12], sAngle[12], sSats[6];
+    floatToCharArray(sAlt, sizeof(sAlt), loc->altitude, 1);
+    floatToCharArray(sSpeed, sizeof(sSpeed), loc->speed, 1);
+    floatToCharArray(sAngle, sizeof(sAngle), loc->direction, 1);
+    int numSatellites = loc->numSatellites;
 
-      //                           1  2  3  4  5  6  7  8  9 10
-      snprintf(msg, sizeof(msg), "%s,%s,%s,%s,%s,%s,%s,%s,%s,%d",
-               history[ii].recordType, sDate, sTime, sGrid6, sLat, sLng, sAlt, sSpeed, sAngle, numSatellites);
-      config.writeLine(msg);
-    }
+    //                           1  2  3  4  5  6  7  8  9 10
+    snprintf(msg, sizeof(msg), "%s,%s,%s,%s,%s,%s,%s,%s,%s,%d",
+             loc->recordType, sDate, sTime, sGrid6, sLat, sLng, sAlt, sSpeed, sAngle, numSatellites);
+    config.writeLine(msg);
   }
-  logger.info(". Wrote %d entries to GPS log", count);
+  logger.info(". Wrote %d entries to GPS log", getHistoryCount());
 
   // close file
   config.close();
@@ -252,9 +247,8 @@ int Breadcrumbs::restoreGPSBreadcrumbTrail() {   // returns 1=success, 0=failure
   }
   logger.info(". Restored %d breadcrumbs from %d lines in CSV file", items_restored, csv_line_number);
 
-  // This "restore" design always fills history[] from 0..N.
-  // Make sure the /next/ GPS point logged goes into the next open slot
-  // and doesn't overwrite any historical data.
+  // The above "restore" always fills history[] from 0..N
+
   int indexOldest = 0;                             // default to start
   TimeElements future{59, 59, 23, 0, 1, 1, 255};   // maximum date = year(1970 + 255) = 2,225
   time_t oldest = makeTime(future);
@@ -264,6 +258,7 @@ int Breadcrumbs::restoreGPSBreadcrumbTrail() {   // returns 1=success, 0=failure
   time_t newest = makeTime(past);
 
   // find the oldest item (unused slots contain zero and are automatically the oldest)
+  int ii        = 0;
   Location *loc = begin();
   while (loc) {
     time_t tm = loc->timestamp;
@@ -278,12 +273,8 @@ int Breadcrumbs::restoreGPSBreadcrumbTrail() {   // returns 1=success, 0=failure
       newest      = tm;
     }
     loc = next();
+    ii++;
   }
-  // here's the real meat of the potato
-  // todo: do we even care about restoring the original head/tail values?
-  //       if so, the only way to get it right is to make sure the 'output CSV' routine
-  //       writes from tail to head into the file
-  // nextHistoryItem = indexOldest;
 
   // report statistics for a visible sanity check to aid debug
   char sOldest[24], sNewest[24];

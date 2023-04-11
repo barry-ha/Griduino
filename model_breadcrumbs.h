@@ -52,7 +52,7 @@
             Our goal is to keep track of at least one long day's travel, 500 miles or more.
             If 180 pixels horiz = 100 miles, then we need (500*180/100) = 900 entries.
             If 160 pixels vert = 70 miles, then we need (500*160/70) = 1,140 entries.
-            For example, with a drunken-sailor route around the Olympic Peninsula,
+            For example, if I drive a drunken-sailor route around the Olympic Peninsula,
             we need at least 800 entries to capture the whole out-and-back 500-mile loop.
 
             array  bytes        total          2023-04-08
@@ -99,9 +99,10 @@ private:
   int current = 0;          // index used for iterators begin(), next()
 
   const PointGPS noLocation{-1.0, -1.0};   // eye-catching value, and nonzero for "isEmpty()"
-  const float noSpeed     = -1.0;
-  const float noDirection = -1.0;
-  const float noAltitude  = -1.0;
+  const float noSpeed        = -1.0;
+  const float noDirection    = -1.0;
+  const float noAltitude     = -1.0;
+  const uint8_t noSatellites = 0;
 
 public:
   // ----- Initialization -----
@@ -113,16 +114,19 @@ public:
     for (uint ii = 0; ii < capacity; ii++) {
       history[ii].reset();
     }
-    Serial.println("Breadcrumb trail has been erased");
+    logger.info("Breadcrumb trail history[%d] has been erased", capacity);
   }
 
   // ----- State tracking
-  const int getHistoryCount() {
-    // how many history slots currently have valid position data
-    int count = 0;
-    for (uint ii = 0; ii < capacity; ii++) {
-      if (!history[ii].isEmpty()) {
-        count++;
+  const int getHistoryCount() {   // how many history slots currently contain breadcrumb data
+    int count;
+    if (full) {
+      count = capacity;
+    } else {
+      if (head >= tail) {
+        count = head - tail;
+      } else {
+        count = capacity + head - tail;
       }
     }
     return count;
@@ -138,7 +142,7 @@ public:
 
   // ----- Add or read records
   void rememberPUP() {   // save "power-up" event in the history buffer
-    Location pup{rPOWERUP, noLocation, now(), 0, noSpeed, noDirection, noAltitude};
+    Location pup{rPOWERUP, noLocation, now(), noSatellites, noSpeed, noDirection, noAltitude};
     remember(pup);
   }
 
@@ -170,7 +174,7 @@ public:
 
   Location *next() {   // returns pointer to next element, or null if buffer is empty
     Location *ptr = nullptr;
-    if (tail == head) {
+    if (current == head) {
       // nothing returned - end of data
     } else {
       current = (current + 1) % capacity;
