@@ -57,8 +57,6 @@ public:
   int gTimeZone       = -7;      // default local time Pacific (-7 hours)
   bool compare4digits = true;    // true=4 digit, false=6 digit comparisons
 
-  float gSeaLevelPressure = DEFAULT_SEALEVEL_HPA;   // todo - unused by 'model_gps.h', delete me
-
 protected:
   int gPrevFix       = false;        // previous value of gHaveGPSfix, to help detect "signal lost"
   char sPrevGrid4[5] = INIT_GRID4;   // previous value of gsGridName, to help detect "enteredNewGrid()"
@@ -101,12 +99,12 @@ public:
   int restore() {
     // restore current GPS state from non-volatile memory
     SaveRestore sdram(MODEL_FILE, MODEL_VERS);
+    int rc = 1;        // assume success
+    Model tempModel;   // temp buffer for restoring the "Model" object from RAM file system
 
-    extern Model modelGPS;   // debug
-    Model tempModel;         // temp buffer for restoring the "Model" object from RAM file system
-
-    logger.info(". source: sizeof(tempModel) = %d", sizeof(tempModel));
-    logger.info(". target: sizeof(modelGPS) = %d", sizeof(modelGPS));
+    extern Model modelGPS;                                                // debug
+    logger.info(". source: sizeof(tempModel) = %d", sizeof(tempModel));   // debug
+    logger.info(". target: sizeof(modelGPS) = %d", sizeof(modelGPS));     // debug
 
     if (sdram.readConfig((byte *)&tempModel, sizeof(Model))) {
       // warning: this can corrupt our object's data if something failed
@@ -115,26 +113,27 @@ public:
       logger.info("Success, GPS Model restored from SDRAM");
     } else {
       logger.error("Error, failed to restore GPS Model object to SDRAM");
-      return 0;   // return failure
+      rc = 0;   // return failure
     }
     // note: the caller is responsible for fixups to the model,
     // e.g., indicate 'lost satellite signal'
-    return 1;   // return success
+    logger.fencepost("model_gps.h", __LINE__);
+    return rc;   // return success
   }
 
   // pick'n pluck values from the restored instance
   void copyFrom(const Model from) {
-    gLatitude         = from.gLatitude;           // GPS position, floating point, decimal degrees
-    gLongitude        = from.gLongitude;          // GPS position, floating point, decimal degrees
-    gAltitude         = from.gAltitude;           // Altitude in meters above MSL
-    gHaveGPSfix       = false;                    // assume no fix yet
-    gSatellites       = 0;                        // assume no satellites yet
-    gSpeed            = 0.0;                      // assume speed unknown
-    gAngle            = 0.0;                      // assume direction of travel unknown
-    gMetric           = from.gMetric;             // distance report in miles/kilometers
-    gTimeZone         = from.gTimeZone;           // offset from GMT to local time
-    compare4digits    = from.compare4digits;      //
-    gSeaLevelPressure = from.gSeaLevelPressure;   // hPa
+    gLatitude      = from.gLatitude;        // GPS position, floating point, decimal degrees
+    gLongitude     = from.gLongitude;       // GPS position, floating point, decimal degrees
+    gAltitude      = from.gAltitude;        // Altitude in meters above MSL
+    gTimestamp     = from.gTimestamp;       // date/time of GPS reading
+    gHaveGPSfix    = false;                 // assume no fix yet
+    gSatellites    = 0;                     // assume no satellites yet
+    gSpeed         = 0.0;                   // assume speed unknown
+    gAngle         = 0.0;                   // assume direction of travel unknown
+    gMetric        = from.gMetric;          // distance report in miles/kilometers
+    gTimeZone      = from.gTimeZone;        // offset from GMT to local time
+    compare4digits = from.compare4digits;   // true=4 digit, false=6 digit comparisons
   }
 
   // given a GPS reading in NMEA format, create a "time_t" timestamp
@@ -145,7 +144,8 @@ public:
     // NMEA years are the last two digits and start at year 2000, time_t starts at 1970
     const uint8_t year = nmeaYear + (2000 - 1970);
     TimeElements tm{nmeaSeconds, nmeaMinute, nmeaHour, 1, nmeaDay, nmeaMonth, year};
-    return makeTime(tm);
+    time_t ret = makeTime(tm);
+    return ret;
   }
 
   // read GPS hardware
