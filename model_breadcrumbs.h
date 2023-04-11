@@ -6,11 +6,22 @@
             This is a circular buffer in memory, which periodically written to a CSV file.
             Buffer is never full; we can always add more records and overwrite the oldest.
 
-  Todo:     1. encapsulate implementation
-            2. refactor "class Location" into this file
-            3. refactor "makeLocation()" into ctor (or public member) of "class Location"
-            4. replace remember(Location) with remember(a,b,c,d,e,f)
-            5. add rememberPDN(), rememberTOD()
+  Breadcrumb trail strategy:
+            This is a "model" of the Model-View-Controller design pattern.
+            As such, it contains the data for holding all the breadcrumbs  and is a
+            low-level component with minimal side effects and few dependencies.
+
+            This "Breadcrumbs" object will just only manage itself.
+            It does not schedule events or request actions from other objects.
+            The caller is responsible for asking us to write to a file, output to console, 
+            produce a formatted KML file, and etc when it's needed.
+            We don't reach into the "model" from here and tell it what to do.
+            When the caller tells us to save to file, don't tell the "model" to do anything.
+
+  Todo:     1. refactor "class Location" into this file
+            2. refactor "makeLocation()" into ctor (or public member) of "class Location"
+            3. replace remember(Location) with remember(a,b,c,d,e,f)
+            4. add rememberPDN(), rememberTOD()
 
   API Design:
       Initialization:
@@ -40,13 +51,6 @@
                   Full state has "bool full"
                   Empty state is (head == tail) && !full
             Griduino wants efficient memory usage and doesn't need thread safety.
-
-  Scope:
-            This is a low-level subroutine with minimal side effects.
-            This "Breadcrumbs" object will just only manage itself.
-            The caller is responsible for asking us to write to a file when it's needed.
-            Don't reach into the "model" from here and tell it what to do.
-            When the caller tells us to save to file, don't tell the "model" to do anything.
 
   Size of GPS breadcrumb trail:
             Our goal is to keep track of at least one long day's travel, 500 miles or more.
