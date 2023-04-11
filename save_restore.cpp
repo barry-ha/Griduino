@@ -200,7 +200,7 @@ int SaveRestore::writeConfig(const byte *pData, const unsigned int sizeData) {
  */
 int SaveRestoreStrings::open(const char *fqFilename, const char *mode) {   // https://cplusplus.com/reference/cstdio/fopen/
   // returns 1=success, 0=failure
-  logger.info("Opening text file system, ", fqFilename);
+  logger.info("Opening text file system: ", fqFilename);
 
   int result = openFlash();   // open file system and report errors
   if (!result) {
