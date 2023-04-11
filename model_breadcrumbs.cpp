@@ -41,7 +41,7 @@ void Breadcrumbs::dumpHistoryGPS(int limit) {
     limit = capacity;   // default to all records
   }
 
-  logger.info("Next record to be written = ", head);
+  logger.info("Next record to be written = %d", head);
 
   time_t tm = now();                           // debug: show current time in seconds
   Serial.print("now() = ");                    // debug
@@ -127,7 +127,7 @@ int Breadcrumbs::saveGPSBreadcrumbTrail() {   // returns 1=success, 0=failure
   config.writeLine("Type, GMT Date, GMT Time, Grid, Latitude, Longitude, Altitude, MPH, Direction, Satellites");
 
   // line 6..x: date-time, grid6, latitude, longitude
-  Location *loc = begin();
+  Location const *loc = begin();   // declare pointer to immutable breadcrumb
   while (loc) {
 
     char sDate[12];   // sizeof("2022-11-10") = 10
@@ -153,6 +153,8 @@ int Breadcrumbs::saveGPSBreadcrumbTrail() {   // returns 1=success, 0=failure
     snprintf(msg, sizeof(msg), "%s,%s,%s,%s,%s,%s,%s,%s,%s,%d",
              loc->recordType, sDate, sTime, sGrid6, sLat, sLng, sAlt, sSpeed, sAngle, numSatellites);
     config.writeLine(msg);
+
+    loc = next();
   }
   logger.info(". Wrote %d entries to GPS log", getHistoryCount());
 
@@ -376,17 +378,17 @@ void Breadcrumbs::dumpHistoryKML() {
   logger.error("Todo: redesign dumpHistoryKML() with new head/tail pointers");
   logger.error("***********************************************************");
 
-  /*********************************************************************
+#if 0   // commented out until it's fixed
   Serial.print(KML_PREFIX);         // begin KML file
   Serial.print(BREADCRUMB_STYLE);   // add breadcrumb icon style
   //int startIndex  = nextHistoryItem + 1;  // deleted - use 'tail' instead'
   //bool startFound = false;    // deleted - we always know the start is 'tail'
 
   // start right AFTER the most recently written slot in circular buffer
-  int index = nextHistoryItem;
+  int index = nextHistoryItem;   // should be: Location* item = begin();
 
   // loop through the entire GPS history buffer
-  for (int ii = 0; ii < capacity; ii++) {
+  for (int ii = 0; ii < capacity; ii++) {   // should be: while (item) {
     Location item = history[index];
     if (item.isGPS()) {
       if (!item.isEmpty()) {
@@ -448,5 +450,5 @@ void Breadcrumbs::dumpHistoryKML() {
     Serial.print(PUSHPIN_SUFFIX);   // end pushpin at start of route
   }
   Serial.println(KML_SUFFIX);   // end KML file
-  *********************************************************************/
+#endif
 }
