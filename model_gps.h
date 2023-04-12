@@ -32,11 +32,8 @@ extern Logger logger;       // Griduino.ino
 extern Grids grid;          // grid_helper.h
 extern Dates date;          // date_helper.h
 
-void floatToCharArray(char *result, int maxlen, double fValue, int decimalPlaces);   // Griduino.ino
-bool isVisibleDistance(const PointGPS from, const PointGPS to);                      // view_grid.cpp
-
 // ========== constants ========================================
-// These initial values are displayed until GPS gets comes up with better info.
+// These initial values are displayed until GPS gets provides better info
 
 #define INIT_GRID6 "CN77tt";   // initialize to a nearby grid for demo
 #define INIT_GRID4 "CN77";     // but not my home grid CN87, so that GPS lock will announce where we are in Morse code
@@ -59,8 +56,8 @@ public:
 
 protected:
   int gPrevFix       = false;        // previous value of gHaveGPSfix, to help detect "signal lost"
-  char sPrevGrid4[5] = INIT_GRID4;   // previous value of gsGridName, to help detect "enteredNewGrid()"
-  char sPrevGrid6[7] = INIT_GRID6;   // previous value of gsGridName, to help detect "enteredNewGrid()"
+  char sPrevGrid4[5] = INIT_GRID4;   // previous value of gsGridName, to help detect "enteredNewGrid4()"
+  char sPrevGrid6[7] = INIT_GRID6;   // previous value of gsGridName, to help detect "enteredNewGrid6()"
 
 public:
   // Constructor - create and initialize member variables
@@ -174,9 +171,6 @@ public:
   void processGPS() {
     getGPS();        // read the hardware for location
     echoGPSinfo();   // send GPS statistics to serial console for debug
-
-    Location whereAmI = makeLocation();
-    trail.remember(whereAmI);
   }
 
   Location makeLocation() {
@@ -186,8 +180,40 @@ public:
     return loc;
   }
 
-  // grid-crossing detector
-  bool enteredNewGrid() {
+  // 4-digit grid-crossing detector
+  bool enteredNewGrid4() {
+    // returns TRUE if the first FOUR characters of grid name have changed
+    char newGrid4[5];   // strlen("CN87") = 4
+    grid.calcLocator(newGrid4, gLatitude, gLongitude, 4);
+    if (strcmp(newGrid4, sPrevGrid4) != 0) {
+      char msg[128];
+      snprintf(msg, sizeof(msg), "Prev grid: %s New grid: %s", sPrevGrid4, sPrevGrid4);
+      logger.warning(msg);
+      strncpy(sPrevGrid4, newGrid4, sizeof(sPrevGrid4));
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  // 6-digit grid-crossing detector
+  bool enteredNewGrid6() {
+    // returns TRUE if the first SIX characters of grid name have changed
+    char newGrid6[7];   // strlen("CN87us") = 6
+    grid.calcLocator(newGrid6, gLatitude, gLongitude, 6);
+    if (strcmp(newGrid6, sPrevGrid6) != 0) {
+      Serial.print("Prev grid: ");
+      Serial.print(sPrevGrid6);
+      Serial.print(" New grid: ");
+      Serial.println(newGrid6);
+      strncpy(sPrevGrid6, newGrid6, sizeof(sPrevGrid6));
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  bool enteredNewGrid_delete_me() {
     if (compare4digits) {
       // returns TRUE if the first FOUR characters of grid name have changed
       char newGrid4[5];   // strlen("CN87") = 4

@@ -941,28 +941,45 @@ void loop() {
 
   // if there's an alert, tell the user
   if (model->signalLost()) {
-    model->indicateSignalLost();      // update model
-    sendMorseLostSignal();            // announce GPS signal lost by Morse code
+    model->indicateSignalLost();   // update model
+    sendMorseLostSignal();         // announce GPS signal lost by Morse code
   }
 
-  // if GPS enters a new grid, notify the user
-  if (model->enteredNewGrid()) {
-    pView->startScreen();             // update display so they can see new grid while listening to audible announcement
-    pView->updateScreen();
+  // if GPS enters a new grid, notify the user and draw new display screen
+  char newGrid6[7];
+  grid.calcLocator(newGrid6, model->gLatitude, model->gLongitude, 6);
 
-    // note that cfg_settings4 will handle all of its own morse code announcement 
-    if (pView->screenID != CFG_CROSSING) {
-      char newGrid6[7];
-      grid.calcLocator(newGrid6, model->gLatitude, model->gLongitude, 6);
-      if (model->compare4digits) {
-        announceGrid( newGrid6, 4 );  // announce with Morse code or speech, according to user's config
-      } else {
-        announceGrid( newGrid6, 6 );  // announce with Morse code or speech, according to user's config
-      }
+  if (model->enteredNewGrid4()) {
+    pView->startScreen();          // update display so they can see new grid while listening to audible announcement
+    pView->updateScreen();
+    announceGrid(newGrid6, 4);     // announce with Morse code or speech, according to user's config
+
+    Location whereAmI = model->makeLocation();
+    trail.remember(whereAmI);
+    trail.saveGPSBreadcrumbTrail();
+
+  } else if (model->enteredNewGrid6()) {
+    if (!model->compare4digits) {
+      announceGrid(newGrid6, 6);   // announce with Morse code or speech, according to user's config
+    }
+    Location whereAmI = model->makeLocation();
+    trail.remember(whereAmI);
+    trail.saveGPSBreadcrumbTrail();
+  }
+
+  // if we drove far enough, add this to the breadcrumb trail
+  static PointGPS prevRememberedGPS{0.0, 0.0};
+  PointGPS currentGPS{model->gLatitude, model->gLongitude};
+  if (grid.isVisibleDistance(prevRememberedGPS, currentGPS)) {
+    Location whereAmI = model->makeLocation();
+    trail.remember(whereAmI);
+
+    if (0 == (trail.getHistoryCount() % trail.saveInterval)) {
+      trail.saveGPSBreadcrumbTrail();
     }
   }
 
-  // automatically log GPS position every 5 minutes, in case they haven't moved
+  // automatically log GPS position every 5 minutes, in case we haven't moved
   if (autoLogTimer > GPS_AUTOSAVE_INTERVAL) {
     autoLogTimer = 0;
 

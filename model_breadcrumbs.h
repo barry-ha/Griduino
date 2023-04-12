@@ -176,6 +176,7 @@ public:
   }
 
   Location *begin() {   // returns pointer to tail of buffer, or null if buffer is empty
+    // todo: test if buffer empty and return null
     current = tail;
     return &history[current];
   }
@@ -193,15 +194,15 @@ public:
 
   // ----- I/O
   // our breadcrumb trail file is CSV format -- you can open this Arduino file directly in a spreadsheet
-  int saveGPSBreadcrumbTrail();   // returns 1=success, 0=failure
+  int saveGPSBreadcrumbTrail();   // save trail to file, returns 1=success, 0=failure
 
-  int restoreGPSBreadcrumbTrail();   // returns 1=success, 0=failure
+  int restoreGPSBreadcrumbTrail();   // restore trail from file, returns 1=success, 0=failure
 
-  void deleteFile();   // model_breadcrumbs.cpp
+  void deleteFile();   // remove breadcrumb trail file
 
-  void dumpHistoryGPS(int limit = 0);
+  void dumpHistoryGPS(int limit = 0);   // print neatly formatted breadcrumb trail to console
 
-  void dumpHistoryKML();
+  void dumpHistoryKML();   // print Keyhole Markup Language trail to console
 
   // ----- Internal helpers
 private:
