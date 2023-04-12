@@ -43,6 +43,8 @@ extern Adafruit_ILI9341 tft;             // Griduino.ino
 extern Breadcrumbs trail;                // model of breadcrumb trail
 extern Model *model;                     // "model" portion of model-view-controller
 
+void floatToCharArray(char* result, int maxlen, double fValue, int decimalPlaces);  // Griduino.ino
+
 // ========== class ViewGridCrossing ===========================
 class ViewGridCrossings : public View {
 public:
