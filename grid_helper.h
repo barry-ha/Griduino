@@ -9,7 +9,7 @@
             grid names, distances, lat/long conversion, etc
 
             The goal is to collect these helpers together in one place,
-            because these techniques are likely to be reused or rewritten 
+            because these techniques are likely to be reused or rewritten
             into other programming languages.
 */
 
@@ -80,6 +80,18 @@ public:
   }
 
   //=========== distance helpers =============================
+  bool isVisibleDistance(const PointGPS from, const PointGPS to) {
+    // has the vehicle moved some minimum amount, enough to be visible?
+
+    if (abs(from.lat - to.lat) >= minLat) {
+      return true;
+    } else if (abs(from.lng - to.lng) >= minLong) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   double calcDistance(double fromLat, double fromLong, double toLat, double toLong, bool isMetric) {
     // Note: accurate for short distances, since it ignores curvature of earth
     double latDist  = calcDistanceLat(fromLat, toLat, isMetric);

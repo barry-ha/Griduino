@@ -54,20 +54,7 @@ const int gMarginX = 70;   // define space for grid outline on screen
 const int gMarginY = 26;   // and position text relative to this outline
 
 // ========== helpers ==========================================
-const double minLong = gridWidthDegrees / gBoxWidth;     // longitude degrees from one pixel to the next (minimum visible movement)
-const double minLat  = gridHeightDegrees / gBoxHeight;   // latitude degrees from one pixel to the next
 
-bool isVisibleDistance(const PointGPS from, const PointGPS to) {
-  // has the vehicle moved some minimum amount, enough to be visible?
-
-  if (abs(from.lat - to.lat) >= minLat) {
-    return true;
-  } else if (abs(from.lng - to.lng) >= minLong) {
-    return true;
-  } else {
-    return false;
-  }
-}
 void drawGridOutline() {
   tft.drawRect(gMarginX, gMarginY, gBoxWidth, gBoxHeight, ILI9341_CYAN);
 }

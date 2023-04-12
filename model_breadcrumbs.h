@@ -13,10 +13,16 @@
 
             This "Breadcrumbs" object will just only manage itself.
             It does not schedule events or request actions from other objects.
-            The caller is responsible for asking us to write to a file, output to console, 
+            The caller is responsible for asking us to write to a file, output to console,
             produce a formatted KML file, and etc when it's needed.
             We don't reach into the "model" from here and tell it what to do.
-            When the caller tells us to save to file, don't tell the "model" to do anything.
+            If the controller tells us to save to file, don't tell the "model" to do anything.
+
+            When should the controller should remember a new breadcrumb?
+            1. Every five minutes
+            2. When we drive a visible distance on the screen
+            3. When we drive into a new 6-digit grid square (todo)
+            4. When we turn a sharp corner (todo)
 
   Todo:     1. refactor "class Location" into this file
             2. refactor "makeLocation()" into ctor (or public member) of "class Location"
@@ -83,8 +89,6 @@
 extern Logger logger;   // Griduino.ino
 extern Grids grid;      // grid_helper.h
 extern Dates date;      // date_helper.h
-
-bool isVisibleDistance(const PointGPS from, const PointGPS to);   // view_grid.cpp
 
 // ========== class History ======================
 class Breadcrumbs {
