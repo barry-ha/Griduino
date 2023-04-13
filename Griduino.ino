@@ -973,6 +973,7 @@ void loop() {
   if (grid.isVisibleDistance(prevRememberedGPS, currentGPS)) {
     Location whereAmI = model->makeLocation();
     trail.remember(whereAmI);
+    prevRememberedGPS = currentGPS;
 
     if (0 == (trail.getHistoryCount() % trail.saveInterval)) {
       trail.saveGPSBreadcrumbTrail();
