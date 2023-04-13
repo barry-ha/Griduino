@@ -156,7 +156,6 @@ int Breadcrumbs::saveGPSBreadcrumbTrail() {   // returns 1=success, 0=failure
 
     loc = next();
   }
-  logger.info(". Wrote %d entries to GPS log", getHistoryCount());
 
   // close file
   config.close();
