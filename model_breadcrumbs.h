@@ -183,10 +183,10 @@ public:
 
   Location *next() {   // returns pointer to next element, or null if buffer is empty
     Location *ptr = nullptr;
+    current = (current + 1) % capacity;
     if (current == head) {
       // nothing returned - end of data
     } else {
-      current = (current + 1) % capacity;
       ptr     = &history[current];
     }
     return ptr;
