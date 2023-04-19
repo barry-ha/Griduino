@@ -764,7 +764,7 @@ while True:
             sgps.open(GPS_PORT, GPS_RATE, nmea_p.handle_serial, timeout=1.2)
 
         if type(the_packet) == StatusPacket:
-            if gps_grid.lower() != "" and the_packet.de_grid.lower() != gps_grid:
+            if gps_grid != "" and the_packet.de_grid.lower() != gps_grid.lower():
                 print(
                     "Sending Grid Change to WSJT-X, old grid:{} new grid: {}".format(
                         the_packet.de_grid, gps_grid
