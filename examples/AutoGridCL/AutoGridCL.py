@@ -168,8 +168,8 @@ class PacketUtil:
     # timezone tomfoolery
     @classmethod
     def midnight_utc(cls):
-        utcnow = datetime.datetime.utcnow()
-        utcmidnight = datetime.datetime(utcnow.year, utcnow.month, utcnow.day, 0, 0)
+        utcnow = datetime.utcnow()
+        utcmidnight = datetime(utcnow.year, utcnow.month, utcnow.day, 0, 0)
         return utcmidnight
 
 
