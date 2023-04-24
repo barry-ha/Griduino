@@ -455,9 +455,10 @@ void plotCurrentPosition(const PointGPS loc, const PointGPS origin) {
 void ViewGrid::updateScreen() {
   // called on every pass through main()
 
-  // start scope output
-  pinMode(A0, OUTPUT);      // debug - mostly unused pin on rp2040
-  digitalWrite(A0, HIGH);   // debug - output for oscilloscope
+#ifdef SCOPE_OUTPUT                   // start output interval for oscilloscope
+  pinMode(SCOPE_OUTPUT, OUTPUT);      // debug - mostly unused pin on rp2040
+  digitalWrite(SCOPE_OUTPUT, HIGH);   // debug - output for oscilloscope
+#endif
 
   // coordinates of lower-left corner of currently displayed grid square
   PointGPS gridOrigin{grid.nextGridLineSouth(model->gLatitude), grid.nextGridLineWest(model->gLongitude)};
@@ -478,9 +479,10 @@ void ViewGrid::updateScreen() {
   drawNeighborDistances();                       // this is the main goal of the whole project
   plotCurrentPosition(myLocation, gridOrigin);   // show current pushpin
 
-  // end scope output
-  digitalWrite(A0, LOW);   // debug - output for oscilloscope
-  delay(1);                // debug
+#ifdef SCOPE_OUTPUT
+  digitalWrite(SCOPE_OUTPUT, LOW);   // end output interval for oscilloscope
+  delay(1);                          // debug
+#endif
 }
 
 void ViewGrid::startScreen() {
