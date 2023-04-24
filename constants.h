@@ -1,4 +1,4 @@
-#pragma once   // Please format this file with clang before check-in to GitHub
+#pragma once   // Please format this file with clang before check-in to GitHub 
 
 // ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE "Griduino"
@@ -14,7 +14,7 @@
 #define PROGRAM_GITHUB   "https://github.com/barry-ha/Griduino"
 
 // ------- Select testing features ---------
-// #define FASTBOOT                    // comment out in production, use to skip some startup screen
+// #define SCOPE_OUTPUT  A0            // use this for performance measurements with oscilloscope
 // #define ECHO_GPS                    // use this to see GPS detailed info on IDE console for debug
 // #define SHOW_SCREEN_BORDER          // use this to outline the screen's displayable area
 // #define SHOW_SCREEN_CENTERLINE      // use this visual aid to help layout the screen
