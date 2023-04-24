@@ -652,17 +652,6 @@ void setup() {
   Serial.println("Starting cfgRotation.loadConfig()...");
   cfgRotation.loadConfig();           // restore previous screen orientation
 
-  // ----- one-time Splash screen
-#ifdef FASTBOOT
-  Serial.println("Fast boot: skip Splash screen");
-#else
-  // 2023-03-26 removed now that animated logo screen shows version number
-  //pView = &splashView;
-  //pView->startScreen();
-  //pView->updateScreen();
-  //delay(2000);
-#endif
-
   // ----- init GPS
   GPS.begin(9600);   // 9600 NMEA is the default baud rate for Adafruit MTK GPS's
   delay(50);         // is delay really needed?

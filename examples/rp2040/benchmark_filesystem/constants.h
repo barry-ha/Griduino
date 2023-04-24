@@ -10,7 +10,6 @@
 #define PROGRAM_GITHUB   "https://github.com/barry-ha/Griduino"
 
 // ------- Select testing features ---------
-//#define FASTBOOT                    // comment out in production, use to skip some startup screen
 //#define ECHO_GPS                    // use this to see GPS detailed info on IDE console for debug
 //#define SHOW_SCREEN_BORDER          // use this to outline the screen's displayable area
 //#define SHOW_SCREEN_CENTERLINE      // use this visual aid to help layout the screen
