@@ -178,7 +178,7 @@ int SaveRestore::openFlash() {
   // to make sure the filesystem was mounted.
   if (!gFatfs.begin(&gFlash)) {
     Serial.println("Error, failed to mount filesystem!");
-    Serial.println("Was the flash chip formatted with the SdFat_format example?");
+    logger.error("Was the flash chip formatted with File > Examples > Adafruit SPIFlash > SdFat_format?");
     return 0;
   }
   //Serial.println(". Mounted SPI flash filesystem");
