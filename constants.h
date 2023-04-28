@@ -41,6 +41,7 @@ const double minLat  = gridHeightDegrees / gBoxHeight;   // latitude degrees fro
 const double degreesPerRadian = 57.2957795;   // conversion factor = (360 degrees)/(2 pi radians)
 
 #define SECS_PER_5MIN  ((time_t)(300UL))
+#define SECS_PER_10MIN ((time_t)(600UL))
 #define SECS_PER_15MIN ((time_t)(900UL))
 
 #define DEFAULT_SEALEVEL_PASCALS (101740.0)
