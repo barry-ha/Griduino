@@ -554,8 +554,7 @@ int verifyBreadCrumbTrail1() {
                      model->gLongitude = lon + (ii * stepSize * 5 / 4)};   // "plus" goes rightward (east)
     time_t stamp = now();
     // doesn't matter what timestamp/sats/speed/direction/altitude is actually stored during tests
-    Location loc{rGPS, latLong, stamp, 5, 10.0, 45.0, 123.0};
-    trail.remember(loc);
+    trail.rememberGPS(latLong, stamp, (uint8_t)ii, 10.0, 45.0, 123.0);
   }
 
   trail.rememberPUP();       // test another "power up" record type (also writes it to a file)
@@ -576,7 +575,7 @@ void generateSineWave(int numCrumbs) {
   int steps              = numCrumbs;                 // number of loops, pref prime number
   double stepSize        = (125.3 - 123.7) / steps;   // degrees longitude to move each loop
   double amplitude       = 0.65;                      // degrees latitude, maximum sine wave
-  const int nSats        = 5;
+  const uint8_t nSats    = 5;
   const float fSpeed     = 10.0;
   const float fDirection = 11.0;
   const float fAltitude  = 12.0;
@@ -587,8 +586,7 @@ void generateSineWave(int numCrumbs) {
     PointGPS latLong{latitude, longitude};
     time_t stamp = now();
     // doesn't matter what timestamp/sats/speed/direction/altitude is actually stored during tests
-    Location loc{rGPS, latLong, stamp, nSats, fSpeed, fDirection, fAltitude};
-    trail.remember(loc);
+    trail.rememberGPS(latLong, stamp, nSats, 10.0, 45.0, 123.0);
   }
 }
 // =============================================================
@@ -633,12 +631,13 @@ int verifySaveTrail(int howMany) {
 int verifyRestoreTrail(int howMany) {
   logger.fencepost("unittest.cpp", "verifyRestoreTrail", __LINE__);
 
+  int interval = trail.saveInterval;
   trail.restoreGPSBreadcrumbTrail();   // this takes noticeable time (~0.2 sec)
 
   Serial.println("History as known by verifyRestoreTrail()...");
   trail.dumpHistoryGPS(howMany + 4);   // did it remember? (go review serial console)
 
-  trail.saveInterval = 2;   // restore default trail setting
+  trail.saveInterval = interval;   // restore default trail setting
   return 0;
 }
 // =============================================================
@@ -773,18 +772,18 @@ void runUnitTest() {
   countDown(5);                       //
   f += verifySaveRestoreGPSModel();   // verify save/restore GPS model state in SDRAM
   countDown(5);                       //
-  *****/
   f += verifyBreadCrumbs();           // verify pushpins near the four corners
-  countDown(5);                       //
-  f += verifyBreadCrumbTrail1();      // verify painting the bread crumb trail
-  countDown(5);                       //
-  int howMany = 7;                    // keep test small
+  countDown(15);                       //
+  *****/
+  f += verifyBreadCrumbTrail1();          // verify painting the bread crumb trail
+  countDown(15);                          //
+  int howMany = 7;                        // keep test small
   f += verifyBreadCrumbTrail2(howMany);   // verify painting the bread crumb trail
-  countDown(5);                       //
-  f += verifySaveTrail(howMany);      // save GPS route to non-volatile memory
-  countDown(5);                       //
-  f += verifyRestoreTrail(howMany);   // restore GPS route from non-volatile memory
-  countDown(5);                       //
+  countDown(15);                          //
+  f += verifySaveTrail(howMany);          // save GPS route to non-volatile memory
+  countDown(15);                          //
+  f += verifyRestoreTrail(howMany);       // restore GPS route from non-volatile memory
+  countDown(15);                          //
   /*****
   f += verifyDerivingGridSquare();    // verify deriving grid square from lat-long coordinates
   countDown(5);                       //

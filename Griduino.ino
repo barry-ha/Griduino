@@ -932,6 +932,7 @@ void loop() {
   if (model->signalLost()) {
     model->indicateSignalLost();   // update model
     sendMorseLostSignal();         // announce GPS signal lost by Morse code
+    // todo: write LOS to gps history log
   }
 
   // if GPS enters a new grid, notify the user and draw new display screen
@@ -944,7 +945,7 @@ void loop() {
     announceGrid(newGrid6, 4);     // announce with Morse code or speech, according to user's config
 
     Location whereAmI = model->makeLocation();
-    trail.remember(whereAmI);
+    trail.rememberGPS(whereAmI);
     trail.saveGPSBreadcrumbTrail();
 
   } else if (model->enteredNewGrid6()) {
@@ -952,8 +953,9 @@ void loop() {
       announceGrid(newGrid6, 6);   // announce with Morse code or speech, according to user's config
     }
     Location whereAmI = model->makeLocation();
-    trail.remember(whereAmI);
-    trail.saveGPSBreadcrumbTrail();
+    trail.rememberGPS(whereAmI);    // when we enter a new 6-digit grid, save it in breadcrumb trail
+    trail.saveGPSBreadcrumbTrail(); // because one user's home was barely in the next grid6
+                                    // and we want to show his grid6 at next power up
   }
 
   // if we drove far enough, add this to the breadcrumb trail
@@ -961,7 +963,7 @@ void loop() {
   PointGPS currentGPS{model->gLatitude, model->gLongitude};
   if (grid.isVisibleDistance(prevRememberedGPS, currentGPS)) {
     Location whereAmI = model->makeLocation();
-    trail.remember(whereAmI);
+    trail.rememberGPS(whereAmI);
     prevRememberedGPS = currentGPS;
 
     if (0 == (trail.getHistoryCount() % trail.saveInterval)) {
@@ -969,12 +971,12 @@ void loop() {
     }
   }
 
-  // automatically log GPS position every 5 minutes, in case we haven't moved
+  // log GPS position every few minutes, to keep track of lingering in one spot
   if (autoLogTimer > GPS_AUTOSAVE_INTERVAL) {
     autoLogTimer = 0;
 
     Location whereAmI = model->makeLocation();
-    trail.remember(whereAmI);
+    trail.rememberGPS(whereAmI);
     trail.saveGPSBreadcrumbTrail();
   }
 

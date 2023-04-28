@@ -161,12 +161,24 @@ public:
     remember(fvt);
   }
 
+  void rememberGPS(Location vLoc) {
+    strncpy(vLoc.recordType, rGPS, sizeof(vLoc.recordType));
+    remember(vLoc);
+  }
+
+  void rememberGPS(PointGPS vLoc, time_t vTime, uint8_t vSats, float vSpeed, float vDirection, float vAltitude) {
+    Location gps{rGPS, vLoc, vTime, vSats, vSpeed, vDirection, vAltitude};
+    remember(gps);
+  }
+
+protected:
   void remember(Location vLoc) {   // save GPS location and timestamp in history buffer
     // so that we can display it as a breadcrumb trail
     history[head] = vLoc;
     advance_pointer();
   }
 
+public:
   void advance_pointer() {
     if (full) {
       tail = (tail + 1) % capacity;   // if buffer full, advance tail pointer
@@ -207,13 +219,15 @@ public:
   // ----- Internal helpers
 private:
   bool isValidBreadcrumb(const char *crumb) {
-    // examine an input line from saved breadcrumb trail to see if it's a plausible GPS record type
+    // input: entire line from CSV file
+    // examine a line from saved breadcrumb trail to see if it's a plausible GPS record type
     // clang-format off
     if ((strlen(crumb) > 4)
       &&(',' == crumb[3])
       &&('A' <= crumb[0] && crumb[0] <= 'Z')
       &&('A' <= crumb[1] && crumb[1] <= 'Z')
-      &&('A' <= crumb[2] && crumb[2] <= 'Z')) {
+      &&('A' <= crumb[2] && crumb[2] <= 'Z')) 
+    {
       return true;
     } else {
       return false;

@@ -127,6 +127,7 @@ int Breadcrumbs::saveGPSBreadcrumbTrail() {   // returns 1=success, 0=failure
   config.writeLine("Type, GMT Date, GMT Time, Grid, Latitude, Longitude, Altitude, MPH, Direction, Satellites");
 
   // line 6..x: date-time, grid6, latitude, longitude
+  int ii              = 0;
   Location const *loc = begin();   // declare pointer to immutable breadcrumb
   while (loc) {
 
@@ -149,11 +150,18 @@ int Breadcrumbs::saveGPSBreadcrumbTrail() {   // returns 1=success, 0=failure
     floatToCharArray(sAngle, sizeof(sAngle), loc->direction, 1);
     int numSatellites = loc->numSatellites;
 
-    //                           1  2  3  4  5  6  7  8  9 10
-    snprintf(msg, sizeof(msg), "%s,%s,%s,%s,%s,%s,%s,%s,%s,%d",
-             loc->recordType, sDate, sTime, sGrid6, sLat, sLng, sAlt, sSpeed, sAngle, numSatellites);
-    config.writeLine(msg);
-
+    if (strlen(loc->recordType)) {
+      //                           1  2  3  4  5  6  7  8  9 10
+      snprintf(msg, sizeof(msg), "%s,%s,%s,%s,%s,%s,%s,%s,%s,%d",
+               loc->recordType, sDate, sTime, sGrid6, sLat, sLng, sAlt, sSpeed, sAngle, numSatellites);
+      config.writeLine(msg);
+    } else {
+      // don't allow internal errors to pollute the saved CSV file
+      snprintf(msg, sizeof(msg), "(%d) Ignoring empty record type: %s,%s,%s,%s,%s,%s,%s,%s,%s,%d",
+               ii, loc->recordType, sDate, sTime, sGrid6, sLat, sLng, sAlt, sSpeed, sAngle, numSatellites);
+      logger.error(msg);
+    }
+    ii++;
     loc = next();
   }
 
@@ -182,7 +190,7 @@ int Breadcrumbs::restoreGPSBreadcrumbTrail() {   // returns 1=success, 0=failure
   int csv_line_number = 0;
   int items_restored  = 0;
   char csv_line[256], original_line[256];
-  const char delimiter[] = ",-/:";   // separators for: CSV, date, date, time
+  const char delimiters[] = ",-/:";   // separators for: CSV, date, date, time
   int count;
   bool done = false;
   while (count = config.readLine(csv_line, sizeof(csv_line)) && !done) {
@@ -204,20 +212,20 @@ int Breadcrumbs::restoreGPSBreadcrumbTrail() {   // returns 1=success, 0=failure
       // parsing text must match same order in saveGPSBreadcrumbTrail()
       // "Type, GMT Date, GMT Time, Grid, Latitude, Longitude, Altitude, MPH, Direction, Satellites"
       char sType[4];
-      strncpy(sType, strtok(csv_line, delimiter), sizeof(sType));
-      int iYear4          = atoi(strtok(NULL, delimiter));   // YYYY: actual calendar year
-      uint8_t iYear2      = CalendarYrToTm(iYear4);          // YY: offset from 1970
-      uint8_t iMonth      = atoi(strtok(NULL, delimiter));
-      uint8_t iDay        = atoi(strtok(NULL, delimiter));
-      uint8_t iHour       = atoi(strtok(NULL, delimiter));
-      uint8_t iMinute     = atoi(strtok(NULL, delimiter));
-      uint8_t iSecond     = atoi(strtok(NULL, delimiter));
-      double fLatitude    = atof(strtok(NULL, delimiter));
-      double fLongitude   = atof(strtok(NULL, delimiter));
-      float fAltitude     = atof(strtok(NULL, delimiter));
-      float fSpeed        = atof(strtok(NULL, delimiter));
-      float fDirection    = atof(strtok(NULL, delimiter));
-      uint8_t nSatellites = atoi(strtok(NULL, delimiter));
+      strncpy(sType, strtok(csv_line, delimiters), sizeof(sType));
+      int iYear4          = atoi(strtok(NULL, delimiters));   // YYYY: actual calendar year
+      uint8_t iYear2      = CalendarYrToTm(iYear4);           // YY: offset from 1970
+      uint8_t iMonth      = atoi(strtok(NULL, delimiters));
+      uint8_t iDay        = atoi(strtok(NULL, delimiters));
+      uint8_t iHour       = atoi(strtok(NULL, delimiters));
+      uint8_t iMinute     = atoi(strtok(NULL, delimiters));
+      uint8_t iSecond     = atoi(strtok(NULL, delimiters));
+      double fLatitude    = atof(strtok(NULL, delimiters));
+      double fLongitude   = atof(strtok(NULL, delimiters));
+      float fAltitude     = atof(strtok(NULL, delimiters));
+      float fSpeed        = atof(strtok(NULL, delimiters));
+      float fDirection    = atof(strtok(NULL, delimiters));
+      uint8_t nSatellites = atoi(strtok(NULL, delimiters));
 
       // echo info for debug
       // logger.info(".       Source = ", original_line);
@@ -226,13 +234,14 @@ int Breadcrumbs::restoreGPSBreadcrumbTrail() {   // returns 1=success, 0=failure
       //         sType, iYear4, iMonth, iDay, iHour, iMinute, iSecond);
       // logger.info(msg);
 
-      // save this return value into breadcrumb trail buffer
+      // save this value from CSV file into breadcrumb trail buffer
       PointGPS whereAmI{fLatitude, fLongitude};
 
       TimeElements tm{iSecond, iMinute, iHour, 0, iDay, iMonth, iYear2};
       time_t csvTime = makeTime(tm);   // convert time elements into time_t
 
-      Location csvloc{sType[0], sType[1], sType[2], 0, whereAmI, csvTime, nSatellites, fSpeed, fDirection, fAltitude};
+      Location csvloc{"xxx", whereAmI, csvTime, nSatellites, fSpeed, fDirection, fAltitude};
+      strncpy(csvloc.recordType, sType, sizeof(sType));
       remember(csvloc);
 
       // adjust loop variables
