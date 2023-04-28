@@ -402,6 +402,7 @@ int SaveRestore::listFiles(const char *dirname) {
   }
   return rc;
 }
+
 // ----- console output formatter
 void SaveRestore::showFile(const char *indent, const int count, const char *filename, const int filesize) {
   // Example: "        6240 barometr.dat"
@@ -428,6 +429,26 @@ void SaveRestore::showDirectory(const char *dirname) {
            "\r\n%sDelectory of %s  <dir>", dirname);
   logger.info(msg);
   --- */
+}
+int SaveRestore::typeFile() {   // Echo file contents to console
+  int rc   = 1;                 // assume success
+  File32 f = gFatfs.open(fqFilename);
+  if (!f) {
+    logger.error("Error, failed to open file ", fqFilename);
+    rc = 0;
+  } else if (!f.isFile()) {
+    logger.error("Error, ", fqFilename, " is not a file");
+    rc = 0;
+  } else {
+
+    char buffer[128];
+    int count = f.fgets(buffer, sizeof(buffer));
+    while (count > 0) {
+      Serial.print(buffer);   // print() not println(), since text files include their own CRLF
+      count = f.fgets(buffer, sizeof(buffer));
+    }
+  }
+  return rc;
 }
 // ----- protected helpers -----
 int SaveRestore::openFlash() {

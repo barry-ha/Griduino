@@ -85,6 +85,7 @@ public:
    * Delete file
    */
   int deleteFile(const char *vFilename);
+  int typeFile();
 
 protected:
   int openFlash();   // helper

@@ -30,7 +30,7 @@ extern View *pView;                   // Griduino.ino
 
 // ----- forward references
 void help(), version();
-void dump_kml(), dump_gps_history(), erase_gps_history(), list_files();
+void dump_kml(), dump_gps_history(), erase_gps_history(), list_files(), type_gpshistory();
 void start_nmea(), stop_nmea(), start_gmt(), stop_gmt();
 void view_help(), view_screen1(), view_splash(), view_crossings(), view_events();
 void show_touch(), hide_touch();
@@ -67,6 +67,7 @@ Command cmdList[] = {
     {"view events", view_events, 0},
 
     {"list files", list_files, Newline},
+    {"type gpshistory", type_gpshistory, Newline},
     {"run unittest", run_unittest, 0},
 };
 const int numCmds = sizeof(cmdList) / sizeof(cmdList[0]);
@@ -114,6 +115,11 @@ void erase_gps_history() {
 void list_files() {
   SaveRestore saver("x", "y");   // dummy config object, we won't actually save anything
   saver.listFiles("/");          // list all files starting at root
+}
+
+void type_gpshistory() {
+  SaveRestoreStrings saver("/Griduino/gpshistory.csv", "No Version");
+  saver.typeFile();
 }
 
 void start_nmea() {
