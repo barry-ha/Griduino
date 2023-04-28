@@ -372,49 +372,53 @@ int Breadcrumbs::restoreGPSBreadcrumbTrail() {   // returns 1=success, 0=failure
 
 void Breadcrumbs::dumpHistoryKML() {
 
-  // todo: redesign dumpHistoryKML() with new head/tail pointers
-  logger.error("***********************************************************");
-  logger.error("Todo: redesign dumpHistoryKML() with new head/tail pointers");
-  logger.error("***********************************************************");
-
-#if 0   // commented out until it's fixed
   Serial.print(KML_PREFIX);         // begin KML file
   Serial.print(BREADCRUMB_STYLE);   // add breadcrumb icon style
-  //int startIndex  = nextHistoryItem + 1;  // deleted - use 'tail' instead'
-  //bool startFound = false;    // deleted - we always know the start is 'tail'
+  bool startFound = false;          // the first few items are typically "power up" events so look for first valid GPS event
 
-  // start right AFTER the most recently written slot in circular buffer
-  int index = nextHistoryItem;   // should be: Location* item = begin();
+  // loop through the GPS history buffer
+  Location *item = begin();
+  while (item) {
+    // Location item = history[index];
+    if (item->isGPS()) {
+      if (!item->isEmpty()) {
 
-  // loop through the entire GPS history buffer
-  for (int ii = 0; ii < capacity; ii++) {   // should be: while (item) {
-    Location item = history[index];
-    if (item.isGPS()) {
-      if (!item.isEmpty()) {
         if (!startFound) {
-          // this is the first non-empty lat/long found,
-          // so this must be chronologically the oldest entry recorded
-          // Remember it for the "Start" pushpin
-          startIndex = index;
+          // this is first valid GPS event, so drop a KML pushpin at start of data
+          // todo: look for "power up" events and drop another KML pushpin for each segment
+          char pushpinDate[10];   // strlen("12/24/21") = 9
+          TimeElements time;      // https://github.com/PaulStoffregen/Time
+          breakTime(item->timestamp, time);
+          snprintf(pushpinDate, sizeof(pushpinDate), "%02d/%02d/%02d", time.Month, time.Day, time.Year);
+
+          Serial.print(PUSHPIN_PREFIX_PART1);
+          Serial.print(pushpinDate);
+          Serial.print(PUSHPIN_PREFIX_PART3);
+
+          Serial.print(item->loc.lng, 4);   // KML demands longitude first
+          Serial.print(",");
+          Serial.print(item->loc.lat, 4);
+          Serial.print(",0");
+          Serial.print(PUSHPIN_SUFFIX);   // end of KML pushpin
           startFound = true;
         }
 
         // PlaceMark with timestamp
         TimeElements time;   // https://github.com/PaulStoffregen/Time
-        breakTime(item.timestamp, time);
+        breakTime(item->timestamp, time);
 
         char sLat[12], sLng[12];
-        floatToCharArray(sLat, sizeof(sLat), item.loc.lat, 5);
-        floatToCharArray(sLng, sizeof(sLng), item.loc.lng, 5);
+        floatToCharArray(sLat, sizeof(sLat), item->loc.lat, 5);
+        floatToCharArray(sLng, sizeof(sLng), item->loc.lng, 5);
 
         char grid6[7];
-        grid.calcLocator(grid6, item.loc.lat, item.loc.lng, 6);
+        grid.calcLocator(grid6, item->loc.lat, item->loc.lng, 6);
 
         char sSpeed[12], sDirection[12], sAltitude[12];
-        floatToCharArray(sSpeed, sizeof(sSpeed), item.speed, 1);
-        floatToCharArray(sDirection, sizeof(sDirection), item.direction, 1);
-        floatToCharArray(sAltitude, sizeof(sAltitude), item.altitude, 1);
-        int numSats = item.numSatellites;
+        floatToCharArray(sSpeed, sizeof(sSpeed), item->speed, 1);
+        floatToCharArray(sDirection, sizeof(sDirection), item->direction, 1);
+        floatToCharArray(sAltitude, sizeof(sAltitude), item->altitude, 1);
+        int numSats = item->numSatellites;
 
         char msg[500];
         snprintf(msg, sizeof(msg), PLACEMARK_WITH_TIMESTAMP,
@@ -429,25 +433,7 @@ void Breadcrumbs::dumpHistoryKML() {
         Serial.print(msg);
       }
     }
-    index = (index + 1) % capacity;
-  }
-
-  if (startFound) {         // begin pushpin at start of route
-    char pushpinDate[10];   // strlen("12/24/21") = 9
-    TimeElements time;      // https://github.com/PaulStoffregen/Time
-    breakTime(history[startIndex].timestamp, time);
-    snprintf(pushpinDate, sizeof(pushpinDate), "%02d/%02d/%02d", time.Month, time.Day, time.Year);
-
-    Serial.print(PUSHPIN_PREFIX_PART1);
-    Serial.print(pushpinDate);
-    Serial.print(PUSHPIN_PREFIX_PART3);
-    Location start = history[startIndex];
-    Serial.print(start.loc.lng, 4);   // KML demands longitude first
-    Serial.print(",");
-    Serial.print(start.loc.lat, 4);
-    Serial.print(",0");
-    Serial.print(PUSHPIN_SUFFIX);   // end pushpin at start of route
+    item = next();
   }
   Serial.println(KML_SUFFIX);   // end KML file
-#endif
 }
