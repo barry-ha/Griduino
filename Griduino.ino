@@ -932,7 +932,7 @@ void loop() {
   if (model->signalLost()) {
     model->indicateSignalLost();   // update model
     sendMorseLostSignal();         // announce GPS signal lost by Morse code
-    // todo: write LOS to gps history log
+    // the above will also write LOS and AOS to gps history log
   }
 
   // if GPS enters a new grid, notify the user and draw new display screen

@@ -1,4 +1,4 @@
-#pragma once   // Please format this file with clang before check-in to GitHub 
+#pragma once   // Please format this file with clang before check-in to GitHub
 
 // ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE "Griduino"
@@ -198,11 +198,13 @@ struct FunctionButton {
 };
 
 // Breadcrumb record types
-#define rGPS       "GPS"
-#define rPOWERUP   "PUP"
-#define rPOWERDOWN "PDN"
-#define rVALIDTIME "TIM"
-#define rRESET     "\0\0\0"
+#define rGPS                 "GPS"
+#define rPOWERUP             "PUP"
+#define rPOWERDOWN           "PDN"
+#define rFIRSTVALIDTIME      "TIM"
+#define rLOSSOFSIGNAL        "LOS"
+#define rACQUISITIONOFSIGNAL "AOS"
+#define rRESET               "\0\0\0"
 
 // Breadcrumb data definition for circular buffer
 class Location {
@@ -225,20 +227,28 @@ public:
   }
   bool isEmpty() {
     // we take advantage of the fact that all unused records
-    // will have reset their recordType field to zeroes
+    // will have reset their recordType field to zeroes, ie, rRESET
     return (recordType[0] == 0);
   }
 
   bool isGPS() {
-    return (strncmp(recordType, rGPS, sizeof(recordType)) == 0) ? true : false;
+    return (strncmp(recordType, rGPS, sizeof(recordType)) == 0);
   }
 
   bool isPUP() {
-    return (strncmp(recordType, rPOWERUP, sizeof(recordType)) == 0) ? true : false;
+    return (strncmp(recordType, rPOWERUP, sizeof(recordType)) == 0);
   }
 
   bool isFirstValidTime() {
-    return (strncmp(recordType, rVALIDTIME, sizeof(recordType)) == 0) ? true : false;
+    return (strncmp(recordType, rFIRSTVALIDTIME, sizeof(recordType)) == 0);
+  }
+
+  bool isLossOfSignal() {
+    return (strncmp(recordType, rLOSSOFSIGNAL, sizeof(recordType)) == 0);
+  }
+
+  bool isAcquisitionOfSignal() {
+    return (strncmp(recordType, rACQUISITIONOFSIGNAL, sizeof(recordType)) == 0);
   }
 
   // sanity check data from NVR

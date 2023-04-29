@@ -86,13 +86,13 @@ void Breadcrumbs::dumpHistoryGPS(int limit) {
       snprintf(out, sizeof(out), "%d, %s, %s, %s, , , , , , , %d",
                ii, item->recordType, sDate, sTime, nSats);
 
-    } else if (item->isGPS()) {
+    } else if (item->isGPS() || item->isAcquisitionOfSignal() || item->isLossOfSignal()) {
       //                           1   2   3   4   5   6   7   8   9  10  11
       snprintf(out, sizeof(out), "%d, %s, %s, %s, %s, %s, %s, %s, %s, %s, %d",
                ii, item->recordType, sDate, sTime, grid6, sLat, sLng, sSpeed, sDirection, sAltitude, nSats);
 
     } else {
-      snprintf(out, sizeof(out), "--> Type '%s' unknown: ", item->recordType);
+      snprintf(out, sizeof(out), "%d, --> Type '%s' unknown: ", ii, item->recordType);
       Serial.print(out);
       //                           1   2   3   4   5   6   7   8   9  10  11
       snprintf(out, sizeof(out), "%d, %s, %s, %s, %s, %s, %s, %s, %s, %s, %d",

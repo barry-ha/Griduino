@@ -252,8 +252,12 @@ public:
       lostFix     = true;
       gHaveGPSfix = false;
       logger.warning("Lost GPS positioning");
+      Location loc = makeLocation();
+      trail.rememberLOS(loc);
     } else if (!gPrevFix && gHaveGPSfix) {
       logger.warning("Acquired GPS position lock");
+      Location loc = makeLocation();
+      trail.rememberAOS(loc);
     }
     gPrevFix = gHaveGPSfix;
     return lostFix;

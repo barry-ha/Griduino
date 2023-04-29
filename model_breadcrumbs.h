@@ -154,10 +154,20 @@ public:
     remember(pup);
   }
 
+  void rememberAOS(Location vLoc) {  // save "acquisition of signal" in history buffer
+    strncpy(vLoc.recordType, rACQUISITIONOFSIGNAL, sizeof(vLoc.recordType));
+    remember(vLoc);
+  }
+
+  void rememberLOS(Location vLoc) {  // save "loss of signal" in history buffer
+    strncpy(vLoc.recordType, rLOSSOFSIGNAL, sizeof(vLoc.recordType));
+    remember(vLoc);
+  }
+
   void rememberFirstValidTime(time_t vTime, uint8_t vSats) {   // save "first valid time received from GPS"
     // "first valid time" can happen _without_ a satellite fix,
     // so the only data stored is the GMT timestamp
-    Location fvt{rVALIDTIME, noLocation, vTime, vSats, noSpeed, noDirection, noAltitude};
+    Location fvt{rFIRSTVALIDTIME, noLocation, vTime, vSats, noSpeed, noDirection, noAltitude};
     remember(fvt);
   }
 
