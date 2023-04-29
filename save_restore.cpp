@@ -275,7 +275,6 @@ int SaveRestoreStrings::readLine(char *pBuffer, int bufflen) {   // https://cplu
 void SaveRestoreStrings::close() {
   // Echo metadata about the file:
   logger.info(". Total file size (bytes): %d", handle.size());
-  logger.info("Closing text file system");
   handle.close();
 }
 
