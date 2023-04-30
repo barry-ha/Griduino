@@ -126,6 +126,9 @@ public:
   }
 
   // ----- State tracking
+  const int getCurrent() {
+    return current;
+  }
   const int getHistoryCount() {   // how many history slots currently contain breadcrumb data
     int count;
     if (full) {
@@ -233,14 +236,13 @@ private:
     // examine a line from saved history file to see if it's a plausible record
     // the goal is to ignore comment lines
     if (strlen(original_line) < 5) {
-      logger.error("- line <5 chars: ", original_line);
       return false;
     }
 
     char rec[4];
-    strncpy(rec, original_line, sizeof(rec));
+    memcpy(rec, original_line, sizeof(rec));
+    rec[3] = 0;   // because memcpy doesn't add null terminator
     if (!Location::isValidRecordType(rec)) {
-      logger.error("- unknown record type: ", rec);
       return false;
     }
 
