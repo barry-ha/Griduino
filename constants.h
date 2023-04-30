@@ -229,7 +229,7 @@ public:
   bool isEmpty() const {
     // we take advantage of the fact that all unused records
     // will have reset their recordType field to zeroes, ie, rRESET
-    return (recordType[0] == 0) ? true : false;
+    return (strlen(recordType) == 0);
   }
 
   static bool isValidRecordType(const char *rec) {
