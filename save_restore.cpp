@@ -203,7 +203,7 @@ int SaveRestoreStrings::open(const char *fqFilename, const char *mode) {   // ht
   if (*mode == 'w') {
     logger.info("Writing to file system: ", fqFilename);
   } else {
-    logger.info("Opening text file system: ", fqFilename);
+    logger.info("Reading from file system: ", fqFilename);
   }
 
   int result = openFlash();   // open file system and report errors

@@ -759,11 +759,13 @@ void setup() {
   pinMode(RED_LED, OUTPUT);           // diagnostics RED LED
 
   // ----- restore GPS driving track breadcrumb trail
+  logger.fencepost("Griduino.ino restore",__LINE__);  // debug
   trail.restoreGPSBreadcrumbTrail();  // this takes noticeable time (~0.2 sec)
   model->restore();                   //
   model->gHaveGPSfix = false;         // assume no satellite signal yet
   model->gSatellites = 0;
   trail.rememberPUP();                // log a "power up" event
+  logger.fencepost("Griduino.ino save after restore",__LINE__);  // debug
   trail.saveGPSBreadcrumbTrail();     // ensure its saved for posterity
 
   // ----- restore barometric pressure log
@@ -868,6 +870,7 @@ void loop() {
     TimeElements tm{GPS.seconds, GPS.minute, GPS.hour, 0, GPS.day, GPS.month, (byte)(2000-1970+GPS.year)};
     time_t firstTime = makeTime(tm);
     trail.rememberFirstValidTime(firstTime, GPS.satellites);
+    logger.fencepost("Griduino.ino first valid time",__LINE__);  // debug
     trail.saveGPSBreadcrumbTrail();   // ensure its saved for posterity
   }
 
@@ -946,6 +949,7 @@ void loop() {
 
     Location whereAmI = model->makeLocation();
     trail.rememberGPS(whereAmI);
+    logger.fencepost("Griduino.ino new grid4",__LINE__);  // debug
     trail.saveGPSBreadcrumbTrail();
 
   } else if (model->enteredNewGrid6()) {
@@ -954,6 +958,7 @@ void loop() {
     }
     Location whereAmI = model->makeLocation();
     trail.rememberGPS(whereAmI);    // when we enter a new 6-digit grid, save it in breadcrumb trail
+    logger.fencepost("Griduino.ino new grid6",__LINE__);  // debug
     trail.saveGPSBreadcrumbTrail(); // because one user's home was barely in the next grid6
                                     // and we want to show his grid6 at next power up
   }
@@ -967,6 +972,7 @@ void loop() {
     prevRememberedGPS = currentGPS;
 
     if (0 == (trail.getHistoryCount() % trail.saveInterval)) {
+      logger.fencepost("Griduino.ino distance",__LINE__);  // debug
       trail.saveGPSBreadcrumbTrail();
     }
   }
@@ -977,6 +983,7 @@ void loop() {
 
     Location whereAmI = model->makeLocation();
     trail.rememberGPS(whereAmI);
+    logger.fencepost("Griduino.ino autolog time",__LINE__);  // debug
     trail.saveGPSBreadcrumbTrail();
   }
 

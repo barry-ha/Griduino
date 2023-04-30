@@ -55,7 +55,7 @@ public:
   bool compare4digits = true;    // true=4 digit, false=6 digit comparisons
 
 protected:
-  int gPrevFix       = false;        // previous value of gHaveGPSfix, to help detect "signal lost"
+  int gPrevFix       = false;        // previous value of gPrevFix, to help detect "signal lost"
   char sPrevGrid4[5] = INIT_GRID4;   // previous value of gsGridName, to help detect "enteredNewGrid4()"
   char sPrevGrid6[7] = INIT_GRID6;   // previous value of gsGridName, to help detect "enteredNewGrid6()"
 
@@ -114,7 +114,6 @@ public:
     }
     // note: the caller is responsible for fixups to the model,
     // e.g., indicate 'lost satellite signal'
-    logger.fencepost("model_gps.h", __LINE__);
     return rc;   // return success
   }
 
