@@ -237,10 +237,10 @@ int Breadcrumbs::restoreGPSBreadcrumbTrail() {   // returns 1=success, 0=failure
       uint8_t nSatellites = atoi(strtok(NULL, delimiters));
 
       // echo info for debug
-      /* *** */
-      logger.info(".       Source = ", original_line);
+      /* *** 
+      logger.info(".   Source date = ", original_line);   // debug
       char msg[256];
-      snprintf(msg, sizeof(msg), ".       Parsed = %s,%02d-%02d-%02d,%02d:%02d:%02d",
+      snprintf(msg, sizeof(msg), ".   Parsed date = %s,%02d-%02d-%02d,%02d:%02d:%02d",
                sType, iYear4, iMonth, iDay, iHour, iMinute, iSecond);
       logger.info(msg);
       /* *** */
@@ -254,9 +254,6 @@ int Breadcrumbs::restoreGPSBreadcrumbTrail() {   // returns 1=success, 0=failure
       Location csvloc{"xxx", whereAmI, csvTime, nSatellites, fSpeed, fDirection, fAltitude};
       strncpy(csvloc.recordType, sType, sizeof(sType));
       remember(csvloc);
-
-      // adjust loop variables
-      advance_pointer();
       items_restored++;
     } else {
       snprintf(msg, sizeof(msg), ". CSV string[%2d] = \"%s\" - ignored",
