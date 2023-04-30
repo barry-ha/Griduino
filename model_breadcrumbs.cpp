@@ -94,9 +94,9 @@ void Breadcrumbs::dumpHistoryGPS(int limit) {
     } else {
       snprintf(out, sizeof(out), "%d, --> Type '%s' unknown: ", ii, item->recordType);
       Serial.print(out);
-      //                           1   2   3   4   5   6   7   8   9  10  11
-      snprintf(out, sizeof(out), "%d, %s, %s, %s, %s, %s, %s, %s, %s, %s, %d",
-               ii, item->recordType, sDate, sTime, grid6, sLat, sLng, sSpeed, sDirection, sAltitude, nSats);
+      //                           1   2   3   4   5   6   7   8   9  10
+      snprintf(out, sizeof(out), "%s, %s, %s, %s, %s, %s, %s, %s, %s, %d",
+               item->recordType, sDate, sTime, grid6, sLat, sLng, sSpeed, sDirection, sAltitude, nSats);
     }
     Serial.println(out);
     ii++;
@@ -119,7 +119,7 @@ int Breadcrumbs::saveGPSBreadcrumbTrail() {   // returns 1=success, 0=failure
 
   // line 1,2,3,4: filename, data format, version, compiled
   char msg[256];
-  snprintf(msg, sizeof(msg), "File:,%s\nData format:,%s\nGriduino:,%s\nCompiled:,%s",
+  snprintf(msg, sizeof(msg), "\nFile:,%s\nData format:,%s\nGriduino:,%s\nCompiled:,%s",
            HISTORY_FILE, HISTORY_VERSION, PROGRAM_VERSION, PROGRAM_COMPILED);
   config.writeLine(msg);
 
@@ -127,7 +127,7 @@ int Breadcrumbs::saveGPSBreadcrumbTrail() {   // returns 1=success, 0=failure
   config.writeLine("Type, GMT Date, GMT Time, Grid, Latitude, Longitude, Altitude, MPH, Direction, Satellites");
 
   // line 6..x: date-time, grid6, latitude, longitude
-  int ii              = 0;
+  int ii              = 0;         // loop counter
   Location const *loc = begin();   // declare pointer to immutable breadcrumb
   while (loc) {
 
@@ -137,7 +137,7 @@ int Breadcrumbs::saveGPSBreadcrumbTrail() {   // returns 1=success, 0=failure
     char sTime[12];   // sizeof("12:34:56") = 8
     date.timeToString(sTime, sizeof(sTime), loc->timestamp);
 
-    char sGrid6[7];
+    char sGrid6[7];   // sizeof("CN76us") = 6
     grid.calcLocator(sGrid6, loc->loc.lat, loc->loc.lng, 6);
 
     char sLat[12], sLng[12];
@@ -150,16 +150,25 @@ int Breadcrumbs::saveGPSBreadcrumbTrail() {   // returns 1=success, 0=failure
     floatToCharArray(sAngle, sizeof(sAngle), loc->direction, 1);
     int numSatellites = loc->numSatellites;
 
-    if (strlen(loc->recordType)) {
+    // only write good valid data to file
+    if (loc->isEmpty()) {
+      // record type must always contain 3 characters
+      snprintf(msg, sizeof(msg), "[%d] Empty record type: %s,%s,%s,%s,%s,%s,%s,%s,%s,%d",
+               ii, loc->recordType, sDate, sTime, sGrid6, sLat, sLng, sAlt, sSpeed, sAngle, numSatellites);
+      logger.error(msg);
+
+    } else if (!Location::isValidRecordType(loc->recordType)) {
+      // record type must always be one of the allowed 3-char values
+      snprintf(msg, sizeof(msg), "[%d] Invalid record type: %s,%s,%s,%s,%s,%s,%s,%s,%s,%d",
+               ii, loc->recordType, sDate, sTime, sGrid6, sLat, sLng, sAlt, sSpeed, sAngle, numSatellites);
+      logger.error(msg);
+
+    } else {
+      // good data, write it to file
       //                           1  2  3  4  5  6  7  8  9 10
       snprintf(msg, sizeof(msg), "%s,%s,%s,%s,%s,%s,%s,%s,%s,%d",
                loc->recordType, sDate, sTime, sGrid6, sLat, sLng, sAlt, sSpeed, sAngle, numSatellites);
       config.writeLine(msg);
-    } else {
-      // don't allow internal errors to pollute the saved CSV file
-      snprintf(msg, sizeof(msg), "(%d) Ignoring empty record type: %s,%s,%s,%s,%s,%s,%s,%s,%s,%d",
-               ii, loc->recordType, sDate, sTime, sGrid6, sLat, sLng, sAlt, sSpeed, sAngle, numSatellites);
-      logger.error(msg);
     }
     ii++;
     loc = next();
@@ -228,11 +237,13 @@ int Breadcrumbs::restoreGPSBreadcrumbTrail() {   // returns 1=success, 0=failure
       uint8_t nSatellites = atoi(strtok(NULL, delimiters));
 
       // echo info for debug
-      // logger.info(".       Source = ", original_line);
-      // char msg[256];
-      // snprintf(msg, sizeof(msg), ".       Parsed = %s,%02d-%02d-%02d,%02d:%02d:%02d",
-      //         sType, iYear4, iMonth, iDay, iHour, iMinute, iSecond);
-      // logger.info(msg);
+      /* *** */
+      logger.info(".       Source = ", original_line);
+      char msg[256];
+      snprintf(msg, sizeof(msg), ".       Parsed = %s,%02d-%02d-%02d,%02d:%02d:%02d",
+               sType, iYear4, iMonth, iDay, iHour, iMinute, iSecond);
+      logger.info(msg);
+      /* *** */
 
       // save this value from CSV file into breadcrumb trail buffer
       PointGPS whereAmI{fLatitude, fLongitude};

@@ -205,6 +205,7 @@ struct FunctionButton {
 #define rLOSSOFSIGNAL        "LOS"
 #define rACQUISITIONOFSIGNAL "AOS"
 #define rRESET               "\0\0\0"
+#define rVALIDATE            rGPS rPOWERUP rPOWERDOWN rFIRSTVALIDTIME rLOSSOFSIGNAL rACQUISITIONOFSIGNAL
 
 // Breadcrumb data definition for circular buffer
 class Location {
@@ -225,29 +226,38 @@ public:
     speed             = 0.0;
     direction = altitude = 0.0;
   }
-  bool isEmpty() {
+  bool isEmpty() const {
     // we take advantage of the fact that all unused records
     // will have reset their recordType field to zeroes, ie, rRESET
-    return (recordType[0] == 0);
+    return (recordType[0] == 0) ? true : false;
   }
 
-  bool isGPS() {
+  static bool isValidRecordType(const char *rec) {
+    // check for "should not happen" situations
+    if (strstr(rVALIDATE, rec)) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  bool isGPS() const {
     return (strncmp(recordType, rGPS, sizeof(recordType)) == 0);
   }
 
-  bool isPUP() {
+  bool isPUP() const {
     return (strncmp(recordType, rPOWERUP, sizeof(recordType)) == 0);
   }
 
-  bool isFirstValidTime() {
+  bool isFirstValidTime() const {
     return (strncmp(recordType, rFIRSTVALIDTIME, sizeof(recordType)) == 0);
   }
 
-  bool isLossOfSignal() {
+  bool isLossOfSignal() const {
     return (strncmp(recordType, rLOSSOFSIGNAL, sizeof(recordType)) == 0);
   }
 
-  bool isAcquisitionOfSignal() {
+  bool isAcquisitionOfSignal() const {
     return (strncmp(recordType, rACQUISITIONOFSIGNAL, sizeof(recordType)) == 0);
   }
 

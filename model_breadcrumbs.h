@@ -116,7 +116,7 @@ public:
   // ----- Initialization -----
   Breadcrumbs() {}   // Constructor - create and initialize member variables
 
-  void clearHistory() {   // wipe clean the trail of breadcrumbs
+  void clearHistory() {   // wipe clean the in-memory trail of breadcrumbs
     head = tail = 0;
     full        = false;
     for (uint ii = 0; ii < capacity; ii++) {
@@ -154,12 +154,12 @@ public:
     remember(pup);
   }
 
-  void rememberAOS(Location vLoc) {  // save "acquisition of signal" in history buffer
+  void rememberAOS(Location vLoc) {   // save "acquisition of signal" in history buffer
     strncpy(vLoc.recordType, rACQUISITIONOFSIGNAL, sizeof(vLoc.recordType));
     remember(vLoc);
   }
 
-  void rememberLOS(Location vLoc) {  // save "loss of signal" in history buffer
+  void rememberLOS(Location vLoc) {   // save "loss of signal" in history buffer
     strncpy(vLoc.recordType, rLOSSOFSIGNAL, sizeof(vLoc.recordType));
     remember(vLoc);
   }
@@ -205,11 +205,11 @@ public:
 
   Location *next() {   // returns pointer to next element, or null if buffer is empty
     Location *ptr = nullptr;
-    current = (current + 1) % capacity;
+    current       = (current + 1) % capacity;
     if (current == head) {
       // nothing returned - end of data
     } else {
-      ptr     = &history[current];
+      ptr = &history[current];
     }
     return ptr;
   }
@@ -228,21 +228,23 @@ public:
 
   // ----- Internal helpers
 private:
-  bool isValidBreadcrumb(const char *crumb) {
+  bool isValidBreadcrumb(const char *original_line) {
     // input: entire line from CSV file
-    // examine a line from saved breadcrumb trail to see if it's a plausible GPS record type
-    // clang-format off
-    if ((strlen(crumb) > 4)
-      &&(',' == crumb[3])
-      &&('A' <= crumb[0] && crumb[0] <= 'Z')
-      &&('A' <= crumb[1] && crumb[1] <= 'Z')
-      &&('A' <= crumb[2] && crumb[2] <= 'Z')) 
-    {
-      return true;
-    } else {
+    // examine a line from saved history file to see if it's a plausible record
+    // the goal is to ignore comment lines
+    if (strlen(original_line) < 5) {
+      logger.error("- line <5 chars: ", original_line);
       return false;
     }
-    // clang-format on
+
+    char rec[4];
+    strncpy(rec, original_line, sizeof(rec));
+    if (!Location::isValidRecordType(rec)) {
+      logger.error("- unknown record type: ", rec);
+      return false;
+    }
+
+    return true;
   }
 
 };   // end class Breadcrumbs
