@@ -373,6 +373,7 @@ int Breadcrumbs::restoreGPSBreadcrumbTrail() {   // returns 1=success, 0=failure
 
 // ----- Placemark template with timestamp -----
 // From: https://developers.google.com/static/kml/documentation/TimeStamp_example.kml
+/*
 #define PLACEMARK_WITH_TIMESTAMP "\
 \t<Placemark>\r\n\
 \t\t<description>\r\n\
@@ -386,6 +387,21 @@ int Breadcrumbs::restoreGPSBreadcrumbTrail() {   // returns 1=success, 0=failure
 \t\t<Point><coordinates>%s,%s</coordinates></Point>\r\n\
 \t\t<styleUrl>#crumb</styleUrl>\r\n\
 \t</Placemark>\r\n"
+*/
+const char* PLACE[12] = {
+  "  <Placemark>\r\n",
+  "    <description>\r\n",
+  "      <center>\r\n",
+  "        <h2><a target=\"_blank\" href=\"https://maps.google.com/maps?q=%s,%s\">%s</a></h2>\r\n",
+  "          %04d-%02d-%02d <br/> %02d:%02d:%02d GMT\r\n",
+  "          %s mph, %s deg, %s m, %d sat\r\n",
+  "      </center>\r\n",
+       "</description>\r\n",
+  "    <TimeStamp><when>%04d-%02d-%02dT%02d:%02d:%02dZ</when></TimeStamp>\r\n",
+  "    <Point><coordinates>%s,%s</coordinates></Point>\r\n",
+  "    <styleUrl>#crumb</styleUrl>\r\n",
+  "  </Placemark>\r\n"
+};
 
 void Breadcrumbs::dumpHistoryKML() {
 
@@ -437,17 +453,21 @@ void Breadcrumbs::dumpHistoryKML() {
         floatToCharArray(sAltitude, sizeof(sAltitude), item->altitude, 1);
         int numSats = item->numSatellites;
 
-        char msg[500];
-        snprintf(msg, sizeof(msg), PLACEMARK_WITH_TIMESTAMP,
-                 sLat, sLng,   // humans prefer "latitude,longitude"
-                 grid6,
-                 time.Year + 1970, time.Month, time.Day, time.Hour, time.Minute, time.Second,   // human readable time
-                 time.Year + 1970, time.Month, time.Day, time.Hour, time.Minute, time.Second,   // kml timestamp
-                 sLng, sLat,                                                                    // kml requires "longitude,latitude"
-                 sSpeed, sDirection, sAltitude,                                                 // mph, degrees from North, meters
-                 numSats                                                                        // number of satellites
-        );
-        Serial.print(msg);
+        char msg[128];
+        // clang-format off
+        snprintf(msg, sizeof(msg), PLACE[0]);     Serial.print(msg);
+        snprintf(msg, sizeof(msg), PLACE[1]);     Serial.print(msg);
+        snprintf(msg, sizeof(msg), PLACE[2]);     Serial.print(msg);
+        snprintf(msg, sizeof(msg), PLACE[3], sLat, sLng, grid6);  Serial.print(msg);
+        snprintf(msg, sizeof(msg), PLACE[4], time.Year + 1970, time.Month, time.Day, time.Hour, time.Minute, time.Second);  Serial.print(msg);
+        snprintf(msg, sizeof(msg), PLACE[5], sSpeed, sDirection, sAltitude, numSats);  Serial.print(msg);
+        snprintf(msg, sizeof(msg), PLACE[6]);     Serial.print(msg);
+        snprintf(msg, sizeof(msg), PLACE[7]);     Serial.print(msg);
+        snprintf(msg, sizeof(msg), PLACE[8], time.Year + 1970, time.Month, time.Day, time.Hour, time.Minute, time.Second);  Serial.print(msg);
+        snprintf(msg, sizeof(msg), PLACE[9], sLng, sLat);  Serial.print(msg);
+        snprintf(msg, sizeof(msg), PLACE[10]);    Serial.print(msg);
+        snprintf(msg, sizeof(msg), PLACE[11]);    Serial.print(msg);
+        // clang-format on
       }
     }
     item = next();
