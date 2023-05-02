@@ -222,13 +222,15 @@ int Breadcrumbs::restoreGPSBreadcrumbTrail() {   // returns 1=success, 0=failure
       // "Type, GMT Date, GMT Time, Grid, Latitude, Longitude, Altitude, MPH, Direction, Satellites"
       char sType[4];
       strncpy(sType, strtok(csv_line, delimiters), sizeof(sType));
-      int iYear4          = atoi(strtok(NULL, delimiters));   // YYYY: actual calendar year
-      uint8_t iYear2      = CalendarYrToTm(iYear4);           // YY: offset from 1970
-      uint8_t iMonth      = atoi(strtok(NULL, delimiters));
-      uint8_t iDay        = atoi(strtok(NULL, delimiters));
-      uint8_t iHour       = atoi(strtok(NULL, delimiters));
-      uint8_t iMinute     = atoi(strtok(NULL, delimiters));
-      uint8_t iSecond     = atoi(strtok(NULL, delimiters));
+      int iYear4      = atoi(strtok(NULL, delimiters));   // YYYY: actual calendar year
+      uint8_t iYear2  = CalendarYrToTm(iYear4);           // YY: offset from 1970
+      uint8_t iMonth  = atoi(strtok(NULL, delimiters));
+      uint8_t iDay    = atoi(strtok(NULL, delimiters));
+      uint8_t iHour   = atoi(strtok(NULL, delimiters));
+      uint8_t iMinute = atoi(strtok(NULL, delimiters));
+      uint8_t iSecond = atoi(strtok(NULL, delimiters));
+      char sGrid[7];                                                 // read grid6 and discard it, we use lat,long instead
+      strncpy(sGrid, strtok(csv_line, delimiters), sizeof(sGrid));   // grid is not saved internally, we always calc it when needed
       double fLatitude    = atof(strtok(NULL, delimiters));
       double fLongitude   = atof(strtok(NULL, delimiters));
       float fAltitude     = atof(strtok(NULL, delimiters));
@@ -237,7 +239,7 @@ int Breadcrumbs::restoreGPSBreadcrumbTrail() {   // returns 1=success, 0=failure
       uint8_t nSatellites = atoi(strtok(NULL, delimiters));
 
       // echo info for debug
-      /* *** 
+      /* ***
       logger.info(".   Source date = ", original_line);   // debug
       char msg[256];
       snprintf(msg, sizeof(msg), ".   Parsed date = %s,%02d-%02d-%02d,%02d:%02d:%02d",
@@ -311,97 +313,81 @@ int Breadcrumbs::restoreGPSBreadcrumbTrail() {   // returns 1=success, 0=failure
 }
 
 // ----- Beginning/end of each KML file -----
-#define KML_PREFIX "\r\n\
+const char *KML_PREFIX = "\r\n\
 <?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\
 <kml xmlns=\"http://www.opengis.net/kml/2.2\"\
  xmlns:gx=\"http://www.google.com/kml/ext/2.2\"\
  xmlns:kml=\"http://www.opengis.net/kml/2.2\"\
  xmlns:atom=\"http://www.w3.org/2005/Atom\">\r\n\
 <Document>\r\n\
-\t<name>Griduino Track</name>\r\n\
-\t<Style id=\"gstyle\">\r\n\
-\t\t<LineStyle>\r\n\
-\t\t\t<color>ffffff00</color>\r\n\
-\t\t\t<width>4</width>\r\n\
-\t\t</LineStyle>\r\n\
-\t</Style>\r\n\
-\t<StyleMap id=\"gstyle0\">\r\n\
-\t\t<Pair>\r\n\
-\t\t\t<key>normal</key>\r\n\
-\t\t\t<styleUrl>#gstyle1</styleUrl>\r\n\
-\t\t</Pair>\r\n\
-\t\t<Pair>\r\n\
-\t\t\t<key>highlight</key>\r\n\
-\t\t\t<styleUrl>#gstyle</styleUrl>\r\n\
-\t\t</Pair>\r\n\
-\t</StyleMap>\r\n\
-\t<Style id=\"gstyle1\">\r\n\
-\t\t<LineStyle>\r\n\
-\t\t\t<color>ffffff00</color>\r\n\
-\t\t\t<width>4</width>\r\n\
-\t\t</LineStyle>\r\n\
-\t</Style>\r\n"
+  <name>Griduino Track</name>\r\n\
+  <Style id=\"gstyle\">\r\n\
+    <LineStyle>\r\n\
+      <color>ffffff00</color>\r\n\
+      <width>4</width>\r\n\
+    </LineStyle>\r\n\
+  </Style>\r\n\
+  <StyleMap id=\"gstyle0\">\r\n\
+    <Pair>\r\n\
+      <key>normal</key>\r\n\
+      <styleUrl>#gstyle1</styleUrl>\r\n\
+    </Pair>\r\n\
+    <Pair>\r\n\
+      <key>highlight</key>\r\n\
+      <styleUrl>#gstyle</styleUrl>\r\n\
+    </Pair>\r\n\
+  </StyleMap>\r\n\
+  <Style id=\"gstyle1\">\r\n\
+    <LineStyle>\r\n\
+      <color>ffffff00</color>\r\n\
+      <width>4</width>\r\n\
+    </LineStyle>\r\n\
+  </Style>\r\n";
 
-#define KML_SUFFIX "\
+const char *KML_SUFFIX = "\
 </Document>\r\n\
-</kml>\r\n"
+</kml>\r\n";
 
 // ----- Beginning/end of a pushpin in a KML file -----
-#define PUSHPIN_PREFIX_PART1 "\
-\t<Placemark>\r\n\
-\t\t<name>Start "
+const char *PUSHPIN_PREFIX_PART1 = "\
+  <Placemark>\r\n\
+    <name>Start ";
 // PUSHPIN_PREFIX_PART2 contains the date "mm/dd/yy"
-#define PUSHPIN_PREFIX_PART3 "\
-</name>\r\n\
-\t\t<styleUrl>#m_ylw-pushpin0</styleUrl>\r\n\
-\t\t<Point>\r\n\
-\t\t\t<gx:drawOrder>1</gx:drawOrder>\r\n\
-\t\t\t<coordinates>"
+const char *PUSHPIN_PREFIX_PART3 = "\
+    </name>\r\n\
+    <styleUrl>#m_ylw-pushpin0</styleUrl>\r\n\
+    <Point>\r\n\
+      <gx:drawOrder>1</gx:drawOrder>\r\n\
+      <coordinates>";
 
-#define PUSHPIN_SUFFIX "</coordinates>\r\n\
-\t\t</Point>\r\n\
-\t</Placemark>\r\n"
+const char *PUSHPIN_SUFFIX = "</coordinates>\r\n\
+    </Point>\r\n\
+  </Placemark>\r\n";
 
 // ----- Icon for breadcrumbs along route -----
-#define BREADCRUMB_STYLE "\
-\t<Style id=\"crumb\">\r\n\
-\t\t<IconStyle>\r\n\
-\t\t\t<Icon><href>https://www.coilgun.info/images/bullet.png</href></Icon>\r\n\
-\t\t\t<hotSpot x=\".5\" y=\".5\" xunits=\"fraction\" yunits=\"fraction\"/>\r\n\
-\t\t</IconStyle>\r\n\
-\t</Style>\r\n"
+const char *BREADCRUMB_STYLE = "\
+  <Style id=\"crumb\">\r\n\
+    <IconStyle>\r\n\
+      <Icon><href>https://www.coilgun.info/images/bullet.png</href></Icon>\r\n\
+      <hotSpot x=\".5\" y=\".5\" xunits=\"fraction\" yunits=\"fraction\"/>\r\n\
+    </IconStyle>\r\n\
+  </Style>\r\n";
 
 // ----- Placemark template with timestamp -----
 // From: https://developers.google.com/static/kml/documentation/TimeStamp_example.kml
-/*
-#define PLACEMARK_WITH_TIMESTAMP "\
-\t<Placemark>\r\n\
-\t\t<description>\r\n\
-\t\t\t<center>\r\n\
-\t\t\t\t<h2><a target=\"_blank\" href=\"https://maps.google.com/maps?q=%s,%s\">%s</a></h2>\
-%04d-%02d-%02d <br/> %02d:%02d:%02d GMT\
-%s mph, %s deg, %s m, %d sat\
-\t\t\t</center>\r\n\
-</description>\r\n\
-\t\t<TimeStamp><when>%04d-%02d-%02dT%02d:%02d:%02dZ</when></TimeStamp>\r\n\
-\t\t<Point><coordinates>%s,%s</coordinates></Point>\r\n\
-\t\t<styleUrl>#crumb</styleUrl>\r\n\
-\t</Placemark>\r\n"
-*/
-const char* PLACE[12] = {
-  "  <Placemark>\r\n",
-  "    <description>\r\n",
-  "      <center>\r\n",
-  "        <h2><a target=\"_blank\" href=\"https://maps.google.com/maps?q=%s,%s\">%s</a></h2>\r\n",
-  "          %04d-%02d-%02d <br/> %02d:%02d:%02d GMT\r\n",
-  "          %s mph, %s deg, %s m, %d sat\r\n",
-  "      </center>\r\n",
-       "</description>\r\n",
-  "    <TimeStamp><when>%04d-%02d-%02dT%02d:%02d:%02dZ</when></TimeStamp>\r\n",
-  "    <Point><coordinates>%s,%s</coordinates></Point>\r\n",
-  "    <styleUrl>#crumb</styleUrl>\r\n",
-  "  </Placemark>\r\n"
-};
+const char *PLACE[12] = {
+    "  <Placemark>\r\n",
+    "    <description>\r\n",
+    "      <center>\r\n",
+    "        <h2><a target=\"_blank\" href=\"https://maps.google.com/maps?q=%s,%s\">%s</a></h2>\r\n",
+    "          %04d-%02d-%02d <br/> %02d:%02d:%02d GMT\r\n",
+    "          %s mph, %s deg, %s m, %d sat\r\n",
+    "      </center>\r\n",
+    "    </description>\r\n",
+    "    <TimeStamp><when>%04d-%02d-%02dT%02d:%02d:%02dZ</when></TimeStamp>\r\n",
+    "    <Point><coordinates>%s,%s</coordinates></Point>\r\n",
+    "    <styleUrl>#crumb</styleUrl>\r\n",
+    "  </Placemark>\r\n"};
 
 void Breadcrumbs::dumpHistoryKML() {
 
