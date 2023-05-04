@@ -261,15 +261,39 @@ public:
     return (strncmp(recordType, rACQUISITIONOFSIGNAL, sizeof(recordType)) == 0);
   }
 
-  // sanity check data from NVR
-  void printLocation(int ii, Location item) {
+  // print ourself - a sanity check
+  void printLocation(int ii = -1) {   // debug
+    char out[128];
     Serial.print(". ");
-    Serial.print(item.recordType);
-    Serial.print(" lat/long[");
-    Serial.print(ii);
-    Serial.print("] = ");
-    Serial.print(item.loc.lat);
+    if (ii >= 0) {
+      snprintf(out, sizeof(out), "  remember[%2d] = ", ii);
+      Serial.print(out);
+    }
+    Serial.print(recordType);
     Serial.print(", ");
-    Serial.println(item.loc.lng);
+
+    // timestamp
+    TimeElements time;   // https://github.com/PaulStoffregen/Time
+    breakTime(timestamp, time);
+    snprintf(out, sizeof(out), "%02d-%02d-%02d %02d:%02d:%02d, ",
+             time.Year + 1970, time.Month, time.Day, time.Hour, time.Minute, time.Second);
+    Serial.print(out);
+
+    // lat/long
+    Serial.print("(");
+    Serial.print(loc.lat, 4);
+    Serial.print(", ");
+    Serial.print(loc.lng, 4);
+    Serial.print("), ");
+
+    // speed dir sats
+    Serial.print(altitude, 1);
+    Serial.print(", ");
+    Serial.print(speed, 1);
+    Serial.print(", ");
+    Serial.print(direction);
+    Serial.print(", ");
+    Serial.print(numSatellites);
+    Serial.println();
   }
 };
