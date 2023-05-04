@@ -43,16 +43,16 @@ void Breadcrumbs::dumpHistoryGPS(int limit) {
 
   logger.info("Next record to be written = %d", head);
 
-  time_t tm = now();                           // debug: show current time in seconds
-  Serial.print("now() = ");                    // debug
-  Serial.print(tm);                            // debug
-  Serial.println(" seconds since 1-1-1970");   // debug
+  // time_t tm = now();                           // debug: show current time in seconds
+  // Serial.print("now() = ");                    // debug
+  // Serial.print(tm);                            // debug
+  // Serial.println(" seconds since 1-1-1970");   // debug
 
-  char sDate[24];                                        // show current time decoded
-  date.datetimeToString(sDate, sizeof(sDate), tm);       // date_helper.h
-  char msg[40];                                          // sizeof("Today is 12-31-2022  12:34:56 GMT") = 32
-  snprintf(msg, sizeof(msg), "now() = %s GMT", sDate);   //
-  logger.info(msg);
+  // char sDate[24];                                        // show current time decoded
+  // date.datetimeToString(sDate, sizeof(sDate), tm);       // date_helper.h
+  // char msg[40];                                          // sizeof("Today is 12-31-2022  12:34:56 GMT") = 32
+  // snprintf(msg, sizeof(msg), "now() = %s GMT", sDate);   //
+  // logger.info(msg);                                      //
 
   Serial.println("Record, Type, Date GMT, Time GMT, Grid, Lat, Long, Alt(m), Speed(mph), Direction(Degrees), Sats");
   int ii         = 0;
@@ -199,7 +199,8 @@ int Breadcrumbs::restoreGPSBreadcrumbTrail() {   // returns 1=success, 0=failure
   int csv_line_number = 0;
   int items_restored  = 0;
   char csv_line[256], original_line[256];
-  const char delimiters[] = ",-/:";   // separators for: CSV, date, date, time
+  const char dateDelimiters[] = ",-/:";   // include "-" for YY-MM-DD or YY/MM/DD
+  const char comma[]          = ",";      // exclude "-" for -123.456
   int count;
   bool done = false;
   while (count = config.readLine(csv_line, sizeof(csv_line)) && !done) {
@@ -221,31 +222,22 @@ int Breadcrumbs::restoreGPSBreadcrumbTrail() {   // returns 1=success, 0=failure
       // parsing text must match same order in saveGPSBreadcrumbTrail()
       // "Type, GMT Date, GMT Time, Grid, Latitude, Longitude, Altitude, MPH, Direction, Satellites"
       char sType[4];
-      strncpy(sType, strtok(csv_line, delimiters), sizeof(sType));
-      int iYear4      = atoi(strtok(NULL, delimiters));   // YYYY: actual calendar year
-      uint8_t iYear2  = CalendarYrToTm(iYear4);           // YY: offset from 1970
-      uint8_t iMonth  = atoi(strtok(NULL, delimiters));
-      uint8_t iDay    = atoi(strtok(NULL, delimiters));
-      uint8_t iHour   = atoi(strtok(NULL, delimiters));
-      uint8_t iMinute = atoi(strtok(NULL, delimiters));
-      uint8_t iSecond = atoi(strtok(NULL, delimiters));
-      char sGrid[7];                                                 // read grid6 and discard it, we use lat,long instead
-      strncpy(sGrid, strtok(csv_line, delimiters), sizeof(sGrid));   // grid is not saved internally, we always calc it when needed
-      double fLatitude    = atof(strtok(NULL, delimiters));
-      double fLongitude   = atof(strtok(NULL, delimiters));
-      float fAltitude     = atof(strtok(NULL, delimiters));
-      float fSpeed        = atof(strtok(NULL, delimiters));
-      float fDirection    = atof(strtok(NULL, delimiters));
-      uint8_t nSatellites = atoi(strtok(NULL, delimiters));
-
-      // echo info for debug
-      /* ***
-      logger.info(".   Source date = ", original_line);   // debug
-      char msg[256];
-      snprintf(msg, sizeof(msg), ".   Parsed date = %s,%02d-%02d-%02d,%02d:%02d:%02d",
-               sType, iYear4, iMonth, iDay, iHour, iMinute, iSecond);
-      logger.info(msg);
-      /* *** */
+      strncpy(sType, strtok(csv_line, comma), sizeof(sType));
+      int iYear4      = atoi(strtok(NULL, dateDelimiters));   // YYYY: actual calendar year
+      uint8_t iYear2  = CalendarYrToTm(iYear4);               // YY: offset from 1970
+      uint8_t iMonth  = atoi(strtok(NULL, dateDelimiters));
+      uint8_t iDay    = atoi(strtok(NULL, dateDelimiters));
+      uint8_t iHour   = atoi(strtok(NULL, dateDelimiters));
+      uint8_t iMinute = atoi(strtok(NULL, dateDelimiters));
+      uint8_t iSecond = atoi(strtok(NULL, dateDelimiters));
+      char sGrid[7];                                        // read grid6 and discard it, we use lat,long instead
+      strncpy(sGrid, strtok(NULL, comma), sizeof(sGrid));   // grid is not saved internally, we always calc it when needed
+      double fLatitude    = atof(strtok(NULL, comma));
+      double fLongitude   = atof(strtok(NULL, comma));
+      float fAltitude     = atof(strtok(NULL, comma));
+      float fSpeed        = atof(strtok(NULL, comma));
+      float fDirection    = atof(strtok(NULL, comma));
+      uint8_t nSatellites = atoi(strtok(NULL, comma));
 
       // save this value from CSV file into breadcrumb trail buffer
       PointGPS whereAmI{fLatitude, fLongitude};
@@ -255,6 +247,12 @@ int Breadcrumbs::restoreGPSBreadcrumbTrail() {   // returns 1=success, 0=failure
 
       Location csvloc{"xxx", whereAmI, csvTime, nSatellites, fSpeed, fDirection, fAltitude};
       strncpy(csvloc.recordType, sType, sizeof(sType));
+
+      // echo info for debug
+      //snprintf(msg, sizeof(msg), ". CSV string[%2d] = \"%s\"", csv_line_number, original_line);   // debug
+      //Serial.println(msg);                                                                        // debug
+      //csvloc.printLocation(csv_line_number);                                                      // debug
+
       remember(csvloc);
       items_restored++;
     } else {
@@ -268,27 +266,28 @@ int Breadcrumbs::restoreGPSBreadcrumbTrail() {   // returns 1=success, 0=failure
   logger.info(". Restored %d breadcrumbs from %d lines in CSV file", items_restored, csv_line_number);
 
   // The above "restore" always fills history[] from 0..N
+  // Oldest allowed acceptable GPS date is Griduino's first release
+  const TimeElements max_date{59, 59, 23, 0, 1, 1, 255};          // maximum date = year(1970 + 255) = 2,225
+  const TimeElements min_date{0, 0, 0, 0, 1, 1, (2022 - 1970)};   // minimum date = Jan 1, 2022
+  const time_t min_time_t = makeTime(min_date);
 
-  int indexOldest = 0;                             // default to start
-  TimeElements future{59, 59, 23, 0, 1, 1, 255};   // maximum date = year(1970 + 255) = 2,225
-  time_t oldest = makeTime(future);
+  int indexOldest = 0;   // default to start
+  int indexNewest = 0;
+  time_t oldest   = makeTime(max_date);
+  time_t newest   = makeTime(min_date);
 
-  int indexNewest = 0;                      // default to start
-  TimeElements past{0, 0, 0, 0, 0, 0, 0};   // minimum date = Jan 1, 1970
-  time_t newest = makeTime(past);
-
-  // find the oldest item (unused slots contain zero and are automatically the oldest)
+  // find the oldest item (unused slots contain zero and are automatically the "oldest" for comparisons)
   int ii        = 0;
   Location *loc = begin();
   while (loc) {
     time_t tm = loc->timestamp;
-    if (tm < oldest) {
-      // keep track of oldest GPS bread crumb
+    if ((tm < oldest) && (tm > min_time_t)) {
+      // keep track of most ancient GPS bread crumb
       indexOldest = current;
       oldest      = tm;
     }
     if (tm > newest) {
-      // keep track of most recent GPS bread crumb, out of curiosity
+      // keep track of most modern GPS bread crumb, out of curiosity
       indexNewest = current;
       newest      = tm;
     }
@@ -297,7 +296,7 @@ int Breadcrumbs::restoreGPSBreadcrumbTrail() {   // returns 1=success, 0=failure
   }
 
   // report statistics for a visible sanity check to aid debug
-  char sOldest[24], sNewest[24];
+  char sOldest[24], sNewest[24];   // strln("2023-11-22 12:34:56") = 19
   date.datetimeToString(sOldest, sizeof(sOldest), oldest);
   date.datetimeToString(sNewest, sizeof(sNewest), newest);
 
