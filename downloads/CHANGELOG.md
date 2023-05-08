@@ -8,6 +8,22 @@ Version numbers correspond to [Downloads](https://github.com/barry-ha/Griduino/t
 
 The changelog format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and the Griduino project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+**v1.12** &nbsp; 2023-05-08
+
+Version 1.12 is a Beta release containing significant changes. Please report any problems, thank you.
+
+New: Re-wrote entire breadcrumb trail and 'dump kml' function.
+
+New: Internal history now keeps track of more information: speed, direction, altitude, and number of satellites. All these are available in 'dump kml' and can be displayed in Google Earth and other KML-compatible programs.
+
+New: Breadcrumb trail now records are "power up" and "first valid time from GPS receiver". This will help diagnose situations where GPS reception is spotty.
+
+New: Automatically records GPS position every 10 minutes to keep track of being parked in one spot for awhile.
+
+New: Animated logo on opening screen.
+
+Fixed: The main display screen no longer bogs down when the breadcrumb trail has more than 1,500 items. This would also cause slow GPS sync and loss of GPS signal because it failed to poll the GPS chip often enough.
+
 **v1.10** &nbsp; 2022-08-05
 
 New: Supports the "GPS Status" panel of NMEATime2, showing the satellite signal strength and sky location of GPS satellites.
