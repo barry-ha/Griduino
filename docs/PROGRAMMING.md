@@ -110,7 +110,9 @@ Open the main source code file.
 It will compile; wait for this to finish.
 
 1. **Sketch > Show Sketch Folder**<br/>
-You will find a binary file in the sketch folder with **.bin** extension,  e.g. “Griduino.ino.feather_m4.bin”. This is the compiled binary file but it cannot be directly distributed or installed onto an Arduino board.
+You will find a binary file in the sketch folder with **.bin** extension. This is the compiled binary file but it cannot be directly distributed or installed onto an Arduino board.
+   - Arduino IDE 1: Griduino.ino.feather_m4.bin
+   - Arduino IDE 2: build / adafruit.samd.adafruit_feather_m4 / Griduino.ino.bin
 
 1. **Convert Compiled Binary to UF2**<br/>
 Run the Python conversion script (author https://github.com/microsoft/uf2):
