@@ -36,8 +36,9 @@ const float gridHeightDegrees = 1.0;   // vert N-S size of one grid square, degr
 const double minLong = gridWidthDegrees / gBoxWidth;     // longitude degrees from one pixel to the next (minimum visible movement)
 const double minLat  = gridHeightDegrees / gBoxHeight;   // latitude degrees from one pixel to the next
 
-#define feetPerMeters 3.28084                 // altitude conversion
-#define mphPerKnots   1.15078                 // speed conversion
+#define feetPerMeters         (3.28084)       // altitude conversion
+#define mphPerKnots           (1.15078)       // speed conversion
+#define mphPerMetersPerSecond (0.44704)       // speed conversion
 const double degreesPerRadian = 57.2957795;   // conversion factor = (360 degrees)/(2 pi radians)
 
 #define SECS_PER_5MIN  ((time_t)(300UL))
