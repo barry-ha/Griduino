@@ -174,14 +174,31 @@ public:
     remember(fvt);
   }
 
+  const TimeElements GRIDUINO_FIRST_RELEASE{0, 0, 0, 0, FIRST_RELEASE_DAY, FIRST_RELEASE_MONTH, FIRST_RELEASE_YEAR - 1970};
+
   void rememberGPS(Location vLoc) {
-    strncpy(vLoc.recordType, rGPS, sizeof(vLoc.recordType));
-    remember(vLoc);
+    // our GPS receiver can generate bogus locations in case of buffer overrun
+    // identifiable by a timestamp in the year 2000 and latitude==longitude
+    // so ignore readings that occurred before Griduino was built
+    time_t cutoff = makeTime(GRIDUINO_FIRST_RELEASE);
+    if (vLoc.timestamp > cutoff) {
+      strncpy(vLoc.recordType, rGPS, sizeof(vLoc.recordType));
+      remember(vLoc);
+    } else {
+      Serial.print("Bogus GPS date ");
+      vLoc.printLocation();
+    }
   }
 
   void rememberGPS(PointGPS vLoc, time_t vTime, uint8_t vSats, float vSpeed, float vDirection, float vAltitude) {
+    time_t cutoff = makeTime(GRIDUINO_FIRST_RELEASE);
     Location gps{rGPS, vLoc, vTime, vSats, vSpeed, vDirection, vAltitude};
-    remember(gps);
+    if (vTime > cutoff) {
+      remember(gps);
+    } else {
+      Serial.print("Bogus GPS date ");
+      gps.printLocation();
+    }
   }
 
 protected:
