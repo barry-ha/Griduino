@@ -300,7 +300,7 @@ void translateGPStoScreen(Point *result, const PointGPS loc, const PointGPS orig
 // =============================================================
 void plotRoute(Breadcrumbs *trail, const PointGPS origin) {
   // show route track using history saved in bread crumb trail
-  // Serial.print("plotRoute() at line "); Serial.println(__LINE__);   // debug
+  // logger.fencepost("plotRoute()", __LINE__);   // debug
   // Serial.print("~ Plot relative to origin("); Serial.print(origin.lat); Serial.print(","); Serial.print(origin.lng); Serial.println(")");
   // trail->dumpHistoryGPS();    // debug
 
@@ -372,7 +372,7 @@ void plotVehicle(const Point car, uint16_t carColor) {
   }
 }
 // =============================================================
-Point carHistory[8];   // screen coords, keep track of previous dots, tail length empirically determined
+Point carHistory[10];   // screen coords, keep track of previous dots, tail length empirically determined
 const int carHistoryLength = sizeof(carHistory) / sizeof(carHistory[0]);
 static Point prevVehicle   = {0, 0};
 
