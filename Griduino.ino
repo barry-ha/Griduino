@@ -818,7 +818,7 @@ time_t nextSavePressure = 0;          // timer to log pressure reading (15 min)
 // the GPS hardware. Todo - fix the colon's flicker then reduce this interval to 10 msec.
 const int GPS_PROCESS_INTERVAL =  47;   // milliseconds between updating the model's GPS data
 const int RTC_PROCESS_INTERVAL = 1000;          // Timer RTC = 1 second
-const uint32_t GPS_AUTOSAVE_INTERVAL = SECS_PER_5MIN * 1000; // msec between saving breadcrumb trail to file
+const uint32_t GPS_AUTOSAVE_INTERVAL = SECS_PER_10MIN * 1000; // msec between saving breadcrumb trail to file
 //const int BAROMETRIC_PROCESS_INTERVAL = 15*60*1000;  // fifteen minutes in milliseconds
 const int LOG_PRESSURE_INTERVAL = 15*60*1000;   // 15 minutes, in milliseconds
 
