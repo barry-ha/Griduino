@@ -54,7 +54,7 @@ void Breadcrumbs::dumpHistoryGPS(int limit) {
   // snprintf(msg, sizeof(msg), "now() = %s GMT", sDate);   //
   // logger.info(msg);                                      //
 
-  Serial.println("Record, Type, Date GMT, Time GMT, Grid, Lat, Long, Alt(m), Speed(mph), Direction(Degrees), Sats");
+  Serial.println("Record, Type, Date GMT, Time GMT, Grid, Lat, Long, Alt(ft), Speed(mph), Direction(Degrees), Sats");
   int ii         = 0;
   Location *item = begin();
   while (item) {
@@ -72,7 +72,8 @@ void Breadcrumbs::dumpHistoryGPS(int limit) {
     floatToCharArray(sLng, sizeof(sLng), item->loc.lng, 5);
 
     char sSpeed[12], sDirection[12], sAltitude[12];
-    floatToCharArray(sSpeed, sizeof(sSpeed), item->speed, 1);
+    float mphSpeed = item->speed * mphPerMetersPerSecond;
+    floatToCharArray(sSpeed, sizeof(sSpeed), mphSpeed, 0);
     floatToCharArray(sDirection, sizeof(sDirection), item->direction, 1);
     floatToCharArray(sAltitude, sizeof(sAltitude), item->altitude, 0);
     uint8_t nSats = item->numSatellites;
@@ -249,9 +250,9 @@ int Breadcrumbs::restoreGPSBreadcrumbTrail() {   // returns 1=success, 0=failure
       strncpy(csvloc.recordType, sType, sizeof(sType));
 
       // echo info for debug
-      //snprintf(msg, sizeof(msg), ". CSV string[%2d] = \"%s\"", csv_line_number, original_line);   // debug
-      //Serial.println(msg);                                                                        // debug
-      //csvloc.printLocation(csv_line_number);                                                      // debug
+      // snprintf(msg, sizeof(msg), ". CSV string[%2d] = \"%s\"", csv_line_number, original_line);   // debug
+      // Serial.println(msg);                                                                        // debug
+      // csvloc.printLocation(csv_line_number);                                                      // debug
 
       remember(csvloc);
       items_restored++;
@@ -296,7 +297,7 @@ int Breadcrumbs::restoreGPSBreadcrumbTrail() {   // returns 1=success, 0=failure
   }
 
   // report statistics for a visible sanity check to aid debug
-  char sOldest[24], sNewest[24];   // strln("2023-11-22 12:34:56") = 19
+  char sOldest[24], sNewest[24];   // strlen("2023-11-22 12:34:56") = 19
   date.datetimeToString(sOldest, sizeof(sOldest), oldest);
   date.datetimeToString(sNewest, sizeof(sNewest), newest);
 
@@ -319,29 +320,40 @@ const char *KML_PREFIX = "\r\n\
  xmlns:kml=\"http://www.opengis.net/kml/2.2\"\
  xmlns:atom=\"http://www.w3.org/2005/Atom\">\r\n\
 <Document>\r\n\
-  <name>Griduino Track</name>\r\n\
-  <Style id=\"gstyle\">\r\n\
-    <LineStyle>\r\n\
-      <color>ffffff00</color>\r\n\
-      <width>4</width>\r\n\
-    </LineStyle>\r\n\
-  </Style>\r\n\
-  <StyleMap id=\"gstyle0\">\r\n\
-    <Pair>\r\n\
-      <key>normal</key>\r\n\
-      <styleUrl>#gstyle1</styleUrl>\r\n\
-    </Pair>\r\n\
-    <Pair>\r\n\
-      <key>highlight</key>\r\n\
-      <styleUrl>#gstyle</styleUrl>\r\n\
-    </Pair>\r\n\
-  </StyleMap>\r\n\
-  <Style id=\"gstyle1\">\r\n\
-    <LineStyle>\r\n\
-      <color>ffffff00</color>\r\n\
-      <width>4</width>\r\n\
-    </LineStyle>\r\n\
-  </Style>\r\n";
+\t<name>Griduino Track</name>\r\n\
+\t<StyleMap id=\"crumb\">\r\n\
+\t\t<Pair>\r\n\
+\t\t\t<key>normal</key>\r\n\
+\t\t\t<styleUrl>#snormal</styleUrl>\r\n\
+\t\t</Pair>\r\n\
+\t\t<Pair>\r\n\
+\t\t\t<key>highlight</key>\r\n\
+\t\t\t<styleUrl>#shighlight</styleUrl>\r\n\
+\t\t</Pair>\r\n\
+\t</StyleMap>\r\n\
+\t<Style id=\"shighlight\">\r\n\
+\t\t<IconStyle>\r\n\
+\t\t\t<scale>1.18182</scale>\r\n\
+\t\t\t<Icon>\r\n\
+\t\t\t\t<href>https://www.coilgun.info/images/bullet.png</href>\r\n\
+\t\t\t</Icon>\r\n\
+\t\t</IconStyle>\r\n\
+\t\t<BalloonStyle>\r\n\
+\t\t</BalloonStyle>\r\n\
+\t\t<ListStyle>\r\n\
+\t\t</ListStyle>\r\n\
+\t</Style>\r\n\
+\t<Style id=\"snormal\">\r\n\
+\t\t<IconStyle>\r\n\
+\t\t\t<Icon>\r\n\
+\t\t\t\t<href>https://www.coilgun.info/images/bullet.png</href>\r\n\
+\t\t\t</Icon>\r\n\
+\t\t</IconStyle>\r\n\
+\t\t<BalloonStyle>\r\n\
+\t\t</BalloonStyle>\r\n\
+\t\t<ListStyle>\r\n\
+\t\t</ListStyle>\r\n\
+\t</Style>\r\n";
 
 const char *KML_SUFFIX = "\
 </Document>\r\n\
@@ -349,50 +361,35 @@ const char *KML_SUFFIX = "\
 
 // ----- Beginning/end of a pushpin in a KML file -----
 const char *PUSHPIN_PREFIX_PART1 = "\
-  <Placemark>\r\n\
-    <name>Start ";
+\t<Placemark>\r\n\
+\t\t<name>Start ";
 // PUSHPIN_PREFIX_PART2 contains the date "mm/dd/yy"
 const char *PUSHPIN_PREFIX_PART3 = "\
-    </name>\r\n\
-    <styleUrl>#m_ylw-pushpin0</styleUrl>\r\n\
-    <Point>\r\n\
-      <gx:drawOrder>1</gx:drawOrder>\r\n\
-      <coordinates>";
+</name>\r\n\
+\t\t<styleUrl>#m_ylw-pushpin0</styleUrl>\r\n\
+\t\t<Point>\r\n\
+\t\t\t<gx:drawOrder>1</gx:drawOrder>\r\n\
+\t\t\t<coordinates>";
 
 const char *PUSHPIN_SUFFIX = "</coordinates>\r\n\
-    </Point>\r\n\
-  </Placemark>\r\n";
-
-// ----- Icon for breadcrumbs along route -----
-const char *BREADCRUMB_STYLE = "\
-  <Style id=\"crumb\">\r\n\
-    <IconStyle>\r\n\
-      <Icon><href>https://www.coilgun.info/images/bullet.png</href></Icon>\r\n\
-      <hotSpot x=\".5\" y=\".5\" xunits=\"fraction\" yunits=\"fraction\"/>\r\n\
-    </IconStyle>\r\n\
-  </Style>\r\n";
+\t\t</Point>\r\n\
+\t</Placemark>\r\n";
 
 // ----- Placemark template with timestamp -----
 // From: https://developers.google.com/static/kml/documentation/TimeStamp_example.kml
-const char *PLACE[12] = {
-    "  <Placemark>\r\n",
-    "    <description>\r\n",
-    "      <center>\r\n",
-    "        <h2><a target=\"_blank\" href=\"https://maps.google.com/maps?q=%s,%s\">%s</a></h2>\r\n",
-    "          %04d-%02d-%02d <br/> %02d:%02d:%02d GMT\r\n",
-    "          %s mph, %s deg, %s m, %d sat\r\n",
-    "      </center>\r\n",
-    "    </description>\r\n",
-    "    <TimeStamp><when>%04d-%02d-%02dT%02d:%02d:%02dZ</when></TimeStamp>\r\n",
-    "    <Point><coordinates>%s,%s</coordinates></Point>\r\n",
-    "    <styleUrl>#crumb</styleUrl>\r\n",
-    "  </Placemark>\r\n"};
+const char *PLACE[7] = {
+    "\t<Placemark>\r\n",
+    "\t\t<name>%s</name>\r\n",
+    "\t\t<description>%04d-%02d-%02d %02d:%02d:%02d GMT <br/> %s mph, %s°, %s', %d sat</description>\r\n",
+    "\t\t<TimeStamp><when>%04d-%02d-%02dT%02d:%02d:%02dZ</when></TimeStamp>\r\n",
+    "\t\t<Point><coordinates>%s,%s</coordinates></Point>\r\n",
+    "\t\t<styleUrl>#crumb</styleUrl>\r\n",
+    "\t</Placemark>\r\n"};
 
 void Breadcrumbs::dumpHistoryKML() {
 
-  Serial.print(KML_PREFIX);         // begin KML file
-  Serial.print(BREADCRUMB_STYLE);   // add breadcrumb icon style
-  bool startFound = false;          // the first few items are typically "power up" events so look for first valid GPS event
+  Serial.print(KML_PREFIX);   // begin KML file
+  bool startFound = false;    // the first few items are typically "power up" events so look for first valid GPS event
 
   // loop through the GPS history buffer
   Location *item = begin();
@@ -404,10 +401,15 @@ void Breadcrumbs::dumpHistoryKML() {
         if (!startFound) {
           // this is first valid GPS event, so drop a KML pushpin at start of data
           // todo: look for "power up" events and drop another KML pushpin for each segment
-          char pushpinDate[10];   // strlen("12/24/21") = 9
+          char pushpinDate[12];   // strlen("12/24/2023") = 10
           TimeElements time;      // https://github.com/PaulStoffregen/Time
-          breakTime(item->timestamp, time);
-          snprintf(pushpinDate, sizeof(pushpinDate), "%02d/%02d/%02d", time.Month, time.Day, time.Year);
+
+          //         time_t time  -> tmElements_t
+          // breakTime(item->timestamp, time);
+          // snprintf(pushpinDate, sizeof(pushpinDate), "%02d/%02d/%02d", time.Month, time.Day, time.Year);
+
+          time_t tm = item->timestamp;
+          snprintf(pushpinDate, sizeof(pushpinDate), "%02d/%02d/%04d", month(tm), day(tm), year(tm));
 
           Serial.print(PUSHPIN_PREFIX_PART1);
           Serial.print(pushpinDate);
@@ -433,25 +435,26 @@ void Breadcrumbs::dumpHistoryKML() {
         grid.calcLocator(grid6, item->loc.lat, item->loc.lng, 6);
 
         char sSpeed[12], sDirection[12], sAltitude[12];
-        floatToCharArray(sSpeed, sizeof(sSpeed), item->speed, 1);
-        floatToCharArray(sDirection, sizeof(sDirection), item->direction, 1);
-        floatToCharArray(sAltitude, sizeof(sAltitude), item->altitude, 1);
+        float mphSpeed = item->speed * mphPerMetersPerSecond;
+        floatToCharArray(sSpeed, sizeof(sSpeed), mphSpeed, 0);
+        floatToCharArray(sDirection, sizeof(sDirection), item->direction, 0);
+        floatToCharArray(sAltitude, sizeof(sAltitude), item->altitude, 0);
         int numSats = item->numSatellites;
 
         char msg[128];
         // clang-format off
-        snprintf(msg, sizeof(msg), PLACE[0]);     Serial.print(msg);
-        snprintf(msg, sizeof(msg), PLACE[1]);     Serial.print(msg);
-        snprintf(msg, sizeof(msg), PLACE[2]);     Serial.print(msg);
-        snprintf(msg, sizeof(msg), PLACE[3], sLat, sLng, grid6);  Serial.print(msg);
-        snprintf(msg, sizeof(msg), PLACE[4], time.Year + 1970, time.Month, time.Day, time.Hour, time.Minute, time.Second);  Serial.print(msg);
-        snprintf(msg, sizeof(msg), PLACE[5], sSpeed, sDirection, sAltitude, numSats);  Serial.print(msg);
-        snprintf(msg, sizeof(msg), PLACE[6]);     Serial.print(msg);
-        snprintf(msg, sizeof(msg), PLACE[7]);     Serial.print(msg);
-        snprintf(msg, sizeof(msg), PLACE[8], time.Year + 1970, time.Month, time.Day, time.Hour, time.Minute, time.Second);  Serial.print(msg);
-        snprintf(msg, sizeof(msg), PLACE[9], sLng, sLat);  Serial.print(msg);
-        snprintf(msg, sizeof(msg), PLACE[10]);    Serial.print(msg);
-        snprintf(msg, sizeof(msg), PLACE[11]);    Serial.print(msg);
+        snprintf(msg, sizeof(msg), PLACE[0]);        Serial.print(msg);
+        snprintf(msg, sizeof(msg), PLACE[1], grid6); Serial.print(msg);
+        snprintf(msg, sizeof(msg), PLACE[2], 
+            time.Year + 1970, time.Month, time.Day, 
+            time.Hour, time.Minute, time.Second,
+            sSpeed, sDirection, sAltitude, numSats); Serial.print(msg);
+        snprintf(msg, sizeof(msg), PLACE[3], 
+            time.Year + 1970, time.Month, time.Day, 
+            time.Hour, time.Minute, time.Second);    Serial.print(msg);
+        snprintf(msg, sizeof(msg), PLACE[4], sLng, sLat);  Serial.print(msg);
+        snprintf(msg, sizeof(msg), PLACE[5]);        Serial.print(msg);
+        snprintf(msg, sizeof(msg), PLACE[6]);        Serial.print(msg);
         // clang-format on
       }
     }
