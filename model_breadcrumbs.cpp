@@ -72,27 +72,30 @@ void Breadcrumbs::dumpHistoryGPS(int limit) {
     floatToCharArray(sLng, sizeof(sLng), item->loc.lng, 5);
 
     char sSpeed[12], sDirection[12], sAltitude[12];
-    float mphSpeed = item->speed * mphPerMetersPerSecond;
-    floatToCharArray(sSpeed, sizeof(sSpeed), mphSpeed, 0);
+    floatToCharArray(sSpeed, sizeof(sSpeed), item->speed, 0);
     floatToCharArray(sDirection, sizeof(sDirection), item->direction, 1);
     floatToCharArray(sAltitude, sizeof(sAltitude), item->altitude, 0);
     uint8_t nSats = item->numSatellites;
 
     char out[128];
     if (item->isPUP()) {
+      // format for "power up" message
       snprintf(out, sizeof(out), "%d, %s, %s, %s",
                ii, item->recordType, sDate, sTime);
 
     } else if (item->isFirstValidTime()) {
+      // format for "first valid time" message
       snprintf(out, sizeof(out), "%d, %s, %s, %s, , , , , , , %d",
                ii, item->recordType, sDate, sTime, nSats);
 
     } else if (item->isGPS() || item->isAcquisitionOfSignal() || item->isLossOfSignal()) {
+      // format for all GPS-type messages
       //                           1   2   3   4   5   6   7   8   9  10  11
       snprintf(out, sizeof(out), "%d, %s, %s, %s, %s, %s, %s, %s, %s, %s, %d",
                ii, item->recordType, sDate, sTime, grid6, sLat, sLng, sSpeed, sDirection, sAltitude, nSats);
 
     } else {
+      // format for "should not happen" messages
       snprintf(out, sizeof(out), "%d, --> Type '%s' unknown: ", ii, item->recordType);
       Serial.print(out);
       //                           1   2   3   4   5   6   7   8   9  10
@@ -435,8 +438,7 @@ void Breadcrumbs::dumpHistoryKML() {
         grid.calcLocator(grid6, item->loc.lat, item->loc.lng, 6);
 
         char sSpeed[12], sDirection[12], sAltitude[12];
-        float mphSpeed = item->speed * mphPerMetersPerSecond;
-        floatToCharArray(sSpeed, sizeof(sSpeed), mphSpeed, 0);
+        floatToCharArray(sSpeed, sizeof(sSpeed), item->speed, 0);
         floatToCharArray(sDirection, sizeof(sDirection), item->direction, 0);
         floatToCharArray(sAltitude, sizeof(sAltitude), item->altitude, 0);
         int numSats = item->numSatellites;
