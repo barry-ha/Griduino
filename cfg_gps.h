@@ -108,7 +108,10 @@ protected:
   void fClear() {
     logger.info("->->-> Clicked CLEAR button.");
     trail.clearHistory();
-    model->save();
+    trail.rememberPUP();
+    trail.deleteFile();   // out with the old history file
+    logger.fencepost("cfg_gps.h", __LINE__);
+    trail.saveGPSBreadcrumbTrail();   // start over with new history file
   }
   void fReceiver() {
     // select GPS receiver data
