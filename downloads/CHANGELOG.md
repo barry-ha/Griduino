@@ -8,7 +8,7 @@ Version numbers correspond to [Downloads](https://github.com/barry-ha/Griduino/t
 
 The changelog format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and the Griduino project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-**v1.12** &nbsp; 2023-05-08
+**v1.12 beta** &nbsp; 2023-05-08
 
 Version 1.12 is a Beta release containing significant changes. Please report any problems, thank you.
 
@@ -21,6 +21,8 @@ New: Breadcrumb trail now records are "power up" and "first valid time from GPS 
 New: Automatically records GPS position every 10 minutes to keep track of being parked in one spot for awhile.
 
 New: Animated logo on opening screen.
+
+New: Support for a new microprocessor: RP2040. Since the Adafruit Feather M4 is no longer obtainable, we've put considerable effort over the last six months for the replacement CPU and a new PCB. On eventual release, we can recompile this source code for either processor.
 
 Fixed: The main display screen no longer bogs down when the breadcrumb trail has more than 1,500 items. This would also cause slow GPS sync and loss of GPS signal because it failed to poll the GPS chip often enough.
 
