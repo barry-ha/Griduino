@@ -1,7 +1,7 @@
 #pragma once   // Please format this file with clang before check-in to GitHub
 
 // ------- Identity for splash screen and console --------
-#define PROGRAM_TITLE "Griduino"
+#define PROGRAM_TITLE "Griduino" 
 #if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
 #define PROGRAM_VERSION "v1.12 PCB v.7"
 #else
@@ -47,6 +47,10 @@ const double degreesPerRadian = 57.2957795;   // conversion factor = (360 degree
 
 #define DEFAULT_SEALEVEL_PASCALS (101740.0)
 #define DEFAULT_SEALEVEL_HPA     (1017.40)
+
+#define FIRST_RELEASE_YEAR  (2019)   // this date can help filter out bogus GPS timestamps
+#define FIRST_RELEASE_MONTH (12)
+#define FIRST_RELEASE_DAY   (19)
 
 // ----- load/save configuration using SDRAM
 // #define EXTERNAL_FLASH_USE_QSPI     // 2020-02-11 added by BarryH, since it seems to be missing from
