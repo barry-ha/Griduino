@@ -54,7 +54,7 @@ void Breadcrumbs::dumpHistoryGPS(int limit) {
   // snprintf(msg, sizeof(msg), "now() = %s GMT", sDate);   //
   // logger.info(msg);                                      //
 
-  Serial.println("Record, Type, Date GMT, Time GMT, Grid, Lat, Long, Alt(ft), Speed(mph), Direction(Degrees), Sats");
+  Serial.println("Record, Type, Date GMT, Time GMT, Grid, Lat, Long, Alt(m), Speed(mph), Direction(Degrees), Sats");
   int ii         = 0;
   Location *item = begin();
   while (item) {
@@ -73,7 +73,7 @@ void Breadcrumbs::dumpHistoryGPS(int limit) {
 
     char sSpeed[12], sDirection[12], sAltitude[12];
     floatToCharArray(sSpeed, sizeof(sSpeed), item->speed, 0);
-    floatToCharArray(sDirection, sizeof(sDirection), item->direction, 1);
+    floatToCharArray(sDirection, sizeof(sDirection), item->direction, 0);
     floatToCharArray(sAltitude, sizeof(sAltitude), item->altitude, 0);
     uint8_t nSats = item->numSatellites;
 
@@ -238,8 +238,8 @@ int Breadcrumbs::restoreGPSBreadcrumbTrail() {   // returns 1=success, 0=failure
       strncpy(sGrid, strtok(NULL, comma), sizeof(sGrid));   // grid is not saved internally, we always calc it when needed
       double fLatitude    = atof(strtok(NULL, comma));
       double fLongitude   = atof(strtok(NULL, comma));
-      float fAltitude     = atof(strtok(NULL, comma));
-      float fSpeed        = atof(strtok(NULL, comma));
+      float fAltitude     = atof(strtok(NULL, comma));   // meters
+      float fSpeed        = atof(strtok(NULL, comma));   // mph
       float fDirection    = atof(strtok(NULL, comma));
       uint8_t nSatellites = atoi(strtok(NULL, comma));
 

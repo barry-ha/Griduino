@@ -1,7 +1,7 @@
 #pragma once   // Please format this file with clang before check-in to GitHub
 
 // ------- Identity for splash screen and console --------
-#define PROGRAM_TITLE "Griduino" 
+#define PROGRAM_TITLE "Griduino"
 #if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
 #define PROGRAM_VERSION "v1.12 PCB v.7"
 #else
@@ -292,9 +292,9 @@ public:
     Serial.print("), ");
 
     // speed dir sats
-    Serial.print(altitude, 1);
+    Serial.print(altitude, 1);   // meters
     Serial.print(", ");
-    Serial.print(speed, 1);
+    Serial.print(speed, 1);   // mph
     Serial.print(", ");
     Serial.print(direction);
     Serial.print(", ");

@@ -107,9 +107,9 @@ private:
   int current = 0;          // index used for iterators begin(), next()
 
   const PointGPS noLocation{-1.0, -1.0};   // eye-catching value, and nonzero for "isEmpty()"
-  const float noSpeed        = -1.0;
-  const float noDirection    = -1.0;
-  const float noAltitude     = -1.0;
+  const float noSpeed        = -1.0;       // mph
+  const float noDirection    = -1.0;       // degrees from N
+  const float noAltitude     = -1.0;       // meters above MSL
   const uint8_t noSatellites = 0;
 
 public:
@@ -190,9 +190,9 @@ public:
     }
   }
 
-  void rememberGPS(PointGPS vLoc, time_t vTime, uint8_t vSats, float vSpeed, float vDirection, float vAltitude) {
+  void rememberGPS(PointGPS vLoc, time_t vTime, uint8_t vSats, float vSpeed, float vDirection, float vAltitudeMeters) {
     time_t cutoff = makeTime(GRIDUINO_FIRST_RELEASE);
-    Location gps{rGPS, vLoc, vTime, vSats, vSpeed, vDirection, vAltitude};
+    Location gps{rGPS, vLoc, vTime, vSats, vSpeed, vDirection, vAltitudeMeters};
     if (vTime > cutoff) {
       remember(gps);
     } else {

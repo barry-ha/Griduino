@@ -414,7 +414,7 @@ public:
     // set initial conditions, just in case following code does not
     gLatitude  = llCN87.lat;
     gLongitude = llCN87.lng;
-    gAltitude  = GPS.altitude;
+    gAltitude  = GPS.altitude;   // Altitude in meters above MSL
 
     // read hardware regardless of GPS signal acquisition
     gSatellites = GPS.satellites;

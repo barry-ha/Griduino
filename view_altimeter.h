@@ -304,7 +304,7 @@ void ViewAltimeter::updateScreen() {
   // if (lost GPS position lock)
   // todo - maybe the 'sync' button should be disabled when GPS is lost
 
-  float gpsMeters = model->gAltitude;
+  float gpsMeters = model->gAltitude;   // meters above MSL
   float gpsFeet   = gpsMeters * feetPerMeters;
   if (model->gMetric) {
     int precision = (abs(gpsMeters) < 10) ? 1 : 0;
