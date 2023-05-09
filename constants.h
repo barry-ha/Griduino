@@ -218,7 +218,7 @@ public:
   char recordType[4];      // GPS, power-up, first valid time, etc
   PointGPS loc;            // has-a lat/long, degrees
   time_t timestamp;        // has-a GMT time
-  uint8_t numSatellites;   // number of satellites in view
+  uint8_t numSatellites;   // number of satellites in use (not the same as in view)
   float speed;             // current speed over ground in MPH
   float direction;         // direction of travel, degrees from true north
   float altitude;          // altitude, meters above MSL

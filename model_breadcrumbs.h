@@ -19,7 +19,7 @@
             If the controller tells us to save to file, don't tell the "model" to do anything.
 
             When should the controller should remember a new breadcrumb?
-            1. Every five minutes
+            1. Every ten minutes
             2. When we drive a visible distance on the screen
             3. When we drive into a new 6-digit grid square (todo)
             4. When we turn a sharp corner (todo)
@@ -190,9 +190,9 @@ public:
     }
   }
 
-  void rememberGPS(PointGPS vLoc, time_t vTime, uint8_t vSats, float vSpeed, float vDirection, float vAltitudeMeters) {
+  void rememberGPS(PointGPS vLoc, time_t vTime, uint8_t vSats, float vSpeedMPH, float vDirection, float vAltitudeMeters) {
     time_t cutoff = makeTime(GRIDUINO_FIRST_RELEASE);
-    Location gps{rGPS, vLoc, vTime, vSats, vSpeed, vDirection, vAltitudeMeters};
+    Location gps{rGPS, vLoc, vTime, vSats, vSpeedMPH, vDirection, vAltitudeMeters};
     if (vTime > cutoff) {
       remember(gps);
     } else {
