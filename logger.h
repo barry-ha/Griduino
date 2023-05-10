@@ -55,14 +55,14 @@ public:
   void nmea(const char *pText) {
     if (print_nmea) {
       //
-      //    ---GPRMC---       ---GPGGA---
-      //    hh:mm:ss          hh:mm:ss
-      //    Sat status        Latitude
-      //    Latitude          Longitude
-      //    Longitude         Fix quality
-      //    Ground speed      No. of sats
-      //    Track angle       Ground speed
-      //    DD:MM:YY          Altitude
+      //    ---GPRMC---         ---GPGGA---
+      //    hh:mm:ss              hh:mm:ss
+      //    Sat status            Latitude
+      //    Latitude              Longitude
+      //    Longitude             Fix quality
+      //    Ground speed (knots)  No. of sats in use
+      //    Track angle           Altitude (m)
+      //    DD:MM:YY
       //
       // this GPS info is required by NMEATime2 by www.visualgps
       const char haystack[] = "$GPRMC $GPGGA $GPGSA $GPGSV ";
