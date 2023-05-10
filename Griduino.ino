@@ -518,6 +518,7 @@ void announceGrid(const String gridName, int length) {
   char grid[7];
   strncpy(grid, gridName.c_str(), sizeof(grid));
   grid[length] = 0;   // null-terminate string to requested 4- or 6-character length
+  logger.fencepost("Griduino.ino", __LINE__);   // debug
   Serial.print("Announcing grid: "); Serial.println(grid);
 
 #if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
@@ -526,6 +527,7 @@ void announceGrid(const String gridName, int length) {
 #else
   switch (cfgAudioType.selectedAudio) {
     case ViewCfgAudioType::MORSE: 
+      logger.fencepost("Griduino.ino", __LINE__);   // debug
       sendMorseGrid6( grid );
       break;
     case ViewCfgAudioType::SPEECH:
@@ -533,6 +535,7 @@ void announceGrid(const String gridName, int length) {
 
         char myfile[32];
         char letter = tolower( grid[ii] );
+        logger.fencepost("Griduino.ino speech", __LINE__);   // debug
         snprintf(myfile, sizeof(myfile), "/audio/%c.wav", letter);
 
         if (!dacSpeech.play( myfile )) {
@@ -554,12 +557,14 @@ void announceGrid(const String gridName, int length) {
 
 void sendMorseGrid4(const String gridName) {
   // announce new grid by Morse code
+  logger.fencepost("Griduino.ino", __LINE__);   // debug
   String grid4 = gridName.substring(0, 4);
   sendMorseGrid6( grid4 );
 }
 
 void sendMorseGrid6(const String gridName) {
   // announce new grid by Morse code
+  logger.fencepost("Griduino.ino", __LINE__);   // debug
   String grid = gridName;
   grid.toLowerCase();
 
@@ -585,6 +590,7 @@ void showActivityBar(int row, uint16_t foreground, uint16_t background) {
 }
 
 void sayGrid(const char *name) {
+  logger.fencepost("Griduino.ino say", __LINE__);   // debug
   Serial.print("Say ");
   Serial.println(name);
 
@@ -593,6 +599,7 @@ void sayGrid(const char *name) {
   logger.error("Unsupported audio in line ", __LINE__ );
 #else
   for (int ii = 0; ii < strlen(name); ii++) {
+    logger.fencepost("Griduino.ino", __LINE__);   // debug
 
     // example: choose the filename to play
     char myfile[32];
@@ -629,6 +636,10 @@ void setup() {
   pinMode(TFT_BL, OUTPUT);
   analogWrite(TFT_BL, 255);           // start at full brightness
 
+  // ----- init screen orientation
+  Serial.println("Starting cfgRotation.loadConfig()...");
+  cfgRotation.loadConfig();           // restore previous screen orientation
+
   // ----- init touch screen
   void initTouchScreen();
 
@@ -647,10 +658,6 @@ void setup() {
   pinMode(RED_LED, OUTPUT);           // diagnostics RED LED
   digitalWrite(PIN_LED, LOW);         // turn off little red LED
   Serial.println("NeoPixel initialized and turned off");
-
-  // ----- init screen orientation
-  Serial.println("Starting cfgRotation.loadConfig()...");
-  cfgRotation.loadConfig();           // restore previous screen orientation
 
   // ----- init GPS
   GPS.begin(9600);   // 9600 NMEA is the default baud rate for Adafruit MTK GPS's
