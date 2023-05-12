@@ -41,6 +41,7 @@ const double minLat  = gridHeightDegrees / gBoxHeight;   // latitude degrees fro
 #define mphPerMetersPerSecond (0.44704)       // speed conversion
 const double degreesPerRadian = 57.2957795;   // conversion factor = (360 degrees)/(2 pi radians)
 
+#define SECS_PER_1MIN  ((time_t)(60UL))
 #define SECS_PER_5MIN  ((time_t)(300UL))
 #define SECS_PER_10MIN ((time_t)(600UL))
 #define SECS_PER_15MIN ((time_t)(900UL))
@@ -267,13 +268,11 @@ public:
   }
 
   // print ourself - a sanity check
-  void printLocation(int ii = -1) {   // debug
+  void printLocation(const char *comment = NULL) {   // debug
+    Serial.println(". Rec, ___Date___ __Time__, (__Lat__, __Long__=), Alt, Spd, Dir, Sats");
+
     char out[128];
     Serial.print(". ");
-    if (ii >= 0) {
-      snprintf(out, sizeof(out), "  remember[%2d] = ", ii);
-      Serial.print(out);
-    }
     Serial.print(recordType);
     Serial.print(", ");
 
@@ -291,14 +290,18 @@ public:
     Serial.print(loc.lng, 4);
     Serial.print("), ");
 
-    // speed dir sats
+    // alt, speed dir sats
     Serial.print(altitude, 1);   // meters
     Serial.print(", ");
     Serial.print(speed, 1);   // mph
     Serial.print(", ");
-    Serial.print(direction);
+    Serial.print(direction, 1);   // degrees
     Serial.print(", ");
     Serial.print(numSatellites);
     Serial.println();
+
+    if (comment) {
+      Serial.println(comment);
+    }
   }
 };
