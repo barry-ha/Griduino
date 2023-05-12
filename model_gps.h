@@ -145,12 +145,12 @@ public:
   }
 
   // read GPS hardware
-  virtual void getGPS() {                 // "virtual" allows derived class MockModel to replace it
-    if (GPS.fix) {                        // DO NOT use "GPS.fix" anywhere else in the program,
-                                          // or the simulated position in MockModel won't work correctly
-      gLatitude  = GPS.latitudeDegrees;   // double-precision float
-      gLongitude = GPS.longitudeDegrees;
-      gAltitude  = GPS.altitude;
+  virtual void getGPS() {                  // "virtual" allows derived class MockModel to replace it
+    if (GPS.fix) {                         // DO NOT use "GPS.fix" anywhere else in the program,
+                                           // or the simulated position in MockModel won't work correctly
+      gLatitude  = GPS.latitudeDegrees;    // double-precision float
+      gLongitude = GPS.longitudeDegrees;   //
+      gAltitude  = GPS.altitude;           // Altitude in meters above MSL
       // save timestamp as compact 4-byte integer (number of seconds since Jan 1 1970)
       // using https://github.com/PaulStoffregen/Time
       // NMEA sentences contain only the last two digits of year, so add the century
@@ -172,11 +172,19 @@ public:
     echoGPSinfo();   // send GPS statistics to serial console for debug
   }
 
-  Location makeLocation() {
+  void makeLocation(Location *vLoc) {
     // collect GPS information from the Model into an object that can be saved in the breadcrumb trail
+    strncpy(vLoc->recordType, rGPS, sizeof(vLoc->recordType));
+
     PointGPS whereAmI{gLatitude, gLongitude};
-    Location loc{rGPS, whereAmI, gTimestamp, gSatellites, gSpeed, gAngle, gAltitude};
-    return loc;
+    vLoc->loc = whereAmI;
+
+    vLoc->timestamp     = gTimestamp;
+    vLoc->numSatellites = gSatellites;
+    vLoc->speed         = gSpeed;
+    vLoc->direction     = gAngle;
+    vLoc->altitude      = gAltitude;
+    return;
   }
 
   // 4-digit grid-crossing detector
@@ -251,11 +259,13 @@ public:
       lostFix     = true;
       gHaveGPSfix = false;
       logger.warning("Lost GPS positioning");
-      Location loc = makeLocation();
+      Location loc;
+      makeLocation(&loc);
       trail.rememberLOS(loc);
     } else if (!gPrevFix && gHaveGPSfix) {
       logger.warning("Acquired GPS position lock");
-      Location loc = makeLocation();
+      Location loc;
+      makeLocation(&loc);
       trail.rememberAOS(loc);
     }
     gPrevFix = gHaveGPSfix;

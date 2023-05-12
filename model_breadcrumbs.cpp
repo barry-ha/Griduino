@@ -74,7 +74,7 @@ void Breadcrumbs::dumpHistoryGPS(int limit) {
     char sSpeed[12], sDirection[12], sAltitude[12];
     floatToCharArray(sSpeed, sizeof(sSpeed), item->speed, 0);
     floatToCharArray(sDirection, sizeof(sDirection), item->direction, 0);
-    floatToCharArray(sAltitude, sizeof(sAltitude), item->altitude, 0);
+    floatToCharArray(sAltitude, sizeof(sAltitude), item->altitude, 1);
     uint8_t nSats = item->numSatellites;
 
     char out[128];
@@ -92,7 +92,7 @@ void Breadcrumbs::dumpHistoryGPS(int limit) {
       // format for all GPS-type messages
       //                           1   2   3   4   5   6   7   8   9  10  11
       snprintf(out, sizeof(out), "%d, %s, %s, %s, %s, %s, %s, %s, %s, %s, %d",
-               ii, item->recordType, sDate, sTime, grid6, sLat, sLng, sSpeed, sDirection, sAltitude, nSats);
+               ii, item->recordType, sDate, sTime, grid6, sLat, sLng, sAltitude, sSpeed, sDirection, nSats);
 
     } else {
       // format for "should not happen" messages
@@ -100,7 +100,7 @@ void Breadcrumbs::dumpHistoryGPS(int limit) {
       Serial.print(out);
       //                           1   2   3   4   5   6   7   8   9  10
       snprintf(out, sizeof(out), "%s, %s, %s, %s, %s, %s, %s, %s, %s, %d",
-               item->recordType, sDate, sTime, grid6, sLat, sLng, sSpeed, sDirection, sAltitude, nSats);
+               item->recordType, sDate, sTime, grid6, sLat, sLng, sAltitude, sSpeed, sDirection, nSats);
     }
     Serial.println(out);
     ii++;
@@ -251,11 +251,6 @@ int Breadcrumbs::restoreGPSBreadcrumbTrail() {   // returns 1=success, 0=failure
 
       Location csvloc{"xxx", whereAmI, csvTime, nSatellites, fSpeed, fDirection, fAltitude};
       strncpy(csvloc.recordType, sType, sizeof(sType));
-
-      // echo info for debug
-      // snprintf(msg, sizeof(msg), ". CSV string[%2d] = \"%s\"", csv_line_number, original_line);   // debug
-      // Serial.println(msg);                                                                        // debug
-      // csvloc.printLocation(csv_line_number);                                                      // debug
 
       remember(csvloc);
       items_restored++;

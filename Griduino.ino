@@ -518,7 +518,6 @@ void announceGrid(const String gridName, int length) {
   char grid[7];
   strncpy(grid, gridName.c_str(), sizeof(grid));
   grid[length] = 0;   // null-terminate string to requested 4- or 6-character length
-  logger.fencepost("Griduino.ino", __LINE__);   // debug
   Serial.print("Announcing grid: "); Serial.println(grid);
 
 #if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
@@ -877,7 +876,6 @@ void loop() {
     TimeElements tm{GPS.seconds, GPS.minute, GPS.hour, 0, GPS.day, GPS.month, (byte)(2000-1970+GPS.year)};
     time_t firstTime = makeTime(tm);
     trail.rememberFirstValidTime(firstTime, GPS.satellites);
-    logger.fencepost("Griduino.ino first valid time",__LINE__);  // debug
     trail.saveGPSBreadcrumbTrail();   // ensure its saved for posterity
   }
 
@@ -954,7 +952,8 @@ void loop() {
     pView->updateScreen();
     announceGrid(newGrid6, 4);     // announce with Morse code or speech, according to user's config
 
-    Location whereAmI = model->makeLocation();
+    Location whereAmI;
+    model->makeLocation(&whereAmI);
     trail.rememberGPS(whereAmI);
     logger.fencepost("Griduino.ino new grid4",__LINE__);  // debug
     trail.saveGPSBreadcrumbTrail();
@@ -963,7 +962,8 @@ void loop() {
     if (!model->compare4digits) {
       announceGrid(newGrid6, 6);   // announce with Morse code or speech, according to user's config
     }
-    Location whereAmI = model->makeLocation();
+    Location whereAmI;
+    model->makeLocation(&whereAmI);
     trail.rememberGPS(whereAmI);    // when we enter a new 6-digit grid, save it in breadcrumb trail
     logger.fencepost("Griduino.ino new grid6",__LINE__);  // debug
     trail.saveGPSBreadcrumbTrail(); // because one user's home was barely in the next grid6
@@ -974,12 +974,12 @@ void loop() {
   static PointGPS prevRememberedGPS{0.0, 0.0};
   PointGPS currentGPS{model->gLatitude, model->gLongitude};
   if (grid.isVisibleDistance(prevRememberedGPS, currentGPS)) {
-    Location whereAmI = model->makeLocation();
+    Location whereAmI;
+    model->makeLocation(&whereAmI);
     trail.rememberGPS(whereAmI);
     prevRememberedGPS = currentGPS;
 
     if (0 == (trail.getHistoryCount() % trail.saveInterval)) {
-      logger.fencepost("Griduino.ino distance",__LINE__);  // debug
       trail.saveGPSBreadcrumbTrail();
     }
   }
@@ -988,9 +988,11 @@ void loop() {
   if (autoLogTimer > GPS_AUTOSAVE_INTERVAL) {
     autoLogTimer = 0;
 
-    Location whereAmI = model->makeLocation();
+    Location whereAmI;
+    model->makeLocation(&whereAmI);
+    //logger.fencepost("Griduino.ino autolog timer",__LINE__);  // debug
+    //whereAmI.printLocation();                                 // debug
     trail.rememberGPS(whereAmI);
-    logger.fencepost("Griduino.ino autolog time",__LINE__);  // debug
     trail.saveGPSBreadcrumbTrail();
   }
 

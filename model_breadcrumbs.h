@@ -26,8 +26,7 @@
 
   Todo:     1. refactor "class Location" into this file
             2. refactor "makeLocation()" into ctor (or public member) of "class Location"
-            3. replace remember(Location) with remember(a,b,c,d,e,f)
-            4. add rememberPDN(), rememberTOD()
+            3. add rememberPDN(), rememberTOD()
 
   API Design:
       Initialization:
@@ -185,8 +184,7 @@ public:
       strncpy(vLoc.recordType, rGPS, sizeof(vLoc.recordType));
       remember(vLoc);
     } else {
-      Serial.print("Bogus GPS date ");
-      vLoc.printLocation();
+      vLoc.printLocation("Bogus GPS date ");
     }
   }
 
@@ -196,8 +194,7 @@ public:
     if (vTime > cutoff) {
       remember(gps);
     } else {
-      Serial.print("Bogus GPS date ");
-      gps.printLocation();
+      gps.printLocation("Bogus GPS date ");
     }
   }
 
