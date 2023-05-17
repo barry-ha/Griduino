@@ -8,9 +8,11 @@ Version numbers correspond to [Downloads](https://github.com/barry-ha/Griduino/t
 
 The changelog format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and the Griduino project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-**v1.12 beta** &nbsp; 2023-05-08
+**v1.12 beta** &nbsp; 2023-05-17
 
 Version 1.12 is a Beta release containing significant changes. Please report any problems, thank you.
+
+New: If GPS satellite signal is lost, make an audible announcement every 5 minutes. This is often enough to tell the driver without distracting them too much.
 
 New: Re-wrote entire breadcrumb trail and 'dump kml' function.
 
