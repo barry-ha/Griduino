@@ -505,12 +505,9 @@ void adjustBrightness() {
 #endif
 
 void sendMorseLostSignal() {
-  // commented out -- this occurs too frequently and is distracting
-  return;
-
-  //String msg(PROSIGN_AS);             // "wait" symbol
-  //dacMorse.setMessage(msg);
-  //dacMorse.sendBlocking();            // TODO - use non-blocking
+  String msg(PROSIGN_AS);             // "wait" symbol
+  dacMorse.setMessage(msg);
+  dacMorse.sendBlocking();            // TODO - use non-blocking
 }
 
 void announceGrid(const String gridName, int length) {
@@ -806,10 +803,10 @@ void setup() {
 // This number will overflow after about 50 days.
 uint32_t prevTimeGPS = millis();
 uint32_t prevTimeBaro = millis();
-//uint32_t prevTimeMorse = millis();
 uint32_t prevCheckRTC = 0;            // timer to update time-of-day (1 second)
 time_t prevTimeRTC = 0;               // timer to print RTC to serial port (1 second)
 elapsedMillis autoLogTimer;           // timer to save GPS trail periodically no matter what
+elapsedMillis losTimer;               // timer for Loss Of Signal
 
 //time_t nextShowPressure = 0;        // timer to update displayed value (5 min), init to take a reading soon after startup
 time_t nextSavePressure = 0;          // timer to log pressure reading (15 min)
@@ -827,6 +824,7 @@ const int RTC_PROCESS_INTERVAL = 1000;          // Timer RTC = 1 second
 const uint32_t GPS_AUTOSAVE_INTERVAL = SECS_PER_10MIN * 1000; // msec between saving breadcrumb trail to file
 //const int BAROMETRIC_PROCESS_INTERVAL = 15*60*1000;  // fifteen minutes in milliseconds
 const int LOG_PRESSURE_INTERVAL = 15*60*1000;   // 15 minutes, in milliseconds
+const int LOS_ANNOUNCEMENT_INTERVAL = SECS_PER_5MIN * 1000;   // msec between LOS announcements
 
 void loop() {
 
@@ -939,7 +937,6 @@ void loop() {
   // if there's an alert, tell the user
   if (model->signalLost()) {
     model->indicateSignalLost();   // update model
-    sendMorseLostSignal();         // announce GPS signal lost by Morse code
     // the above will also write LOS and AOS to gps history log
   }
 
@@ -981,6 +978,19 @@ void loop() {
 
     if (0 == (trail.getHistoryCount() % trail.saveInterval)) {
       trail.saveGPSBreadcrumbTrail();
+    }
+  }
+
+  // if we lost GPS signal for a long time, issue audible announcement
+  if (model->gHaveGPSfix) {
+    // satellites are in view, business as usual, restart LOS timer
+    losTimer = 0;
+  } else {
+    // no GPS position available, let's wait see if it's reacquired soon
+    if (losTimer > LOS_ANNOUNCEMENT_INTERVAL) {
+      // it's been a few minutes without GPS
+      sendMorseLostSignal();    // announce GPS signal lost by Morse code
+      losTimer = 0;             // restart LOS timer
     }
   }
 
