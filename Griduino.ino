@@ -934,10 +934,9 @@ void loop() {
   //  // "continueSending" returns false after the message finishes sending
   //}
 
-  // if there's an alert, tell the user
-  if (model->signalLost()) {
-    model->indicateSignalLost();   // update model
-    // the above will also write LOS and AOS to gps history log
+  // check for transition to "loss of signal"
+  if (model->signalLost()) {   // test and write LOS and AOS to gps history log
+    losTimer = 0;              // start timer for announcing LOS
   }
 
   // if GPS enters a new grid, notify the user and draw new display screen
