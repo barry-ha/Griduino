@@ -430,7 +430,11 @@ void selectNewView(int cmd) {
       case CFG_CROSSING:   nextView = CFG_GPS; break;
       case CFG_GPS:        nextView = CFG_UNITS; break;
       case CFG_UNITS:      nextView = CFG_ROTATION; break;
+#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
       case CFG_ROTATION:   nextView = CFG_REBOOT; break;
+#else
+      case CFG_ROTATION:   nextView = CFG_VOLUME; break;
+#endif
       case CFG_REBOOT:     nextView = CFG_VOLUME; break;
       // none of above: we must be showing some normal user view, so go to the first settings view
       default:             nextView = CFG_VOLUME; break;
