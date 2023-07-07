@@ -807,8 +807,8 @@ void setup() {
 // This number will overflow after about 50 days.
 uint32_t prevTimeGPS = millis();
 uint32_t prevTimeBaro = millis();
-uint32_t prevCheckRTC = 0;            // timer to update time-of-day (1 second)
 time_t prevTimeRTC = 0;               // timer to print RTC to serial port (1 second)
+elapsedMillis displayClockTimer;      // timer to update time-of-day display (1 second)
 elapsedMillis autoLogTimer;           // timer to save GPS trail periodically no matter what
 elapsedMillis losTimer;               // timer for Loss Of Signal
 
@@ -824,7 +824,7 @@ time_t nextSavePressure = 0;          // timer to log pressure reading (15 min)
 // Also, 47 msec is relatively prime compared to 200 msec (5 Hz) updates sent from
 // the GPS hardware. Todo - fix the colon's flicker then reduce this interval to 10 msec.
 const int GPS_PROCESS_INTERVAL =  47;   // milliseconds between updating the model's GPS data
-const int RTC_PROCESS_INTERVAL = 1000;          // Timer RTC = 1 second
+const int CLOCK_DISPLAY_INTERVAL = 1000;   // refresh clock display every 1 second (1,000 msec)
 const uint32_t GPS_AUTOSAVE_INTERVAL = SECS_PER_10MIN * 1000; // msec between saving breadcrumb trail to file
 //const int BAROMETRIC_PROCESS_INTERVAL = 15*60*1000;  // fifteen minutes in milliseconds
 const int LOG_PRESSURE_INTERVAL = 15*60*1000;   // 15 minutes, in milliseconds
@@ -882,8 +882,8 @@ void loop() {
   }
 
   // every 1 second update the realtime clock
-  if (millis() - prevCheckRTC > RTC_PROCESS_INTERVAL) {
-    prevCheckRTC = millis();
+  if (displayClockTimer > CLOCK_DISPLAY_INTERVAL) {
+    displayClockTimer = 0;
 
     // update RTC from GPS
     if (date.isDateValid(GPS.year, GPS.month, GPS.day)) {

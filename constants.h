@@ -3,9 +3,9 @@
 // ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE "Griduino"
 #if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
-#define PROGRAM_VERSION "v1.12 PCB v.7"
+#define PROGRAM_VERSION "v1.13 PCB v.7"
 #else
-#define PROGRAM_VERSION "v1.12 GZR"
+#define PROGRAM_VERSION "v1.13"
 #endif
 #define PROGRAM_LINE1    "Barry K7BWH"
 #define PROGRAM_LINE2    "John KM7O"
