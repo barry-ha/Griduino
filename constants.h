@@ -133,7 +133,7 @@ public:
   double lat, lng;
 };
 
-#include <TimeLib.h>   // https://github.com/PaulStoffregen/Time for "time_t"
+#include <TimeLib.h>   // time_t=seconds since Jan 1, 1970, https://github.com/PaulStoffregen/Time
 class BaroReading {
 public:
   float pressure;   // in millibars, from BMP388 sensor

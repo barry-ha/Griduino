@@ -36,7 +36,7 @@
 */
 
 #include <Adafruit_ILI9341.h>   // TFT color display library
-#include <TimeLib.h>            // BorisNeubert / Time (who forked it from PaulStoffregen / Time)
+#include <TimeLib.h>            // time_t=seconds since Jan 1, 1970, https://github.com/PaulStoffregen/Time
 #include "constants.h"          // Griduino constants and colors
 #include "logger.h"             // conditional printing to Serial port
 #include "model_gps.h"          // Model of a GPS for model-view-controller
