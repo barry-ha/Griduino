@@ -101,6 +101,7 @@
 #include "view_events.h"              // counting days to/from calendar events
 #include "view_grid_crossings.h"      // list of time spent in each grid
 #include "view_help.h"                // help screen
+#include "view_sat_count.h"           // show number of satellites acquired
 #include "view_screen1.h"             // starting screen animation
 #include "view_splash.h"              // splash screen
 #include "view_status.h"              // status screen 
@@ -334,6 +335,7 @@ enum VIEW_INDEX {
   GRID_VIEW,
   GRID_CROSSINGS_VIEW,   // log of time in each grid
   HELP_VIEW,             // hints at startup
+  SAT_COUNT_VIEW,        // number of satellites acquired
   SCREEN1_VIEW,          // first bootup screen
   SPLASH_VIEW,           // startup
   STATUS_VIEW,           // size and scale of this grid
@@ -345,6 +347,7 @@ enum VIEW_INDEX {
   MAX_VIEWS,             // sentinel at end of list
 };
 /*const*/ int help_view      = HELP_VIEW;
+/*const*/ int sat_count_view = SAT_COUNT_VIEW;
 /*const*/ int splash_view    = SPLASH_VIEW;
 /*const*/ int screen1_view   = SCREEN1_VIEW;
 /*const*/ int grid_view      = GRID_VIEW;
@@ -369,6 +372,7 @@ ViewEvents        eventsView(&tft, EVENTS_VIEW);
 ViewGrid          gridView(&tft, GRID_VIEW);
 ViewGridCrossings gridCrossingsView(&tft, GRID_CROSSINGS_VIEW);
 ViewHelp          helpView(&tft, HELP_VIEW);
+ViewSatCount      satCountView(&tft, SAT_COUNT_VIEW);
 ViewScreen1       screen1View(&tft, SCREEN1_VIEW);
 ViewSplash        splashView(&tft, SPLASH_VIEW);
 ViewStatus        statusView(&tft, STATUS_VIEW);
@@ -394,6 +398,7 @@ void selectNewView(int cmd) {
       &gridView,            // [GRID_VIEW]
       &gridCrossingsView,   // [GRID_CROSSINGS_VIEW]
       &helpView,            // [HELP_VIEW]
+      &satCountView,        // [SAT_COUNT_VIEW]
       &screen1View,         // [SCREEN1_VIEW]
       &splashView,          // [SPLASH_VIEW]
       &statusView,          // [STATUS_VIEW]
@@ -412,7 +417,8 @@ void selectNewView(int cmd) {
       case SPLASH_VIEW:    nextView = GRID_VIEW; break;
       case GRID_VIEW:      nextView = TIME_VIEW; break;
       case GRID_CROSSINGS_VIEW: nextView= GRID_VIEW; break;   // skip GRID_CROSSINGS_VIEW (not ready for prime time)
-      case TIME_VIEW:      nextView = BARO_VIEW; break;
+      case TIME_VIEW:      nextView = SAT_COUNT_VIEW; break;
+      case SAT_COUNT_VIEW: nextView = BARO_VIEW; break;
       case BARO_VIEW:      nextView = ALTIMETER_VIEW; break;
       case ALTIMETER_VIEW: nextView = STATUS_VIEW; break;
       case STATUS_VIEW:    nextView = TEN_MILE_ALERT_VIEW; break;
@@ -827,8 +833,8 @@ const int GPS_PROCESS_INTERVAL =  47;   // milliseconds between updating the mod
 const int CLOCK_DISPLAY_INTERVAL = 1000;   // refresh clock display every 1 second (1,000 msec)
 const uint32_t GPS_AUTOSAVE_INTERVAL = SECS_PER_10MIN * 1000; // msec between saving breadcrumb trail to file
 //const int BAROMETRIC_PROCESS_INTERVAL = 15*60*1000;  // fifteen minutes in milliseconds
-const int LOG_PRESSURE_INTERVAL = 15*60*1000;   // 15 minutes, in milliseconds
-const int LOS_ANNOUNCEMENT_INTERVAL = SECS_PER_5MIN * 1000;   // msec between LOS announcements
+const uint LOG_PRESSURE_INTERVAL = 15*60*1000;   // 15 minutes, in milliseconds
+const uint LOS_ANNOUNCEMENT_INTERVAL = SECS_PER_5MIN * 1000;   // msec between LOS announcements
 
 void loop() {
 
@@ -892,6 +898,15 @@ void loop() {
       //adjustTime(offset * SECS_PER_HOUR);  // todo - adjust to local time zone. for now, we only do GMT
     }
 
+  }
+
+  // periodically save the number of satellites acquired for later analysis
+  static elapsedSeconds satCountTimer;       // timer for saving number of GPS satellites
+  const int SAT_SAVE_INTERVAL = 30;          // every thirty seconds
+  if (satCountTimer > SAT_SAVE_INTERVAL) {
+    satCountTimer = 0;
+
+    satCountView.push(now(), model->gSatellites);
   }
 
   // send RTC to a (possible) Windows program, e.g. https://github.com/barry-ha/Laptop-Griduino
