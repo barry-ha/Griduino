@@ -92,6 +92,7 @@
 #include <Adafruit_ILI9341.h>         // TFT color display library
 #include <TouchScreen.h>              // Touchscreen built in to 3.2" Adafruit TFT display
 #include <Adafruit_GPS.h>             // Ultimate GPS library
+#include <TimeLib.h>                  // time_t=seconds since Jan 1, 1970, https://github.com/PaulStoffregen/Time
 #include "Adafruit_BMP3XX.h"          // Precision barometric and temperature sensor
 #include <Adafruit_NeoPixel.h>        // On-board color addressable LED
 #include "model_baro.h"               // Model of a barometer that stores 3-day history
@@ -99,7 +100,6 @@
 #include "constants.h"                // Griduino constants, colors, typedefs
 #include "hardware.h"                 // Griduino pin definitions
 #include "TextField.h"                // Optimize TFT display text for proportional fonts
-#include "TimeLib.h"                  // BorisNeubert / Time (who forked it from PaulStoffregen / Time)
 
 // ------- Identity for splash screen and console --------
 #define BAROGRAPH_TITLE "Baroduino"
