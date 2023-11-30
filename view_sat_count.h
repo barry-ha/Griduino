@@ -58,8 +58,8 @@ public:
   void startScreen();
   bool onTouch(Point touch);
 
-  etl::circular_buffer<satCountItem, 13> cbSats;
-  etl::circular_buffer<satCountItem, 13>::iterator cbIter;
+  etl::circular_buffer<satCountItem, 17> cbSats;
+  etl::circular_buffer<satCountItem, 17>::iterator cbIter;
 
   // pushes a value to the back of the circular buffer
   void push(time_t tm, int nSats) {
@@ -120,24 +120,24 @@ protected:
 // clang-format off
 #define nSatCountValues 11
   TextField txtValues[nSatCountValues] = {
-      {"Satellite Count",  -1, yRow1, cTITLE,    ALIGNCENTER,  eFONTSMALLEST},   // [TITLE] view title, centered
-      {"01-02",   48, 18, cWARN, ALIGNLEFT,  eFONTSMALLEST},                     // [eDate]
-      {"0#",      48, 36, cWARN, ALIGNLEFT,  eFONTSMALLEST},                     // [eNumSat]
-      {"12:34",  276, 18, cWARN, ALIGNRIGHT, eFONTSMALLEST},                     // [eTimeHHMM]
-      {"56",     276, 36, cWARN, ALIGNRIGHT, eFONTSMALLEST},                     // [eTimeSS]
-      {"10+",    labelX, yRow10, ILI9341_GREEN,   ALIGNLEFT,  eFONTSMALLEST},    // [TEN]
-      {" 8",     labelX, yRow8,  ILI9341_GREEN,   ALIGNLEFT,  eFONTSMALLEST},    // [EIGHT]
-      {" 6",     labelX, yRow6,  ILI9341_GREEN,   ALIGNLEFT,  eFONTSMALLEST},    // [SIX]
-      {" 4",     labelX, yRow4,  ILI9341_GREEN,   ALIGNLEFT,  eFONTSMALLEST},    // [FOUR]
-      {" 2",     labelX, yRow2,  ILI9341_YELLOW,  ALIGNLEFT,  eFONTSMALLEST},    // [TWO]
-      {" 0",     labelX, yRow0,  ILI9341_RED,     ALIGNLEFT,  eFONTSMALLEST},    // [ZERO]
+      {"Satellites", -1, yRow1,cTITLE,         ALIGNCENTER, eFONTSMALLEST},   // [TITLE] view title, centered
+      {"01-02",    48, 18,     cWARN,          ALIGNLEFT,  eFONTSMALLEST},    // [eDate]
+      {"0#",       48, 36,     cWARN,          ALIGNLEFT,  eFONTSMALLEST},    // [eNumSat]
+      {"12:34",   276, 18,     cWARN,          ALIGNRIGHT, eFONTSMALLEST},    // [eTimeHHMM]
+      {"56",      276, 36,     cWARN,          ALIGNRIGHT, eFONTSMALLEST},    // [eTimeSS]
+      {"10+",  labelX, yRow10, ILI9341_GREEN,  ALIGNLEFT,  eFONTSMALLEST},    // [TEN]
+      {" 8",   labelX, yRow8,  ILI9341_GREEN,  ALIGNLEFT,  eFONTSMALLEST},    // [EIGHT]
+      {" 6",   labelX, yRow6,  ILI9341_GREEN,  ALIGNLEFT,  eFONTSMALLEST},    // [SIX]
+      {" 4",   labelX, yRow4,  ILI9341_GREEN,  ALIGNLEFT,  eFONTSMALLEST},    // [FOUR]
+      {" 2",   labelX, yRow2,  ILI9341_YELLOW, ALIGNLEFT,  eFONTSMALLEST},    // [TWO]
+      {" 0",   labelX, yRow0,  ILI9341_RED,    ALIGNLEFT,  eFONTSMALLEST},    // [ZERO]
   };
   // clang-format on
 
   void showBar(int position, satCountItem item) {
     int value = item.numSats;
 
-#define barWidth  21   // total width including gutter
+#define barWidth  14   // total width including gutter
 #define barGutter 2    // divider between bars
     // map(value, fromLow, fromHigh, toLow, toHigh)
     int tt = map(value, 0, 10, yBot, yTop);   // top of bar, screen coords
@@ -158,7 +158,7 @@ protected:
     // make sure text is always drawn inside canvas
     if (value < 10) {
       // most values are drawn above bar in white
-      tft->setCursor(xx + 3, tt - 2);
+      tft->setCursor(xx + 2, tt - 2);
       tft->setTextColor(ILI9341_WHITE);
       tft->print(value);
     } else {
@@ -226,12 +226,15 @@ void ViewSatCount::updateScreen() {
 
     bar = 0;
     for (cbIter = cbSats.begin(); cbIter < cbSats.end(); ++cbIter) {
-      tft->setCursor(2, valueX + bar * barWidth);
-      // convert timestamp to string
-      char msg[6];   // strlen("hh:mm") = 5;
-      satCountItem item = *cbIter;
-      date.timeToString(msg, sizeof(msg), item.tm);
-      tft->print(msg);
+
+      if ((bar + 1) % 2) {   // draw label every even-numbered bar, or text is too crowded
+        tft->setCursor(2, valueX + bar * barWidth);
+        // convert timestamp to string
+        char msg[6];   // strlen("hh:mm") = 5;
+        satCountItem item = *cbIter;
+        date.timeToString(msg, sizeof(msg), item.tm);
+        tft->print(msg);
+      }
 
       bar++;
     }
