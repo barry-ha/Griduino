@@ -35,25 +35,26 @@
   Tested with:
          1. Arduino Feather M4 Express (120 MHz SAMD51)     https://www.adafruit.com/product/3857
 
-         2. Adafruit 3.2" TFT color LCD display ILI-9341    https://www.adafruit.com/product/1743
+         2. Adafruit Ultimate GPS                           https://www.adafruit.com/product/746
 
-         3. Adafruit BMP388 - Precision Barometric Pressure https://www.adafruit.com/product/3966
+         3. Adafruit 3.2" TFT color LCD display ILI-9341    https://www.adafruit.com/product/1743
+
+         4. Adafruit BMP388 Barometric Pressure, SPI        https://www.adafruit.com/product/3966
             Adafruit BMP390                                 https://www.adafruit.com/product/4816
 
-         4. Adafruit Ultimate GPS                           https://www.adafruit.com/product/746
 
 */
 
 #include <Adafruit_GFX.h>       // Core graphics display library
 #include <Adafruit_ILI9341.h>   // TFT color display library
-#include "TouchScreen.h"        // Touchscreen built in to 3.2" Adafruit TFT display
-#include "Adafruit_GPS.h"       // Ultimate GPS library
+#include <TouchScreen.h>        // Touchscreen built in to 3.2" Adafruit TFT display
+#include <Adafruit_GPS.h>       // Ultimate GPS library
 #include "Adafruit_BMP3XX.h"    // Precision barometric and temperature sensor
 #include "hardware.h"           // Griduino pin definitions
 
 // ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE    "Griduino Altimeter"
-#define PROGRAM_VERSION  "v1.12"
+#define PROGRAM_VERSION  "v1.14"
 #define PROGRAM_LINE1    "Barry K7BWH"
 #define PROGRAM_LINE2    "John KM7O"
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
@@ -63,7 +64,7 @@
 // ---------- Hardware Wiring ----------
 // Same as Griduino platform - see hardware.h
 
-// ---------- TFT Display
+// ---------- TFT display
 Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 
 // ---------- Touch Screen
@@ -513,8 +514,15 @@ void setup() {
   GPS.sendCommand(PMTK_SET_BAUD_57600);   // set baud rate to 57600
   delay(50);
   GPS.begin(57600);
-  GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);   // turn on RMC (recommended minimum) and GGA (fix data) including altitude
+  delay(50);
 
+  Serial.print("Turn on RMC (recommended minimum) and GGA (fix data) including altitude: ");
+  Serial.println(PMTK_SET_NMEA_OUTPUT_RMCGGA);
+  GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
+  delay(50);
+
+  Serial.print("Set GPS 1 Hz update rate: ");
+  Serial.println(PMTK_SET_NMEA_UPDATE_1HZ);
   GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);   // 1 Hz update rate
   // GPS.sendCommand(PMTK_SET_NMEA_UPDATE_200_MILLIHERTZ); // Once every 5 seconds update
   // GPS.sendCommand(PGCMD_ANTENNA);             // Request updates on whether antenna is connected or not (comment out to keep quiet)
@@ -561,9 +569,9 @@ void setup() {
 
   // ----- init BMP388 or BMP390 barometer
 #if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
-  bool initialized = baro.begin_I2C(BMP3XX_DEFAULT_ADDRESS, &Wire1);   // Griduino v6 pcb
+  bool initialized = baro.begin_I2C(BMP3XX_DEFAULT_ADDRESS, &Wire1);   // Griduino v7 pcb
 #else
-  bool initialized = baro.begin_SPI(bmp_cs);   // Griduino v4 pcb
+  bool initialized = baro.begin_SPI(BMP_CS);   // Griduino v4 pcb
 #endif
   if (initialized) {
     // success
@@ -573,8 +581,8 @@ void setup() {
     tft.setCursor(0, 80);
     tft.setTextColor(cWARN);
     tft.setTextSize(3);
-    tft.println("Error!\n Unable to init\n  BMP388/390 sensor\n   check wiring");
-    delay(4000);
+    tft.println("Error!\n Unable to init\n  barometric sensor\n   check wiring");
+    delay(5000);
   }
 
   // ----- Settings recommended by Bosch based on use case for "handheld device dynamic"
