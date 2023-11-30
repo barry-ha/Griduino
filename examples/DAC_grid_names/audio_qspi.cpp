@@ -326,6 +326,10 @@ bool AudioQSPI::getWaveData(WaveInfo *pInfo, int16_t pBuffer[MAXBUFFERSIZE], con
       Serial.print(". Successfully read ");
       Serial.print(bytesread);
       Serial.println(" bytes PCM");
+      Serial.print(". Number of samples = ");   // debug
+      Serial.println(pInfo->numSamples);        // debug
+      Serial.print(". Bytes per sample = ");    // debug
+      Serial.println(pInfo->bytesPerSample);    // debug
     } else {
       Serial.println(". WAV data error, did not read any bytes from file");
       rc = false;

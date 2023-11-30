@@ -222,7 +222,8 @@ void sayGrid(const char *name) {
     // choose the filename to play
     char myfile[32];
     char letter = name[ii];
-    snprintf(myfile, sizeof(myfile), "/male/%c_bwh_16.wav", letter);
+    //snprintf(myfile, sizeof(myfile), "/male/%c_bwh_16.wav", letter);
+    snprintf(myfile, sizeof(myfile), "/audio/%c.wav", letter);
 
     // example: read WAV attributes and display it on screen while playing it
     WaveInfo info;
