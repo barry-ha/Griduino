@@ -811,11 +811,12 @@ void setup() {
 //=========== main work loop ===================================
 // "millis()" is number of milliseconds since the Arduino began running the current program.
 // This number will overflow after about 50 days.
-uint32_t prevTimeGPS = millis();
+//uint32_t prevTimeGPS = millis();
+elapsedSeconds saveGpsTimer;          // timer to process and save the current GPS location
+elapsedSeconds autoLogTimer;          // timer to save GPS trail periodically no matter what
 uint32_t prevTimeBaro = millis();
 time_t prevTimeRTC = 0;               // timer to print RTC to serial port (1 second)
 elapsedMillis displayClockTimer;      // timer to update time-of-day display (1 second)
-elapsedMillis autoLogTimer;           // timer to save GPS trail periodically no matter what
 elapsedMillis losTimer;               // timer for Loss Of Signal
 
 //time_t nextShowPressure = 0;        // timer to update displayed value (5 min), init to take a reading soon after startup
@@ -831,20 +832,12 @@ time_t nextSavePressure = 0;          // timer to log pressure reading (15 min)
 // the GPS hardware. Todo - fix the colon's flicker then reduce this interval to 10 msec.
 const int GPS_PROCESS_INTERVAL =  47;   // milliseconds between updating the model's GPS data
 const int CLOCK_DISPLAY_INTERVAL = 1000;   // refresh clock display every 1 second (1,000 msec)
-const uint32_t GPS_AUTOSAVE_INTERVAL = SECS_PER_10MIN * 1000; // msec between saving breadcrumb trail to file
+const uint32_t GPS_AUTOSAVE_INTERVAL = SECS_PER_10MIN; // seconds between saving breadcrumb trail to file
 //const int BAROMETRIC_PROCESS_INTERVAL = 15*60*1000;  // fifteen minutes in milliseconds
 const uint LOG_PRESSURE_INTERVAL = 15*60*1000;   // 15 minutes, in milliseconds
 const uint LOS_ANNOUNCEMENT_INTERVAL = SECS_PER_5MIN * 1000;   // msec between LOS announcements
 
 void loop() {
-
-  // if our timer or system millis() wrapped around, reset it
-  if (prevTimeGPS > millis()) {
-    prevTimeGPS = millis();
-  }
-  //if (prevTimeMorse > millis()) {
-  //  prevTimeMorse = millis();
-  //}
 
   GPS.read();   // if you can, read the GPS serial port every millisecond
 
@@ -938,8 +931,10 @@ void loop() {
   }
 
   // periodically, ask the model to process and save the current GPS location
-  if (millis() - prevTimeGPS > GPS_PROCESS_INTERVAL) {
-    prevTimeGPS = millis();           // restart another interval
+  if (saveGpsTimer > GPS_PROCESS_INTERVAL) {
+    saveGpsTimer = 0;
+//  if (millis() - prevTimeGPS > GPS_PROCESS_INTERVAL) {
+//    prevTimeGPS = millis();           // restart another interval
 
     model->processGPS();               // update model
 
