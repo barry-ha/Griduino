@@ -2,7 +2,8 @@
 /*
   Example Touchscreen UI for volume control buttons
 
-  Date:     2019-12-26 created
+  Date:     2023-12-12 improved debounce by adding hysteresis
+            2019-12-26 created
             2019-12-26 moved pin X+ from D6 to A3 to match John's schematic
             2020-05-12 updated TouchScreen code
 
@@ -18,13 +19,21 @@
             there are 9 steps: 0, 1, 2, 4, 8, 16, 32, 64, 99
             (I am not at all sure these are correct for 3 dB changes.)
 
-            +------------------------+
-            |               +------+ |
-            | Volume        |  Up  | |
-            |               +------+ |
-            | Setting: 5    | Down | |
-            |               +------+ |
-            +------------------------+
+            No speaker is needed - this demo does not produce sound.
+
+            +---------------------------------------+
+            |                     +---------------+ |
+            | Volume              |  Up           | |
+            | Current             |               | |
+            | Value = 15          |               | |
+            |                     |               | |
+            |                     +---------------+ |
+            |                     | Down          | |
+            |                     |               | |
+            |                     |               | |
+            |                     |               | |
+            |                     +---------------+ |
+            +---------------------------------------+
 
             You can expect calibration is needed for your touchscreen.
             (a) measure resistance across X plate with ohmmeter, and
@@ -42,16 +51,17 @@
 */
 
 #include <Adafruit_ILI9341.h>   // TFT color display library
-#include "TouchScreen.h"        // Touchscreen built in to 3.2" Adafruit TFT display
+#include <TouchScreen.h>        // Touchscreen built in to 3.2" Adafruit TFT display
 
 // ------- TFT 4-Wire Resistive Touch Screen configuration parameters
-#define TOUCHPRESSURE 200   // Minimum pressure threshhold considered an actual "press"
-#define XP_XM_OHMS    295   // Resistance in ohms between X+ and X- to calibrate pressure
-                            // measure this with an ohmmeter while Griduino turned off
+#define START_TOUCH_PRESSURE 200   // Minimum pressure threshold considered start of "press"
+#define END_TOUCH_PRESSURE   50    // Maximum pressure threshold required before end of "press"
+#define XP_XM_OHMS           295   // Resistance in ohms between X+ and X- to calibrate pressure
+                                   // measure this with an ohmmeter while Griduino turned off
 
 // ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE    "Volume Control Demo"
-#define PROGRAM_VERSION  "v1.12"
+#define PROGRAM_VERSION  "v1.13"
 #define PROGRAM_LINE1    "Barry K7BWH"
 #define PROGRAM_LINE2    "John KM7O"
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
@@ -83,11 +93,9 @@ TFT No connection:
 
 // TFT display and SD card share the hardware SPI interface, and have
 // separate 'select' pins to identify the active device on the bus.
-#if defined(ARDUINO_AVR_MEGA2560)
-#define TFT_DC 9    // TFT display/command pin
-#define TFT_CS 10   // TFT select pin
 
-#elif defined(SAMD_SERIES)
+#if defined(SAMD_SERIES)
+#warning----- Compiling for Arduino Feather M4 Express -----
 // Adafruit Feather M4 Express pin definitions
 // To compile for Feather M0/M4, install "additional boards manager"
 // https://learn.adafruit.com/adafruit-feather-m4-express-atsamd51/setup
@@ -98,10 +106,10 @@ TFT No connection:
 
 #else
 #warning You need to define pins for your hardware
-
+#error Hardware platform unknown.
 #endif
 
-// create an instance of the TFT Display
+// ---------- TFT display
 Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 
 // ---------- Touch Screen
@@ -154,9 +162,9 @@ const int gRotation     = 1;     // This rotates the display coordinate system
 
 const int gNumButtons         = 2;
 Rectangle gaRect[gNumButtons] = {
-    //  x,   y, width, height, label
-    {160, 0, 160, 120, "Up"},
-    {160, 120, 160, 120, "Down"},
+    // x,   y,  w,   ht, label
+    {160,   4, 156, 115, "Louder"},
+    {160, 120, 156, 115, "Softer"},
 };
 
 // ------------ global scope
@@ -243,7 +251,7 @@ bool newScreenTap(Point *pPoint) {
   } else {
     // here, we know the screen was not being touched in the last pass,
     // so look for a new touch on this pass
-    // The built-in "isTouching" function does most of the debounce and threshhold detection needed
+    // Our replacement "isTouching" function does some of the debounce and threshold detection needed
     if (ts.isTouching()) {
       gTouching = true;
       result    = true;
@@ -270,14 +278,14 @@ bool newScreenTap(Point *pPoint) {
 // 2020-05-03 CraigV and barry@k7bwh.com
 uint16_t myPressure(void) {
   pinMode(PIN_XP, OUTPUT);
-  digitalWrite(PIN_XP, LOW);   // Set X+ to ground
-  pinMode(PIN_YM, OUTPUT);
+  digitalWrite(PIN_XP, LOW);    // Set X+ to ground
+  pinMode(PIN_YM, OUTPUT);      //
   digitalWrite(PIN_YM, HIGH);   // Set Y- to VCC
 
   digitalWrite(PIN_XM, LOW);
-  pinMode(PIN_XM, INPUT);   // Hi-Z X-
-  digitalWrite(PIN_YP, LOW);
-  pinMode(PIN_YP, INPUT);   // Hi-Z Y+
+  pinMode(PIN_XM, INPUT);      // Set X- to Hi-Z
+  digitalWrite(PIN_YP, LOW);   //
+  pinMode(PIN_YP, INPUT);      // Set Y+ to Hi-Z
 
   int z1 = analogRead(PIN_XM);
   int z2 = 1023 - analogRead(PIN_YP);
@@ -292,13 +300,13 @@ bool TouchScreen::isTouching(void) {
   static bool button_state = false;
   uint16_t pres_val        = ::myPressure();
 
-  if ((button_state == false) && (pres_val > TOUCHPRESSURE)) {
+  if ((button_state == false) && (pres_val > START_TOUCH_PRESSURE)) {
     Serial.print(". pressed, pressure = ");
     Serial.println(pres_val);   // debug
     button_state = true;
   }
 
-  if ((button_state == true) && (pres_val < TOUCHPRESSURE)) {
+  if ((button_state == true) && (pres_val < END_TOUCH_PRESSURE)) {
     Serial.print(". released, pressure = ");
     Serial.println(pres_val);   // debug
     button_state = false;
@@ -365,7 +373,7 @@ void showActivityBar(int row, uint16_t foreground, uint16_t background) {
   static int addDotX = 10;   // current screen column, 0..319 pixels
   static int rmvDotX = 0;
   static int count   = 0;
-  const int SCALEF   = 2048;   // how much to slow it down so it becomes visible
+  const int SCALEF   = 64;   // how much to slow it down so it becomes visible
 
   count = (count + 1) % SCALEF;
   if (count == 0) {
@@ -380,11 +388,11 @@ void showActivityBar(int row, uint16_t foreground, uint16_t background) {
 void setup() {
 
   // ----- init TFT display
-  tft.begin();                  // initialize TFT display
-  tft.setRotation(gRotation);   // 1=landscape (default is 0=portrait)
-  clearScreen();                // note that "begin()" does not clear screen
+  tft.begin();                   // initialize TFT display
+  tft.setRotation(gRotation);    // 1=landscape (default is 0=portrait)
+  tft.fillScreen(cBACKGROUND);   // note that "begin()" does not clear screen
 
-  // ----- init serial monitor
+  // ----- init serial monitor (do not "Serial.print" before this, it won't show up in console)
   Serial.begin(115200);           // init for debugging in the Arduino IDE
   waitForSerial(howLongToWait);   // wait for developer to connect debugging console
 
@@ -398,6 +406,11 @@ void setup() {
   tft.setTextColor(cLABEL, cBACKGROUND);
   tft.setCursor(8, 24);
   tft.print("Volume");
+
+  tft.setTextSize(1);
+  tft.setTextColor(cTEXTCOLOR, cBACKGROUND);
+  tft.setCursor(6, tft.height() - 16);
+  tft.print(PROGRAM_TITLE " " PROGRAM_VERSION);
 
   showVolumeSetting(gVolume);
 
@@ -424,7 +437,7 @@ void loop() {
       break;
     }
   }
-  // make a small progress bar crawl along bottom edge
-  // this gives a sense of how frequently the main loop is executing
-  // showActivityBar(239, ILI9341_RED, ILI9341_BLACK);
+  // small activity bar crawls along bottom edge to give
+  // a sense of how frequently the main loop is executing
+  showActivityBar(tft.height() - 1, ILI9341_RED, ILI9341_BLACK);
 }
