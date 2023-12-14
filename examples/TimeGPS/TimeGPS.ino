@@ -23,10 +23,10 @@
 // Same as Griduino platform - see constants.h
 
 // Hardware serial port for GPS
-Adafruit_GPS GPS(&Serial1);
+Adafruit_GPS GPS(&Serial1);   // https://github.com/adafruit/Adafruit_GPS
 
 // ------------ definitions
-const int howLongToWait = 8;   // max number of seconds at startup waiting for Serial port to console
+const int howLongToWait = 6;   // max number of seconds at startup waiting for Serial port to console
 
 // Offset hours from gps time (UTC)
 // const int offset = 1;   // Central European Time
@@ -97,8 +97,8 @@ void waitForSerial(int howLong) {
 //=========== setup ============================================
 void setup() {
 
-  // ----- init serial monitor
-  Serial.begin(115200);           // init for debuggging in the Arduino IDE
+  // ----- init serial monitor (do not "Serial.print" before this, it won't show up in console)
+  Serial.begin(115200);           // init for debugging in the Arduino IDE
   waitForSerial(howLongToWait);   // wait for developer to connect debugging console
 
   // now that Serial is ready and connected (or we gave up)...
@@ -107,15 +107,26 @@ void setup() {
   Serial.println(__FILE__);                            // Report our source code file name
 
   // ----- init GPS
-  GPS.begin(9600);                        // 9600 NMEA is the default baud rate for Adafruit MTK GPS's
-  delay(200);                             // is delay really needed?
-  GPS.sendCommand(PMTK_SET_BAUD_57600);   // set baud rate to 57600
-  delay(200);
-  GPS.begin(57600);
-  GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);   // turn on RMC (recommended minimum) and GGA (fix data) including altitude
+  GPS.begin(9600);   // 9600 NMEA is the default baud rate for Adafruit MTK GPS's
+  delay(50);         // is delay really needed?
 
-  GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);   // 1 Hz update rate
-  // GPS.sendCommand(PMTK_SET_NMEA_UPDATE_200_MILLIHERTZ); // Once every 5 seconds update
+  Serial.print("Set GPS baud rate to 57600: ");
+  Serial.println(PMTK_SET_BAUD_57600);
+  GPS.sendCommand(PMTK_SET_BAUD_57600);
+  delay(50);
+  GPS.begin(57600);
+  delay(50);
+
+  Serial.print("Turn on RMC (recommended minimum) and GGA (fix data) including altitude: ");
+  Serial.println(PMTK_SET_NMEA_OUTPUT_RMCGGA);
+  GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
+  delay(50);
+
+  Serial.print("Set GPS 1 Hz update rate: ");
+  Serial.println(PMTK_SET_NMEA_UPDATE_1HZ);
+  GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);   // 1 Hz
+  // GPS.sendCommand(PMTK_SET_NMEA_UPDATE_200_MILLIHERTZ);   // Every 5 seconds
+  delay(50);
 
   Serial.println("Waiting for GPS time ... ");
 }
@@ -124,7 +135,8 @@ void setup() {
 
 void loop() {
 
-  GPS.read();   // if you can, read the GPS serial port every millisecond in an interrupt
+  GPS.read();   // if you can, read the GPS serial port every millisecond
+
   if (GPS.newNMEAreceived()) {
     // sentence received -- verify checksum, parse it
     // GPS parsing: https://learn.adafruit.com/adafruit-ultimate-gps/parsed-data-output
