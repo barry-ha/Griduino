@@ -54,10 +54,13 @@
 #include <TouchScreen.h>        // Touchscreen built in to 3.2" Adafruit TFT display
 
 // ------- TFT 4-Wire Resistive Touch Screen configuration parameters
+// For touch point precision, we need to know the resistance
+// between X+ and X- Use any multimeter to read it
+#define XP_XM_OHMS 295   // Resistance in ohms between X+ and X- to calibrate touch pressure
+                         // measure this with an ohmmeter while Griduino turned off
+
 #define START_TOUCH_PRESSURE 200   // Minimum pressure threshold considered start of "press"
 #define END_TOUCH_PRESSURE   50    // Maximum pressure threshold required before end of "press"
-#define XP_XM_OHMS           295   // Resistance in ohms between X+ and X- to calibrate pressure
-                                   // measure this with an ohmmeter while Griduino turned off
 
 // ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE    "Volume Control Demo"
@@ -346,6 +349,7 @@ void mapTouchToScreen(TSPoint touch, Point *screen) {
           touch.x, touch.y, touch.z, screen->x, screen->y);
   Serial.println(msg);
 
+  // keep all touches within boundaries of the screen
   screen->x = constrain(screen->x, 0, tft.width());
   screen->y = constrain(screen->y, 0, tft.height());
   return;
