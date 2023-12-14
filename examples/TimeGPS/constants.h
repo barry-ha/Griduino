@@ -1,8 +1,8 @@
 #pragma once   // Please format this file with clang before check-in to GitHub
 
 // ------- Identity for splash screen and console --------
-#define PROGRAM_TITLE "Griduino"
-#define PROGRAM_VERSION "v1.12"
+#define PROGRAM_TITLE    "TimeGPS"
+#define PROGRAM_VERSION  "v1.14"
 #define PROGRAM_LINE1    "Barry K7BWH"
 #define PROGRAM_LINE2    "John KM7O"
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
@@ -10,6 +10,7 @@
 #define PROGRAM_GITHUB   "https://github.com/barry-ha/Griduino"
 
 // ------- Select testing features ---------
+// #define SCOPE_OUTPUT  A0            // use this for performance measurements with oscilloscope
 // #define ECHO_GPS                    // use this to see GPS detailed info on IDE console for debug
 // #define SHOW_SCREEN_BORDER          // use this to outline the screen's displayable area
 // #define SHOW_SCREEN_CENTERLINE      // use this visual aid to help layout the screen
@@ -28,15 +29,25 @@
 const float gridWidthDegrees  = 2.0;   // horiz E-W size of one grid square, degrees
 const float gridHeightDegrees = 1.0;   // vert N-S size of one grid square, degrees
 
-#define feetPerMeters 3.28084                 // altitude conversion
-#define mphPerKnots   1.15078                 // speed conversion
+const double minLong = gridWidthDegrees / gBoxWidth;     // longitude degrees from one pixel to the next (minimum visible movement)
+const double minLat  = gridHeightDegrees / gBoxHeight;   // latitude degrees from one pixel to the next
+
+#define feetPerMeters         (3.28084)       // altitude conversion
+#define mphPerKnots           (1.15078)       // speed conversion
+#define mphPerMetersPerSecond (0.44704)       // speed conversion
 const double degreesPerRadian = 57.2957795;   // conversion factor = (360 degrees)/(2 pi radians)
 
+#define SECS_PER_1MIN  ((time_t)(60UL))
 #define SECS_PER_5MIN  ((time_t)(300UL))
+#define SECS_PER_10MIN ((time_t)(600UL))
 #define SECS_PER_15MIN ((time_t)(900UL))
 
 #define DEFAULT_SEALEVEL_PASCALS (101740.0)
 #define DEFAULT_SEALEVEL_HPA     (1017.40)
+
+#define FIRST_RELEASE_YEAR  (2019)   // this date can help filter out bogus GPS timestamps
+#define FIRST_RELEASE_MONTH (12)
+#define FIRST_RELEASE_DAY   (19)
 
 // ----- load/save configuration using SDRAM
 // #define EXTERNAL_FLASH_USE_QSPI     // 2020-02-11 added by BarryH, since it seems to be missing from
@@ -118,7 +129,7 @@ public:
   double lat, lng;
 };
 
-#include <TimeLib.h>   // https://github.com/PaulStoffregen/Time for "time_t"
+#include <TimeLib.h>   // time_t=seconds since Jan 1, 1970, https://github.com/PaulStoffregen/Time
 class BaroReading {
 public:
   float pressure;   // in millibars, from BMP388 sensor
@@ -189,11 +200,14 @@ struct FunctionButton {
 };
 
 // Breadcrumb record types
-#define rGPS       "GPS"
-#define rPOWERUP   "PUP"
-#define rPOWERDOWN "PDN"
-#define rVALIDTIME "TIM"
-#define rRESET     "\0\0\0"
+#define rGPS                 "GPS"
+#define rPOWERUP             "PUP"
+#define rPOWERDOWN           "PDN"
+#define rFIRSTVALIDTIME      "TIM"
+#define rLOSSOFSIGNAL        "LOS"
+#define rACQUISITIONOFSIGNAL "AOS"
+#define rRESET               "\0\0\0"
+#define rVALIDATE            rGPS rPOWERUP rPOWERDOWN rFIRSTVALIDTIME rLOSSOFSIGNAL rACQUISITIONOFSIGNAL
 
 // Breadcrumb data definition for circular buffer
 class Location {
@@ -201,7 +215,7 @@ public:
   char recordType[4];      // GPS, power-up, first valid time, etc
   PointGPS loc;            // has-a lat/long, degrees
   time_t timestamp;        // has-a GMT time
-  uint8_t numSatellites;   // number of satellites in view
+  uint8_t numSatellites;   // number of satellites in use (not the same as in view)
   float speed;             // current speed over ground in MPH
   float direction;         // direction of travel, degrees from true north
   float altitude;          // altitude, meters above MSL
@@ -214,33 +228,76 @@ public:
     speed             = 0.0;
     direction = altitude = 0.0;
   }
-  bool isEmpty() {
+  bool isEmpty() const {
     // we take advantage of the fact that all unused records
-    // will have reset their recordType field to zeroes
-    return (recordType[0] == 0);
+    // will have reset their recordType field to zeroes, ie, rRESET
+    return (strlen(recordType) == 0);
   }
 
-  bool isGPS() {
-    return (strncmp(recordType, rGPS, sizeof(recordType)) == 0) ? true : false;
+  static bool isValidRecordType(const char *rec) {
+    // check for "should not happen" situations
+    if (strstr(rVALIDATE, rec)) {
+      return true;
+    } else {
+      return false;
+    }
   }
 
-  bool isPUP() {
-    return (strncmp(recordType, rPOWERUP, sizeof(recordType)) == 0) ? true : false;
+  bool isGPS() const {
+    return (strncmp(recordType, rGPS, sizeof(recordType)) == 0);
   }
 
-  bool isFirstValidTime() {
-    return (strncmp(recordType, rVALIDTIME, sizeof(recordType)) == 0) ? true : false;
+  bool isPUP() const {
+    return (strncmp(recordType, rPOWERUP, sizeof(recordType)) == 0);
   }
 
-  // sanity check data from NVR
-  void printLocation(int ii, Location item) {
+  bool isFirstValidTime() const {
+    return (strncmp(recordType, rFIRSTVALIDTIME, sizeof(recordType)) == 0);
+  }
+
+  bool isLossOfSignal() const {
+    return (strncmp(recordType, rLOSSOFSIGNAL, sizeof(recordType)) == 0);
+  }
+
+  bool isAcquisitionOfSignal() const {
+    return (strncmp(recordType, rACQUISITIONOFSIGNAL, sizeof(recordType)) == 0);
+  }
+
+  // print ourself - a sanity check
+  void printLocation(const char *comment = NULL) {   // debug
+    Serial.println(". Rec, ___Date___ __Time__, (__Lat__, __Long__=), Alt, Spd, Dir, Sats");
+
+    char out[128];
     Serial.print(". ");
-    Serial.print(item.recordType);
-    Serial.print(" lat/long[");
-    Serial.print(ii);
-    Serial.print("] = ");
-    Serial.print(item.loc.lat);
+    Serial.print(recordType);
     Serial.print(", ");
-    Serial.println(item.loc.lng);
+
+    // timestamp
+    TimeElements time;   // https://github.com/PaulStoffregen/Time
+    breakTime(timestamp, time);
+    snprintf(out, sizeof(out), "%02d-%02d-%02d %02d:%02d:%02d, ",
+             time.Year + 1970, time.Month, time.Day, time.Hour, time.Minute, time.Second);
+    Serial.print(out);
+
+    // lat/long
+    Serial.print("(");
+    Serial.print(loc.lat, 4);
+    Serial.print(", ");
+    Serial.print(loc.lng, 4);
+    Serial.print("), ");
+
+    // alt, speed dir sats
+    Serial.print(altitude, 1);   // meters
+    Serial.print(", ");
+    Serial.print(speed, 1);   // mph
+    Serial.print(", ");
+    Serial.print(direction, 1);   // degrees
+    Serial.print(", ");
+    Serial.print(numSatellites);
+    Serial.println();
+
+    if (comment) {
+      Serial.println(comment);
+    }
   }
 };
