@@ -54,6 +54,7 @@ On-board lights:
 
 // TFT display and SD card share the hardware SPI interface, and have
 // separate 'select' pins to identify the active device on the bus.
+
 #if defined(SAMD_SERIES)
 // Adafruit Feather M4 Express pin definitions
 // To compile for Feather M0/M4, install "additional boards manager"
@@ -73,8 +74,8 @@ On-board lights:
 // To compile for Feather_RP2040, install "additional boards manager"
 // https://github.com/earlephilhower/arduino-pico/releases/download/global/package_rp2040_index.json
 
-#define TFT_BL 4   // TFT backlight
-#define TFT_CS 5   // TFT chip select pin
+#define TFT_BL 4    // TFT backlight
+#define TFT_CS 5    // TFT chip select pin
 #define TFT_DC 12   // TFT display/command pin
 #define BMP_CS 13   // BMP388 sensor, chip select
 
@@ -91,7 +92,8 @@ On-board lights:
 #define XP_XM_OHMS 295   // Resistance in ohms between X+ and X- to calibrate touch pressure
                          // measure this with an ohmmeter while Griduino turned off
 
-#define TOUCHPRESSURE 200   // Minimum pressure threshhold considered an actual "press"
+#define START_TOUCH_PRESSURE 200   // Minimum pressure threshold considered start of "press"
+#define END_TOUCH_PRESSURE   50    // Maximum pressure threshold required before end of "press"
 
 #define X_MIN_OHMS 150   // Expected range on touchscreen's X-axis readings
 #define X_MAX_OHMS 880
@@ -99,28 +101,29 @@ On-board lights:
 #define Y_MAX_OHMS 860
 
 #if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
-  // ---------- Touch Screen pins - Adafruit Feather RP2040
-  #define PIN_XM A2   // Touchscreen X- must be an analog pin, use "An" notation
-  #define PIN_YP A3   // Touchscreen Y+ must be an analog pin, use "An" notation
-  #define PIN_XP 24   // Touchscreen X+ can be a digital pin
-  #define PIN_YM 25   // Touchscreen Y- can be a digital pin
-  // ---------- Audio output pins
-  //  #define DAC_PIN     0   // do not use - RP2040 has no DAC
-  //  #define PIN_SPEAKER 0   // do not use - RP2040 has no DAC
+// ---------- Touch Screen pins - Adafruit Feather RP2040
+#define PIN_XM A2   // Touchscreen X- must be an analog pin, use "An" notation
+#define PIN_YP A3   // Touchscreen Y+ must be an analog pin, use "An" notation
+#define PIN_XP 24   // Touchscreen X+ can be a digital pin
+#define PIN_YM 25   // Touchscreen Y- can be a digital pin
+
+// ---------- Audio output pins
+//  #define DAC_PIN     0   // do not use - RP2040 has no DAC
+//  #define PIN_SPEAKER 0   // do not use - RP2040 has no DAC
 #else
 // ---------- Touch Screen pins - Feather M4
-  #define PIN_XP A3   // Touchscreen X+ can be a digital pin
-  #define PIN_XM A4   // Touchscreen X- must be an analog pin, use "An" notation
-  #define PIN_YP A5   // Touchscreen Y+ must be an analog pin, use "An" notation
-  #define PIN_YM 9    // Touchscreen Y- can be a digital pin
-  // ---------- Audio output pins
-  #define DAC_PIN     DAC0   // onboard DAC0 == pin A0
-  #define PIN_SPEAKER DAC0   // uses DAC
+#define PIN_XP      A3     // Touchscreen X+ can be a digital pin
+#define PIN_XM      A4     // Touchscreen X- must be an analog pin, use "An" notation
+#define PIN_YP      A5     // Touchscreen Y+ must be an analog pin, use "An" notation
+#define PIN_YM      9      // Touchscreen Y- can be a digital pin
+// ---------- Audio output pins
+#define DAC_PIN     DAC0   // onboard DAC0 == pin A0
+#define PIN_SPEAKER DAC0   // uses DAC
 #endif
 
 // ---------- Battery voltage sensor
 #if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
-#define BATTERY_ADC  A1
+#define BATTERY_ADC A1
 #endif
 
 // ---------- Feather RP2040 onboard led
@@ -136,11 +139,11 @@ On-board lights:
 
 // ---------- Digital potentiometer
 #if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
-  // todo - Griduino PCB v7 uses volume control on I2C
+// todo - Griduino PCB v7 uses volume control on I2C
 #else
-  // Griduino PCB v7 uses volume control DS1804 on SPI
-  #define PIN_VCS A1   // volume chip select
-  #define PIN_VUD A2   // volume up/down
+// Griduino PCB v7 uses volume control DS1804 on SPI
+#define PIN_VCS A1   // volume chip select
+#define PIN_VUD A2   // volume up/down
 #endif
 
 // Adafruit ItsyBitsy M4 Express potentiometer wiring
