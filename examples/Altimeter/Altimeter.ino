@@ -20,17 +20,17 @@
             This is a standalone program with a single display screen,
             written in the process of developing Griduino.
 
-            +---------------------------------+
-            | Griduino Altimeter Demo         |. . .line1
-            |                                 |
-            | Barometer:      17.8 feet       |. . .line2
-            | GPS (5#):      123.4 feet       |. . .line3
-            |                                 |
-            | Enter your current local        |. . .line4
-            | pressure at sea level:          |. . .line5
-            +-----+                     +-----+
-            |  ^  |     1016.7 hPa      |  v  |. . .line6
-            +-----+---------------------+-----+
+            +---------------------------------------+
+            |     Griduino Altimeter Demo           |. . .line1
+            |                                       |
+            | Barometer:      17.8 feet             |. . .line2
+            | GPS (5#):      123.4 feet             |. . .line3
+            |                                       |
+            | Enter your current local              |. . .line4
+            | pressure at sea level:                |. . .line5
+            +-----+                           +-----+
+            |  ^  |        1016.7 hPa         |  v  |. . .line6
+            +-----+---------      ------------+-----+
 
   Tested with:
          1. Arduino Feather M4 Express (120 MHz SAMD51)     https://www.adafruit.com/product/3857
@@ -42,8 +42,13 @@
          4. Adafruit BMP388 Barometric Pressure, SPI        https://www.adafruit.com/product/3966
             Adafruit BMP390                                 https://www.adafruit.com/product/4816
 
-
 */
+
+#if defined(SAMD_SERIES)
+#warning----- Compiling for Arduino Feather M4 Express -----
+#elif defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
+#warning----- Compiling for Arduino Feather RP2040 -----
+#endif
 
 #include <Adafruit_GFX.h>       // Core graphics display library
 #include <Adafruit_ILI9341.h>   // TFT color display library
@@ -493,7 +498,7 @@ void setup() {
   // ----- init TFT display
   tft.begin();                        // initialize TFT display
   tft.setRotation(SCREEN_ROTATION);   // 1=landscape (default is 0=portrait)
-  clearScreen();                      // note that "begin()" does not clear screen
+  clearScreen();                      // note that "tft.begin()" does not clear screen
 
   // ----- init TFT backlight
   pinMode(TFT_BL, OUTPUT);
@@ -653,7 +658,7 @@ void loop() {
 
 #ifdef SHOW_TOUCH_TARGETS
     const int radius = 3;                              // debug
-    tft.fillCircle(touch.x, touch.y, radius, cWARN);   // debug - show dot
+    tft.fillCircle(touch.x, touch.y, radius, cWARN);   // debug - show where touched
 #endif
     // touchHandled = true;      // debug - true=stay on same screen
 
