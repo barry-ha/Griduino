@@ -1,16 +1,32 @@
+// Please format this file with clang before check-in to GitHub
 /*
   TFT Touchscreen Demo - Touch screen with X, Y and Z (pressure) readings
 
-  Date:     2019-11-15 created v6
+  Date:     2023-12-12 improved debounce by adding hysteresis
+            2019-11-15 created v6
             2020-05-12 updated TouchScreen code
 
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
 
   Purpose:  Touch screen library with X Y and Z (pressure) readings as well
-            as oversampling to avoid 'bouncing'
+            as oversampling to reduce 'bouncing'
             This demo code returns raw readings.
             Use SERIAL MONITOR in the Arduino workbench to see results of touching screen.
+
+  Test 1:   Let Griduino run idle for several minutes, without touching anything.
+            Watch the serial console output.
+  Result 1: Several bogus results are logged, e.g.:
+                09:00:06.841 -> x,y = 2,759	Pressure = 294
+                09:02:30.939 -> x,y = 286,740	Pressure = 18669
+                09:05:36.706 -> x,y = 2,760	Pressure = 294
+                09:06:21.323 -> x,y = 310,755	Pressure = 18182
+                09:06:21.508 -> x,y = 2,760	Pressure = 294
+            These show that built-in library Adafruit_Touchscreen is _not_ reliable.
+
+  Test 2:   Gently press TFT screen with small tipped pointer to add yellow dots.
+            Verify the yellow dots are near the actual touches.
+            These should show that Barry's replacement software _is_ reliable.
 
   Tested with:
          1. Arduino Feather M4 Express (120 MHz SAMD51)     https://www.adafruit.com/product/3857
@@ -22,23 +38,25 @@
 
 */
 
-#include "SPI.h"                      // Serial Peripheral Interface
-#include "Adafruit_GFX.h"             // Core graphics display library
-#include <Adafruit_ILI9341.h>         // TFT color display library
-#include "TouchScreen.h"              // Touchscreen built in to 3.2" Adafruit TFT display
+#include <Adafruit_ILI9341.h>   // TFT color display library
+#include <TouchScreen.h>        // Touchscreen built in to 3.2" Adafruit TFT display
 
 // ------- TFT 4-Wire Resistive Touch Screen configuration parameters
-#define TOUCHPRESSURE 200             // Minimum pressure threshhold considered an actual "press"
-#define X_MIN_OHMS    240             // Expected range of measured X-axis readings
+// For touch point precision, we need to know the resistance
+// between X+ and X- Use any multimeter to read it
+#define XP_XM_OHMS 295   // Resistance in ohms between X+ and X- to calibrate touch pressure
+                         // measure this with an ohmmeter while Griduino turned off
+
+#define START_TOUCH_PRESSURE 200   // Minimum pressure threshold considered start of "press"
+#define END_TOUCH_PRESSURE   50    // Maximum pressure threshold required before end of "press"
+#define X_MIN_OHMS    140          // Expected range of measured X-axis readings
 #define X_MAX_OHMS    800
-#define Y_MIN_OHMS    320             // Expected range of measured Y-axis readings
+#define Y_MIN_OHMS    320          // Expected range of measured Y-axis readings
 #define Y_MAX_OHMS    760
-#define XP_XM_OHMS    295             // Resistance in ohms between X+ and X- to calibrate pressure
-                                      // measure this with an ohmmeter while Griduino turned off
 
 // ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE   "Touch Screen Demo"
-#define PROGRAM_VERSION "v1.12"
+#define PROGRAM_VERSION "v1.14"
 #define PROGRAM_LINE1   "Barry K7BWH"
 #define PROGRAM_LINE2   "John KM7O"
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
@@ -51,7 +69,9 @@
 
 // TFT display and SD card share the hardware SPI interface, and have
 // separate 'select' pins to identify the active device on the bus.
+
 #if defined(SAMD_SERIES)
+  #warning----- Compiling for Arduino Feather M4 Express -----
   // Adafruit Feather M4 Express pin definitions
   // To compile for Feather M0/M4, install "additional boards manager"
   // https://learn.adafruit.com/adafruit-feather-m4-express-atsamd51/setup
@@ -67,10 +87,10 @@
 
 #else
   #warning You need to define pins for your hardware
-
+  #error Hardware platform unknown.
 #endif
 
-// create an instance of the TFT Display
+// ---------- TFT display
 Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 
 // ---------- Touch Screen
@@ -132,7 +152,7 @@ bool newScreenTap(Point* pPoint) {
   } else {
     // here, we know the screen was not being touched in the last pass,
     // so look for a new touch on this pass
-    // The built-in "isTouching" function does most of the debounce and threshhold detection needed
+    // Our replacement "isTouching" function does some of the debounce and threshold detection needed
     if (ts.isTouching()) {
       gTouching = true;
       result = true;
@@ -155,11 +175,15 @@ bool newScreenTap(Point* pPoint) {
 
 // 2020-05-03 CraigV and barry@k7bwh.com
 uint16_t myPressure(void) {
-  pinMode(PIN_XP, OUTPUT);   digitalWrite(PIN_XP, LOW);   // Set X+ to ground
-  pinMode(PIN_YM, OUTPUT);   digitalWrite(PIN_YM, HIGH);  // Set Y- to VCC
+  pinMode(PIN_XP, OUTPUT);
+  digitalWrite(PIN_XP, LOW);    // Set X+ to ground
+  pinMode(PIN_YM, OUTPUT);      //
+  digitalWrite(PIN_YM, HIGH);   // Set Y- to VCC
 
-  digitalWrite(PIN_XM, LOW); pinMode(PIN_XM, INPUT);      // Hi-Z X-
-  digitalWrite(PIN_YP, LOW); pinMode(PIN_YP, INPUT);      // Hi-Z Y+
+  digitalWrite(PIN_XM, LOW);
+  pinMode(PIN_XM, INPUT);      // Set X- to Hi-Z
+  digitalWrite(PIN_YP, LOW);   //
+  pinMode(PIN_YP, INPUT);      // Set Y+ to Hi-Z
 
   int z1 = analogRead(PIN_XM);
   int z2 = 1023-analogRead(PIN_YP);
@@ -174,12 +198,12 @@ bool TouchScreen::isTouching(void) {
   static bool button_state = false;
   uint16_t pres_val = ::myPressure();
 
-  if ((button_state == false) && (pres_val > TOUCHPRESSURE)) {
+  if ((button_state == false) && (pres_val > START_TOUCH_PRESSURE)) {
     Serial.print(". pressed, pressure = "); Serial.println(pres_val);     // debug
     button_state = true;
   }
 
-  if ((button_state == true) && (pres_val < TOUCHPRESSURE)) {
+  if ((button_state == true) && (pres_val < END_TOUCH_PRESSURE)) {
     Serial.print(". released, pressure = "); Serial.println(pres_val);       // debug
     button_state = false;
   }
@@ -257,10 +281,10 @@ void clearScreen() {
 }
 
 void showActivityBar(int row, uint16_t foreground, uint16_t background) {
-  static int addDotX = 10;                    // current screen column, 0..319 pixels
+  static int addDotX = 10;   // current screen column, 0..319 pixels
   static int rmvDotX = 0;
-  static int count = 0;
-  const int SCALEF = 1024;                    // how much to slow it down so it becomes visible
+  static int count   = 0;
+  const int SCALEF   = 64;   // how much to slow it down so it becomes visible
 
   count = (count + 1) % SCALEF;
   if (count == 0) {
@@ -274,18 +298,19 @@ void showActivityBar(int row, uint16_t foreground, uint16_t background) {
 //=========== setup ============================================
 void setup() {
 
-  // ----- init serial monitor
-  Serial.begin(115200);               // init for debuggging in the Arduino IDE
+  // ----- init serial monitor (do not "Serial.print" before this, it won't show up in console)
+  Serial.begin(115200);           // init for debugging in the Arduino IDE
 
-  Serial.println(PROGRAM_TITLE " " PROGRAM_VERSION);  // Report our program name to console
-  Serial.println("Compiled " PROGRAM_COMPILED);       // Report our compiled date
-  Serial.println(__FILE__);                           // Report our source code file name
+  // now that Serial is ready and connected (or we gave up)...
+  Serial.println(PROGRAM_TITLE " " PROGRAM_VERSION);   // Report our program name to console
+  Serial.println("Compiled " PROGRAM_COMPILED);        // Report our compiled date
+  Serial.println(__FILE__);                            // Report our source code file name
 
   // ----- init TFT backlight
   pinMode(TFT_BL, OUTPUT);
   analogWrite(TFT_BL, 255);           // start at full brightness
 
-  // ----- init TFT display
+  // ----- init screen appearance
   tft.begin();                        // initialize TFT display
   tft.setRotation(SCREEN_ROTATION);   // landscape (default is portrait)
   clearScreen();
@@ -304,27 +329,32 @@ void loop() {
   // a point object holds x y and z coordinates
   TSPoint p = ts.getPoint();          // read touch screen
 
+  // ----- Testing the built-in Adafruit_TouchScreen library
   // we have some minimum pressure we consider 'valid'
   // pressure of 0 means "no press"
+  // Source:  File > Examples > Adafruit touchscreen > touchscreendemo
   if (p.z > ts.pressureThreshhold) {
-     Serial.print("x,y = "); Serial.print(p.x);
-     Serial.print(","); Serial.print(p.y);
-     Serial.print("\tPressure = "); Serial.println(p.z);
+    // send to debug console
+    Serial.print("x,y = "); Serial.print(p.x);
+    Serial.print(","); Serial.print(p.y);
+    Serial.print("\tPressure = "); Serial.println(p.z);
 
-     tft.setCursor(p.x, p.y);
-     tft.print("x");
+    // show on screen
+    tft.setCursor(p.x, p.y);
+    tft.print("x");
   }
 
+  // ----- Testing Barry's replacement "touch" functions
   // if there's touchscreen input, handle it
   Point touch;
   if (newScreenTap(&touch)) {
 
-    const int radius = 3;    // debug
+    const int radius = 2;    // debug
     tft.fillCircle(touch.x, touch.y, radius, cVALUE);  // debug
   
   }
 
-  // make a small progress bar crawl along bottom edge
-  // this gives a sense of how frequently the main loop is executing
-  showActivityBar(tft.height()-1, ILI9341_RED, ILI9341_BLACK);
+  // small activity bar crawls along bottom edge to give
+  // a sense of how frequently the main loop is executing
+  showActivityBar(tft.height() - 1, ILI9341_RED, ILI9341_BLACK);
 }
