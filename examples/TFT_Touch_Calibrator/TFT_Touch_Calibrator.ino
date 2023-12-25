@@ -3,6 +3,7 @@
   TFT Touchscreen Calibrator - Touch screen with X, Y and Z (pressure) readings
 
   Version history:
+            2023-12-24 improved debounce by adding hysteresis
             2020-11-23 created touch calibrator
             2022-05-20 updated calibration constants X_MIN_OHMS, X_MAX_OHMS, Y_MIN_OHMS, Y_MAX_OHMS
 
@@ -20,7 +21,7 @@
                a. use larger X ohms to move apparent screen response left
                b. use larger Y ohms to move apparent screen response down
             5. Recompile and run this again
-            6. Once you're satisifed with the values, you can copy them directly into Griuino.ino
+            6. Once you're satisifed with the values, you can copy them directly into Griduino.ino
 
   Coordinate system:
             X and Y are in terms of the native touchscreen coordinates, which corresponds to
@@ -32,7 +33,7 @@
          2. Adafruit 3.2" TFT color LCD display ILI-9341    https://www.adafruit.com/product/1743
             How to:      https://learn.adafruit.com/adafruit-2-dot-8-color-tft-touchscreen-breakout-v2
             SPI Wiring:  https://learn.adafruit.com/adafruit-2-dot-8-color-tft-touchscreen-breakout-v2/spi-wiring-and-test
-            Touchscreen: https://learn.adafruit.com/adafruiplt-2-dot-8-color-tft-touchscreen-breakout-v2/resistive-touchscreen
+            Touchscreen: https://learn.adafruit.com/adafruit-2-dot-8-color-tft-touchscreen-breakout-v2/resistive-touchscreen
 
 */
 
@@ -47,14 +48,9 @@
 // ------- Identity for splash screen and console --------
 #define PROGRAM_NAME "TFT Touch Calibrator"
 
-#define SCREEN_ROTATION 1   // 0=portrait, 1=landscape, 2=portrait 180-deg, 3=landscape 180-deg
-
 // ---------- extern
-extern bool newScreenTap(Point *pPoint, int orientation);   // Touch.cpp
-extern uint16_t myPressure(void);                           // Touch.cpp
-// extern bool TouchScreen::isTouching(void);              // Touch.cpp
-extern void mapTouchToScreen(TSPoint touch, Point *screen, int orientation);
-extern void setFontSize(int font);   // TextField.cpp
+extern bool newScreenTap(TSPoint *pPoint, int orientation);   // Touch.cpp
+extern void initTouchScreen(void);                            // Touch.cpp
 
 // ---------- Hardware Wiring ----------
 // Same as Griduino platform - see hardware.h
@@ -62,48 +58,10 @@ extern void setFontSize(int font);   // TextField.cpp
 // create an instance of the TFT Display
 Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 
-// ---------- Touch Screen
-TouchScreen ts = TouchScreen(PIN_XP, PIN_YP, PIN_XM, PIN_YM, XP_XM_OHMS);
-
 // ------------ definitions
 const int howLongToWait = 6;   // max number of seconds at startup waiting for Serial port to console
-#define SCREEN_ROTATION 1      // 1=landscape, 3=landscape 180 degrees
-
-#define gScreenWidth 320   // pixels wide, landscape orientation
 
 // ============== touchscreen helpers ==========================
-
-void mapTouchToScreen(TSPoint touch, Point *screen) {
-  // convert from X+,Y+ resistance measurements to screen coordinates
-  // param touch = resistance readings from touchscreen
-  // param screen = result of converting touch into screen coordinates
-  //
-  // Measured readings in Barry's landscape orientation were:
-  //   +---------------------+ X=876
-  //   |                     |
-  //   |                     |
-  //   |                     |
-  //   +---------------------+ X=160
-  //  Y=110                Y=892
-  //
-  // Typical measured pressures=200..549
-
-  // setRotation(1) = landscape orientation = x-,y-axis exchanged
-  //          map(value         in_min,in_max,       out_min,out_max)
-  screen->x = map(touch.y, Y_MIN_OHMS, Y_MAX_OHMS, 0, tft.width());
-  screen->y = map(touch.x, X_MAX_OHMS, X_MIN_OHMS, 0, tft.height());
-
-  // keep all touches within boundaries of the screen
-  screen->x = constrain(screen->x, 0, tft.width());
-  screen->y = constrain(screen->y, 0, tft.height());
-
-  if (tft.getRotation() == eSCREEN_ROTATE_180) {
-    // if display is flipped, then also flip both x,y touchscreen coords
-    screen->x = tft.width() - screen->x;
-    screen->y = tft.height() - screen->y;
-  }
-  return;
-}
 
 // ----- console Serial port helper
 void waitForSerial(int howLong) {
@@ -168,7 +126,7 @@ void showActivityBar(int row, uint16_t foreground, uint16_t background) {
   static int addDotX = 10;   // current screen column, 0..319 pixels
   static int rmvDotX = 0;
   static int count   = 0;
-  const int SCALEF   = 128;   // how much to slow it down so it becomes visible
+  const int SCALEF   = 32;   // how much to slow it down so it becomes visible
 
   count = (count + 1) % SCALEF;
   if (count == 0) {
@@ -232,8 +190,8 @@ TextField txtScreen[] = {
     {"xxx", x3, row5, cVALUE},                  // [5] current X value
     {"X   ", x4, row5, cXGROUP, ALIGNRIGHT},    // [6]
     // row 6
-    {"Threshhold:", xul, row6, cLABEL},   // [7]
-    {TOUCHPRESSURE, x2, row6, cLABEL},    // [8]
+    {"Threshhold:", xul, row6, cLABEL},         // [7]
+    {START_TOUCH_PRESSURE, x2, row6, cLABEL},   // [8]
     // row 7
     // row 8
     // row 9
@@ -263,11 +221,11 @@ void startScreen() {
   }
 }
 void updateScreen(TSPoint tp) {
+  txtScreen[5].print(tp.x);    // current X value
+  txtScreen[12].print(tp.y);   // current Y value
   if (tp.z > 0) {
     txtScreen[4].print(tp.z);   // current pressure value
   }
-  txtScreen[5].print(tp.x);    // current X value
-  txtScreen[12].print(tp.y);   // current Y value
 }
 
 void labelAxis() {
@@ -330,9 +288,9 @@ void labelAxis() {
 void setup() {
 
   // ----- init TFT display
-  tft.begin();                     // initialize TFT display
-  tft.setRotation(1);              // 1=landscape (default is 0=portrait)
-  tft.fillScreen(ILI9341_BLACK);   // note that "begin()" does not clear screen
+  tft.begin();                         // initialize TFT display
+  tft.setRotation(eSCREEN_ROTATE_0);   // 1=landscape (default is 0=portrait)
+  tft.fillScreen(ILI9341_BLACK);       // note that "begin()" does not clear screen
 
   // ----- init TFT backlight
   pinMode(TFT_BL, OUTPUT);
@@ -351,7 +309,7 @@ void setup() {
   Serial.println(__FILE__);                           // Report our source code file name
 
   // ----- init touch screen
-  ts.pressureThreshhold = TOUCHPRESSURE;
+  initTouchScreen();
 
   startScreen();
   labelAxis();
@@ -365,27 +323,15 @@ void setup() {
 //=========== main work loop ===================================
 
 void loop() {
-  // a point object holds x y and z coordinates
-  TSPoint p = ts.getPoint();   // read touch screen
-
-  // we have some minimum pressure we consider 'valid'
-  // pressure of 0 means "no press"
-  if (p.z > ts.pressureThreshhold) {
-    Serial.print("x,y = ");
-    Serial.print(p.x);
-    Serial.print(",");
-    Serial.print(p.y);
-    Serial.print("\tPressure = ");
-    Serial.println(p.z);
-  }
 
   // if there's touchscreen input, handle it
-  Point touch;
-  if (newScreenTap(&touch, tft.getRotation())) {
+  TSPoint screenLoc;
+  if (newScreenTap(&screenLoc, tft.getRotation())) {
 
+    // debug: show where touched
     const int radius = 1;
-    tft.fillCircle(touch.x, touch.y, radius, cTOUCHTARGET);
-    updateScreen(p);
+    tft.fillCircle(screenLoc.x, screenLoc.y, radius, cTOUCHTARGET);
+    updateScreen(screenLoc);
   }
 
   // small activity bar crawls along bottom edge to give
