@@ -37,8 +37,6 @@
 
 */
 
-// ------- TFT 4-Wire Resistive Touch Screen configuration parameters
-// Last adjustment: 2022-05-20
 #include <Adafruit_ILI9341.h>   // TFT color display library
 #include <TouchScreen.h>        // Touchscreen built in to 3.2" Adafruit TFT display
 #include "constants.h"          // Griduino constants, colors, typedefs
@@ -60,8 +58,6 @@ Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 
 // ------------ definitions
 const int howLongToWait = 6;   // max number of seconds at startup waiting for Serial port to console
-
-// ============== touchscreen helpers ==========================
 
 // ----- console Serial port helper
 void waitForSerial(int howLong) {
@@ -287,21 +283,20 @@ void labelAxis() {
 //=========== setup ============================================
 void setup() {
 
+  // ----- init TFT backlight
+  pinMode(TFT_BL, OUTPUT);
+  analogWrite(TFT_BL, 255);   // start at full brightness
+
   // ----- init TFT display
   tft.begin();                         // initialize TFT display
   tft.setRotation(eSCREEN_ROTATE_0);   // 1=landscape (default is 0=portrait)
   tft.fillScreen(ILI9341_BLACK);       // note that "begin()" does not clear screen
 
-  // ----- init TFT backlight
-  pinMode(TFT_BL, OUTPUT);
-  analogWrite(TFT_BL, 255);   // start at full brightness
-
   // ----- announce ourselves
   startSplashScreen();
 
-  // ----- init serial monitor
-  Serial.begin(115200);           // init for debuggging in the Arduino IDE
-  waitForSerial(howLongToWait);   // wait for developer to connect debugging console
+  // ----- init serial monitor (do not "Serial.print" before this, it won't show up in console)
+  Serial.begin(115200);   // init for debugging in the Arduino IDE
 
   // now that Serial is ready and connected (or we gave up)...
   Serial.println(PROGRAM_NAME " " PROGRAM_VERSION);   // Report our program name to console
