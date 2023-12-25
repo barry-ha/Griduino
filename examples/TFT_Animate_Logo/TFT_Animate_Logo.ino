@@ -21,7 +21,13 @@
 #include "hardware.h"           // Griduino pin definitions
 #include "constants.h"          // Griduino constants, colors, typedefs
 
-// ---------- TFT Display
+// ------- Identity for splash screen and console --------
+#define PROGRAM_NAME "Animate Logo"
+
+// ---------- Hardware Wiring ----------
+// Same as Griduino platform - see hardware.h
+
+// create an instance of the TFT Display
 Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 
 // ------------ definitions
@@ -61,9 +67,6 @@ void animateVertLine(int top, int bot, int x, int color) {
   }
 }
 
-struct Route {   // screen coordinate address
-  int x, y;
-};
 #define MY_NAVY 0x0014                     /// 0, 0, 20
 void drivePath(Route path[], int count);   // declaration fixes "error: variable or field 'drivePath' declared void", dunno why it's required
 void drivePath(Route path[], int count) {
@@ -148,22 +151,22 @@ const int elements7 = sizeof(stroke7) / sizeof(stroke7[0]);
 //=========== setup ============================================
 void setup() {
 
+  // ----- init TFT backlight
+  pinMode(TFT_BL, OUTPUT);
+  analogWrite(TFT_BL, 0xC0);   // backlight 75% brightness to reduce glare, screen is mostly white
+
   // ----- init TFT display
   tft.begin();                         // initialize TFT display
   tft.setRotation(eSCREEN_ROTATE_0);   // 1=landscape (default is 0=portrait)
   tft.fillScreen(ILI9341_BLACK);       // note that "begin()" does not clear screen
 
-  // ----- init TFT backlight
-  pinMode(TFT_BL, OUTPUT);
-  analogWrite(TFT_BL, 0xC0);   // backlight 75% brightness to reduce glare, screen is mostly white
-
   // ----- init serial monitor (do not "Serial.print" before this, it won't show up in console)
   Serial.begin(115200);   // init for debugging in the Arduino IDE
   delay(20);              // minimal delay, this is the screen usually shown while waiting for Serial
   // now that Serial is ready and connected (or we gave up)...
-  Serial.println(PROGRAM_TITLE " " PROGRAM_VERSION);   // Report our program name to console
-  Serial.println("Compiled " PROGRAM_COMPILED);        // Report our compiled date
-  Serial.println(__FILE__);                            // Report our source code file name
+  Serial.println(PROGRAM_NAME " " PROGRAM_VERSION);   // Report our program name to console
+  Serial.println("Compiled " PROGRAM_COMPILED);       // Report our compiled date
+  Serial.println(__FILE__);                           // Report our source code file name
 
   // ----- init Feather M4 onboard lights
   pinMode(RED_LED, OUTPUT);     // diagnostics RED LED
@@ -172,6 +175,7 @@ void setup() {
 }
 
 //=========== main work loop ===================================
+
 void loop() {
   // RGB 565 true color: https://chrishewett.com/blog/true-rgb565-colour-picker/
 
