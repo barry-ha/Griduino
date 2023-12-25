@@ -26,7 +26,7 @@ void mapTouchToScreen(TSPoint touch, Point *screen);
 TouchScreen ts = TouchScreen(PIN_XP, PIN_YP, PIN_XM, PIN_YM, XP_XM_OHMS);
 
 void initTouchScreen(void) {
-  ts.pressureThreshhold = 200;
+  ts.pressureThreshhold = START_TOUCH_PRESSURE;
 }
 
 // ============== touchscreen helpers ==========================
