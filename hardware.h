@@ -95,8 +95,8 @@ On-board lights:
 #define START_TOUCH_PRESSURE 200   // Minimum pressure threshold considered start of "press"
 #define END_TOUCH_PRESSURE   50    // Maximum pressure threshold required before end of "press"
 
-#define X_MIN_OHMS 150   // Expected range on touchscreen's X-axis readings
-#define X_MAX_OHMS 880
+#define X_MIN_OHMS 100   // Expected range on touchscreen's X-axis readings
+#define X_MAX_OHMS 900
 #define Y_MIN_OHMS 110   // Expected range on touchscreen's Y-axis readings
 #define Y_MAX_OHMS 860
 
