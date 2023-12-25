@@ -134,7 +134,7 @@
 
 // ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE    "GPS Demo Loopback"
-#define PROGRAM_VERSION  "v1.12"
+#define PROGRAM_VERSION  "v1.14"
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
 
 #define SCREEN_ROTATION 1   // 1=landscape, 3=landscape 180-degrees
