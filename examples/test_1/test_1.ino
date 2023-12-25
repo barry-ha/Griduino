@@ -36,7 +36,7 @@
 //	Startup information
 //------------------------------------------------------------------------------
 #define PROGRAM_TITLE		"Touch Screen Demo"
-#define PROGRAM_VERSION "v1.12"
+#define PROGRAM_VERSION "v1.14"
 #define PROGRAM_LINE1		"Barry K7BWH"
 #define PROGRAM_LINE2		"ACV"
 #define PROGRAM_COMPILED	__DATE__ " " __TIME__
@@ -55,7 +55,7 @@
 //------------------------------------------------------------------------------
 //	Screen touch pressure
 //------------------------------------------------------------------------------
-#define TOUCHPRESSURE		100													// Minimum pressure we consider true pressing
+#define START_TOUCH_PRESSURE		100													// Minimum pressure we consider true pressing
 
 //------------------------------------------------------------------------------
 //	TFT display and SD card share the hardware SPI interface, and have
@@ -136,7 +136,7 @@
 //	Local data
 //------------------------------------------------------------------------------
 static Adafruit_ILI9341	tft = Adafruit_ILI9341(TFT_CS, TFT_DC);					// create an instance of the TFT Display
-static TouchScreen		ts = TouchScreen(PIN_XP, PIN_YP, PIN_XM, PIN_YM, TOUCHPRESSURE, 295);
+static TouchScreen		ts = TouchScreen(PIN_XP, PIN_YP, PIN_XM, PIN_YM, START_TOUCH_PRESSURE, 295);
 static const int		xLabel = 8;												// indent labels, slight margin on left edge of screen
 static uint32_t			gScreenRotation = SCREEN_ROTATION;						// default screen rotation
 static uint32_t			sys_events = 0ul;
