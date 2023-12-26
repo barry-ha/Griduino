@@ -47,7 +47,7 @@ void mapTouchToScreen(TSPoint touchOhms, TSPoint *screenCoord, int orientation) 
   screenCoord->x = constrain(screenCoord->x, 0, gScreenWidth);
   screenCoord->y = constrain(screenCoord->y, 0, gScreenHeight);
 
-  if (orientation == eSCREEN_ROTATE_180) {
+  if (orientation == FLIPPED_LANDSCAPE) {
     // if display is flipped, then also flip both x,y touchscreen coords
     screenCoord->x = gScreenWidth - screenCoord->x;
     screenCoord->y = gScreenHeight - screenCoord->y;
