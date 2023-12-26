@@ -288,9 +288,9 @@ void setup() {
   analogWrite(TFT_BL, 255);   // start at full brightness
 
   // ----- init TFT display
-  tft.begin();                         // initialize TFT display
-  tft.setRotation(eSCREEN_ROTATE_0);   // 1=landscape (default is 0=portrait)
-  tft.fillScreen(ILI9341_BLACK);       // note that "begin()" does not clear screen
+  tft.begin();                     // initialize TFT display
+  tft.setRotation(LANDSCAPE);      // 1=landscape (default is 0=portrait)
+  tft.fillScreen(ILI9341_BLACK);   // note that "begin()" does not clear screen
 
   // ----- announce ourselves
   startSplashScreen();
@@ -331,5 +331,5 @@ void loop() {
 
   // small activity bar crawls along bottom edge to give
   // a sense of how frequently the main loop is executing
-  showActivityBar(tft.height() - 1, ILI9341_RED, ILI9341_BLACK);
+  showActivityBar(tft.height() - 1, ILI9341_RED, cBACKGROUND);
 }
