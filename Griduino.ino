@@ -462,6 +462,7 @@ void selectNewView(int cmd) {
   pView->startScreen();
   pView->updateScreen();
 }
+
 // ----- console Serial port helper
 void waitForSerial(int howLong) {
   // Adafruit Feather M4 Express takes awhile to restore its USB connection to the PC
@@ -630,10 +631,10 @@ void sayGrid(const char *name) {
 
 //=========== setup ============================================
 void setup() {
- 
+
   // ----- init TFT display
   tft.begin();                        // initialize TFT display
-  tft.setRotation(eSCREEN_ROTATE_0);  // 1=landscape (default is 0=portrait)
+  tft.setRotation(LANDSCAPE);  // 1=landscape (default is 0=portrait)
   tft.fillScreen(ILI9341_BLACK);      // note that "begin()" does not clear screen
 
   // ----- init TFT backlight
