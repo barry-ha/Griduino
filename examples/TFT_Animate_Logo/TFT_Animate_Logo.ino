@@ -156,9 +156,9 @@ void setup() {
   analogWrite(TFT_BL, 0xC0);   // backlight 75% brightness to reduce glare, screen is mostly white
 
   // ----- init TFT display
-  tft.begin();                         // initialize TFT display
-  tft.setRotation(eSCREEN_ROTATE_0);   // 1=landscape (default is 0=portrait)
-  tft.fillScreen(ILI9341_BLACK);       // note that "begin()" does not clear screen
+  tft.begin();                     // initialize TFT display
+  tft.setRotation(LANDSCAPE);      // 1=landscape (default is 0=portrait)
+  tft.fillScreen(ILI9341_BLACK);   // note that "begin()" does not clear screen
 
   // ----- init serial monitor (do not "Serial.print" before this, it won't show up in console)
   Serial.begin(115200);   // init for debugging in the Arduino IDE

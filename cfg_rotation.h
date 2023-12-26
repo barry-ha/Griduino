@@ -111,10 +111,10 @@ protected:
   // ---------- local functions for this derived class ----------
   void fRotateScreen() {
     logger.info("->->-> Clicked OTHER EDGE UP button.");
-    if (this->screenRotation == eSCREEN_ROTATE_0) {
-      this->setScreenRotation(eSCREEN_ROTATE_180);
+    if (this->screenRotation == LANDSCAPE) {
+      this->setScreenRotation(FLIPPED_LANDSCAPE);
     } else {
-      this->setScreenRotation(eSCREEN_ROTATE_0);
+      this->setScreenRotation(LANDSCAPE);
     }
   }
 
@@ -146,11 +146,11 @@ void ViewCfgRotation::startScreen() {
   txtSettings6[0].setBackground(this->background);   // set background for all TextFields in this view
   TextField::setTextDirty(txtSettings6, nFields);    // make sure all fields get re-printed on screen change
 
-  drawAllIcons();              // draw gear (settings) and arrow (next screen)
-  showDefaultTouchTargets();   // optionally draw box around default button-touch areas
+  drawAllIcons();                            // draw gear (settings) and arrow (next screen)
+  showDefaultTouchTargets();                 // optionally draw box around default button-touch areas
   showMyTouchTargets(myButtons, nButtons);   // optionally show this view's touch targets
-  showScreenBorder();          // optionally outline visible area
-  showScreenCenterline();      // optionally draw visual alignment bar
+  showScreenBorder();                        // optionally outline visible area
+  showScreenCenterline();                    // optionally draw visual alignment bar
 
   // ----- draw text fields
   for (int ii = 0; ii < nFields; ii++) {
@@ -235,11 +235,11 @@ void ViewCfgRotation::loadConfig() {
   if (result) {
     this->screenRotation = tempRotation;
     switch (tempRotation) {
-    case eSCREEN_ROTATE_0:
+    case LANDSCAPE:
       // normal result
       this->screenRotation = tempRotation;
       break;
-    case eSCREEN_ROTATE_180:
+    case FLIPPED_LANDSCAPE:
       // normal result
       this->screenRotation = tempRotation;
       break;
@@ -249,14 +249,14 @@ void ViewCfgRotation::loadConfig() {
       snprintf(msg, sizeof(msg), "%s has unexpected screen orientation: %d",
                SCREEN_CONFIG_FILE, tempRotation);
       logger.error(msg);
-      this->screenRotation = eSCREEN_ROTATE_0;
+      this->screenRotation = LANDSCAPE;
       break;
     }
     tft->setRotation(this->screenRotation);   // 0=portrait (default), 1=landscape, 3=180 degrees
     logger.info("Loaded screen orientation: ", this->screenRotation);
   } else {
     logger.error("Failed to load screen orientation, re-initializing config file");
-    this->screenRotation = eSCREEN_ROTATE_0;
+    this->screenRotation = LANDSCAPE;
     saveConfig();
   }
 }

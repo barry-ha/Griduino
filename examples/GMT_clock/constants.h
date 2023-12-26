@@ -3,7 +3,7 @@
 // ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE "Griduino"
 #if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
-#define PROGRAM_VERSION "v1.13 PCB v.7"
+#define PROGRAM_VERSION "v1.14 PCB v.7"
 #else
 #define PROGRAM_VERSION "v1.14"
 #endif
@@ -21,10 +21,10 @@
 // #define SHOW_IGNORED_PRESSURE       // use this to see barometric pressure readings that are out of range and therefore ignored
 
 // ------- TFT screen definitions ---------
-#define gScreenWidth  320   // screen pixels wide in landscape mode
-#define gScreenHeight 240   // screen pixels high in landscape mode \
-                            // we use #define here instead of reading it from "tft.width()" \ 
-                            // because Griduino is built for landscape orientation on 3.2" ILI9341
+#define gScreenWidth  320   // screen pixels wide
+#define gScreenHeight 240   // screen pixels high                                                        \
+                            // we use #define here instead of reading it from "tft.width()" because this \
+                            // screen layout is specifically designed for landscape orientation on 3.2" ILI9341
 
 #define gBoxWidth  180   // grid square width as shown on display, pixels
 #define gBoxHeight 160   // grid square height as shown on display, pixels

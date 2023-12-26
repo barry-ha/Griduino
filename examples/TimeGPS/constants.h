@@ -56,8 +56,8 @@ const double degreesPerRadian = 57.2957795;   // conversion factor = (360 degree
 
 // ----- alias names for SCREEN_ROTATION
 enum {
-  eSCREEN_ROTATE_0   = 1,   // 1=landscape
-  eSCREEN_ROTATE_180 = 3,   // 3=landscape 180-degrees
+  LANDSCAPE         = 1,   // 1=landscape
+  FLIPPED_LANDSCAPE = 3,   // 3=landscape 180-degrees
 };
 
 // ----- alias names for fGetDataSource()

@@ -10,10 +10,10 @@
 #define PROGRAM_GITHUB   "https://github.com/barry-ha/Griduino"
 
 // ------- Select testing features ---------
-//#define ECHO_GPS                    // use this to see GPS detailed info on IDE console for debug
-//#define SHOW_SCREEN_BORDER          // use this to outline the screen's displayable area
-//#define SHOW_SCREEN_CENTERLINE      // use this visual aid to help layout the screen
-//#define SHOW_IGNORED_PRESSURE       // use this to see barometric pressure readings that are out of range and therefore ignored
+// #define ECHO_GPS                    // use this to see GPS detailed info on IDE console for debug
+// #define SHOW_SCREEN_BORDER          // use this to outline the screen's displayable area
+// #define SHOW_SCREEN_CENTERLINE      // use this visual aid to help layout the screen
+// #define SHOW_IGNORED_PRESSURE       // use this to see barometric pressure readings that are out of range and therefore ignored
 // deleted: #define USE_SIMULATED_GPS   // comment out to use real GPS, or else it simulates driving around (see model_gps.h)
 // deleted: #define RUN_UNIT_TESTS      // comment out to save boot-up time
 // deleted: #define SHOW_TOUCH_TARGETS  // use serial command "show touch" instead
@@ -42,14 +42,14 @@ const double degreesPerRadian = 57.2957795;   // conversion factor = (360 degree
 #define DEFAULT_SEALEVEL_HPA     (1017.40)
 
 // ----- load/save configuration using SDRAM
-//#define EXTERNAL_FLASH_USE_QSPI     // 2020-02-11 added by BarryH, since it seems to be missing from
+// #define EXTERNAL_FLASH_USE_QSPI     // 2020-02-11 added by BarryH, since it seems to be missing from
 // c:\Users\barry\AppData\Local\Arduino15\packages\adafruit\hardware\samd\1.5.7\variants\feather_m4\variant.h
 #define CONFIG_FOLDER "/Griduino"
 
 // ----- alias names for SCREEN_ROTATION
 enum {
-  eSCREEN_ROTATE_0   = 1,   // 1=landscape
-  eSCREEN_ROTATE_180 = 3,   // 3=landscape 180-degrees
+  LANDSCAPE         = 1,   // 1=landscape
+  FLIPPED_LANDSCAPE = 3,   // 3=landscape 180-degrees
 };
 
 // ----- alias names for fGetDataSource()
@@ -191,8 +191,8 @@ public:
   void reset() {
     loc.lat = loc.lng = 0.0;
     //                  s, m, h, dow, dd,mm,yy
-    TimeElements y2k = {0, 0, 0,  1,   1, 1,2000 - 1970};
-    timestamp         = makeTime(y2k);
+    TimeElements y2k = {0, 0, 0, 1, 1, 1, 2000 - 1970};
+    timestamp        = makeTime(y2k);
   }
   bool isEmpty() {
     return ((loc.lat == 0.0) && (loc.lng == 0.0));

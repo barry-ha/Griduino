@@ -3,9 +3,9 @@
 // ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE "Griduino"
 #if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
-#define PROGRAM_VERSION "v1.13 PCB v.7"
+#define PROGRAM_VERSION "v1.14 PCB v.7"
 #else
-#define PROGRAM_VERSION "v1.13"
+#define PROGRAM_VERSION "v1.14"
 #endif
 #define PROGRAM_LINE1    "Barry K7BWH"
 #define PROGRAM_LINE2    "John KM7O"
@@ -59,9 +59,11 @@ const double degreesPerRadian = 57.2957795;   // conversion factor = (360 degree
 #define CONFIG_FOLDER "/Griduino"
 
 // ----- alias names for SCREEN_ROTATION
-enum {
-  eSCREEN_ROTATE_0   = 1,   // 1=landscape
-  eSCREEN_ROTATE_180 = 3,   // 3=landscape 180-degrees
+enum Rotation {
+  PORTRAIT          = 0,   //   0 degrees = portrait
+  LANDSCAPE         = 1,   //  90 degrees = landscape
+  FLIPPED_PORTRAIT  = 2,   // 180 degrees = portrait flipped 180-degrees
+  FLIPPED_LANDSCAPE = 3,   // 270 degrees = landscape flipped 180-degrees
 };
 
 // ----- alias names for fGetDataSource()

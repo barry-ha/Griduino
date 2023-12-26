@@ -391,9 +391,9 @@ void makePalette(uint16_t result[],
 void setup() {
 
   // ----- init TFT display
-  tft.begin();                         // initialize TFT display
-  tft.setRotation(eSCREEN_ROTATE_0);   // 1=landscape (default is 0=portrait)
-  tft.fillScreen(ILI9341_BLACK);       // note that "begin()" does not clear screen
+  tft.begin();                     // initialize TFT display
+  tft.setRotation(LANDSCAPE);      // 1=landscape (default is 0=portrait)
+  tft.fillScreen(ILI9341_BLACK);   // note that "begin()" does not clear screen
 
   // ----- init TFT backlight
   pinMode(TFT_BL, OUTPUT);
