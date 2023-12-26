@@ -27,6 +27,7 @@ class SaveRestore {
       // names MUST follow 8.3 naming conventions
       strcpy(sFoldername, vFoldername);
       strcpy(fqFilename, vFilename);
+      intSetting = vSetting;
 
       if (strlen(vVersion) < sizeof(sVersion)) {
         strcpy(sVersion, vVersion);
