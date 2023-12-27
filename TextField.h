@@ -83,6 +83,12 @@ public:
   TextField(const char vtxt[26], int vxx, int vyy, uint16_t vcc, int valign = ALIGNLEFT, int vsize = eFONTUNSPEC) {
     init(vtxt, vxx, vyy, vcc, valign, vsize);
   }
+  // ctor - numeric field
+  TextField(const int vnum, int vxx, int vyy, uint16_t vcc, int valign = ALIGNLEFT, int vsize = eFONTUNSPEC) {
+    char temp[sizeof(text)];
+    snprintf(temp, sizeof(temp), "%d", vnum);
+    init(temp, vxx, vyy, vcc, valign, vsize);
+  }
   // ctor - text field content specified by a "class String"
   TextField(const String vstr, int vxx, int vyy, uint16_t vcc, int valign = ALIGNLEFT, int vsize = eFONTUNSPEC) {
     char temp[vstr.length() + 1];
