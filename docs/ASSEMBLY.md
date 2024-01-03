@@ -61,6 +61,7 @@ To identify the two 8-pin DIPs (dual inline package), inspect the silkscreen lab
 
 
 
+
 ![](img/dip-chips-img7038.jpg)
 
 Small 1N4001 diodes are marked with a band on one end for polarity; the band must be oriented the same direction as the band on the PCB.
@@ -185,7 +186,7 @@ The Feather comes with two 16-pin header strips loose in the package. Take one 1
 
 Keep the small 4-pin piece that you separated. We'll use all of them later: two pins for the barometric sensor, two pins for the display.
 
-Put the header strips into the PCB; this ensures precise alignment. The long end of the pins go down into the breadboard; the short end goes into the Feather's PCB. (Actually the long pins can go up *or* down, it doesn't matter. We like them down for a more tidy appearance from the top.)
+Put the header strips into the PCB; this ensures precise alignment. The long end of the pins go down into the breadboard; the short end goes into the Feather's PCB. (Don't put the long pins *up* or they will collide with the display hardware above it.)
 
 ![](img/feather-headers-img7849.jpg)
 
