@@ -57,7 +57,7 @@ The idea here is to temporarily install CircuitPython which allows the Flash mem
 
 1. **Download "CircuitPython" binary distribution file**<br/>
    - Get the latest CircuitPython UF2 file for your board (Feather M4 Express) from https://circuitpython.org/downloads.
-   - As of February 2022, the latest version is 7.1.1 and the UF2 file is named "adafruit-circuitpython-feather\_m4\_express-en_US-7.1.1.uf2" and will look something like:<br/>![](img/circuit_python_feather_m4.jpg)
+   - As of December 2023, the latest stable release is 8.2.9 and the UF2 file is named "adafruit-circuitpython-feather_m4_express-en_US-8.2.9.uf2" and will look something like:<br/>![](img/circuit_python_feather_m4.jpg)
 
 1. **Start the bootloader on the Feather board** by double-clicking its Reset button.<br/>
    - After a moment, you should see a "FEATHERBOOT" drive appear on your desktop computer.<br/>![](img/featherboot-img0702.jpg)
