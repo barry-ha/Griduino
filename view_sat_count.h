@@ -63,7 +63,7 @@ public:
 
   // pushes a value to the back of the circular buffer
   void push(time_t tm, int nSats) {
-    // nSats = random(0, 13);   // unit test: replace the measurement with something to scroll across the screen
+    //nSats = random(0, 19);   // unit test: replace the measurement with something to scroll across the screen
     satCountItem item = {tm, nSats};
     cbSats.push(item);
     graphRefreshRequested = true;
@@ -116,8 +116,8 @@ protected:
     ZERO,
   };
 
-// ----- static + dynamic screen text
-// clang-format off
+  // ----- static + dynamic screen text
+  // clang-format off
 #define nSatCountValues 11
   TextField txtValues[nSatCountValues] = {
       {"Satellites", -1, yRow1,cTITLE,         ALIGNCENTER, eFONTSMALLEST},   // [TITLE] view title, centered
@@ -163,9 +163,14 @@ protected:
       tft->print(value);
     } else {
       // large values are drawn on top of bar in contrasting color
-      tft->setCursor(xx - 1, tt + 12);
       tft->setTextColor(ILI9341_BLACK);
-      tft->print(value);
+      int valueTens = value / 10;
+      int valueOnes = value % 10;
+
+      tft->setCursor(xx + 1, tt + 13);
+      tft->print(valueTens);
+      tft->setCursor(xx + 1, tt + 29);
+      tft->print(valueOnes);
     }
   }
 
@@ -220,7 +225,10 @@ void ViewSatCount::updateScreen() {
 
     // update all x-axis labels
     tft->fillRect(xLeft, yBot + 2, (xRight - xLeft), (gScreenHeight - (yBot + 2) - 1), this->background);
-    tft->setRotation(0);   // 1=landscape (default is 0=portrait)
+    int savedRotation = tft->getRotation();
+    int newRotation   = (savedRotation + 3) % 4;
+    tft->setRotation(newRotation);   // set portrait mode
+
     tft->setTextColor(cHIGHLIGHT, this->background);
     setFontSize(eFONTSMALLEST);
 
@@ -238,7 +246,7 @@ void ViewSatCount::updateScreen() {
 
       bar++;
     }
-    tft->setRotation(1);   // un-rotate, 1=landscape (default is 0=portrait)
+    tft->setRotation(savedRotation);   // restore screen orientation for horiz text
   }
 
 }   // end updateScreen
@@ -269,5 +277,5 @@ void ViewSatCount::startScreen() {
 }
 
 bool ViewSatCount::onTouch(Point touch) {
-  return false;   // true=handled, false=controller uses default action
+  return false;   // true=handled, false=controller will run default action
 }   // end onTouch()
