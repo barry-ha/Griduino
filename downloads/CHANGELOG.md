@@ -8,6 +8,16 @@ Version numbers correspond to [Downloads](https://github.com/barry-ha/Griduino/t
 
 The changelog format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and the Griduino project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+**v1.13.2 alpha** &nbsp; 2024-01-04
+
+Version 1.13.2 is a Beta release.
+
+Fixed: Laggard "one second" screen refresh which occurred only every 47 seconds.
+
+Fixed: Satellite reception bar graph in inverted mode; history increased to ten minutes.
+
+Removed: Speech announcements temporarily disabled until a lockup condition is fixed.
+
 **v1.13 alpha** &nbsp; 2023-11-30
 
 Version 1.13 is an Alpha release. This is a snapshot of current development as we freeze the RPi 2040 development. Now that Adafruit has started shipping the Feather M4 Express again, we shelved the rp2040 PCB project.
