@@ -1,7 +1,7 @@
 %echo off
 echo Batch job to prepare Griduino pre-compiled binary UF2 file
 echo Usage:     makeUF2  release
-echo Example:   makeUF2  107
+echo Example:   makeUF2  1.13.1
 echo .
 
 cd %USERPROFILE%
