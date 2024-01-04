@@ -63,7 +63,7 @@ public:
 
   // pushes a value to the back of the circular buffer
   void push(time_t tm, int nSats) {
-    //nSats = random(0, 19);   // unit test: replace the measurement with something to scroll across the screen
+    // nSats = random(0, 19);   // unit test: this replaces measurements with something to scroll across the screen
     satCountItem item = {tm, nSats};
     cbSats.push(item);
     graphRefreshRequested = true;
@@ -95,10 +95,11 @@ protected:
   const int value2 = 118;
 
   // canvas for bar graph, in screen coordinates
-  const int xLeft  = 40;   // pixels
-  const int xRight = 310;
-  const int yTop   = 42;
-  const int yBot   = 184;
+  const int xLeft  = 40;    // pixels
+  const int xRight = 306;   // = (#bars) * (px/bar) + xLeft
+                            // = (19) * (14) + 40
+  const int yTop = 42;
+  const int yBot = 184;
 
   // ----- screen text
   // names for the array indexes, must be named in same order as array below
