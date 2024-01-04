@@ -831,7 +831,7 @@ time_t nextSavePressure = 0;          // timer to log pressure reading (15 min)
 // an almost-unnoticeable flicker and an almost-unnoticeable difference from WWV.
 // Also, 47 msec is relatively prime compared to 200 msec (5 Hz) updates sent from
 // the GPS hardware. Todo - fix the colon's flicker then reduce this interval to 10 msec.
-const int GPS_PROCESS_INTERVAL =  47;   // milliseconds between updating the model's GPS data
+const int GPS_PROCESS_INTERVAL =  13;   // seconds between updating the model's GPS data
 const int CLOCK_DISPLAY_INTERVAL = 1000;   // refresh clock display every 1 second (1,000 msec)
 const uint32_t GPS_AUTOSAVE_INTERVAL = SECS_PER_10MIN; // seconds between saving breadcrumb trail to file
 //const int BAROMETRIC_PROCESS_INTERVAL = 15*60*1000;  // fifteen minutes in milliseconds
@@ -891,7 +891,7 @@ void loop() {
       setTime(GPS.hour, GPS.minute, GPS.seconds, GPS.day, GPS.month, GPS.year);
       //adjustTime(offset * SECS_PER_HOUR);  // todo - adjust to local time zone. for now, we only do GMT
     }
-
+    pView->updateScreen();                   // update time on current view
   }
 
   // periodically save the number of satellites acquired for later analysis
@@ -939,9 +939,8 @@ void loop() {
 
     model->processGPS();               // update model
 
-    // update View - call the current viewing function
+    // update View
     pView->updateScreen();             // update current view, eg, updateGridScreen()
-    //gaUpdateView[gViewIndex](); 
   }
 
   //if (!spkrMorse.continueSending()) {
