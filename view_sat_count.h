@@ -58,8 +58,8 @@ public:
   void startScreen();
   bool onTouch(Point touch);
 
-  etl::circular_buffer<satCountItem, 17> cbSats;
-  etl::circular_buffer<satCountItem, 17>::iterator cbIter;
+  etl::circular_buffer<satCountItem, 19> cbSats;
+  etl::circular_buffer<satCountItem, 19>::iterator cbIter;
 
   // pushes a value to the back of the circular buffer
   void push(time_t tm, int nSats) {
@@ -157,7 +157,7 @@ protected:
 
     // make sure text is always drawn inside canvas
     if (value < 10) {
-      // most values are drawn above bar in white
+      // small values are drawn above bar in white
       tft->setCursor(xx + 2, tt - 2);
       tft->setTextColor(ILI9341_WHITE);
       tft->print(value);
@@ -193,7 +193,7 @@ protected:
     txtValues[eDate].print(msg);
 
     snprintf(msg, sizeof(msg), "%d#", GPS.satellites);
-    txtValues[eNumSat].print(msg);   // show number of satellites, help give sense of positional accuracy
+    txtValues[eNumSat].print(msg);   // show number of satellites
 
     snprintf(msg, sizeof(msg), "%02d:%02d", hh, mm);
     txtValues[eTimeHHMM].print(msg);   // show time, help identify when RTC stops
