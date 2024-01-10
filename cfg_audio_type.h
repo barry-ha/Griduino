@@ -22,7 +22,6 @@
             +-----------------------------------------+
 */
 
-//#include <Arduino.h>
 #include <Adafruit_ILI9341.h>   // TFT color display library
 #include "constants.h"          // Griduino constants and colors
 #include "logger.h"             // conditional printing to Serial port
@@ -84,7 +83,7 @@ protected:
     COMPILED,
   };
 
-// clang-format off
+  // clang-format off
 #define nTxtSettings5 4
   TextField txtSettings5[nTxtSettings5] = {
       //        text                x, y        color                      enum
@@ -97,11 +96,11 @@ protected:
 
 #define nButtonsAudio 3
   FunctionButton myButtons[nButtonsAudio] = {
-      // label            origin          size      touch-target
-      // text               x,y            w,h       x,y           w,h  radius color  functionID
-      {"Morse code", xButton, yRow1 - 26, 140, 40, {120, yRow1 - 42, 195, 62}, 4, cVALUE, MORSE},
-      {"Spoken word", xButton, yRow2 - 26, 140, 40, {120, yRow2 - 32, 195, 52}, 4, cVALUE, SPEECH},
-      {"No audio", xButton, yRow3 - 26, 140, 40, {120, yRow3 - 32, 195, 62}, 4, cVALUE, NO_AUDIO},
+      // label              origin          size           touch-target
+      // text               x,y             w,h            x,y              w,h    radius color  functionID
+      {"Morse code",        xButton, yRow1 - 26, 140, 40, {120, yRow1 - 42, 195, 62}, 4, cVALUE, MORSE},
+      {"Speech (disabled)", xButton, yRow2 - 26, 140, 40, {120, yRow2 - 32, 195, 52}, 4, cVALUE, SPEECH},
+      {"No audio",          xButton, yRow3 - 26, 140, 40, {120, yRow3 - 32, 195, 62}, 4, cVALUE, NO_AUDIO},
   };
   // clang-format on
 
@@ -118,8 +117,9 @@ protected:
   }
 
   void setSpeech() {
-    selectedAudio = SPEECH;
-    updateScreen();   // update UI before the long pause to send sample audio
+    logger.info("->->-> Clicked SPEECH button.");
+    selectedAudio = MORSE;   // 2024-01-03 disabled "SPEECH" temporarily because it's a crasher
+    updateScreen();          // update UI before the long pause to send sample audio
 
     // announce grid square for an audible example of this selection
     char newGrid4[7];
@@ -127,7 +127,9 @@ protected:
     announceGrid(newGrid4, 4);   // announce 4-digit grid by Morse code OR speech
   }
   void setNone() {
+    logger.info("->->-> Clicked NO AUDIO button.");
     selectedAudio = NO_AUDIO;
+    updateScreen();   // update UI before the long pause to send sample audio
   }
 
 };   // end class ViewCfgAudioType
@@ -162,11 +164,11 @@ void ViewCfgAudioType::startScreen() {
   txtSettings5[0].setBackground(this->background);        // set background for all TextFields in this view
   TextField::setTextDirty(txtSettings5, nTxtSettings5);   // make sure all fields get re-printed on screen change
 
-  drawAllIcons();              // draw gear (settings) and arrow (next screen)
-  showDefaultTouchTargets();   // optionally draw box around default button-touch areas
+  drawAllIcons();                                 // draw gear (settings) and arrow (next screen)
+  showDefaultTouchTargets();                      // optionally draw box around default button-touch areas
   showMyTouchTargets(myButtons, nButtonsAudio);   // optionally show this view's touch targets
-  showScreenBorder();          // optionally outline visible area
-  showScreenCenterline();      // optionally draw visual alignment bar
+  showScreenBorder();                             // optionally outline visible area
+  showScreenCenterline();                         // optionally draw visual alignment bar
 
   // ----- draw buttons
   setFontSize(eFONTSMALLEST);
