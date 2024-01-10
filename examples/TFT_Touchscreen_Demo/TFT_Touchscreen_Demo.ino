@@ -39,17 +39,14 @@
 
 */
 
-#include <Adafruit_ILI9341.h>   // TFT color display library
-#include <TouchScreen.h>        // Touchscreen built in to 3.2" Adafruit TFT display
-#include "constants.h"          // Griduino constants, colors, typedefs
-#include "hardware.h"           // Griduino pin definitions
+#include <Arduino.h>                  // built-in
+#include <Adafruit_ILI9341.h>         // TFT color display library
+#include <Resistive_Touch_Screen.h>   // my library replaces the lame Adafruit/Adafruit_TouchScreen
+#include "constants.h"                // Griduino constants, colors, typedefs
+#include "hardware.h"                 // Griduino pin definitions
 
 // ------- Identity for splash screen and console --------
-#define PROGRAM_NAME    "Touch Screen Demo"
-
-// ---------- extern
-extern bool newScreenTap(TSPoint *pPoint, int orientation);   // Touch.cpp
-extern void initTouchScreen(void);                            // Touch.cpp
+#define PROGRAM_NAME "Touch Screen Demo"
 
 // ---------- Hardware Wiring ----------
 // Same as Griduino platform - see hardware.h
@@ -57,12 +54,32 @@ extern void initTouchScreen(void);                            // Touch.cpp
 // create an instance of the TFT Display
 Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 
+// ------------ definitions
+const int howLongToWait = 6;   // max number of seconds at startup waiting for Serial port to console
+
+// ----- console Serial port helper
+void waitForSerial(int howLong) {
+  // Adafruit Feather M4 Express takes awhile to restore its USB connx to the PC
+  // and the operator takes awhile to restart the console (Tools > Serial Monitor)
+  // so give them a few seconds for this to settle before sending messages to IDE
+  unsigned long targetTime = millis() + howLong * 1000;
+
+  bool done = false;
+
+  while (millis() < targetTime) {
+    if (Serial)
+      break;
+    if (done)
+      break;
+    delay(15);
+  }
+}
+
 // ---------- Touch Screen
 // For touch point precision, we need to know the resistance
 // between X+ and X- Use any multimeter to read it
-TouchScreen tsn = TouchScreen(PIN_XP, PIN_YP, PIN_XM, PIN_YM, XP_XM_OHMS);
+Resistive_Touch_Screen tsn(PIN_XP, PIN_YP, PIN_XM, PIN_YM, XP_XM_OHMS);
 
-// ============== touchscreen helpers ==========================
 // ========== splash screen helpers ============================
 // splash screen layout
 // When using default system fonts, screen pixel coordinates will identify top left of character cell
@@ -137,22 +154,25 @@ void setup() {
 
   // ----- init serial monitor (do not "Serial.print" before this, it won't show up in console)
   Serial.begin(115200);   // init for debugging in the Arduino IDE
+  waitForSerial(howLongToWait);
 
   // now that Serial is ready and connected (or we gave up)...
   Serial.println(PROGRAM_NAME " " PROGRAM_VERSION);   // Report our program name to console
   Serial.println("Compiled " PROGRAM_COMPILED);       // Report our compiled date
   Serial.println(__FILE__);                           // Report our source code file name
 
-  // ----- init touch screen
-  initTouchScreen();
-
+  // ----- init touchscreen
+  tsn.setScreenSize(tft.width(), tft.height());                                         // required
+  tsn.setResistanceRange(X_MIN_OHMS, X_MAX_OHMS, Y_MIN_OHMS, Y_MAX_OHMS, XP_XM_OHMS);   // optional, for overriding defaults
+  tsn.setThreshhold(START_TOUCH_PRESSURE, END_TOUCH_PRESSURE);                          // optional, for overriding defaults
 }
 
 //=========== main work loop ===================================
 
 void loop() {
+  /*
   // a point object holds x y and z coordinates
-  TSPoint p = tsn.getPoint();   // read touch screen
+  PressPoint p = tsn.getPoint();   // read touch screen
 
   // ----- Testing the built-in Adafruit_TouchScreen library
   // we have some minimum pressure we consider 'valid'
@@ -171,11 +191,12 @@ void loop() {
     tft.setCursor(p.x, p.y);
     tft.print("x");
   }
+  */
 
-  // ----- Testing Barry's replacement "touch" functions
+  // ----- Testing Barry's replacement "Resistive_Touch_Screen" library
   // if there's touchscreen input, handle it
-  TSPoint screenLoc;
-  if (newScreenTap(&screenLoc, tft.getRotation())) {
+  ScreenPoint screenLoc;
+  if (tsn.newScreenTap(&screenLoc, tft.getRotation())) {
 
     // debug: show where touched
     const int radius = 2;
