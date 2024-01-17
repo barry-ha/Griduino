@@ -94,8 +94,8 @@ On-board lights:
 
 #define X_MIN_OHMS 100   // Expected range on touchscreen's X-axis readings
 #define X_MAX_OHMS 900
-#define Y_MIN_OHMS 110   // Expected range on touchscreen's Y-axis readings
-#define Y_MAX_OHMS 860
+#define Y_MIN_OHMS 100   // Expected range on touchscreen's Y-axis readings
+#define Y_MAX_OHMS 900
 
 #if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
 // ---------- Touch Screen pins - Adafruit Feather RP2040

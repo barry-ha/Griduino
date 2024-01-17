@@ -55,7 +55,6 @@ On-board lights:
 // TFT display and SD card share the hardware SPI interface, and have
 // separate 'select' pins to identify the active device on the bus.
 #if defined(SAMD_SERIES)
-#warning ----- Compiling for Arduino Feather M4 Express -----
 // Adafruit Feather M4 Express pin definitions
 // To compile for Feather M0/M4, install "additional boards manager"
 // https://learn.adafruit.com/adafruit-feather-m4-express-atsamd51/setup
@@ -70,7 +69,6 @@ On-board lights:
 
 #elif defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
 // Ref: https://arduino-pico.readthedocs.io/en/latest/index.html
-#warning ----- Compiling for Arduino Feather RP2040 -----
 // Adafruit Feather_RP2040 pin definitions
 // To compile for Feather_RP2040, install "additional boards manager"
 // https://github.com/earlephilhower/arduino-pico/releases/download/global/package_rp2040_index.json
@@ -107,8 +105,8 @@ On-board lights:
   #define PIN_XP 24   // Touchscreen X+ can be a digital pin
   #define PIN_YM 25   // Touchscreen Y- can be a digital pin
   // ---------- Audio output pins
-  #define DAC_PIN     0   // do not use - RP2040 has no DAC
-  #define PIN_SPEAKER 0   // do not use - RP2040 has no DAC
+  //  #define DAC_PIN     0   // do not use - RP2040 has no DAC
+  //  #define PIN_SPEAKER 0   // do not use - RP2040 has no DAC
 #else
 // ---------- Touch Screen pins - Feather M4
   #define PIN_XP A3   // Touchscreen X+ can be a digital pin
@@ -120,9 +118,14 @@ On-board lights:
   #define PIN_SPEAKER DAC0   // uses DAC
 #endif
 
+// ---------- Battery voltage sensor
+#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
+#define BATTERY_ADC  A1
+#endif
+
 // ---------- Feather RP2040 onboard led
 #if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
-#define RED_LED 25   // diagnostics RED LED
+#define RED_LED 25  // diagnostics RED LED
 #else
 #define RED_LED 13   // diagnostics RED LED
 #endif
@@ -131,16 +134,14 @@ On-board lights:
 #define NUMPIXELS 1   // Feather M4 has one NeoPixel on board
 // define PIN_NEOPIXEL 8     // already defined in Feather's board variant.h
 
-// ---------- Audio output
-#if defined(SAMD_SERIES)
-  #define DAC_PIN     DAC0   // onboard DAC0 == pin A0
-  #define PIN_SPEAKER DAC0   // uses DAC
-#endif
-
 // ---------- Digital potentiometer
-// Adafruit Feather M4 Express pin definitions
-#define PIN_VCS A1   // volume chip select
-#define PIN_VUD A2   // volume up/down
+#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
+  // todo - Griduino PCB v7 uses volume control on I2C
+#else
+  // Griduino PCB v7 uses volume control DS1804 on SPI
+  #define PIN_VCS A1   // volume chip select
+  #define PIN_VUD A2   // volume up/down
+#endif
 
 // Adafruit ItsyBitsy M4 Express potentiometer wiring
 #if defined(ADAFRUIT_ITSYBITSY_M4_EXPRESS)
