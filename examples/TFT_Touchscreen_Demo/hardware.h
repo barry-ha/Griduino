@@ -87,10 +87,7 @@ On-board lights:
 #endif
 
 // ------- TFT 4-Wire Resistive Touch Screen configuration parameters
-// For touch point precision, we need to know the resistance
-// between X+ and X- Use any multimeter to read it
-#define XP_XM_OHMS 295   // Resistance in ohms between X+ and X- to calibrate touch pressure
-                         // measure this with an ohmmeter while Griduino turned off
+#define XP_XM_OHMS 0   // Set to zero to receive raw pressure measurements
 
 #define START_TOUCH_PRESSURE 200   // Minimum pressure threshold considered start of "press"
 #define END_TOUCH_PRESSURE   50    // Maximum pressure threshold required before end of "press"
