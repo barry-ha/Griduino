@@ -124,13 +124,9 @@
 
 */
 
-#include <SPI.h>                 // Serial Peripheral Interface
-#include <Adafruit_GFX.h>        // Core graphics display library
-#include <Adafruit_ILI9341.h>    // TFT color display library
-#include <TouchScreen.h>         // Touchscreen built in to 3.2" Adafruit TFT display
-#include <Adafruit_GPS.h>        // Ultimate GPS library
-#include <Adafruit_NeoPixel.h>   // On-board color addressable LED
-#include "hardware.h"            // Griduino pin definitions
+#include <Adafruit_ILI9341.h>   // TFT color display library
+#include <Adafruit_GPS.h>       // Ultimate GPS library
+#include "hardware.h"           // Griduino pin definitions
 
 // ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE    "GPS Demo Loopback"
@@ -144,9 +140,6 @@
 
 // create an instance of the TFT Display
 Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
-
-// ---------- neopixel
-Adafruit_NeoPixel pixel = Adafruit_NeoPixel(NUMPIXELS, PIN_NEOPIXEL, NEO_GRB + NEO_KHZ800);
 
 // ---------- GPS ----------
 /* "Ultimate GPS" pin wiring is connected to a dedicated hardware serial port
@@ -216,8 +209,6 @@ void setup() {
   analogWrite(TFT_BL, 255);   // set backlight to full brightness
 
   // ----- init Feather M4 onboard lights
-  pixel.begin();
-  pixel.clear();                // turn off NeoPixel
   digitalWrite(PIN_LED, LOW);   // turn off little red LED
   Serial.println("NeoPixel initialized and turned off");
 
