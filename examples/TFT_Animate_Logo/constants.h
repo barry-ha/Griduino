@@ -59,9 +59,11 @@ const double degreesPerRadian = 57.2957795;   // conversion factor = (360 degree
 #define CONFIG_FOLDER "/Griduino"
 
 // ----- alias names for SCREEN_ROTATION
-enum {
-  LANDSCAPE         = 1,   // 1=landscape
-  FLIPPED_LANDSCAPE = 3,   // 3=landscape 180-degrees
+enum Rotation {
+  PORTRAIT          = 0,   //   0 degrees = portrait
+  LANDSCAPE         = 1,   //  90 degrees = landscape
+  FLIPPED_PORTRAIT  = 2,   // 180 degrees = portrait flipped 180-degrees
+  FLIPPED_LANDSCAPE = 3,   // 270 degrees = landscape flipped 180-degrees
 };
 
 // ----- alias names for fGetDataSource()
