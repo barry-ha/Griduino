@@ -23,9 +23,9 @@
                 09:05:36.706 -> x,y = 2,760	Pressure = 294
                 09:06:21.323 -> x,y = 310,755	Pressure = 18182
                 09:06:21.508 -> x,y = 2,760	Pressure = 294
-            These show that built-in library Adafruit_Touchscreen is _not_ reliable.
+            This shows that built-in library Adafruit_Touchscreen is not reliable.
 
-  Test 2:   Gently press TFT screen with small tipped pointer to add yellow dots.
+  Test 2:   Gently press TFT screen with small tipped pointer to add dots.
             Verify the yellow dots are near the actual touches.
             These should show that Barry's replacement software _is_ reliable.
 
@@ -76,8 +76,6 @@ void waitForSerial(int howLong) {
 }
 
 // ---------- Touch Screen
-// For touch point precision, we need to know the resistance
-// between X+ and X- Use any multimeter to read it
 Resistive_Touch_Screen tsn(PIN_XP, PIN_YP, PIN_XM, PIN_YM, XP_XM_OHMS);
 
 // ========== splash screen helpers ============================
@@ -90,7 +88,8 @@ const int xLabel = 8;      // indent labels, slight margin on left edge of scree
 #define yRow3 yRow2 + 20   // compiled date
 #define yRow4 yRow3 + 20   // author line 1
 #define yRow5 yRow4 + 20   // author line 2
-#define yRow6 yRow5 + 40   // "Pressure threshhold = "
+#define yRow6 yRow5 + 40   // "Start pressure = "
+#define yRow7 yRow6 + 20   // "End Pressure = "
 
 void startSplashScreen() {
   tft.setTextSize(2);
@@ -114,8 +113,12 @@ void startSplashScreen() {
 
   tft.setCursor(xLabel, yRow6);
   tft.setTextColor(cTEXTCOLOR);
-  tft.print("Pressure threshhold: ");
+  tft.print("Start pressure: ");
   tft.print(START_TOUCH_PRESSURE);
+
+  tft.setCursor(xLabel, yRow7);
+  tft.print("End pressure: ");
+  tft.print(END_TOUCH_PRESSURE);
 }
 
 void clearScreen() {
@@ -126,7 +129,7 @@ void showActivityBar(int row, uint16_t foreground, uint16_t background) {
   static int addDotX = 10;   // current screen column, 0..319 pixels
   static int rmvDotX = 0;
   static int count   = 0;
-  const int SCALEF   = 32;   // how much to slow it down so it becomes visible
+  const int SCALEF   = 64;   // how much to slow it down so it becomes visible
 
   count = (count + 1) % SCALEF;
   if (count == 0) {
@@ -198,9 +201,14 @@ void loop() {
   ScreenPoint screenLoc;
   if (tsn.newScreenTap(&screenLoc, tft.getRotation())) {
 
-    // debug: show where touched
+    // show where touched
     const int radius = 2;
     tft.fillCircle(screenLoc.x, screenLoc.y, radius, cTOUCHTARGET);
+
+    // debug: report where touched
+    char msg[128];
+    snprintf(msg, sizeof(msg), "Touched at (%3d,%3d)", screenLoc.x, screenLoc.y);
+    Serial.println(msg);
   }
 
   // small activity bar crawls along bottom edge to give
