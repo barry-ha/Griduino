@@ -3,6 +3,7 @@
   GMT_clock - bright colorful Greenwich Mean Time based on GPS
 
   Version history:
+            2024-01-17 replaced Adafruit_Touchscreen with my own Resistive_Touch_Screen library
             2023-12-26 simplified program with common constants.h and touch.cpp
             2023-12-24 improved debounce by adding hysteresis
             2021-01-30 added support for BMP390 and latest Adafruit_BMP3XX library
@@ -36,24 +37,20 @@
 
 */
 
-#include <Adafruit_ILI9341.h>   // TFT color display library
-#include <TouchScreen.h>        // Touchscreen built in to 3.2" Adafruit TFT display
-#include "Adafruit_GPS.h"       // Ultimate GPS library
-#include "Adafruit_BMP3XX.h"    // Precision barometric and temperature sensor
-#include "save_restore.h"       // Save configuration in non-volatile RAM
-#include "constants.h"          // Griduino constants, colors, typedefs
-#include "hardware.h"           // Griduino pin definitions
-#include "TextField.h"          // Optimize TFT display text for proportional fonts
+#include <Adafruit_ILI9341.h>         // TFT color display library
+#include <Resistive_Touch_Screen.h>   // my library replaces the lame Adafruit/Adafruit_TouchScreen
+#include "Adafruit_GPS.h"             // Ultimate GPS library
+#include "Adafruit_BMP3XX.h"          // Precision barometric and temperature sensor
+#include "save_restore.h"             // Save configuration in non-volatile RAM
+#include "constants.h"                // Griduino constants, colors, typedefs
+#include "hardware.h"                 // Griduino pin definitions
+#include "TextField.h"                // Optimize TFT display text for proportional fonts
 
 // ------- Identity for splash screen and console --------
 #define PROGRAM_NAME "Griduino GMT Clock"
 
 // #define ECHO_GPS_SENTENCE           // comment out to quiet down the serial monitor
 // #define SHOW_TOUCH_TARGET           // comment out for production
-
-// ---------- extern
-extern bool newScreenTap(TSPoint *pPoint, int orientation);   // Touch.cpp
-extern void initTouchScreen(void);                            // Touch.cpp
 
 // ========== forward reference ================================
 void timeZonePlus();
@@ -71,6 +68,9 @@ Adafruit_BMP3XX baro;   // hardware SPI
 // ---------- GPS ----------
 // Hardware serial port for GPS
 Adafruit_GPS GPS(&Serial1);
+
+// ---------- Touch Screen
+Resistive_Touch_Screen tsn(PIN_XP, PIN_YP, PIN_XM, PIN_YM, XP_XM_OHMS);
 
 // ------------ definitions
 const int howLongToWait = 4;   // max number of seconds at startup waiting for Serial port to console
@@ -365,7 +365,7 @@ void waitForSerial(int howLong) {
 //=========== time helpers =====================================
 #define TIME_FOLDER  "/GMTclock"   // 8.3 names
 #define TIME_FILE    TIME_FOLDER "/AddHours.cfg"
-#define TIME_VERSION "v01"
+#define TIME_VERSION "v02"
 
 void timeZonePlus() {
   gTimeZone++;
@@ -425,11 +425,11 @@ void setup() {
   // ----- init TFT display
   tft.begin();                  // initialize TFT display
   tft.setRotation(LANDSCAPE);   // 1=landscape (default is 0=portrait)
-  clearScreen();
+  clearScreen();                // note that "begin()" does not clear screen
 
   // ----- init serial monitor (do not "Serial.print" before this, it won't show up in console)
-  Serial.begin(115200);           // init for debugging in the Arduino IDE
-  waitForSerial(howLongToWait);   // wait for developer to connect debugging console
+  Serial.begin(115200);   // init for debugging in the Arduino IDE
+  waitForSerial(howLongToWait);
 
   // now that Serial is ready and connected (or we gave up)...
   Serial.println(PROGRAM_NAME " " PROGRAM_VERSION);   // Report our program name to console
@@ -551,11 +551,13 @@ void loop() {
   // if there's touchscreen input, handle it
   if (millis() - prevTimeTouch > TOUCH_PROCESS_INTERVAL) {
     prevTimeTouch = millis();   // start another interval
-    TSPoint screenLoc;
-    if (newScreenTap(&screenLoc, tft.getRotation())) {
+    ScreenPoint screenLoc;
+    if (tsn.newScreenTap(&screenLoc, tft.getRotation())) {
 
 #ifdef SHOW_TOUCH_TARGET
-      tft.fillCircle(touch.x, touch.y, 3, cWARN);   // debug - show dot, radius=3
+      // show where touched
+      const int radius = 2;
+      tft.fillCircle(screenLoc.x, screenLoc.y, radius, cTOUCHTARGET);
 #endif
 
       for (int ii = 0; ii < nTimeButtons; ii++) {
