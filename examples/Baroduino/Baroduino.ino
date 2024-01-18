@@ -4,6 +4,7 @@
             A standalone example program to demonstrate BMP388 or BMP390 barometric sensor
 
   Version history:
+            2024-01-17 replaced Adafruit_Touchscreen with my own Resistive_Touch_Screen library
             2021-02-02 this example program was merged into the main Griduino.ino program
             2021-01-30 added support for BMP390 and latest Adafruit_BMP3XX library, v0.31
             2020-12-19 v0.30 published to the GitHub downloads folder (no functional change)
@@ -96,19 +97,21 @@
 #endif
 
 #include <Adafruit_ILI9341.h>    // TFT color display library
-#include <TouchScreen.h>         // Touchscreen built in to 3.2" Adafruit TFT display
+#include <Resistive_Touch_Screen.h>   // my library replaces the lame Adafruit/Adafruit_TouchScreen
 #include <Adafruit_GPS.h>        // Ultimate GPS library
 #include <TimeLib.h>             // time_t=seconds since Jan 1, 1970, https://github.com/PaulStoffregen/Time
-#include "Adafruit_BMP3XX.h"     // Precision barometric and temperature sensor
 #include <Adafruit_NeoPixel.h>   // On-board color addressable LED
-#include "model_baro.h"          // Model of a barometer that stores 3-day history
-#include "save_restore.h"        // save/restore configuration data to SDRAM
+#include <Adafruit_BMP3XX.h>     // Precision barometric and temperature sensor
 #include "constants.h"           // Griduino constants, colors, typedefs
 #include "hardware.h"            // Griduino pin definitions
+#include "save_restore.h"        // save/restore configuration data to SDRAM
+#include "model_baro.h"          // Model of a barometer that stores 3-day history
 #include "TextField.h"           // Optimize TFT display text for proportional fonts
 
 // ------- Identity for splash screen and console --------
 #define BAROGRAPH_TITLE "Baroduino"
+
+// #define SHOW_TOUCH_TARGET   // comment out for production
 
 //--------------CONFIG--------------
 // float elevCorr = 4241;  // elevation correction in Pa,
@@ -133,9 +136,6 @@ enum units { eMetric,
 int gUnits = eEnglish;   // units on startup: 0=english=inches mercury, 1=metric=millibars
 
 // ---------- extern
-extern bool newScreenTap(Point *pPoint, int orientation);   // Touch.cpp
-extern uint16_t myPressure(void);                           // Touch.cpp
-// extern bool TouchScreen::isTouching(void);              // Touch.cpp
 extern void mapTouchToScreen(TSPoint touch, Point *screen, int orientation);
 extern void setFontSize(int font);   // TextField.cpp
 
@@ -143,11 +143,11 @@ extern void setFontSize(int font);   // TextField.cpp
 int loadConfigUnits();
 void saveConfigUnits();
 
-// ---------- Hardware Wiring ----------
-// Same as Griduino platform - see hardware.h
-
 // ---------- TFT display
 Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
+
+// ---------- Touch Screen
+Resistive_Touch_Screen tsn(PIN_XP, PIN_YP, PIN_XM, PIN_YM, XP_XM_OHMS);
 
 // ---------- NeoPixel
 #define NUMPIXELS 1   // Feather M4 has one NeoPixel on board
@@ -226,8 +226,8 @@ time_t nextFifteenMinuteMark(time_t timestamp) {
 //      "Class BarometerModel" is intended to be identical
 //      for both Griduino and the Baroduino example
 //
-//    This model collects data from the BMP388 barometric pressure
-//    and temperature sensor on a schedule determined by the Controller.
+//    This model collects data from the BMP280 or BMP388 barometric pressure 
+//    and temperature sensors on a schedule determined by the Controller.
 //
 //    288px wide graph ==> 96 px/day ==> 4px/hour ==> log pressure every 15 minutes
 //
@@ -820,14 +820,19 @@ void showActivityBar(int row, uint16_t foreground, uint16_t background) {
 //=========== setup ============================================
 void setup() {
 
-  // ----- init TFT display
-  tft.begin();                        // initialize TFT display
-  tft.setRotation(SCREEN_ROTATION);   // 1=landscape (default is 0=portrait)
-  clearScreen();                      // note that "tft.begin()" does not clear screen
-
   // ----- init TFT backlight
   pinMode(TFT_BL, OUTPUT);
   analogWrite(TFT_BL, 255);   // set backlight to full brightness
+
+  // ----- init TFT display
+  tft.begin();                  // initialize TFT display
+  tft.setRotation(LANDSCAPE);   // 1=landscape (default is 0=portrait)
+  clearScreen();                // note that "begin()" does not clear screen
+
+  // ----- init touchscreen
+  tsn.setScreenSize(tft.width(), tft.height());                                         // required
+  tsn.setResistanceRange(X_MIN_OHMS, X_MAX_OHMS, Y_MIN_OHMS, Y_MAX_OHMS, XP_XM_OHMS);   // optional, for overriding defaults
+  tsn.setThreshhold(START_TOUCH_PRESSURE, END_TOUCH_PRESSURE);                          // optional, for overriding defaults
 
   // ----- init Feather M4 onboard lights
   pixel.begin();
@@ -838,7 +843,7 @@ void setup() {
   // ----- announce ourselves
   startSplashScreen();
 
-  // ----- init serial monitor
+  // ----- init serial monitor (do not "Serial.print" before this, it won't show up in console)
   Serial.begin(115200);           // init for debugging in the Arduino IDE
   waitForSerial(howLongToWait);   // wait for developer to connect debugging console
 
@@ -850,7 +855,9 @@ void setup() {
   // ----- init GPS
   GPS.begin(9600);                        // 9600 NMEA is the default baud rate for Adafruit MTK GPS's
   delay(50);                              // is delay really needed?
-  GPS.sendCommand(PMTK_SET_BAUD_57600);   // set baud rate to 57600
+  Serial.print("Set GPS baud rate to 57600: ");
+  Serial.println(PMTK_SET_BAUD_57600);
+  GPS.sendCommand(PMTK_SET_BAUD_57600);
   delay(50);
   GPS.begin(57600);
   delay(50);
@@ -860,6 +867,8 @@ void setup() {
   GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
   delay(50);
 
+  Serial.print("Set GPS 1 Hz update rate: ");
+  Serial.println(PMTK_SET_NMEA_UPDATE_1HZ);
   GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);   // 1 Hz update rate
   // GPS.sendCommand(PMTK_SET_NMEA_UPDATE_200_MILLIHERTZ); // Once every 5 seconds update
 
@@ -963,7 +972,7 @@ void loop() {
     waitingForRTC = false;
 
     char msg[128];                                                 // debug
-    Serial.println("Received first correct date/time from GPS");   // debug
+    Serial.println("Received first valid GPS time");   // debug
     snprintf(msg, sizeof(msg), ". GPS time %d-%02d-%02d at %02d:%02d:%02d",
              GPS.year, GPS.month, GPS.day,
              GPS.hour, GPS.minute, GPS.seconds);
@@ -1018,12 +1027,13 @@ void loop() {
   }
 
   // if there's touchscreen input, handle it
-  Point touch;
-  if (newScreenTap(&touch, SCREEN_ROTATION)) {
+  ScreenPoint screenLoc;
+  if (tsn.newScreenTap(&screenLoc, tft.getRotation())) {
 
-#ifdef SHOW_TOUCH_TARGETS
-    const int radius = 3;                                     // debug
-    tft.fillCircle(touch.x, touch.y, radius, cTOUCHTARGET);   // debug - show dot
+#ifdef SHOW_TOUCH_TARGET
+    // show where touched
+    const int radius = 2;
+    tft.fillCircle(screenLoc.x, screenLoc.y, radius, cTOUCHTARGET);
 #endif
 
     adjustUnits();   // change between "inches mercury" and "millibars" units
