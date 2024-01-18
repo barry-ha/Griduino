@@ -1,11 +1,17 @@
 #pragma once   // Please format this file with clang before check-in to GitHub
 
 // ------- Identity for splash screen and console --------
-#define PROGRAM_TITLE    "Baroduino"
-#define PROGRAM_VERSION "v1.14"
+#define PROGRAM_TITLE "Griduino"
+#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
+#define PROGRAM_VERSION "v1.14 PCB v.7"
+#else
+#define PROGRAM_VERSION "v1.13.3"
+#endif
 #define PROGRAM_LINE1    "Barry K7BWH"
 #define PROGRAM_LINE2    "John KM7O"
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
+#define PROGRAM_FILE     __FILE__
+#define PROGRAM_GITHUB   "https://github.com/barry-ha/Griduino"
 
 // ------- Select testing features ---------
 // #define SCOPE_OUTPUT  A0            // use this for performance measurements with oscilloscope
@@ -53,10 +59,11 @@ const double degreesPerRadian = 57.2957795;   // conversion factor = (360 degree
 #define CONFIG_FOLDER "/Griduino"
 
 // ----- alias names for SCREEN_ROTATION
-#define SCREEN_ROTATION 1   // 1=landscape, 3=landscape 180-degrees
-enum {
-  LANDSCAPE   = 1,   // 1=landscape
-  FLIPPED_LANDSCAPE = 3,   // 3=landscape 180-degrees
+enum Rotation {
+  PORTRAIT          = 0,   //   0 degrees = portrait
+  LANDSCAPE         = 1,   //  90 degrees = landscape
+  FLIPPED_PORTRAIT  = 2,   // 180 degrees = portrait flipped 180-degrees
+  FLIPPED_LANDSCAPE = 3,   // 270 degrees = landscape flipped 180-degrees
 };
 
 // ----- alias names for fGetDataSource()
