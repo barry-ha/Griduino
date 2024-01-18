@@ -54,6 +54,9 @@
 // create an instance of the TFT Display
 Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 
+// ---------- Touch Screen
+Resistive_Touch_Screen tsn(PIN_XP, PIN_YP, PIN_XM, PIN_YM, XP_XM_OHMS);
+
 // ------------ definitions
 const int howLongToWait = 6;   // max number of seconds at startup waiting for Serial port to console
 
@@ -74,9 +77,6 @@ void waitForSerial(int howLong) {
     delay(15);
   }
 }
-
-// ---------- Touch Screen
-Resistive_Touch_Screen tsn(PIN_XP, PIN_YP, PIN_XM, PIN_YM, XP_XM_OHMS);
 
 // ========== splash screen helpers ============================
 // splash screen layout
@@ -145,7 +145,7 @@ void setup() {
 
   // ----- init TFT backlight
   pinMode(TFT_BL, OUTPUT);
-  analogWrite(TFT_BL, 255);   // start at full brightness
+  analogWrite(TFT_BL, 255);   // set backlight to full brightness
 
   // ----- init TFT display
   tft.begin();                  // initialize TFT display
