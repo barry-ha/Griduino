@@ -76,6 +76,8 @@ public:
   }
 
 protected:
+  const int xPanel = 34;   // screen placement of "1 of 6" config panel legend
+
   /**
    *  The One and Only True Clear Screen (TOOTCS) function
    */

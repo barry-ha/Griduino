@@ -27,10 +27,10 @@
 
   Units of Time:
          This relies on "TimeLib.h" which uses "time_t" to represent time.
-         The basic unit of time (time_t) is the number of seconds since Jan 1, 1970, 
+         The basic unit of time (time_t) is the number of seconds since Jan 1, 1970,
          a compact 4-byte integer.
          https://github.com/PaulStoffregen/Time
-  
+
   Scheduling:
          This uses the simple but powerful elapsedMillis library originally written
          by Paul Stoffregen at PJRC (manufacturer of the Teensy line).
@@ -40,11 +40,11 @@
          https://electricfiredesign.com/2021/03/18/simple-multi-tasking-for-arduino/
 
   Real Time Clock:
-         The real time clock in the Adafruit Ultimate GPS is not directly readable nor 
-         accessible from the Arduino. It's definitely not writeable. It's only internal 
-         to the GPS. Once the battery is installed, and the GPS gets its first data 
-         reception from satellites it will set the internal RTC. Then as long as the 
-         battery is installed, this program can read the time from the GPS as normal. 
+         The real time clock in the Adafruit Ultimate GPS is not directly readable nor
+         accessible from the Arduino. It's definitely not writeable. It's only internal
+         to the GPS. Once the battery is installed, and the GPS gets its first data
+         reception from satellites it will set the internal RTC. Then as long as the
+         battery is installed, this program can read the time from the GPS as normal.
          Even without a current "gps fix" the time will be correct.
          The RTC timezone cannot be changed, it is always UTC.
 
@@ -84,7 +84,7 @@
 */
 
 #include <Adafruit_ILI9341.h>         // TFT color display library
-#include <TouchScreen.h>              // Touchscreen built in to 3.2" Adafruit TFT display
+#include <Resistive_Touch_Screen.h>   // Touchscreen built in to 3.2" Adafruit TFT display
 #include <Adafruit_GPS.h>             // Ultimate GPS library
 #include <Adafruit_NeoPixel.h>        // On-board color addressable LED
 #include <DS1804.h>                   // DS1804 digital potentiometer library
@@ -125,16 +125,17 @@
 #endif
 
 // ---------- extern
-extern bool newScreenTap(Point* pPoint);       // Touch.cpp
-extern uint16_t myPressure(void);              // Touch.cpp
-void initTouchScreen(void);                    // Touch.cpp
-//extern bool TouchScreen::isTouching(void);   // Touch.cpp
-//extern void mapTouchToScreen(TSPoint touch, Point* screen);
+//extern bool newScreenTap(Point* pPoint);       // Touch.cpp
+//extern uint16_t myPressure(void);              // Touch.cpp
+//void initTouchScreen(void);                    // Touch.cpp
 //extern void setFontSize(int font);           // TextField.cpp
 void processCommand(char *cmd);                // commands.cpp
 
 // ---------- TFT display
 Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
+
+// ---------- Touch Screen
+Resistive_Touch_Screen tsn(PIN_XP, PIN_YP, PIN_XM, PIN_YM, XP_XM_OHMS);
 
 // to select a different SPI bus speed, use this instead:
 // -----------------------------------------------
@@ -222,7 +223,7 @@ void showDefaultTouchTargets() {
   }
 }
 
-void showWhereTouched(Point touch) {
+void showWhereTouched(ScreenPoint touch) {
   if (showTouchTargets) {
     const int radius = 1;     // debug
     tft.fillCircle(touch.x, touch.y, radius, cTOUCHTARGET);  // debug - show dot
@@ -299,8 +300,8 @@ BatteryVoltage gpsBattery;
 //==============================================================
 //
 //      BarometerModel
-//      "Class BarometerModel" is intended to be identical 
-//      for both Griduino and the Barograph example
+//      "Class BarometerModel" is intended to be identical
+//      for both Griduino and the Baroduino example
 //
 //    This model collects data from the BMP280 or BMP388 barometric pressure 
 //    and temperature sensors on a schedule determined by the Controller.
@@ -632,23 +633,30 @@ void sayGrid(const char *name) {
 //=========== setup ============================================
 void setup() {
 
-  // ----- init TFT display
-  tft.begin();                        // initialize TFT display
-  tft.setRotation(LANDSCAPE);  // 1=landscape (default is 0=portrait)
-  tft.fillScreen(ILI9341_BLACK);      // note that "begin()" does not clear screen
-
   // ----- init TFT backlight
- // pinMode(A1, INPUT);                 // Griduino PCB v7 uses pin A1 (ADC1) to measure 3v coin battery; don't load down the pin
- 
   pinMode(TFT_BL, OUTPUT);
-  analogWrite(TFT_BL, 255);           // start at full brightness
+  analogWrite(TFT_BL, 255);   // set backlight to full brightness
+
+  // ----- init TFT display
+  tft.begin();                  // initialize TFT display
+  tft.setRotation(LANDSCAPE);   // 1=landscape (default is 0=portrait)
+  tft.fillScreen(ILI9341_BLACK);      // note that "begin()" does not clear screen
 
   // ----- init screen orientation
   Serial.println("Starting cfgRotation.loadConfig()...");
   cfgRotation.loadConfig();           // restore previous screen orientation
 
-  // ----- init touch screen
-  void initTouchScreen();
+  // ----- init touchscreen
+  tsn.setScreenSize(tft.width(), tft.height());                                         // required
+  tsn.setResistanceRange(X_MIN_OHMS, X_MAX_OHMS, Y_MIN_OHMS, Y_MAX_OHMS, XP_XM_OHMS);   // optional, for overriding defaults
+  tsn.setThreshhold(START_TOUCH_PRESSURE, END_TOUCH_PRESSURE);                          // optional, for overriding defaults
+
+  // ----- init Feather M4 onboard lights
+  pixel.begin();
+  pixel.clear();                      // turn off NeoPixel
+  pinMode(RED_LED, OUTPUT);           // diagnostics RED LED
+  digitalWrite(PIN_LED, LOW);         // turn off little red LED
+  Serial.println("NeoPixel initialized and turned off");
 
   // ----- init serial monitor (do not "Serial.print" before this, it won't show up in console)
   Serial.begin(115200);               // init for debugging in the Arduino IDE
@@ -658,13 +666,6 @@ void setup() {
   Serial.println(PROGRAM_TITLE " " PROGRAM_VERSION);  // Report our program name to console
   Serial.println("Compiled " PROGRAM_COMPILED);       // Report our compiled date
   Serial.println(__FILE__);                           // Report our source code file name
-
-  // ----- init Feather M4 onboard lights
-  pixel.begin();
-  pixel.clear();                      // turn off NeoPixel
-  pinMode(RED_LED, OUTPUT);           // diagnostics RED LED
-  digitalWrite(PIN_LED, LOW);         // turn off little red LED
-  Serial.println("NeoPixel initialized and turned off");
 
   // ----- init GPS
   GPS.begin(9600);   // 9600 NMEA is the default baud rate for Adafruit MTK GPS's
@@ -688,7 +689,6 @@ void setup() {
 
   Serial.print("Set GPS 1 Hz update rate: ");
   Serial.println(PMTK_SET_NMEA_UPDATE_1HZ);
-  //GPS.sendCommand(PMTK_SET_NMEA_UPDATE_5HZ);              // 5 Hz update rate
   GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);                // 1 Hz
   //GPS.sendCommand(PMTK_SET_NMEA_UPDATE_200_MILLIHERTZ);   // Every 5 seconds
   delay(50);
@@ -739,7 +739,7 @@ void setup() {
   Serial.println(temp);
 
   // ----- init RTC
-  // Note: See the main() loop. 
+  // Note: See the main() loop.
   //       The realtime clock is not available until after receiving a few NMEA sentences.
 
   // ----- init digital potentiometer, restore volume setting
@@ -782,7 +782,7 @@ void setup() {
   logger.fencepost("Griduino.ino save after restore",__LINE__);  // debug
   trail.saveGPSBreadcrumbTrail();     // ensure its saved for posterity
 
-  // ----- restore barometric pressure log
+  // ----- restore barometric pressure history
   if (baroModel.loadHistory()) {
     logger.info("Successfully restored barometric pressure log");
   } else {
@@ -790,7 +790,7 @@ void setup() {
     baroModel.saveHistory();
   }
 
-  // ----- init barometer
+  // ----- init BMP388 or BMP390 barometer
   if (baroModel.begin()) {
     // success
   } else {
@@ -863,7 +863,7 @@ void loop() {
   // look for the first "setTime()" to begin the datalogger
   if (waitingForRTC && date.isDateValid(GPS.year, GPS.month, GPS.day)) {
     // found a transition from an unknown date -> correct date/time
-    // assuming "class Adafruit_GPS" contains 2000-01-01 00:00 until 
+    // assuming "class Adafruit_GPS" contains 2000-01-01 00:00 until
     // it receives an update via NMEA sentences
     // the next step (1 second timer) will actually set the clock
     waitingForRTC = false;
@@ -887,9 +887,9 @@ void loop() {
 
     // update RTC from GPS
     if (date.isDateValid(GPS.year, GPS.month, GPS.day)) {
-      
+
       setTime(GPS.hour, GPS.minute, GPS.seconds, GPS.day, GPS.month, GPS.year);
-      //adjustTime(offset * SECS_PER_HOUR);  // todo - adjust to local time zone. for now, we only do GMT
+      // adjustTime(offset * SECS_PER_HOUR);  // todo - adjust to local time zone. for now, we only do GMT
     }
     pView->updateScreen();                   // update time on current view
   }
@@ -915,16 +915,16 @@ void loop() {
     logger.gmt(msg);
     prevTimeRTC = rtc;
   }
-    
+
   // every 15 minutes read barometric pressure and save it in nonvolatile RAM
   // synchronize showReadings() on exactly 15-minute marks 
   // so the user can more easily predict when the next update will occur
   time_t rightnow = now();
-  if ( rightnow >= nextSavePressure) {
-    
-    // log this pressure reading only if the time-of-day is correct and initialized 
+  if (rightnow >= nextSavePressure) {
+
+    // log this pressure reading only if the time-of-day is correct and initialized
     if (timeStatus() == timeSet) {
-      baroModel.logPressure( rightnow );
+      baroModel.logPressure(rightnow);
       //redrawGraph = true;             // request draw graph
       nextSavePressure = date.nextFifteenMinuteMark( rightnow ); // production
       //nextSavePressure = date.nextOneMinuteMark( rightnow );   // debug
@@ -1020,13 +1020,14 @@ void loop() {
   }
 
   // if there's touchscreen input, handle it
-  Point touch;
-  if (newScreenTap(&touch)) {
+  ScreenPoint screenLoc;
+  if (tsn.newScreenTap(&screenLoc, tft.getRotation())) {
 
     if (showTouchTargets) {
-      showWhereTouched(touch);   // debug: show where touched
+      showWhereTouched(screenLoc);   // debug: show where touched
     }
 
+    Point touch = {screenLoc.x, screenLoc.y};
     bool touchHandled = pView->onTouch(touch);
 
     if (!touchHandled) {
@@ -1052,7 +1053,7 @@ void loop() {
     processCommand(cmd);
   }
 
-  // small activity bar crawls along bottom edge to give 
+  // small activity bar crawls along bottom edge to give
   // a sense of how frequently the main loop is executing
   showActivityBar(tft.height()-1, ILI9341_RED, pView->background);
 }
