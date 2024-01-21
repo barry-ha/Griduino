@@ -135,6 +135,7 @@ protected:
     ePressureMinus,
     eSynchronize,
   };
+  // clang-format off
 #define nPressureButtons 3
   FunctionButton pressureButtons[nPressureButtons] = {
       // For "sea level pressure" we have rather small modest +/- buttons, meant to visually
@@ -143,12 +144,13 @@ protected:
       //
       // 3.2" display is 320 x 240 pixels, landscape, (y=239 reserved for activity bar)
       //
-      // label            origin   size      touch-target
-      // text              x,y      w,h      x,y      w,h    radius  color     functionID
-      {"+", 160 - 20 - 98, 198, 42, 36, {1, 158, 159, 89}, 4, cTEXTCOLOR, ePressurePlus},      // Up
-      {"-", 160 - 20 + 98, 198, 42, 36, {161, 158, 159, 89}, 4, cTEXTCOLOR, ePressureMinus},   // Down
-      {"", 280, 46, 39, 84, {220, 48, 99, 84}, 4, cTEXTCOLOR, eSynchronize},                   // sync readings
+      // label         origin      size      touch-target
+      // text           x,y        w,h        x,y       w,h    radius  color     functionID
+      {"+", 160 - 20 - 98, 198,   42, 36,  {  1, 158, 159, 89},  4, cTEXTCOLOR, ePressurePlus },   // Up
+      {"-", 160 - 20 + 98, 198,   42, 36,  {161, 158, 159, 89},  4, cTEXTCOLOR, ePressureMinus},   // Down
+      {"",            280,  46,   39, 84,  {220,  48,  99, 84},  4, cTEXTCOLOR, eSynchronize  },   // sync readings
   };
+  // clang-format on
 
   // ======== barometer and temperature helpers ==================
 
