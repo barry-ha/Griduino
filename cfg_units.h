@@ -22,7 +22,6 @@
             +-----------------------------------------+
 */
 
-#include <Arduino.h>
 #include <Adafruit_ILI9341.h>   // TFT color display library
 #include "constants.h"          // Griduino constants and colors
 #include "logger.h"             // conditional printing to Serial port
@@ -68,22 +67,26 @@ protected:
     ENGLISH,
     METRIC,
     COMPILED,
+    PANEL,
   };
 
-#define nTextUnits 4
+  // clang-format off
+#define nTextUnits 5
   TextField txtSettings3[nTextUnits] = {
-      //        text                  x, y     color
-      TextField("5. Units", col1, 20, cHIGHLIGHT, ALIGNCENTER),   // [SETTINGS]
-      TextField("English", col1, yRow1, cVALUE),                  // [ENGLISH]
-      TextField("Metric", col1, yRow2, cVALUE),                   // [METRIC]
-      TextField(PROGRAM_VERSION ", " PROGRAM_COMPILED,
-                col1, yRow9, cLABEL, ALIGNCENTER),   // [COMPILED]
+      //  text             x, y      color
+      {"Units",           -1, 20,    cHIGHLIGHT, ALIGNCENTER},   // [SETTINGS]
+      {"English",       col1, yRow1, cVALUE},                    // [ENGLISH]
+      {"Metric",        col1, yRow2, cVALUE},                    // [METRIC]
+      {PROGRAM_VERDATE,   -1, yRow9, cLABEL, ALIGNCENTER},       // [COMPILED]
+      {"5 of 6",      xPanel, 20,    cFAINT, ALIGNLEFT},         // [PANEL]
   };
+  // clang-format on
 
   enum buttonID {
     eENGLISH = 0,
     eMETRIC,
   };
+  // clang-format off
 #define nButtonsUnits 2
   FunctionButton settings3Buttons[nButtonsUnits] = {
       // label                  origin         size      touch-target
@@ -91,6 +94,7 @@ protected:
       {"Miles, Feet, inHg", xButton, yRow1 - 26, 150, 40, {112, yRow1 - 36, 204, 56}, 4, cVALUE, eENGLISH},   // [eENGLISH] set units Miles/inHg
       {"Kilometers, hPa", xButton, yRow2 - 26, 150, 40, {112, yRow2 - 31, 204, 64}, 4, cVALUE, eMETRIC},      // [eMETRIC] set units Metric
   };
+  // clang-format on
 
   // ---------- local functions for this derived class ----------
   void setEnglish() {

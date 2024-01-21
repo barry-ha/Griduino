@@ -62,28 +62,32 @@ protected:
 #define col1    10    // left-adjusted column of text
 #define xButton 160   // indented column of buttons
 
-  // these are names for the array indexes, must be named in same order as array below
+  // names for the array indexes, must be named in same order as array below
   enum txtSettings6 {
     SETTINGS = 0,
     SCREEN,
     ORIENTATION,
     COMPILED,
+    PANEL,
   };
 
-#define nFields 4
+  // clang-format off
+#define nFields 5
   TextField txtSettings6[nFields] = {
-      //        text                x, y        color
-      TextField("6. Rotation", col1, 20, cHIGHLIGHT, ALIGNCENTER),   // [SETTINGS]
-      TextField("Screen", col1, yRow1, cVALUE),                      // [SCREEN]
-      TextField("Orientation", col1, yRow1 + 20, cVALUE),            // [ORIENTATION]
-      TextField(PROGRAM_VERSION ", " __DATE__,
-                col1, yRow9, cLABEL, ALIGNLEFT),   // [COMPILED]
+      //  text             x, y      color
+      {"Rotation",        -1, 20,    cHIGHLIGHT, ALIGNCENTER},   // [SETTINGS]
+      {"Screen",        col1, yRow1, cVALUE},                    // [SCREEN]
+      {"Orientation",   col1, yRow1 + 20, cVALUE},               // [ORIENTATION]
+      {PROGRAM_VERDATE,   -1, yRow9, cLABEL, ALIGNCENTER},       // [COMPILED]
+      {"6 of 6",      xPanel, 20,    cFAINT},                    // [PANEL]
   };
+  // clang-format on
 
   enum functionID {
     THIS_BUTTON = 0,
     THAT_BUTTON,
   };
+  // clang-format off
 #define nButtons 2
   FunctionButton myButtons[nButtons] = {
       // label             origin         size      touch-target
@@ -91,6 +95,7 @@ protected:
       {"This edge up", xButton, yRow1 - 26, 140, 40, {120, 35, 190, 65}, 4, cVALUE, THIS_BUTTON},
       {"That edge up", xButton, yRow2 - 26, 140, 40, {120, 100, 190, 75}, 4, cVALUE, THAT_BUTTON},
   };
+  // clang-format on
 
 #define xLine (xButton + 80)
 #define topY  8

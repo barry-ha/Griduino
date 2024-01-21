@@ -81,19 +81,22 @@ protected:
     ANNOUNCEMENTS,
     ANNOUNCEMENTS2,
     COMPILED,
+    PANEL,
   };
 
   // clang-format off
-#define nTxtSettings5 4
+#define nTxtSettings5 5
   TextField txtSettings5[nTxtSettings5] = {
-      //        text                x, y        color                      enum
-      TextField("2. Audio Type", col1, 20, cHIGHLIGHT, ALIGNCENTER),   // [SETTINGS]
-      TextField("Announce", col1, yRow1, cVALUE),                      // [ANNOUNCEMENTS]
-      TextField("grids using:", col1, yRow1 + 20, cVALUE),             // [ANNOUNCEMENTS2]
-      TextField(PROGRAM_VERSION ", " __DATE__,                         // [COMPILED]
-                col1, yRow9, cLABEL, ALIGNCENTER),
+      //  text             x, y      color
+      {"Audio Type",      -1, 20,    cHIGHLIGHT, ALIGNCENTER},   // [SETTINGS]
+      {"Announce",      col1, yRow1, cVALUE},                    // [ANNOUNCEMENTS]
+      {"grids using:",  col1, yRow1 + 20, cVALUE},               // [ANNOUNCEMENTS2]
+      {PROGRAM_VERDATE,   -1, yRow9, cLABEL, ALIGNCENTER},       // [COMPILED]
+      {"2 of 6",      xPanel, 20,    cFAINT},                    // [PANEL]
   };
+  // clang-format on
 
+  // clang-format off
 #define nButtonsAudio 3
   FunctionButton myButtons[nButtonsAudio] = {
       // label              origin          size           touch-target

@@ -59,34 +59,37 @@ protected:
   // color scheme: see constants.h
 
   // vertical placement of text rows   ---label---         ---button---
-  const int yRow1 = 70;                   // "Breadcrumb trail", "Clear"
+  const int yRow1 = 74;                   // "Breadcrumb trail", "Clear"
   const int yRow2 = yRow1 + 20;           // "%d of %d"
-  const int yRow3 = yRow2 + 56;           // "Route",            "GPS Receiver"
+  const int yRow3 = yRow2 + 52;           // "Route",            "GPS Receiver"
   const int yRow4 = yRow3 + 48;           //                     "Simulator"
   const int yRow9 = gScreenHeight - 12;   // "v0.32, Feb  2 2021"
 
 #define col1    10    // left-adjusted column of text
 #define xButton 160   // indented column of buttons
 
-  // these are names for the array indexes, must be named in same order as array below
+  // names for the array indexes, must be named in same order as array below
   enum txtSettings2 {
     SETTINGS = 0,
     TRAIL,
     TRAILCOUNT,
     GPSTYPE,
     COMPILED,
+    PANEL,
   };
 
-#define nTextGPS 5
+  // clang-format off
+  #define nTextGPS 6
   TextField txtSettings2[nTextGPS] = {
-      //        text                  x, y     color
-      TextField("4. GPS", col1, 20, cHIGHLIGHT, ALIGNCENTER),   // [SETTINGS]
-      TextField("Breadcrumb trail", col1, yRow1, cVALUE),       // [TRAIL]
-      TextField("%d crumbs", col1, yRow2, cLABEL),              // [TRAILCOUNT]
-      TextField("Route", col1, yRow3, cVALUE),                  // [GPSTYPE]
-      TextField(PROGRAM_VERSION ", " __DATE__,                  // [COMPILED]
-                col1, yRow9, cLABEL, ALIGNCENTER),
+      //  text                x, y      color
+      {"GPS",                -1, 20,    cHIGHLIGHT, ALIGNCENTER},   // [SETTINGS]
+      {"Breadcrumb trail", col1, yRow1, cVALUE},                    // [TRAIL]
+      {"%d crumbs",        col1, yRow2, cLABEL},                    // [TRAILCOUNT]
+      {"Route",            col1, yRow3, cVALUE},                    // [GPSTYPE]
+      {PROGRAM_VERDATE,      -1, yRow9, cLABEL, ALIGNCENTER},       // [COMPILED]
+      {"4 of 6",         xPanel, 20,    cFAINT},                    // [PANEL]
   };
+  // clang-format on
 
   enum buttonID {
     eCLEAR,
@@ -94,15 +97,17 @@ protected:
     eSIMULATOR,
     eFACTORYRESET,
   };
-#define nButtonsGPS 3
+  // clang-format off
+  #define nButtonsGPS 3
   FunctionButton settings2Buttons[nButtonsGPS] = {
-      // label                origin         size      touch-target
-      // text                   x,y           w,h      x,y      w,h  radius  color   functionID
-      {"Clear", xButton, yRow1 - 20, 130, 40, {130, 40, 180, 60}, 4, cVALUE, eCLEAR},              // [eCLEAR] Clear track history
-      {"GPS Receiver", xButton, yRow3 - 26, 130, 40, {128, 112, 180, 50}, 4, cVALUE, eRECEIVER},   // [eRECEIVER] Satellite receiver
-      {"Simulator", xButton, yRow4 - 26, 130, 40, {130, 164, 180, 60}, 4, cVALUE, eSIMULATOR},     // [eSIMULATOR] Simulated track
-                                                                                                   //{"Factory Reset", xButton,180,      130,30, {138,174, 180,50},  4,  cVALUE,  fFactoryReset},// [eFACTORYRESET] Factory Reset
+      // label              origin             size      touch-target
+      // text                 x,y               w,h        x,y       w,h  radius  color   functionID
+      {"Clear",        xButton, yRow1 - 14,   130, 40,  {158, 58,  136,42}, 4, cVALUE, eCLEAR},      // [eCLEAR] Clear track history
+      {"GPS Receiver", xButton, yRow3 - 26,   130, 40,  {128,112,  180,50}, 4, cVALUE, eRECEIVER},   // [eRECEIVER] Satellite receiver
+      {"Simulator",    xButton, yRow4 - 26,   130, 40,  {130,164,  180,60}, 4, cVALUE, eSIMULATOR},  // [eSIMULATOR] Simulated track
+    //{"Factory Reset",xButton, 180,          130,30,   {138,174,  180,50}, 4,  cVALUE,  fFactoryReset},// [eFACTORYRESET] Factory Reset
   };
+  // clang-format on
 
   // ---------- local functions for this derived class ----------
   void fClear() {

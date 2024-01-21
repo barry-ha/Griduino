@@ -5,10 +5,11 @@
 #if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
 #define PROGRAM_VERSION "v1.14 PCB v.7"
 #else
-#define PROGRAM_VERSION "v1.13.2"
+#define PROGRAM_VERSION "v1.14"
 #endif
 #define PROGRAM_LINE1    "Barry K7BWH"
 #define PROGRAM_LINE2    "John KM7O"
+#define PROGRAM_VERDATE  PROGRAM_VERSION ", " __DATE__
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
 #define PROGRAM_FILE     __FILE__
 #define PROGRAM_GITHUB   "https://github.com/barry-ha/Griduino"

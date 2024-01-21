@@ -12,21 +12,20 @@
             or with other playback attributes.
 
             +---------------------------------+
-            | *          1.Speaker          > |
+            | * 1 of 6    Speaker           > |
             |    33    Audio Volume           |... yRow1
             |    33    of 10                  |... yRow2
             |                                 |
-            |      +---------------+          |
-            |      |      Up       |          |
-            |      |               | +--------+
-            |      +---------------+ |  Mute  |
-            |      |     Down      | +--------+
-            |      |               |          |
-            +------+---------------+----------+
+            |       +--------------+          |
+            |       |      Up      |          |
+            |       |              | +-------+
+            |       +--------------+ |  Mute  |
+            |       |     Down     | +--------+
+            |       |              |          |
+            +-------+--------------+----------+
 
 */
 
-#include <Arduino.h>
 #include <Adafruit_ILI9341.h>   // TFT color display library
 #include <DS1804.h>             // DS1804 digital potentiometer library
 #include "constants.h"          // Griduino constants and colors
@@ -42,10 +41,10 @@ extern void announceGrid(String gridName, int len);   // Griduino.ino
 extern DACMorseSender dacMorse;                       // morse code (so we can send audio sample)
 extern DS1804 volume;                                 // digital potentiometer
 #if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
-  // todo - for now, RP2040 has no DAC, no speech, no audio output
+                        // todo - for now, RP2040 has no DAC, no speech, no audio output
 #else
-  #include <Audio_QSPI.h>       // Audio playback library for Arduino, https://github.com/barry-ha/Audio_QSPI
-  extern AudioQSPI dacSpeech;   // spoken word (so we can play speech sample)
+#include <Audio_QSPI.h>   // Audio playback library for Arduino, https://github.com/barry-ha/Audio_QSPI
+extern AudioQSPI dacSpeech;   // spoken word (so we can play speech sample)
 #endif
 
 // ========== class ViewVolume =================================
@@ -74,34 +73,37 @@ protected:
   const int yRow1 = 50;           // label: "Audio Volume"
   const int yRow2 = yRow1 + 30;   // text:  "of 10"
 
-#define col1    10    // left-adjusted column of text
 #define xButton 160   // indented column of buttons
 
-  // these are names for the array indexes, must be named in same order as array below
+  // names for the array indexes, must be named in same order as array below
   enum txtSettings {
     SETTINGS = 0,
     BIGVOLUME,
     LINE1,
     LINE2,
     MUTELABEL,
+    PANEL,
   };
 
-// clang-format off
-#define numVolFields 5
+  // clang-format off
+#define numVolFields 6
   TextField txtVolume[numVolFields] = {
-      //  text             x, y    color       alignment    size
-      {"1. Speaker",    col1, 20,    cHIGHLIGHT, ALIGNCENTER, eFONTSMALLEST},   // [SETTINGS]
-      {"0",               82, yRow2, cVALUE, ALIGNRIGHT,      eFONTGIANT},      // [BIGVOLUME] giant audio volume display
-      {"Audio Volume",    98, yRow1, cLABEL, ALIGNLEFT,       eFONTSMALL},      // [LINE1] normal size text labels
-      {"of 10",           98, yRow2, cLABEL, ALIGNLEFT,       eFONTSMALL},      // [LINE2]
-      {"  Mute",         208, 156,   cBUTTONLABEL, ALIGNLEFT, eFONTSMALL},      // [MUTELABEL]
+      //  text           x, y      color       alignment    size
+      {"Speaker",       -1, 20,    cHIGHLIGHT, ALIGNCENTER, eFONTSMALLEST},   // [SETTINGS]
+      {"0",             82, yRow2, cVALUE, ALIGNRIGHT,      eFONTGIANT},      // [BIGVOLUME] giant audio volume display
+      {"Audio Volume",  98, yRow1, cLABEL, ALIGNLEFT,       eFONTSMALL},      // [LINE1] normal size text labels
+      {"of 10",         98, yRow2, cLABEL, ALIGNLEFT,       eFONTSMALL},      // [LINE2]
+      {"  Mute",       208, 156,   cBUTTONLABEL, ALIGNLEFT, eFONTSMALL},      // [MUTELABEL]
+      {"1 of 6",    xPanel, 20,    cFAINT, ALIGNLEFT,       eFONTSMALLEST},   // [PANEL]
   };
+  // clang-format on
 
   enum functionID {
     UP_ID = 0,
     DOWN_ID,
     MUTE_ID,
   };
+  // clang-format off
 #define nVolButtons 3
   FunctionButton volButtons[nVolButtons] = {
       // label   origin     size       touch-target
@@ -137,7 +139,7 @@ protected:
 #if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
     // todo - add code to control new I2C volume control chip
 #else
-    #define PIN_VCS A1          // chip select pin for DS1804 volume control via SPI
+#define PIN_VCS A1   // chip select pin for DS1804 volume control via SPI
     pinMode(PIN_VCS, OUTPUT);   // fix bug that somehow forgets this is an output pin
     volume.unlock();            // enable (set low)
     volume.setWiperPosition(wiperPosition);
