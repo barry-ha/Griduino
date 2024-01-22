@@ -324,7 +324,7 @@ BarometerModel baroModel;   // create instance of the model
 
 // alias names for all views - MUST be in same order as "viewTable" array below, alphabetical by class name
 enum VIEW_INDEX {
-  ALTIMETER_VIEW = 0,        // altimeter
+  ALTIMETER_VIEW = 0,    // altimeter
   BARO_VIEW,             // barometer graph
   CFG_AUDIO_TYPE,        // audio output Morse/speech
   CFG_CROSSING,          // announce grid crossing 4/6 digit boundaries
@@ -333,7 +333,7 @@ enum VIEW_INDEX {
   CFG_ROTATION,          // screen rotation
   CFG_UNITS,             // english/metric
   EVENTS_VIEW,           // Groundhog Day, Halloween, or other day-counting screen
-  GRID_VIEW,
+  GRID_VIEW,             //
   GRID_CROSSINGS_VIEW,   // log of time in each grid
   HELP_VIEW,             // hints at startup
   SAT_COUNT_VIEW,        // number of satellites acquired
@@ -440,7 +440,7 @@ void selectNewView(int cmd) {
 #if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
       case CFG_ROTATION:   nextView = CFG_REBOOT; break;
 #else
-      case CFG_ROTATION:   nextView = CFG_VOLUME; break;
+      case CFG_ROTATION:   nextView = GRID_VIEW; break;   // at end of settings views, return to normal view
 #endif
       case CFG_REBOOT:     nextView = CFG_VOLUME; break;
       // none of above: we must be showing some normal user view, so go to the first settings view
