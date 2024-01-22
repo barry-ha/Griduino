@@ -773,13 +773,11 @@ void setup() {
   pinMode(RED_LED, OUTPUT);           // diagnostics RED LED
 
   // ----- restore GPS driving track breadcrumb trail
-  logger.fencepost("Griduino.ino restore",__LINE__);  // debug
   trail.restoreGPSBreadcrumbTrail();  // this takes noticeable time (~0.2 sec)
   model->restore();                   //
   model->gHaveGPSfix = false;         // assume no satellite signal yet
   model->gSatellites = 0;
   trail.rememberPUP();                // log a "power up" event
-  logger.fencepost("Griduino.ino save after restore",__LINE__);  // debug
   trail.saveGPSBreadcrumbTrail();     // ensure its saved for posterity
 
   // ----- restore barometric pressure history
@@ -968,6 +966,8 @@ void loop() {
     logger.fencepost("Griduino.ino new grid4",__LINE__);  // debug
     trail.saveGPSBreadcrumbTrail();
 
+    model->save();                 // tell the model to save itself
+
   } else if (model->enteredNewGrid6()) {
     if (!model->compare4digits) {
       announceGrid(newGrid6, 6);   // announce with Morse code or speech, according to user's config
@@ -978,6 +978,9 @@ void loop() {
     logger.fencepost("Griduino.ino new grid6",__LINE__);  // debug
     trail.saveGPSBreadcrumbTrail(); // because one user's home was barely in the next grid6
                                     // and we want to show his grid6 at next power up
+    // ALSO when entering a 6-digit grid: tell the model to save itself!
+    // It's the _model_ that puts up the starting location at next power-up 
+    model->save();
   }
 
   // if we drove far enough, add this to the breadcrumb trail

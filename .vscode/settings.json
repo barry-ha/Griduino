@@ -2,5 +2,14 @@
   "cSpell.words": [
     "quectel"
   ],
-  "cmake.configureOnOpen": true
+  "cmake.configureOnOpen": true,
+  "files.associations": {
+    "initializer_list": "cpp",
+    "list": "cpp",
+    "unordered_map": "cpp",
+    "vector": "cpp",
+    "xhash": "cpp",
+    "xstring": "cpp",
+    "xutility": "cpp"
+  }
 }

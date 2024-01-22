@@ -6,7 +6,7 @@
 
 # ---------- Start: manual edit ---------------------------------------
 # Windows communications port for Griduino or GPS hardware
-GPS_PORT = "COM53"
+GPS_PORT = "COM8"
 GPS_RATE = 115200
 
 # WSJT-X UDP multicast settings
@@ -150,7 +150,7 @@ class LatLongToGridSquare(object):
 # ---------------------------------------------------------------------
 
 import struct
-import datetime
+from datetime import datetime, timedelta
 
 class PacketUtil:
     @classmethod
@@ -379,7 +379,7 @@ class DecodePacket(GenericWSJTXPacket):
         self.wsjtx_id = ps.QString()
         self.new_decode = ps.QInt8()
         self.millis_since_midnight = ps.QInt32()
-        self.time = PacketUtil.midnight_utc() + datetime.timedelta(milliseconds=self.millis_since_midnight)
+        self.time = PacketUtil.midnight_utc() + timedelta(milliseconds=self.millis_since_midnight)
         self.snr = ps.QInt32()
         self.delta_t = ps.QFloat()
         self.delta_f = ps.QInt32()
