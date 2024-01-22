@@ -57,7 +57,7 @@ protected:
   // vertical placement of text rows   ---label---           ---button---
   const int yRow1 = 70;                   // "Screen Orientation", "This edge up"
   const int yRow2 = yRow1 + 70;           //                       "That edge up"
-  const int yRow9 = gScreenHeight - 12;   // "v1.03, Jul  9 2021"
+  const int yRow9 = gScreenHeight - 10;   // "v1.14, Jan 22 2024"
 
 #define col1    10    // left-adjusted column of text
 #define xButton 160   // indented column of buttons
@@ -72,14 +72,14 @@ protected:
   };
 
   // clang-format off
-#define nFields 5
+#define nFields 4
   TextField txtSettings6[nFields] = {
       //  text             x, y      color
       {"Rotation",        -1, 20,    cHIGHLIGHT, ALIGNCENTER},   // [SETTINGS]
       {"Screen",        col1, yRow1, cVALUE},                    // [SCREEN]
       {"Orientation",   col1, yRow1 + 20, cVALUE},               // [ORIENTATION]
       {PROGRAM_VERDATE,   -1, yRow9, cLABEL, ALIGNCENTER},       // [COMPILED]
-      {"6 of 6",      xPanel, 20,    cFAINT},                    // [PANEL]
+      //{"6 of 6",      xPanel, 20,    cFAINT},                    // [PANEL]
   };
   // clang-format on
 
@@ -97,7 +97,7 @@ protected:
   };
   // clang-format on
 
-#define xLine (xButton + 80)
+#define xLine (xButton + 92)
 #define topY  8
 #define botY  (gScreenHeight - 6)
 
@@ -194,7 +194,8 @@ void ViewCfgRotation::startScreen() {
     tft->drawCircle(xCenter, yCenter, 7, cVALUE);
   }
 
-  updateScreen();   // update UI immediately, don't wait for laggy mainline loop
+  showProgressBar(6, 6);   // draw marker for advancing through settings
+  updateScreen();          // update UI immediately, don't wait for laggy mainline loop
 }   // end startScreen()
 
 bool ViewCfgRotation::onTouch(Point touch) {

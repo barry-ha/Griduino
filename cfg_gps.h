@@ -63,7 +63,7 @@ protected:
   const int yRow2 = yRow1 + 20;           // "%d of %d"
   const int yRow3 = yRow2 + 52;           // "Route",            "GPS Receiver"
   const int yRow4 = yRow3 + 48;           //                     "Simulator"
-  const int yRow9 = gScreenHeight - 12;   // "v0.32, Feb  2 2021"
+  const int yRow9 = gScreenHeight - 10;   // "v1.14, Jan 22 2024"
 
 #define col1    10    // left-adjusted column of text
 #define xButton 160   // indented column of buttons
@@ -79,7 +79,7 @@ protected:
   };
 
   // clang-format off
-  #define nTextGPS 6
+  #define nTextGPS 5
   TextField txtSettings2[nTextGPS] = {
       //  text                x, y      color
       {"GPS",                -1, 20,    cHIGHLIGHT, ALIGNCENTER},   // [SETTINGS]
@@ -87,7 +87,7 @@ protected:
       {"%d crumbs",        col1, yRow2, cLABEL},                    // [TRAILCOUNT]
       {"Route",            col1, yRow3, cVALUE},                    // [GPSTYPE]
       {PROGRAM_VERDATE,      -1, yRow9, cLABEL, ALIGNCENTER},       // [COMPILED]
-      {"4 of 6",         xPanel, 20,    cFAINT},                    // [PANEL]
+      //{"4 of 6",         xPanel, 20,    cFAINT},                    // [PANEL]
   };
   // clang-format on
 
@@ -205,7 +205,8 @@ void ViewCfgGPS::startScreen() {
     tft->drawCircle(xCenter, yCenter, 7, cVALUE);
   }
 
-  updateScreen();   // fill in values immediately, don't wait for the main loop to eventually get around to it
+  showProgressBar(4, 6);   // draw marker for advancing through settings
+  updateScreen();          // fill in values immediately, don't wait for the main loop to eventually get around to it
 
   showScreenCenterline();   // optionally draw alignment bar
 }

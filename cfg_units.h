@@ -56,7 +56,7 @@ protected:
   // vertical placement of text rows   ---label---         ---button---
   const int yRow1 = 84;                   // "English",          "Miles, inHg"
   const int yRow2 = yRow1 + 50;           // "Metric",           "Kilometers, hPa"
-  const int yRow9 = gScreenHeight - 12;   // "v0.35, Feb 25 2021"
+  const int yRow9 = gScreenHeight - 10;   // "v1.14, Jan 22 2024"
 
 #define col1    10    // left-adjusted column of text
 #define xButton 160   // indented column of buttons
@@ -71,14 +71,14 @@ protected:
   };
 
   // clang-format off
-#define nTextUnits 5
+#define nTextUnits 4
   TextField txtSettings3[nTextUnits] = {
       //  text             x, y      color
       {"Units",           -1, 20,    cHIGHLIGHT, ALIGNCENTER},   // [SETTINGS]
       {"English",       col1, yRow1, cVALUE},                    // [ENGLISH]
       {"Metric",        col1, yRow2, cVALUE},                    // [METRIC]
       {PROGRAM_VERDATE,   -1, yRow9, cLABEL, ALIGNCENTER},       // [COMPILED]
-      {"5 of 6",      xPanel, 20,    cFAINT, ALIGNLEFT},         // [PANEL]
+      //{"5 of 6",      xPanel, 20,    cFAINT, ALIGNLEFT},         // [PANEL]
   };
   // clang-format on
 
@@ -136,11 +136,11 @@ void ViewCfgUnits::startScreen() {
   TextField::setTextDirty(txtSettings3, nTextUnits);   // make sure all fields get re-printed on screen change
   setFontSize(eFONTSMALLEST);
 
-  drawAllIcons();              // draw gear (settings) and arrow (next screen)
-  showDefaultTouchTargets();   // optionally draw box around default button-touch areas
+  drawAllIcons();                                        // draw gear (settings) and arrow (next screen)
+  showDefaultTouchTargets();                             // optionally draw box around default button-touch areas
   showMyTouchTargets(settings3Buttons, nButtonsUnits);   // optionally show this view's touch targets
-  showScreenBorder();          // optionally outline visible area
-  showScreenCenterline();      // optionally draw visual alignment bar
+  showScreenBorder();                                    // optionally outline visible area
+  showScreenCenterline();                                // optionally draw visual alignment bar
 
   // ----- draw text fields
   for (int ii = 0; ii < nTextUnits; ii++) {
@@ -173,7 +173,8 @@ void ViewCfgUnits::startScreen() {
     tft->drawCircle(xCenter, yCenter, 7, cVALUE);
   }
 
-  updateScreen();   // update UI immediately, don't wait for laggy mainline loop
+  showProgressBar(5, 6);   // draw marker for advancing through settings
+  updateScreen();          // update UI immediately, don't wait for laggy mainline loop
 }   // end startScreen()
 
 void ViewCfgUnits::endScreen() {

@@ -69,12 +69,12 @@ protected:
   const int space = 30;
   const int half  = space / 2;
 
-  const int yRow1 = 20;                  // title "Firmware Update"
-  const int yRow2 = yRow1 + space;       // "This option starts bootloader mode."
-  const int yRow3 = yRow2 + space;       // "Do you have a UF2 file?"
-  const int yRow4 = yRow3 + space;       // "Do you want to install it?""
-  const int yRow5 = yRow4 + half;        // "Cancel", "Install UF2" buttons
-  const int yRow9 = gScreenHeight - 4;   // "v1.12, Mar 30 2023"
+  const int yRow1 = 20;                   // title "Firmware Update"
+  const int yRow2 = yRow1 + space;        // "This option starts bootloader mode."
+  const int yRow3 = yRow2 + space;        // "Do you have a UF2 file?"
+  const int yRow4 = yRow3 + space;        // "Do you want to install it?""
+  const int yRow5 = yRow4 + half;         // "Cancel", "Install UF2" buttons
+  const int yRow9 = gScreenHeight - 10;   // "v1.14, Jan 22 2024"
 
   // ----- screen text
   // names for the array indexes, must be named in same order as array below
@@ -90,9 +90,9 @@ protected:
   const int left = 30;   // x: left text edge
   const int top  = 40;   // y: top text row
 
-// ----- static screen text
-// clang-format off
-#define nRebootValues 6
+  // ----- static screen text
+  // clang-format off
+#define nRebootValues 5
   TextField txtValues[nRebootValues] = {
       //  text             x, y      color
       {"7. Firmware Update",                  -1, yRow1, cHIGHLIGHT, ALIGNCENTER, eFONTSMALLEST},   // [TITLE] centered
@@ -100,7 +100,7 @@ protected:
       {"Do you have a UF2 file?",           left, yRow3, cVALUE, ALIGNLEFT,   eFONTSMALL},          // [LINE2]
       {"Do you want to install it?",        left, yRow4, cVALUE, ALIGNLEFT,   eFONTSMALL},          // [LINE3]
       {PROGRAM_VERDATE,                       -1, yRow9, cLABEL, ALIGNCENTER},                      // [COMPILED]
-      {"7 of 6",                          xPanel, 20,    cFAINT, ALIGNLEFT},                        // [PANEL]
+      //{"7 of 6",                          xPanel, 20,    cFAINT, ALIGNLEFT},                        // [PANEL]
   };
 
 enum buttonID {
@@ -207,7 +207,8 @@ void ViewCfgReboot::startScreen() {
     tft->print(item.text);
   }
 
-  updateScreen();   // update UI immediately, don't wait for the main loop to eventually get around to it
+  showProgressBar(7, 6);   // draw marker for advancing through settings
+  updateScreen();          // update UI immediately, don't wait for the main loop to eventually get around to it
 }   // end startScreen()
 
 bool ViewCfgReboot::onTouch(Point touch) {

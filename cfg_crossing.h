@@ -61,7 +61,7 @@ protected:
   const int yRow1 = 70;                   // "Announce at",      "4-Digit"
   const int yRow2 = yRow1 + 24;           // "grid crossing"
   const int yRow3 = yRow1 + 68;           //                     "6-Digit"
-  const int yRow9 = gScreenHeight - 12;   // "v0.38, Apr 13 2021"
+  const int yRow9 = gScreenHeight - 10;   // "v1.14, Jan 22 2024"
 
 #define col1    10    // left-adjusted column of text
 #define xButton 160   // indented column of buttons
@@ -78,7 +78,7 @@ protected:
   };
 
   // clang-format off
-#define nTextCrossing 7
+#define nTextCrossing 6
   TextField txtSettings4[nTextCrossing] = {
       //  text             x, y      color
       {"Announcements",   -1, 20,    cHIGHLIGHT, ALIGNCENTER},   // [SETTINGS]
@@ -87,7 +87,7 @@ protected:
       {"70 - 100 mi", xButton + 24, yRow1 + 22, cVALUE},         // [DISTANCE4]
       {"3 - 4 mi",    xButton + 38, yRow3 + 22, cVALUE},         // [DISTANCE6]
       {PROGRAM_VERDATE,   -1, yRow9, cLABEL, ALIGNCENTER},       // [COMPILED]
-      {"3 of 6",      xPanel, 20,    cFAINT},                    // [PANEL]
+      //{"3 of 6",      xPanel, 20,    cFAINT},                    // [PANEL]
   };
   // clang-format on
 
@@ -197,6 +197,7 @@ void ViewCfgCrossing::startScreen() {
     txtSettings4[ii].print();
   }
 
+  showProgressBar(3, 6);    // draw marker for advancing through settings
   showScreenBorder();       // optionally outline visible area
   showScreenCenterline();   // optionally draw alignment bar
 

@@ -70,7 +70,7 @@ protected:
   const int yRow1 = 80;                   // "Announcements", "Morse code"
   const int yRow2 = yRow1 + 52;           //                  "Spoken word"
   const int yRow3 = yRow2 + 52;           //                  "No audio"
-  const int yRow9 = gScreenHeight - 12;   // "v1.11, Dec 13 2022"
+  const int yRow9 = gScreenHeight - 10;   // "v1.14, Jan 22 2024"
 
 #define col1    10    // left-adjusted column of text
 #define xButton 160   // indented column of buttons
@@ -85,14 +85,14 @@ protected:
   };
 
   // clang-format off
-#define nTxtSettings5 5
+#define nTxtSettings5 4
   TextField txtSettings5[nTxtSettings5] = {
       //  text             x, y      color
       {"Audio Type",      -1, 20,    cHIGHLIGHT, ALIGNCENTER},   // [SETTINGS]
       {"Announce",      col1, yRow1, cVALUE},                    // [ANNOUNCEMENTS]
       {"grids using:",  col1, yRow1 + 20, cVALUE},               // [ANNOUNCEMENTS2]
       {PROGRAM_VERDATE,   -1, yRow9, cLABEL, ALIGNCENTER},       // [COMPILED]
-      {"2 of 6",      xPanel, 20,    cFAINT},                    // [PANEL]
+      //{"2 of 6",      xPanel, 20,    cFAINT},                    // [PANEL]
   };
   // clang-format on
 
@@ -204,6 +204,7 @@ void ViewCfgAudioType::startScreen() {
     txtSettings5[ii].print();
   }
 
+  showProgressBar(2, 6);    // draw marker for advancing through settings
   showScreenBorder();       // optionally outline visible area
   showScreenCenterline();   // optionally draw alignment bar
 

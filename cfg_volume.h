@@ -70,8 +70,9 @@ protected:
   // color scheme: see constants.h
 
   // vertical placement of text rows
-  const int yRow1 = 50;           // label: "Audio Volume"
-  const int yRow2 = yRow1 + 30;   // text:  "of 10"
+  const int yRow1 = 50;                   // label: "Audio Volume"
+  const int yRow2 = yRow1 + 30;           // text:  "of 10"
+  const int yRow9 = gScreenHeight - 10;   // "v1.14, Jan 22 2024"
 
 #define xButton 160   // indented column of buttons
 
