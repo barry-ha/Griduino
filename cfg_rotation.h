@@ -55,12 +55,14 @@ protected:
   // color scheme: see constants.h
 
   // vertical placement of text rows   ---label---           ---button---
-  const int yRow1 = 70;                   // "Screen Orientation", "This edge up"
+  const int yRow1 = 86;                   // "Screen Orientation", "This edge up"
   const int yRow2 = yRow1 + 70;           //                       "That edge up"
   const int yRow9 = gScreenHeight - 10;   // "v1.14, Jan 22 2024"
 
 #define col1    10    // left-adjusted column of text
 #define xButton 160   // indented column of buttons
+#define bWidth 140  //
+#define bHeight 40  //
 
   // names for the array indexes, must be named in same order as array below
   enum txtSettings6 {
@@ -90,14 +92,14 @@ protected:
   // clang-format off
 #define nButtons 2
   FunctionButton myButtons[nButtons] = {
-      // label             origin         size      touch-target
-      // text                x,y           w,h      x,y      w,h  radius  color   functionID
-      {"This edge up", xButton, yRow1 - 26, 140, 40, {120, 35, 190, 65}, 4, cVALUE, THIS_BUTTON},
-      {"That edge up", xButton, yRow2 - 26, 140, 40, {120, 100, 190, 75}, 4, cVALUE, THAT_BUTTON},
+      // label             origin           size                  touch-target
+      // text                x,y             w,h                     x,y            w,h  radius  color   functionID
+      {"This edge up", xButton, yRow1-26,  bWidth, bHeight, {xButton-2, yRow1-28,  bWidth+4, bHeight+4}, 4, cVALUE, THIS_BUTTON},
+      {"That edge up", xButton, yRow2-26,  bWidth, bHeight, {xButton-2, yRow2-28,  bWidth+4, bHeight+4}, 4, cVALUE, THAT_BUTTON},
   };
   // clang-format on
 
-#define xLine (xButton + 92)
+#define xLine (xButton + 100)
 #define topY  8
 #define botY  (gScreenHeight - 6)
 

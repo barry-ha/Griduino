@@ -54,7 +54,7 @@ protected:
   // color scheme: see constants.h
 
   // vertical placement of text rows   ---label---         ---button---
-  const int yRow1 = 84;                   // "English",          "Miles, inHg"
+  const int yRow1 = 92;                   // "English",          "Miles, inHg"
   const int yRow2 = yRow1 + 50;           // "Metric",           "Kilometers, hPa"
   const int yRow9 = gScreenHeight - 10;   // "v1.14, Jan 22 2024"
 
@@ -89,10 +89,10 @@ protected:
   // clang-format off
 #define nButtonsUnits 2
   FunctionButton settings3Buttons[nButtonsUnits] = {
-      // label                  origin         size      touch-target
-      // text                     x,y           w,h      x,y           w,h  radius  color   functionID
-      {"Miles, Feet, inHg", xButton, yRow1 - 26, 150, 40, {112, yRow1 - 36, 204, 56}, 4, cVALUE, eENGLISH},   // [eENGLISH] set units Miles/inHg
-      {"Kilometers, hPa", xButton, yRow2 - 26, 150, 40, {112, yRow2 - 31, 204, 64}, 4, cVALUE, eMETRIC},      // [eMETRIC] set units Metric
+      // label                  origin           size      touch-target
+      // text                     x,y             w,h       x,y            w,h  radius color  functionID
+      {"Miles, Feet, inHg", xButton, yRow1-26,  150, 40, {112, yRow1-36, 204, 56}, 4, cVALUE, eENGLISH},   // [eENGLISH] set units Miles/inHg
+      {"Kilometers, hPa",   xButton, yRow2-26,  150, 40, {112, yRow2-31, 204, 64}, 4, cVALUE, eMETRIC},    // [eMETRIC] set units Metric
   };
   // clang-format on
 

@@ -26,7 +26,6 @@
          labelX valueX
 */
 
-#include <Arduino.h>
 #include <Adafruit_ILI9341.h>            // TFT color display library
 #include "constants.h"                   // Griduino constants and colors
 #include <elapsedMillis.h>               // Scheduling intervals in main loop
@@ -260,10 +259,10 @@ void ViewSatCount::startScreen() {
   setFontSize(eFONTSMALL);
 
   drawAllIcons();              // draw gear (settings) and arrow (next screen)
-  showDefaultTouchTargets();   // optionally draw box around default button-touch areas
-  showMyTouchTargets(0, 0);    // no real buttons on this view
-  showScreenBorder();          // optionally outline visible area
-  showScreenCenterline();      // optionally draw visual alignment bar
+  //showDefaultTouchTargets();   // optionally draw box around default button-touch areas
+  //showMyTouchTargets(0, 0);    // no real buttons on this view
+  //showScreenBorder();          // optionally outline visible area
+  //showScreenCenterline();      // optionally draw visual alignment bar
 
   // ----- draw border for canvas of bar graph
   tft->drawRect(xLeft - 1, yTop - 1, (xRight - xLeft) + 2, (yBot - yTop) + 2, ILI9341_CYAN);
@@ -274,6 +273,7 @@ void ViewSatCount::startScreen() {
   }
 
   graphRefreshRequested = true;
+  //logger.fencepost("--- startScreen()", __LINE__);
   updateScreen();   // update UI immediately, don't wait for the main loop to eventually get around to it
 }
 

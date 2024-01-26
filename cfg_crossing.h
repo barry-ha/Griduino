@@ -58,7 +58,7 @@ protected:
   // color scheme: see constants.h
 
   // vertical placement of text rows   ---label---         ---button---
-  const int yRow1 = 70;                   // "Announce at",      "4-Digit"
+  const int yRow1 = 86;                   // "Announce at",      "4-Digit"
   const int yRow2 = yRow1 + 24;           // "grid crossing"
   const int yRow3 = yRow1 + 68;           //                     "6-Digit"
   const int yRow9 = gScreenHeight - 10;   // "v1.14, Jan 22 2024"
