@@ -70,7 +70,7 @@ protected:
   // color scheme: see constants.h
 
   // vertical placement of text rows
-  const int yRow1 = 50;                   // label: "Audio Volume"
+  const int yRow1 = 66;                   // label: "Audio Volume"
   const int yRow2 = yRow1 + 30;           // text:  "of 10"
   const int yRow9 = gScreenHeight - 10;   // "v1.14, Jan 22 2024"
 
@@ -87,15 +87,15 @@ protected:
   };
 
   // clang-format off
-#define numVolFields 6
+#define numVolFields 5
   TextField txtVolume[numVolFields] = {
       //  text           x, y      color       alignment    size
       {"Speaker",       -1, 20,    cHIGHLIGHT, ALIGNCENTER, eFONTSMALLEST},   // [SETTINGS]
       {"0",             82, yRow2, cVALUE, ALIGNRIGHT,      eFONTGIANT},      // [BIGVOLUME] giant audio volume display
       {"Audio Volume",  98, yRow1, cLABEL, ALIGNLEFT,       eFONTSMALL},      // [LINE1] normal size text labels
       {"of 10",         98, yRow2, cLABEL, ALIGNLEFT,       eFONTSMALL},      // [LINE2]
-      {"  Mute",       208, 156,   cBUTTONLABEL, ALIGNLEFT, eFONTSMALL},      // [MUTELABEL]
-      {"1 of 6",    xPanel, 20,    cFAINT, ALIGNLEFT,       eFONTSMALLEST},   // [PANEL]
+      {"  Mute",       216, 180,   cBUTTONLABEL, ALIGNLEFT, eFONTSMALL},      // [MUTELABEL] leading blanks to be on top of "Unmute"
+      //{"1 of 6",    xPanel, 20,    cFAINT},                                 // [PANEL]
   };
   // clang-format on
 
@@ -107,11 +107,11 @@ protected:
   // clang-format off
 #define nVolButtons 3
   FunctionButton volButtons[nVolButtons] = {
-      // label   origin     size       touch-target
-      // text     x,y        w,h       x,y      w,h    radius  color         functionID
-      {"", 38, 92, 136, 64, {38, 92, 136, 64}, 10, cBUTTONLABEL, UP_ID},        // Up
-      {"", 38, 166, 136, 64, {38, 166, 136, 64}, 10, cBUTTONLABEL, DOWN_ID},    // Down
-      {"", 200, 120, 98, 62, {198, 100, 122, 80}, 10, cBUTTONLABEL, MUTE_ID},   // Mute
+      // label  origin    size        touch-target
+      // text   x,y       w,h         x,y       w,h     radius  color       functionID
+      {"",   48, 108,   126, 62,   { 47, 107, 128, 64},  10, cBUTTONLABEL, UP_ID},     // Up
+      {"",   48, 176,   126, 62,   { 47, 175, 128, 64},  10, cBUTTONLABEL, DOWN_ID},   // Down
+      {"",  210, 142,    92, 62,   {208, 141, 112, 64},  10, cBUTTONLABEL, MUTE_ID},   // Mute
   };
   // clang-format on
 
@@ -192,7 +192,7 @@ protected:
     txtVolume[BIGVOLUME].setBackground(cBACKGROUND);
 
     txtVolume[MUTELABEL].setBackground(cBUTTONFILL);
-    txtVolume[MUTELABEL].print("  Mute");
+    txtVolume[MUTELABEL].print("  Mute");   // leading blanks to align it on top of "Unmute"
     setVolume(gVolIndex);
   }
 
@@ -256,6 +256,7 @@ void ViewVolume::startScreen() {
   yy = volButtons[1].y + volButtons[1].h / 2;
   tft->fillTriangle(xx - ww, yy - nn, xx + ww, yy - nn, xx, yy + ht - nn, cVALUE);   // arrow DOWN
 
+  showProgressBar(1, 6);    // draw marker for advancing through settings
   updateScreen();   // update UI immediately, don't wait for laggy mainline loop
 }   // end startScreen()
 
