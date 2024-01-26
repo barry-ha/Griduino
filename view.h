@@ -118,6 +118,7 @@ protected:
 
   void showProgressBar(int screen, int numScreens) {
     // draw marker for advancing through settings, eg, 1 of 6, 2 of 6, etc.
+    // we try to make it look like a filled rectangle
     int x0 = 74;              // lhs bounding box
     int y0 = 28;              // top bounding box
     int w  = 320 - x0 - x0;   // width of bounding box
@@ -126,11 +127,12 @@ protected:
 
     int wi = w / numScreens;   // width of each item
     for (int ii = 0; ii < numScreens; ii++) {
+      //               x,          y,  w, h, color
+      int xOuter = x0 + ii * wi;
+      tft->drawRect(xOuter, y0, wi, h, cFAINTER);
+
       if (ii == (screen - 1)) {
-        //               x,          y,  w, h, color
-        tft->fillRect(x0 + ii * wi, y0, wi, h, cFAINT);
-      } else {
-        tft->drawRect(x0 + ii * wi, y0, wi, h, cFAINTER);
+        tft->fillRect(xOuter + 1, y0, wi - 2, h, cLABEL);
       }
     }
   }
