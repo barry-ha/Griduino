@@ -220,7 +220,9 @@ void ViewTime::endScreen() {
   // We save our settings here instead of on each button press
   // because writing to NVR is slow (0.5 sec) and would delay the user
   // while trying to press a button many times in a row.
-  model->save();
+  //model->save();    // BUT! this slows down showing the next view
+  // TODO: schedule the "model->save" until some idle time with no 
+  //       user input, say 10 seconds of no touches
 }
 
 bool ViewTime::onTouch(Point touch) {

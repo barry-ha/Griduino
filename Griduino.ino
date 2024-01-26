@@ -964,9 +964,9 @@ void loop() {
     model->makeLocation(&whereAmI);
     trail.rememberGPS(whereAmI);
     logger.fencepost("Griduino.ino new grid4",__LINE__);  // debug
-    trail.saveGPSBreadcrumbTrail();
+    trail.saveGPSBreadcrumbTrail();   // entered new 4-digit grid
 
-    model->save();                 // tell the model to save itself
+    model->save();                 // entered new 4-digit grid
 
   } else if (model->enteredNewGrid6()) {
     if (!model->compare4digits) {
@@ -976,11 +976,12 @@ void loop() {
     model->makeLocation(&whereAmI);
     trail.rememberGPS(whereAmI);    // when we enter a new 6-digit grid, save it in breadcrumb trail
     logger.fencepost("Griduino.ino new grid6",__LINE__);  // debug
-    trail.saveGPSBreadcrumbTrail(); // because one user's home was barely in the next grid6
-                                    // and we want to show his grid6 at next power up
+    trail.saveGPSBreadcrumbTrail();   // entered new 6-digit grid 
+    // one user's home was barely in the next grid6
+    // and we want to show his grid6 at next power up
     // ALSO when entering a 6-digit grid: tell the model to save itself!
     // It's the _model_ that puts up the starting location at next power-up 
-    model->save();
+    model->save();                  // entered new 6-digit grid 
   }
 
   // if we drove far enough, add this to the breadcrumb trail
@@ -993,7 +994,8 @@ void loop() {
     prevRememberedGPS = currentGPS;
 
     if (0 == (trail.getHistoryCount() % trail.saveInterval)) {
-      trail.saveGPSBreadcrumbTrail();
+      logger.fencepost("Moved a visible distance",__LINE__);  // debug
+      trail.saveGPSBreadcrumbTrail();   // have moved a visible distance
     }
   }
 
@@ -1016,10 +1018,10 @@ void loop() {
 
     Location whereAmI;
     model->makeLocation(&whereAmI);
-    //logger.fencepost("Griduino.ino autolog timer",__LINE__);  // debug
+    logger.fencepost("Griduino.ino autolog timer",__LINE__);  // debug
     //whereAmI.printLocation();                                 // debug
     trail.rememberGPS(whereAmI);
-    trail.saveGPSBreadcrumbTrail();
+    trail.saveGPSBreadcrumbTrail();   // autosave timer
   }
 
   // if there's touchscreen input, handle it
