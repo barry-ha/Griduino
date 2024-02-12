@@ -11,20 +11,20 @@
 
   Purpose:  Ask operator to confirm reboot.
 
-            +-----------------------------------------+
-            |  *       7. Griduino Reboot          >  |... yRow1
-            |                                         |
-            |  Use this option to update firmware.    |... yRow2
-            |  Do you have a UF2 file?                |... yRow3
-            |  Do you want to reboot?                 |... yRow4
-            |  +=============+       +-------------+  |
-            |  |             |       |             |  |
-            |  |   Cancel    |       | Install UF2 |  |
-            |  |             |       |             |  |
-            |  +=============+       +-------------+  |
-            |                                         |
-            |           v1.12, Mar 30 2023            |... yRow9
-            +-----------------------------------------+
+            +-------------------------------------------+
+            |  *           Griduino Reboot           >  |... yRow1
+            |                                           |
+            |  Use this option to update firmware.      |... yRow2
+            |  Do you have a UF2 file?                  |... yRow3
+            |  Do you want to reboot?                   |... yRow4
+            |  +=============+         +-------------+  |
+            |  |             |         |             |  |
+            |  |   Cancel    |         | Install UF2 |  |
+            |  |             |         |             |  |
+            |  +=============+         +-------------+  |
+            |                                           |
+            | v1.12, Feb 10 2021                        |... yRow9
+            +-------------------------------------------+
 */
 
 #include <Adafruit_ILI9341.h>   // TFT color display library
@@ -207,7 +207,7 @@ void ViewCfgReboot::startScreen() {
     tft->print(item.text);
   }
 
-  showProgressBar(7, 6);   // draw marker for advancing through settings
+  showProgressBar(7, 7);   // draw marker for advancing through settings
   updateScreen();          // update UI immediately, don't wait for the main loop to eventually get around to it
 }   // end startScreen()
 

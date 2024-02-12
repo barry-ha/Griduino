@@ -111,6 +111,7 @@
 #include "cfg_audio_type.h"           // config audio Morse/speech
 #include "cfg_crossing.h"             // config 4/6 digit crossing
 #include "cfg_gps.h"                  // config GPS (alphabetical order)
+#include "cfg_nmea.h"                 // config NMEA broadcasting
 #include "cfg_reboot.h"               // show firmware update option
 #include "cfg_rotation.h"             // config screen rotation 
 #include "cfg_units.h"                // config english/metric
@@ -169,6 +170,7 @@ Adafruit_GPS GPS(&Serial1);           // https://github.com/adafruit/Adafruit_GP
 // ---------- config settings
 // these are controllable by serial USB commands (command.h)
 bool showTouchTargets = false;
+bool showCenterline   = false;
 
 // ---------- lat/long and date/time conversion utilities
 Grids grid = Grids();
@@ -329,6 +331,7 @@ enum VIEW_INDEX {
   CFG_AUDIO_TYPE,        // audio output Morse/speech
   CFG_CROSSING,          // announce grid crossing 4/6 digit boundaries
   CFG_GPS,               // gps/simulator
+  CFG_NMEA,              // broadcast NMEA
   CFG_REBOOT,            // confirm reboot
   CFG_ROTATION,          // screen rotation
   CFG_UNITS,             // english/metric
@@ -366,6 +369,7 @@ ViewBaro          baroView(&tft, BARO_VIEW);            // instantiate derived c
 ViewCfgAudioType  cfgAudioType(&tft, CFG_AUDIO_TYPE);
 ViewCfgCrossing   cfgCrossing(&tft, CFG_CROSSING);
 ViewCfgGPS        cfgGPS(&tft, CFG_GPS);
+ViewCfgNMEA       cfgNMEA(&tft, CFG_NMEA);
 ViewCfgReboot     cfgReboot(&tft, CFG_REBOOT);
 ViewCfgRotation   cfgRotation(&tft, CFG_ROTATION);
 ViewCfgUnits      cfgUnits(&tft, CFG_UNITS);
@@ -392,6 +396,7 @@ void selectNewView(int cmd) {
       &cfgAudioType,        // [CFG_AUDIO_TYPE]
       &cfgCrossing,         // [CFG_CROSSING]
       &cfgGPS,              // [CFG_GPS]
+      &cfgNMEA,             // [CFG_NMEA]
       &cfgReboot,           // [CFG_REBOOT]
       &cfgRotation,         // [CFG_ROTATION]
       &cfgUnits,            // [CFG_UNITS]
@@ -435,7 +440,8 @@ void selectNewView(int cmd) {
       //se VOLUME2_VIEW:   nextView = CFG_AUDIO_TYPE; break;
       case CFG_AUDIO_TYPE: nextView = CFG_CROSSING; break;
       case CFG_CROSSING:   nextView = CFG_GPS; break;
-      case CFG_GPS:        nextView = CFG_UNITS; break;
+      case CFG_GPS:        nextView = CFG_NMEA; break;
+      case CFG_NMEA:       nextView = CFG_UNITS; break;
       case CFG_UNITS:      nextView = CFG_ROTATION; break;
 #if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
       case CFG_ROTATION:   nextView = CFG_REBOOT; break;
@@ -643,7 +649,6 @@ void setup() {
   tft.fillScreen(ILI9341_BLACK);      // note that "begin()" does not clear screen
 
   // ----- init screen orientation
-  Serial.println("Starting cfgRotation.loadConfig()...");
   cfgRotation.loadConfig();           // restore previous screen orientation
 
   // ----- init touchscreen
@@ -666,6 +671,10 @@ void setup() {
   Serial.println(PROGRAM_TITLE " " PROGRAM_VERSION);  // Report our program name to console
   Serial.println("Compiled " PROGRAM_COMPILED);       // Report our compiled date
   Serial.println(__FILE__);                           // Report our source code file name
+
+  // ----- init NMEA broadcasting on/off
+  logger.info("Starting cfgNMEA.loadConfig()...");
+  cfgNMEA.loadConfig();
 
   // ----- init GPS
   GPS.begin(9600);   // 9600 NMEA is the default baud rate for Adafruit MTK GPS's

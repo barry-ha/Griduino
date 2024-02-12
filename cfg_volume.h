@@ -11,19 +11,19 @@
             It has nothing to do with the DAC, audio files, Morse code speed/pitch,
             or with other playback attributes.
 
-            +---------------------------------+
-            | * 1 of 6    Speaker           > |
-            |    33    Audio Volume           |... yRow1
-            |    33    of 10                  |... yRow2
-            |                                 |
-            |       +--------------+          |
-            |       |      Up      |          |
-            |       |              | +-------+
-            |       +--------------+ |  Mute  |
-            |       |     Down     | +--------+
-            |       |              |          |
-            +-------+--------------+----------+
-
+            +-------------------------------------------+
+            |  *               Speaker               >  |
+            |                                           |
+            |    33    Audio Volume                     |... yRow1
+            |    33    of 10                            |... yRow2
+            |                                           |
+            |       +----------------+                  |
+            |       |       Up       |                  |
+            |       |                |   +--------+     |
+            |       +----------------+   |  Mute  |     |
+            |       |     Down       |   +--------+     |
+            |       |                |                  |
+            +-------+----------------+------------------+
 */
 
 #include <Adafruit_ILI9341.h>   // TFT color display library
@@ -256,8 +256,8 @@ void ViewVolume::startScreen() {
   yy = volButtons[1].y + volButtons[1].h / 2;
   tft->fillTriangle(xx - ww, yy - nn, xx + ww, yy - nn, xx, yy + ht - nn, cVALUE);   // arrow DOWN
 
-  showProgressBar(1, 6);    // draw marker for advancing through settings
-  updateScreen();   // update UI immediately, don't wait for laggy mainline loop
+  showProgressBar(1, 7);   // draw marker for advancing through settings
+  updateScreen();          // update UI immediately, don't wait for laggy mainline loop
 }   // end startScreen()
 
 void ViewVolume::endScreen() {

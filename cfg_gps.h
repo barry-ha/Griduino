@@ -9,18 +9,18 @@
             Since it's not intended for a driver in motion, we can use
             a smaller font and cram more stuff onto the screen.
 
-            +-----------------------------------------+
-            |                4. GPS                   |
-            |                                         |
-            | Breadcrumb trail    [ Clear ]           |
-            | 123 of 6000                             |
-            |                                         |
-            | Route            (o)[ GPS Receiver ]    |
-            |                  ( )[  Simulator   ]    |
-            |                                         |
-            |                                         |
-            | v0.32, Feb 2 2021  08:16                |
-            +-----------------------------------------+
+            +-------------------------------------------+
+            |                4. GPS                     |
+            |                                           |
+            | Breadcrumb trail     [ Clear ]            |
+            | 123 of 6000                               |
+            |                                           |
+            | Route             (o)[ GPS Receiver ]     |
+            |                   ( )[  Simulator   ]     |
+            |                                           |
+            |                                           |
+            | v1.12, Feb 10 2021                        |... yRow9
+            +-------------------------------------------+
 */
 
 #include <Adafruit_ILI9341.h>    // TFT color display library
@@ -205,7 +205,7 @@ void ViewCfgGPS::startScreen() {
     tft->drawCircle(xCenter, yCenter, 7, cVALUE);
   }
 
-  showProgressBar(4, 6);   // draw marker for advancing through settings
+  showProgressBar(4, 7);   // draw marker for advancing through settings
   updateScreen();          // fill in values immediately, don't wait for the main loop to eventually get around to it
 
   showScreenCenterline();   // optionally draw alignment bar

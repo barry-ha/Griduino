@@ -10,7 +10,7 @@
             a smaller font and cram more stuff onto the screen.
 
             +-------------------------------------------+
-            |             3. Announcements              |
+            |  *          3. Announcements           >  |
             |                                           |
             | Announce at       (o)[ 4-digit       ]    |
             | grid crossing:                            |
@@ -197,7 +197,7 @@ void ViewCfgCrossing::startScreen() {
     txtSettings4[ii].print();
   }
 
-  showProgressBar(3, 6);    // draw marker for advancing through settings
+  showProgressBar(3, 7);    // draw marker for advancing through settings
   showScreenBorder();       // optionally outline visible area
   showScreenCenterline();   // optionally draw alignment bar
 

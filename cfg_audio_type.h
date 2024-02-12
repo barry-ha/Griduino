@@ -9,17 +9,17 @@
             Since it's not intended for a driver in motion, we can use
             a smaller font and cram more stuff onto the screen.
 
-            +-----------------------------------------+
-            |             2. Audio Type               |
-            |                                         |
-            | Announcements      (o)[ Morse code ]    |... yRow1
-            |                                         |
-            |                    ( )[ Spoken word ]   |... yRow2
-            |                                         |
-            |                    ( )[ No audio ]      |... yRow3
-            |                                         |
-            |           v1.11, Dec 13 2022            |... yRow9
-            +-----------------------------------------+
+            +-------------------------------------------+
+            |                Audio Type                 |
+            |                                           |
+            | Announcements       (o)[ Morse code ]     |... yRow1
+            |                                           |
+            |                     ( )[ Spoken word ]    |... yRow2
+            |                                           |
+            |                     ( )[ No audio ]       |... yRow3
+            |                                           |
+            | v1.12, Feb 10 2021                        |... yRow9
+            +-------------------------------------------+
 */
 
 #include <Adafruit_ILI9341.h>   // TFT color display library
@@ -204,7 +204,7 @@ void ViewCfgAudioType::startScreen() {
     txtSettings5[ii].print();
   }
 
-  showProgressBar(2, 6);    // draw marker for advancing through settings
+  showProgressBar(2, 7);    // draw marker for advancing through settings
   showScreenBorder();       // optionally outline visible area
   showScreenCenterline();   // optionally draw alignment bar
 

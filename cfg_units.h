@@ -9,17 +9,17 @@
             Since it's not intended for a driver in motion, we can use
             a smaller font and cram more stuff onto the screen.
 
-            +-----------------------------------------+
-            |               5. Units                  |
-            |                                         |
-            | Distance        (o)[ Miles, inHg     ]  |. . .yRow1
-            |                 ( )[ Kilometers, hPa ]  |. . .yRow2
-            |                                         |
-            |                                         |
-            |                                         |
-            |                                         |
-            | v0.35, Feb 25 2021  09:41               |
-            +-----------------------------------------+
+            +-------------------------------------------+
+            |  *                Units                >  |
+            |                                           |
+            | Distance         (o)[ Miles, inHg     ]   |. . .yRow1
+            |                  ( )[ Kilometers, hPa ]   |. . .yRow2
+            |                                           |
+            |                                           |
+            |                                           |
+            |                                           |
+            | v1.14, Feb 12 2024                        |... yRow9
+            +-------------------------------------------+
 */
 
 #include <Adafruit_ILI9341.h>   // TFT color display library
@@ -61,24 +61,14 @@ protected:
 #define col1    10    // left-adjusted column of text
 #define xButton 160   // indented column of buttons
 
-  // these are names for the array indexes, must be named in same order as array below
-  enum txtSettings3 {
-    SETTINGS = 0,
-    ENGLISH,
-    METRIC,
-    COMPILED,
-    PANEL,
-  };
-
   // clang-format off
 #define nTextUnits 4
-  TextField txtSettings3[nTextUnits] = {
+  TextField txtStatic[nTextUnits] = {
       //  text             x, y      color
-      {"Units",           -1, 20,    cHIGHLIGHT, ALIGNCENTER},   // [SETTINGS]
-      {"English",       col1, yRow1, cVALUE},                    // [ENGLISH]
-      {"Metric",        col1, yRow2, cVALUE},                    // [METRIC]
-      {PROGRAM_VERDATE,   -1, yRow9, cLABEL, ALIGNCENTER},       // [COMPILED]
-      //{"5 of 6",      xPanel, 20,    cFAINT, ALIGNLEFT},         // [PANEL]
+      {"Units",           -1, 20,    cHIGHLIGHT, ALIGNCENTER},
+      {"English",       col1, yRow1, cVALUE},
+      {"Metric",        col1, yRow2, cVALUE},
+      {PROGRAM_VERDATE,   -1, yRow9, cLABEL, ALIGNCENTER},
   };
   // clang-format on
 
@@ -88,7 +78,7 @@ protected:
   };
   // clang-format off
 #define nButtonsUnits 2
-  FunctionButton settings3Buttons[nButtonsUnits] = {
+  FunctionButton myButtons[nButtonsUnits] = {
       // label                  origin           size      touch-target
       // text                     x,y             w,h       x,y            w,h  radius color  functionID
       {"Miles, Feet, inHg", xButton, yRow1-26,  150, 40, {112, yRow1-36, 204, 56}, 4, cVALUE, eENGLISH},   // [eENGLISH] set units Miles/inHg
@@ -114,7 +104,7 @@ void ViewCfgUnits::updateScreen() {
 
   // ----- show selected radio buttons by filling in the circle
   for (int ii = eENGLISH; ii <= eMETRIC; ii++) {
-    FunctionButton item = settings3Buttons[ii];
+    FunctionButton item = myButtons[ii];
     int xCenter         = item.x - 16;
     int yCenter         = item.y + (item.h / 2);
     int buttonFillColor = cBACKGROUND;
@@ -131,26 +121,26 @@ void ViewCfgUnits::updateScreen() {
 
 void ViewCfgUnits::startScreen() {
   // called once each time this view becomes active
-  this->clearScreen(this->background);                 // clear screen
-  txtSettings3[0].setBackground(this->background);     // set background for all TextFields in this view
-  TextField::setTextDirty(txtSettings3, nTextUnits);   // make sure all fields get re-printed on screen change
+  this->clearScreen(this->background);              // clear screen
+  txtStatic[0].setBackground(this->background);     // set background for all TextFields in this view
+  TextField::setTextDirty(txtStatic, nTextUnits);   // make sure all fields get re-printed on screen change
   setFontSize(eFONTSMALLEST);
 
-  drawAllIcons();                                        // draw gear (settings) and arrow (next screen)
-  showDefaultTouchTargets();                             // optionally draw box around default button-touch areas
-  showMyTouchTargets(settings3Buttons, nButtonsUnits);   // optionally show this view's touch targets
-  showScreenBorder();                                    // optionally outline visible area
-  showScreenCenterline();                                // optionally draw visual alignment bar
+  drawAllIcons();                                 // draw gear (settings) and arrow (next screen)
+  showDefaultTouchTargets();                      // optionally draw box around default button-touch areas
+  showMyTouchTargets(myButtons, nButtonsUnits);   // optionally show this view's touch targets
+  showScreenBorder();                             // optionally outline visible area
+  showScreenCenterline();                         // optionally draw visual alignment bar
 
   // ----- draw text fields
   for (int ii = 0; ii < nTextUnits; ii++) {
-    txtSettings3[ii].print();
+    txtStatic[ii].print();
   }
 
   // ----- draw buttons
   setFontSize(eFONTSMALLEST);
   for (int ii = 0; ii < nButtonsUnits; ii++) {
-    FunctionButton item = settings3Buttons[ii];
+    FunctionButton item = myButtons[ii];
     tft->fillRoundRect(item.x, item.y, item.w, item.h, item.radius, cBUTTONFILL);
     tft->drawRoundRect(item.x, item.y, item.w, item.h, item.radius, cBUTTONOUTLINE);
 
@@ -164,7 +154,7 @@ void ViewCfgUnits::startScreen() {
 
   // ----- draw outlines of radio buttons
   for (int ii = eENGLISH; ii <= eMETRIC; ii++) {
-    FunctionButton item = settings3Buttons[ii];
+    FunctionButton item = myButtons[ii];
     int xCenter         = item.x - 16;
     int yCenter         = item.y + (item.h / 2);
 
@@ -173,7 +163,7 @@ void ViewCfgUnits::startScreen() {
     tft->drawCircle(xCenter, yCenter, 7, cVALUE);
   }
 
-  showProgressBar(5, 6);   // draw marker for advancing through settings
+  showProgressBar(6, 7);   // draw marker for advancing through settings
   updateScreen();          // update UI immediately, don't wait for laggy mainline loop
 }   // end startScreen()
 
@@ -187,10 +177,9 @@ void ViewCfgUnits::endScreen() {
 }
 
 bool ViewCfgUnits::onTouch(Point touch) {
-  logger.info("->->-> Touched settings screen.");
   bool handled = false;   // assume a touch target was not hit
   for (int ii = 0; ii < nButtonsUnits; ii++) {
-    FunctionButton item = settings3Buttons[ii];
+    FunctionButton item = myButtons[ii];
     if (item.hitTarget.contains(touch)) {
       handled = true;               // hit!
       switch (item.functionIndex)   // do the thing

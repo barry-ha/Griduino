@@ -9,17 +9,17 @@
             Since it's not intended for a driver in motion, we can use
             a smaller font and cram more stuff onto the screen.
 
-            +-----------------------------------------+
-            |             6. Rotation       /|\       |
-            | Screen                         |        |
-            | Orientation        (o)[ This edge up ]  |
-            |                                         |
-            |                    ( )[ That edge up ]  |
-            |                                |        |
-            |                                |        |
-            |                                |        |
-            | v0.36, Apr 6 2021             \|/       |
-            +-----------------------------------------+
+            +-------------------------------------------+
+            |  *              Rotation        /|\     > |
+            | Screen                           |        |
+            | Orientation         (o)[ This edge up ]   |
+            |                                           |
+            |                     ( )[ That edge up ]   |
+            |                                  |        |
+            |                                  |        |
+            |                                  |        |
+            | v1.12, Feb 10 2021              \|/       |
+            +-------------------------------------------+
 */
 
 #include <Adafruit_ILI9341.h>   // TFT color display library
@@ -57,31 +57,21 @@ protected:
   // vertical placement of text rows   ---label---           ---button---
   const int yRow1 = 86;                   // "Screen Orientation", "This edge up"
   const int yRow2 = yRow1 + 70;           //                       "That edge up"
-  const int yRow9 = gScreenHeight - 10;   // "v1.14, Jan 22 2024"
+  const int yRow9 = gScreenHeight - 10;   // "v1.14, Feb 12 2024"
 
 #define col1    10    // left-adjusted column of text
 #define xButton 160   // indented column of buttons
-#define bWidth 140  //
-#define bHeight 40  //
-
-  // names for the array indexes, must be named in same order as array below
-  enum txtSettings6 {
-    SETTINGS = 0,
-    SCREEN,
-    ORIENTATION,
-    COMPILED,
-    PANEL,
-  };
+#define bWidth  140   //
+#define bHeight 40    //
 
   // clang-format off
 #define nFields 4
   TextField txtSettings6[nFields] = {
       //  text             x, y      color
-      {"Rotation",        -1, 20,    cHIGHLIGHT, ALIGNCENTER},   // [SETTINGS]
-      {"Screen",        col1, yRow1, cVALUE},                    // [SCREEN]
-      {"Orientation",   col1, yRow1 + 20, cVALUE},               // [ORIENTATION]
-      {PROGRAM_VERDATE,   -1, yRow9, cLABEL, ALIGNCENTER},       // [COMPILED]
-      //{"6 of 6",      xPanel, 20,    cFAINT},                    // [PANEL]
+      {"Rotation",        -1, 20,    cHIGHLIGHT, ALIGNCENTER},
+      {"Screen",        col1, yRow1, cVALUE},
+      {"Orientation",   col1, yRow1 + 20, cVALUE},
+      {PROGRAM_VERDATE,   -1, yRow9, cLABEL, ALIGNCENTER},
   };
   // clang-format on
 
@@ -196,7 +186,7 @@ void ViewCfgRotation::startScreen() {
     tft->drawCircle(xCenter, yCenter, 7, cVALUE);
   }
 
-  showProgressBar(6, 6);   // draw marker for advancing through settings
+  showProgressBar(6, 7);   // draw marker for advancing through settings
   updateScreen();          // update UI immediately, don't wait for laggy mainline loop
 }   // end startScreen()
 
@@ -261,9 +251,9 @@ void ViewCfgRotation::loadConfig() {
       break;
     }
     tft->setRotation(this->screenRotation);   // 0=portrait (default), 1=landscape, 3=180 degrees
-    logger.info("Loaded screen orientation: ", this->screenRotation);
+    logger.info("Loaded rotation value: ", this->screenRotation);
   } else {
-    logger.error("Failed to load screen orientation, re-initializing config file");
+    logger.error("Failed to load, re-initializing config file");
     this->screenRotation = LANDSCAPE;
     saveConfig();
   }
@@ -272,5 +262,5 @@ void ViewCfgRotation::loadConfig() {
 void ViewCfgRotation::saveConfig() {
   SaveRestore config(SCREEN_CONFIG_FILE, CONFIG_SCREEN_VERSION);
   int rc = config.writeConfig((byte *)&screenRotation, sizeof(screenRotation));
-  logger.info("Finished ViewCfgRotation::saveConfig() with rc = %d", rc);   // debug
+  logger.info("Finished ViewCfgNMEA::saveConfig() with rc = %d", rc);   // debug
 }
