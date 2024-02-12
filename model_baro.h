@@ -64,15 +64,15 @@
 */
 
 #if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
-  #include <Wire.h>
-  #include <Adafruit_BMP280.h>   // Precision barometric and temperature sensor
-  #include <Adafruit_Sensor.h>
+#include <Wire.h>
+#include <Adafruit_BMP280.h>   // Precision barometric and temperature sensor
+#include <Adafruit_Sensor.h>
 #else
-  #include <Adafruit_BMP3XX.h>   // Precision barometric and temperature sensor
+#include <Adafruit_BMP3XX.h>   // Precision barometric and temperature sensor
 #endif
-#include "constants.h"         // Griduino constants, colors, typedefs
-#include "logger.h"            // conditional printing to Serial port
-#include "date_helper.h"       // date/time conversions
+#include "constants.h"     // Griduino constants, colors, typedefs
+#include "logger.h"        // conditional printing to Serial port
+#include "date_helper.h"   // date/time conversions
 
 // ========== extern ===========================================
 extern Logger logger;   // Griduino.ino

@@ -88,8 +88,9 @@ public:
       Serial.println("ERROR! Failed to save GPS Model object to SDRAM");
       return 0;   // return failure
     }
-    trail.saveGPSBreadcrumbTrail();
-    return 1;   // return success
+    logger.fencepost("Save model, save breadcrumbs too", __LINE__);   // debug
+    trail.saveGPSBreadcrumbTrail();                                   // while saving gpsmodel, also write breadcrumbs
+    return 1;                                                         // return success
   }
 
   // ----- load from SDRAM -----

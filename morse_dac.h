@@ -40,7 +40,7 @@ public:
   void send_dah() {}
   void send_dit_space() {}
   void send_letter_space() {}
-  void send_word_space(){}
+  void send_word_space() {}
 };
 #else
 
@@ -108,4 +108,4 @@ public:
 private:
   void send(char c);
 };   // end class DACMorseSender
-#endif  // ARDUINO_ADAFRUIT_FEATHER_RP2040
+#endif   // ARDUINO_ADAFRUIT_FEATHER_RP2040

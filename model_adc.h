@@ -34,7 +34,7 @@ public:
     float coinVoltage = coinBattery * voltsPerSample;
     return coinVoltage;
 #else
-    return -1.0;    // indicate no coin battery voltage sensor
+    return -1.0;   // indicate no coin battery voltage sensor
 #endif
   }
 
