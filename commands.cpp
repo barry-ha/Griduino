@@ -34,6 +34,7 @@ void dump_kml(), dump_gps_history(), erase_gps_history(), list_files(), type_gps
 void start_nmea(), stop_nmea(), start_gmt(), stop_gmt();
 void view_help(), view_screen1(), view_splash(), view_crossings(), view_events();
 void show_touch(), hide_touch();
+void show_centerline(), hide_centerline();
 void run_unittest();
 
 // ----- table of commands
@@ -59,6 +60,9 @@ Command cmdList[] = {
 
     {"show touch", show_touch, Newline},
     {"hide touch", hide_touch, 0},
+
+    {"show centerline", show_centerline, Newline},
+    {"hide centerline", hide_centerline, 0},
 
     {"view help", view_help, Newline},
     {"view splash", view_splash, 0},
@@ -108,7 +112,7 @@ void dump_gps_history() {
 void erase_gps_history() {
   trail.clearHistory();
   trail.rememberPUP();
-  trail.deleteFile();               // out with the old history file
+  trail.deleteFile();   // out with the old history file
   logger.fencepost("commands.cpp", __LINE__);
   trail.saveGPSBreadcrumbTrail();   // start over with new history file
 }
@@ -124,12 +128,12 @@ void type_gpshistory() {
 }
 
 void start_nmea() {
-  Serial.println("started");
+  Serial.println("started NMEA");
   logger.print_nmea = true;
 }
 
 void stop_nmea() {
-  Serial.println("stopped");
+  Serial.println("stopped NMEA");
   logger.print_nmea = false;
 }
 
@@ -183,6 +187,20 @@ void show_touch() {
 void hide_touch() {
   Serial.println("hiding touch targets");
   showTouchTargets = false;
+  pView->startScreen();
+  pView->updateScreen();
+}
+
+void show_centerline() {
+  Serial.println("showing centerline");
+  showCenterline = true;
+  pView->startScreen();
+  pView->updateScreen();
+}
+
+void hide_centerline() {
+  Serial.println("hiding centerline");
+  showCenterline = false;
   pView->startScreen();
   pView->updateScreen();
 }
