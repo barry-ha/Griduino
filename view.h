@@ -17,6 +17,7 @@
 #include "icons.h"              // bitmaps for icons
 
 extern bool showTouchTargets;   // Griduino.ino
+extern bool showCenterline;     // Griduino.ino
 
 // ========== abstract base class ViewCfgAudioType ================
 class View {
@@ -101,11 +102,12 @@ protected:
 #endif
   }
   void showScreenCenterline() {
-#ifdef SHOW_SCREEN_CENTERLINE
-    // show centerline at      x1,y1              x2,y2             color
-    tft->drawLine(tft->width() / 2, 0, tft->width() / 2, tft->height(), cWARN);   // debug
-#endif
+    if (showCenterline) {
+      // show centerline at       x1,y1                x2,y2              color
+      tft->drawLine(tft->width() / 2, 0, tft->width() / 2, tft->height(), cWARN);
+    }
   }
+
   void showNameOfView(String sName, uint16_t fgd, uint16_t bkg) {
     // Some of the "view" modules want to label themselves in the upper left corner
     // Caution: this function changes font. The caller needs to change it back, if needed.
