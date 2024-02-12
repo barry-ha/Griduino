@@ -680,12 +680,12 @@ void setup() {
   GPS.begin(9600);   // 9600 NMEA is the default baud rate for Adafruit MTK GPS's
   delay(50);         // is delay really needed?
 
-  Serial.print("Set GPS baud rate to 57600: ");
-  Serial.println(PMTK_SET_BAUD_57600);
-  GPS.sendCommand(PMTK_SET_BAUD_57600);
-  delay(50);
-  GPS.begin(57600);
-  delay(50);
+  //Serial.print("Set GPS baud rate to 57600: ");
+  //Serial.println(PMTK_SET_BAUD_57600);
+  //GPS.sendCommand(PMTK_SET_BAUD_57600);
+  //delay(50);
+  //GPS.begin(57600);
+  //delay(50);
 
   // init Quectel L86 chip to improve USA satellite acquisition
   GPS.sendCommand("$PMTK353,1,0,0,0,0*2A");   // search American GPS satellites only (not Russian GLONASS satellites)
