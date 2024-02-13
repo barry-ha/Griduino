@@ -101,17 +101,19 @@ protected:
       // label                  origin           size      touch-target
       // text                     x,y             w,h       x,y            w,h  radius color  functionID
       {"Send NMEA",         xButton, yButton1,  150, 40, {130, yButton1, 184, 50}, 4, cVALUE, eSTART_NMEA},
-      {"None",              xButton, yButton2,  150, 40, {130, yButton2, 184, 60}, 4, cVALUE, eSTOP_NMEA},
+      {"No report",         xButton, yButton2,  150, 40, {130, yButton2, 184, 60}, 4, cVALUE, eSTOP_NMEA},
   };
   // clang-format on
 
   // ---------- local functions for this derived class ----------
   void fStartNMEA() {
+    selectedOption = SEND_NMEA;
     start_nmea();   // start sending nmea sentences
     this->updateScreen();
   }
 
   void fStopNMEA() {
+    selectedOption = SILENT;
     stop_nmea();   // stop nmea
     this->updateScreen();
   }
@@ -230,8 +232,8 @@ void ViewCfgNMEA::loadConfig() {
   // resource-heavy functions like updateScreen()
 
   SaveRestore config(NMEA_CONFIG_FILE, NMEA_CONFIG_VERSION);
-  byte tempOption;
-  int result = config.readConfig((byte *)&tempOption, sizeof(tempOption));
+  int tempOption = 0;
+  int result     = config.readConfig((byte *)&tempOption, sizeof(tempOption));
   if (result) {
     switch (tempOption) {
     case SEND_NMEA:
@@ -262,6 +264,7 @@ void ViewCfgNMEA::loadConfig() {
 // ----- save to SDRAM -----
 void ViewCfgNMEA::saveConfig() {
   SaveRestore config(NMEA_CONFIG_FILE, NMEA_CONFIG_VERSION);
+  logger.info("Saving value: %d", selectedOption);
   int rc = config.writeConfig((byte *)&selectedOption, sizeof(selectedOption));
   logger.info("Finished ViewCfgRotation::saveConfig(%d) with rc = %d", selectedOption, rc);   // debug
 }

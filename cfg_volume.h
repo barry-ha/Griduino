@@ -320,8 +320,8 @@ bool ViewVolume::onTouch(Point touch) {
 // ----- load from SDRAM -----
 void ViewVolume::loadConfig() {
   SaveRestore config(VOLUME_CONFIG_FILE, CONFIG_VOLUME_VERSION);
-  int tempVolIndex;
-  int result = config.readConfig((byte *)&tempVolIndex, sizeof(tempVolIndex));
+  int tempVolIndex = 0;
+  int result       = config.readConfig((byte *)&tempVolIndex, sizeof(tempVolIndex));
   if (result) {
     gVolIndex = constrain(tempVolIndex, 0, 10);   // global volume index
     setVolume(gVolIndex);                         // set the hardware to this volume index
