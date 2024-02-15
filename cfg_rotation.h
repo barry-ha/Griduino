@@ -186,7 +186,7 @@ void ViewCfgRotation::startScreen() {
     tft->drawCircle(xCenter, yCenter, 7, cVALUE);
   }
 
-  showProgressBar(6, 7);   // draw marker for advancing through settings
+  showProgressBar(8, 8);   // draw marker for advancing through settings
   updateScreen();          // update UI immediately, don't wait for laggy mainline loop
 }   // end startScreen()
 

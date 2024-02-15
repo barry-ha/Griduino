@@ -87,7 +87,6 @@ protected:
       {"%d crumbs",        col1, yRow2, cLABEL},                    // [TRAILCOUNT]
       {"Route",            col1, yRow3, cVALUE},                    // [GPSTYPE]
       {PROGRAM_VERDATE,      -1, yRow9, cLABEL, ALIGNCENTER},       // [COMPILED]
-      //{"4 of 6",         xPanel, 20,    cFAINT},                    // [PANEL]
   };
   // clang-format on
 
@@ -205,7 +204,7 @@ void ViewCfgGPS::startScreen() {
     tft->drawCircle(xCenter, yCenter, 7, cVALUE);
   }
 
-  showProgressBar(4, 7);   // draw marker for advancing through settings
+  showProgressBar(4, 8);   // draw marker for advancing through settings
   updateScreen();          // fill in values immediately, don't wait for the main loop to eventually get around to it
 
   showScreenCenterline();   // optionally draw alignment bar

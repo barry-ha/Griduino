@@ -111,6 +111,7 @@
 #include "cfg_audio_type.h"           // config audio Morse/speech
 #include "cfg_crossing.h"             // config 4/6 digit crossing
 #include "cfg_gps.h"                  // config GPS (alphabetical order)
+#include "cfg_gps_reset.h"            // config GPS reset to factory
 #include "cfg_nmea.h"                 // config NMEA broadcasting
 #include "cfg_reboot.h"               // show firmware update option
 #include "cfg_rotation.h"             // config screen rotation 
@@ -331,6 +332,7 @@ enum VIEW_INDEX {
   CFG_AUDIO_TYPE,        // audio output Morse/speech
   CFG_CROSSING,          // announce grid crossing 4/6 digit boundaries
   CFG_GPS,               // gps/simulator
+  CFG_GPS_RESET,         // factory reset GPS
   CFG_NMEA,              // broadcast NMEA
   CFG_REBOOT,            // confirm reboot
   CFG_ROTATION,          // screen rotation
@@ -369,6 +371,7 @@ ViewBaro          baroView(&tft, BARO_VIEW);            // instantiate derived c
 ViewCfgAudioType  cfgAudioType(&tft, CFG_AUDIO_TYPE);
 ViewCfgCrossing   cfgCrossing(&tft, CFG_CROSSING);
 ViewCfgGPS        cfgGPS(&tft, CFG_GPS);
+ViewCfgGpsReset   cfgGpsReset(&tft, CFG_GPS_RESET);
 ViewCfgNMEA       cfgNMEA(&tft, CFG_NMEA);
 ViewCfgReboot     cfgReboot(&tft, CFG_REBOOT);
 ViewCfgRotation   cfgRotation(&tft, CFG_ROTATION);
@@ -396,6 +399,7 @@ void selectNewView(int cmd) {
       &cfgAudioType,        // [CFG_AUDIO_TYPE]
       &cfgCrossing,         // [CFG_CROSSING]
       &cfgGPS,              // [CFG_GPS]
+      &cfgGpsReset,         // [CFG_GPS_RESET]
       &cfgNMEA,             // [CFG_NMEA]
       &cfgReboot,           // [CFG_REBOOT]
       &cfgRotation,         // [CFG_ROTATION]
@@ -441,7 +445,8 @@ void selectNewView(int cmd) {
       case CFG_AUDIO_TYPE: nextView = CFG_CROSSING; break;
       case CFG_CROSSING:   nextView = CFG_GPS; break;
       case CFG_GPS:        nextView = CFG_NMEA; break;
-      case CFG_NMEA:       nextView = CFG_UNITS; break;
+      case CFG_NMEA:       nextView = CFG_GPS_RESET; break;
+      case CFG_GPS_RESET:  nextView = CFG_UNITS; break;
       case CFG_UNITS:      nextView = CFG_ROTATION; break;
 #if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
       case CFG_ROTATION:   nextView = CFG_REBOOT; break;
@@ -680,12 +685,19 @@ void setup() {
   GPS.begin(9600);   // 9600 NMEA is the default baud rate for Adafruit MTK GPS's
   delay(50);         // is delay really needed?
 
-  //Serial.print("Set GPS baud rate to 57600: ");
-  //Serial.println(PMTK_SET_BAUD_57600);
-  //GPS.sendCommand(PMTK_SET_BAUD_57600);
+  Serial.print("Set GPS baud rate to 57600: ");
+  Serial.println(PMTK_SET_BAUD_57600);
+  GPS.sendCommand(PMTK_SET_BAUD_57600);
+  delay(50);
+  GPS.begin(57600);
+  delay(50);
+
+  /****************** DANGER ****************/
+  // one-time usage
+  // Full Cold Restart: reset the receiver to the factory status
+  //GPS.sendCommand("$PMTK104*37\r\n");
   //delay(50);
-  //GPS.begin(57600);
-  //delay(50);
+  /****************** DANGER ****************/
 
   // init Quectel L86 chip to improve USA satellite acquisition
   GPS.sendCommand("$PMTK353,1,0,0,0,0*2A");   // search American GPS satellites only (not Russian GLONASS satellites)

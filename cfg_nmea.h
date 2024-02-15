@@ -63,12 +63,13 @@ protected:
   // color scheme: see constants.h
 
   // vertical placement of text rows
+  const int space = 30;
   const int yRow1 = 80;
   const int yRow2 = yRow1 + 24;
   const int yRow3 = yRow2 + 24;
   const int yRow4 = yRow3 + 50;
   const int yRow5 = yRow4 + 24;
-  const int yRow9 = gScreenHeight - 10;   // "v1.14, Feb 12 2024"
+  const int yRow9 = gScreenHeight - 10;   // "v1.14, Feb 15 2024"
 
   const int yButton1 = 62;
   const int yButton2 = yButton1 + 54;
@@ -82,7 +83,7 @@ protected:
 #define nTextNMEA 6
   TextField txtStatic[nTextNMEA] = {
       //  text                x, y      color
-      {"NMEA Sentences",     -1, 20,    cHIGHLIGHT, ALIGNCENTER},
+      {"GPS NMEA Sentences", -1, 20,    cHIGHLIGHT, ALIGNCENTER},
       {"Report GPS ",      col1, yRow1, cVALUE},
       {"positions",        col1, yRow2, cVALUE},
       {"NMEA sentences are available", -1, yRow4, cFAINT, ALIGNCENTER},
@@ -182,7 +183,7 @@ void ViewCfgNMEA::startScreen() {
     tft->drawCircle(xCenter, yCenter, 7, cVALUE);
   }
 
-  showProgressBar(5, 7);   // draw marker for advancing through settings
+  showProgressBar(5, 8);   // draw marker for advancing through settings
   updateScreen();          // update UI immediately, don't wait for laggy mainline loop
 }   // end startScreen()
 
