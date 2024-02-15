@@ -204,7 +204,7 @@ void ViewCfgAudioType::startScreen() {
     txtSettings5[ii].print();
   }
 
-  showProgressBar(2, 7);    // draw marker for advancing through settings
+  showProgressBar(2, 8);    // draw marker for advancing through settings
   showScreenBorder();       // optionally outline visible area
   showScreenCenterline();   // optionally draw alignment bar
 
