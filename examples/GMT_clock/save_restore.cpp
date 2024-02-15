@@ -46,7 +46,7 @@ static void dumpHex(const char * text, char * buff, int len) {
 int SaveRestore::readConfig() {
   // returns 1=success, 0=failure
   int result = 1;             // assume success
-  Serial.println("Starting to read config from SDRAM...");
+  Serial.println("Reading config file from SDRAM...");
     
   result = openFlash();       // open file system
   if (!result) {
