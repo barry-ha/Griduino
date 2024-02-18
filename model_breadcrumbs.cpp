@@ -94,6 +94,12 @@ void Breadcrumbs::dumpHistoryGPS(int limit) {
       snprintf(out, sizeof(out), "%d, %s, %s, %s, %s, %s, %s, %s, %s, %s, %d",
                ii, item->recordType, sDate, sTime, grid6, sLat, sLng, sAltitude, sSpeed, sDirection, nSats);
 
+    } else if (item->isCoinBatteryVoltage()) {
+      char sVolts[12];
+      floatToCharArray(sVolts, sizeof(sVolts), item->speed, 2);
+      snprintf(out, sizeof(out), "%d, %s, %s, %s, %s",
+               ii, item->recordType, sDate, sTime, sVolts);
+
     } else {
       // format for "should not happen" messages
       snprintf(out, sizeof(out), "%d, --> Type '%s' unknown: ", ii, item->recordType);

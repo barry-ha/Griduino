@@ -39,6 +39,9 @@ enum {
 #include <Arduino.h>   // for "strncpy" and others
 #include "logger.h"    // conditional printing to Serial port
 
+// extern
+void floatToCharArray(char *result, int maxlen, double fValue, int decimalPlaces);   // Griduino.ino
+
 class Logger {
 
 public:
@@ -114,6 +117,15 @@ public:
     if (print_info) {
       char msg[256];
       snprintf(msg, sizeof(msg), pText, value);
+      Serial.println(msg);
+    }
+  }
+  void info(const char *pText, const float value1, const int decimalPlaces) {   // one format string containing %s, one float, one int
+    if (print_info) {
+      char msg[256];
+      char sFloat[8];
+      floatToCharArray(sFloat, sizeof(sFloat), value1, decimalPlaces);
+      snprintf(msg, sizeof(msg), pText, sFloat);
       Serial.println(msg);
     }
   }

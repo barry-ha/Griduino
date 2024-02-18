@@ -834,6 +834,7 @@ void setup() {
 //uint32_t prevTimeGPS = millis();
 elapsedSeconds saveGpsTimer;          // timer to process and save the current GPS location
 elapsedSeconds autoLogTimer;          // timer to save GPS trail periodically no matter what
+elapsedSeconds batteryTimer;          // timer to log the coin battery voltage
 uint32_t prevTimeBaro = millis();
 time_t prevTimeRTC = 0;               // timer to print RTC to serial port (1 second)
 elapsedMillis displayClockTimer;      // timer to update time-of-day display (1 second)
@@ -856,6 +857,7 @@ const uint32_t GPS_AUTOSAVE_INTERVAL = SECS_PER_10MIN; // seconds between saving
 //const int BAROMETRIC_PROCESS_INTERVAL = 15*60*1000;  // fifteen minutes in milliseconds
 const uint LOG_PRESSURE_INTERVAL = 15*60*1000;   // 15 minutes, in milliseconds
 const uint LOS_ANNOUNCEMENT_INTERVAL = SECS_PER_5MIN * 1000;   // msec between LOS announcements
+const int  LOG_COIN_BATTERY_INTERVAL = 60;       // seconds between logging the coin battery voltage
 
 void loop() {
 
@@ -1031,6 +1033,21 @@ void loop() {
       sendMorseLostSignal();    // announce GPS signal lost by Morse code
       losTimer = 0;             // restart LOS timer
     }
+  }
+
+  // periodically log the coin battery's voltage 
+  // todo: sensor exists only on PCB v11+
+  if (batteryTimer > LOG_COIN_BATTERY_INTERVAL) {
+    batteryTimer = 0;
+
+    const float analogRef     = 3.3;    // analog reference voltage
+    const uint16_t analogBits = 1024;   // ADC resolution is 10 bits
+
+    int coin_adc       = analogRead(BATTERY_ADC);
+    float coin_voltage = (float)coin_adc * analogRef / analogBits;
+    logger.info("Coin battery = %s", coin_voltage, 3);
+
+    trail.rememberBAT(coin_voltage);
   }
 
   // log GPS position every few minutes, to keep track of lingering in one spot

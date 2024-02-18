@@ -8,7 +8,7 @@
 
   Breadcrumb trail strategy:
             This is a "model" of the Model-View-Controller design pattern.
-            As such, it contains the data for holding all the breadcrumbs  and is a
+            As such, it contains the data for holding all the breadcrumbs and is a
             low-level component with minimal side effects and few dependencies.
 
             This "Breadcrumbs" object will just only manage itself.
@@ -18,7 +18,7 @@
             We don't reach into the "model" from here and tell it what to do.
             If the controller tells us to save to file, don't tell the "model" to do anything.
 
-            When should the controller should remember a new breadcrumb?
+            When should the controller tell us to remember a new breadcrumb?
             1. Every ten minutes
             2. When we drive a visible distance on the screen
             3. When we drive into a new 6-digit grid square (todo)
@@ -164,6 +164,13 @@ public:
   void rememberLOS(Location vLoc) {   // save "loss of signal" in history buffer
     strncpy(vLoc.recordType, rLOSSOFSIGNAL, sizeof(vLoc.recordType));
     remember(vLoc);
+  }
+
+  void rememberBAT(float volts) {   // save "coin battery voltage" in history buffer
+    // all we have to do is save a float, so re-use the "speed" field
+    Location bat{rCOINBATTERYVOLTAGE, noLocation, now(), noSatellites, volts, noDirection, noAltitude};
+    strncpy(bat.recordType, rCOINBATTERYVOLTAGE, sizeof(bat.recordType));
+    remember(bat);
   }
 
   void rememberFirstValidTime(time_t vTime, uint8_t vSats) {   // save "first valid time received from GPS"

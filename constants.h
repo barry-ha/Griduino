@@ -212,8 +212,9 @@ struct FunctionButton {
 #define rFIRSTVALIDTIME      "TIM"
 #define rLOSSOFSIGNAL        "LOS"
 #define rACQUISITIONOFSIGNAL "AOS"
+#define rCOINBATTERYVOLTAGE  "BAT"
 #define rRESET               "\0\0\0"
-#define rVALIDATE            rGPS rPOWERUP rPOWERDOWN rFIRSTVALIDTIME rLOSSOFSIGNAL rACQUISITIONOFSIGNAL
+#define rVALIDATE            rGPS rPOWERUP rPOWERDOWN rFIRSTVALIDTIME rLOSSOFSIGNAL rACQUISITIONOFSIGNAL rCOINBATTERYVOLTAGE
 
 // Breadcrumb data definition for circular buffer
 class Location {
@@ -222,7 +223,7 @@ public:
   PointGPS loc;            // has-a lat/long, degrees
   time_t timestamp;        // has-a GMT time
   uint8_t numSatellites;   // number of satellites in use (not the same as in view)
-  float speed;             // current speed over ground in MPH
+  float speed;             // current speed over ground in MPH (or coin battery voltage)
   float direction;         // direction of travel, degrees from true north
   float altitude;          // altitude, meters above MSL
 public:
@@ -267,6 +268,10 @@ public:
 
   bool isAcquisitionOfSignal() const {
     return (strncmp(recordType, rACQUISITIONOFSIGNAL, sizeof(recordType)) == 0);
+  }
+
+  bool isCoinBatteryVoltage() const {
+    return (strncmp(recordType, rCOINBATTERYVOLTAGE, sizeof(recordType)) == 0);
   }
 
   // print ourself - a sanity check
