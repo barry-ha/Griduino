@@ -97,6 +97,7 @@
 
 #include "view.h"                     // Griduino screens base class, followed by derived classes in alphabetical order
 #include "view_altimeter.h"           // altimeter
+#include "view_battery.h"             // coin battery
 #include "view_baro.h"                // barometric pressure graph
 #include "view_events.h"              // counting days to/from calendar events
 #include "view_grid_crossings.h"      // list of time spent in each grid
@@ -329,6 +330,7 @@ BarometerModel baroModel;   // create instance of the model
 enum VIEW_INDEX {
   ALTIMETER_VIEW = 0,    // altimeter
   BARO_VIEW,             // barometer graph
+  BATTERY_VIEW,          // coin battery voltage
   CFG_AUDIO_TYPE,        // audio output Morse/speech
   CFG_CROSSING,          // announce grid crossing 4/6 digit boundaries
   CFG_GPS,               // gps/simulator
@@ -368,6 +370,7 @@ View* pView;      // pointer to a derived class
 // vvv sort vvv
 ViewAltimeter     altimeterView(&tft, ALTIMETER_VIEW);  // alphabetical order by class name
 ViewBaro          baroView(&tft, BARO_VIEW);            // instantiate derived classes
+ViewBattery       batteryView(&tft, BATTERY_VIEW);
 ViewCfgAudioType  cfgAudioType(&tft, CFG_AUDIO_TYPE);
 ViewCfgCrossing   cfgCrossing(&tft, CFG_CROSSING);
 ViewCfgGPS        cfgGPS(&tft, CFG_GPS);
@@ -396,6 +399,7 @@ void selectNewView(int cmd) {
       // vvv same order as enum vvv
       &altimeterView,       // [ALTIMETER_VIEW]
       &baroView,            // [BARO_VIEW]
+      &batteryView,         // [BATTERY_VIEW]
       &cfgAudioType,        // [CFG_AUDIO_TYPE]
       &cfgCrossing,         // [CFG_CROSSING]
       &cfgGPS,              // [CFG_GPS]
@@ -431,7 +435,8 @@ void selectNewView(int cmd) {
       case SAT_COUNT_VIEW: nextView = BARO_VIEW; break;
       case BARO_VIEW:      nextView = ALTIMETER_VIEW; break;
       case ALTIMETER_VIEW: nextView = STATUS_VIEW; break;
-      case STATUS_VIEW:    nextView = TEN_MILE_ALERT_VIEW; break;
+      case STATUS_VIEW:    nextView = BATTERY_VIEW; break;
+      case BATTERY_VIEW:   nextView = TEN_MILE_ALERT_VIEW; break;
       case TEN_MILE_ALERT_VIEW: nextView = GRID_VIEW; break;
       case EVENTS_VIEW:    nextView = GRID_VIEW; break;   // skip EVENTS_VIEW (nobody uses it)
       // none of above: we must be showing some settings view, so go to the first normal user view
