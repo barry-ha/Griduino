@@ -29,21 +29,16 @@
                 xUL     xLR xV        xVolts
 */
 
-#include <Arduino.h>
+// #include <Arduino.h>
 #include <Adafruit_ILI9341.h>   // TFT color display library
 #include "constants.h"          // Griduino constants and colors
 #include "logger.h"             // conditional printing to Serial port
-#include "grid_helper.h"        // lat/long conversion routines
-#include "model_gps.h"          // Model of a GPS for model-view-controller
 #include "TextField.h"          // Optimize TFT display text for proportional fonts
 #include "view.h"               // Base class for all views
 
 // ========== extern ===========================================
 extern Logger logger;                                                                // Griduino.ino
-extern Grids grid;                                                                   // grid_helper.h
-extern Model *model;                                                                 // "model" portion of model-view-controller
 void floatToCharArray(char *result, int maxlen, double fValue, int decimalPlaces);   // Griduino.ino
-extern void showDefaultTouchTargets();                                               // Griduino.ino
 
 // ========== class ViewBattery =================================
 class ViewBattery : public View {
@@ -69,32 +64,17 @@ protected:
   const int half  = space / 2;
 
   const int yRow1 = 18;
-  const int y35   = yRow1 + space + half;
-  const int y30   = y35 + space;
-  const int y25   = y30 + space;
-  const int y20   = y25 + space;
-  const int y15   = y20 + space;
   const int yRow9 = 226;   // GMT date on bottom row, "226" will match other views
 
   const int xV = 150;   // left-align values
 
   const int xVolts = 218;                        // "2.951" voltage display
-  const int yVolts = (gScreenHeight / 2) - 50;   //
-
-  const int xUL = 70;   // rectangle of battery icon
-  const int yUL = 50;
-  const int xLR = 130;
-  const int yLR = 184;
+  const int yVolts = (gScreenHeight / 2) - 40;   //
 
   // ----- screen text
   // names for the array indexes, must be named in same order as array below
   enum txtIndex {
     TITLE = 0,
-    LABEL_35,
-    LABEL_30,
-    LABEL_25,
-    LABEL_20,
-    LABEL_15,
     MEASUREMENT,
     VOLTS,
     GMT_DATE,
@@ -104,14 +84,9 @@ protected:
 
   // ----- static + dynamic screen text
   // clang-format off
-#define nBatteryValues 11
+#define nBatteryValues 6
   TextField txtValues[nBatteryValues] = {
       {"Coin Battery Voltage",-1, yRow1, cTITLE,  ALIGNCENTER,  eFONTSMALLEST}, // [TITLE] view title, centered
-      {"3.5",           xV, y35,    cLABEL,  ALIGNLEFT,   eFONTSMALLEST},      // [LABEL_35]
-      {"3.0",           xV, y30,    cLABEL,  ALIGNLEFT,   eFONTSMALLEST},      // [LABEL_30]
-      {"2.5",           xV, y25,    cLABEL,  ALIGNLEFT,   eFONTSMALLEST},      // [LABEL_25]
-      {"2.0",           xV, y20,    cLABEL,  ALIGNLEFT,   eFONTSMALLEST},      // [LABEL_20]
-      {"1.5",           xV, y15,    cLABEL,  ALIGNLEFT,   eFONTSMALLEST},      // [LABEL_15]
       {"2.591",     xVolts, yVolts, cVALUE,  ALIGNLEFT,   eFONTSMALL},      // [MEASUREMENT]
       {"volts",     xVolts, yVolts+space, cVALUE, ALIGNLEFT, eFONTSMALL},   // [VOLTS]
       {"Apr 26, 2021", 130, yRow9,  cFAINT,  ALIGNRIGHT,  eFONTSMALLEST},   // [GMT_DATE]
@@ -120,6 +95,32 @@ protected:
   };
   // clang-format on
 
+  // rectangle for battery icon
+  const int xUL = 70;   // pixels
+  const int yUL = 50;
+  const int xLR = 130;
+  const int yLR = 184;
+
+  // ----- canvas for bar graph (inside battery rectangle)
+  const int gxUL = xUL + 6;   // upper left corner, pixels
+  const int gyUL = yUL + 6;
+  const int gxLR = xLR - 7;   // lower right corner, pixels
+  const int gyLR = yLR - 6;
+  const int gw   = gxLR - gxUL;   // canvas width, pixels
+  const int gh   = gyLR - gyUL;   // canvas height, pixels
+
+  int previous_y0 = 0;   // (pixels) optimize screen draw
+
+  // local functions
+  uint16_t getColor(float v) {
+    if (v >= 2.25) {
+      return ILI9341_GREEN;
+    } else if (v >= 2.0) {
+      return ILI9341_YELLOW;
+    } else {
+      return ILI9341_RED;
+    }
+  }
 };   // end class ViewBattery
 
 // ============== implement public interface ================
@@ -135,6 +136,25 @@ void ViewBattery::updateScreen() {
   char sVolts[12];
   floatToCharArray(sVolts, sizeof(sVolts), coin_voltage, 3);
   txtValues[MEASUREMENT].print(sVolts);
+
+  // ----- update bar graph
+  int percent = (int)((coin_voltage - 1.5) / (3.5 - 1.5) * 100);
+  int y0      = map(percent, 0, 100, gyLR, gyUL);
+  y0          = constrain(y0, gyUL, gyLR - 1);
+  int color   = getColor(coin_voltage);
+
+  // ----- if no change since last pass, do nothing
+  if (true) {           // (y0 != previous_y0) {
+    previous_y0 = y0;   // save for next pass
+
+    // erase empty rectangle above
+    int h = y0 - gyUL;
+    tft->fillRect(gxUL, gyUL, gw, h, cBACKGROUND);
+
+    // fill in rectangle below
+    h = gyLR - y0;
+    tft->fillRect(gxUL, y0, gw, h, color);   // draw rect from top of screen downward
+  }
 
   // ----- GMT date & time
   char sDate[15];   // strlen("Jan 12, 2020") = 13
@@ -159,11 +179,8 @@ void ViewBattery::startScreen() {
   showScreenBorder();          // optionally outline visible area
   showScreenCenterline();      // optionally draw visual alignment bar
 
-  // ----- debug
-  char msg[128];
-  snprintf(msg, sizeof(msg), "y35=%d, y30=%d, y25=%d, y20=%d, y15=%d",
-           y35, y30, y25, y20, y15);
-  Serial.println(msg);
+  // ----- debug: outline the graph area
+  // tft->drawRect(gxUL, gyUL, gw, gh, ILI9341_GREEN);
 
   // ----- draw battery representation
   int radius = 6;
@@ -171,6 +188,26 @@ void ViewBattery::startScreen() {
   int h      = yLR - yUL;
   tft->drawRoundRect(xUL, yUL, w, h, radius, cVALUE);                          // battery outline
   tft->drawLine(xUL + (w / 3), yUL - 1, xUL + (w * 2 / 3), yUL - 1, cVALUE);   // battery +ve terminal
+
+  // ----- draw calibration marks next to battery graph
+  float marks[5]    = {3.5, 3.0, 2.5, 2.0, 1.5};
+  char label[5][5]  = {"3.5", "3.0", "2.5", "2.0", "1.5"};
+  uint16_t color[5] = {ILI9341_GREEN, ILI9341_GREEN, ILI9341_GREEN, ILI9341_YELLOW, ILI9341_RED};
+
+  for (int ii = 0; ii < 5; ii++) {
+    int percent = (int)((marks[ii] - 1.5) / (3.5 - 1.5) * 100);
+    int y0      = map(percent, 0, 100, gyLR, gyUL);
+
+    // reticles
+    int x0        = gxLR + 14;
+    const int len = 10;
+    tft->drawFastHLine(x0, y0, len, color[ii]);
+
+    // legends
+    int x1 = x0 + len + 4;
+    TextField legend{label[ii], x1, y0, color[ii], ALIGNLEFT, eFONTSMALLEST};
+    legend.print();
+  }
 
   // ----- draw all fields
   for (int ii = 0; ii < nBatteryValues; ii++) {
