@@ -23,7 +23,7 @@
             |   | ####### | 2.0                 |...y20
             |   | ####### |                     |
             |   +---------+ 1.5                 |...y15, yLR
-            |                                   |
+            |      CR2032                       |
             |    Jan 01, 2020  01:01:01  GMT    |...yRow9
             +---:---------:-:---------:---------+
                 xUL     xLR xV        xVolts
@@ -64,7 +64,7 @@ protected:
   const int half  = space / 2;
 
   const int yRow1 = 18;
-  const int yRow9 = 226;   // GMT date on bottom row, "226" will match other views
+  const int yRow9 = 230;   // GMT date on bottom row, "230" will match other views
 
   const int xV = 150;   // left-align values
 
@@ -75,6 +75,7 @@ protected:
   // names for the array indexes, must be named in same order as array below
   enum txtIndex {
     TITLE = 0,
+    CELL_TYPE,
     MEASUREMENT,
     VOLTS,
     GMT_DATE,
@@ -84,9 +85,10 @@ protected:
 
   // ----- static + dynamic screen text
   // clang-format off
-#define nBatteryValues 6
+#define nBatteryValues 7
   TextField txtValues[nBatteryValues] = {
       {"Coin Battery Voltage",-1, yRow1, cTITLE,  ALIGNCENTER,  eFONTSMALLEST}, // [TITLE] view title, centered
+      {"CR2032",        66, 206,    cLABEL,  ALIGNLEFT,   eFONTSMALLEST},   // [CELL_TYPE]
       {"2.591",     xVolts, yVolts, cVALUE,  ALIGNLEFT,   eFONTSMALL},      // [MEASUREMENT]
       {"volts",     xVolts, yVolts+space, cVALUE, ALIGNLEFT, eFONTSMALL},   // [VOLTS]
       {"Apr 26, 2021", 130, yRow9,  cFAINT,  ALIGNRIGHT,  eFONTSMALLEST},   // [GMT_DATE]
