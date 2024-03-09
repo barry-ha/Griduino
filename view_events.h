@@ -221,19 +221,22 @@ protected:
     NUMSATS,
   };
 
+  // ----- static + dynamic screen text
+  // clang-format off
 #define numDateFields 9
   TextField txtDate[numDateFields] = {
-      // text            x,y    color       alignment    size
-      {"line1", -1, 20, cTEXTCOLOR, ALIGNCENTER, eFONTSMALLEST},        // [TITLE1] program title, centered
-      {"line2", -1, 44, cTEXTCOLOR, ALIGNCENTER, eFONTSMALLEST},        // [TITLE2]
-      {"line3", -1, 86, cVALUE, ALIGNCENTER, eFONTSMALL},               // [TITLE3]
-      {"nnn", -1, 152, cVALUE, ALIGNCENTER, eFONTGIANT},                // [COUNTDAYS] counted number of days
-      {"01:02:03", -1, 182, cVALUEFAINT, ALIGNCENTER, eFONTSMALLEST},   // [COUNTTIME] counted number of hms
-      {"MMM dd, yyyy", 66, 226, cFAINT, ALIGNLEFT, eFONTSMALLEST},      // [LOCALDATE] Local date
-      {"hh:mm:ss", 178, 226, cFAINT, ALIGNLEFT, eFONTSMALLEST},         // [LOCALTIME] Local time
-      {"-7h", 8, 226, cFAINT, ALIGNLEFT, eFONTSMALLEST},                // [TIMEZONE]  addHours time zone
-      {"6#", 308, 226, cFAINT, ALIGNRIGHT, eFONTSMALLEST},              // [NUMSATS]   numSats
+      // text          x,y    color       alignment    size
+      {"line1",       -1,  20, cTEXTCOLOR, ALIGNCENTER, eFONTSMALLEST},   // [TITLE1] program title, centered
+      {"line2",       -1,  44, cTEXTCOLOR, ALIGNCENTER, eFONTSMALLEST},   // [TITLE2]
+      {"line3",       -1,  86, cVALUE,     ALIGNCENTER, eFONTSMALL},      // [TITLE3]
+      {"nnn",         -1, 152, cVALUE,     ALIGNCENTER, eFONTGIANT},      // [COUNTDAYS] counted number of days
+      {"01:02:03",    -1, 182, cVALUEFAINT,ALIGNCENTER, eFONTSMALLEST},   // [COUNTTIME] counted number of hms
+      {"MMM dd, yyyy",66, 230, cFAINT,     ALIGNLEFT,   eFONTSMALLEST},   // [LOCALDATE] Local date
+      {"hh:mm:ss",   178, 230, cFAINT,     ALIGNLEFT,   eFONTSMALLEST},   // [LOCALTIME] Local time
+      {"-7h",          8, 230, cFAINT,     ALIGNLEFT,   eFONTSMALLEST},   // [TIMEZONE]  addHours time zone
+      {"6#",         308, 230, cFAINT,     ALIGNRIGHT,  eFONTSMALLEST},   // [NUMSATS]   numSats
   };
+  // clang-format on
 
   enum buttonID {
     eMore,
