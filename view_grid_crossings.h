@@ -181,7 +181,7 @@ protected:
   const int yRow6   = yRow5 + space;
   const int yRow7   = yRow6 + space;
   const int yRow8   = yRow7 + space;
-  const int yRowBot = 226;   // GMT date on bottom row, "y=226" will match other views
+  const int yRowBot = 230;   // GMT date on bottom row, "y=230" will match other views
 
   const int xGrid      = 6;
   const int xEnterCL   = 158;   // center line for "enter grid"
