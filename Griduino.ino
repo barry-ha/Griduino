@@ -868,7 +868,7 @@ const uint32_t GPS_AUTOSAVE_INTERVAL = SECS_PER_10MIN; // seconds between saving
 //const int BAROMETRIC_PROCESS_INTERVAL = 15*60*1000;  // fifteen minutes in milliseconds
 const uint LOG_PRESSURE_INTERVAL = 15*60*1000;   // 15 minutes, in milliseconds
 const uint LOS_ANNOUNCEMENT_INTERVAL = SECS_PER_5MIN * 1000;   // msec between LOS announcements
-const int  LOG_COIN_BATTERY_INTERVAL = 60;       // seconds between logging the coin battery voltage
+const int  LOG_COIN_BATTERY_INTERVAL = 2 * SECS_PER_1MIN;      // seconds between logging the coin battery voltage
 
 void loop() {
 
