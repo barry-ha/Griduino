@@ -88,6 +88,11 @@ const int BRIGHT    = 32;    // = tolerably bright indoors
 const int HALFBR    = 20;    // = half of tolerably bright
 const int OFF       = 0;     // = turned off
 
+// ------- Coin Battery good/bad thresholds ---------
+const float GOOD_BATTERY_MINIMUM    = (2.25);   // green, if above this voltage
+const float WARNING_BATTERY_MINIMUM = (2.00);   // yellow, if above this voltage
+const float BAD_BATTERY_MAXIMUM     = (2.00);   // red, if below this voltage
+
 // ----- Griduino color scheme
 // RGB 565 true color: https://chrishewett.com/blog/true-rgb565-colour-picker/
 #define BACKGROUND     0x00A            // a little darker than ILI9341_NAVY

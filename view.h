@@ -15,9 +15,11 @@
 #include "constants.h"          // Griduino constants and colors
 #include "logger.h"             // conditional printing to Serial port
 #include "icons.h"              // bitmaps for icons
+#include "model_adc.h"          // Model of the analog-digital converter
 
-extern bool showTouchTargets;   // Griduino.ino
-extern bool showCenterline;     // Griduino.ino
+extern bool showTouchTargets;       // Griduino.ino
+extern bool showCenterline;         // Griduino.ino
+extern BatteryVoltage gpsBattery;   // model_adc.h
 
 // ========== abstract base class ViewCfgAudioType ================
 class View {
@@ -92,15 +94,23 @@ protected:
 
   void drawAllIcons() {
     // draw gear (settings) and arrow (next screen)
-    //              ul x,y                     w,h   color
-    tft->drawBitmap(5, 5, iconGear20, 20, 20, cFAINT);           // "settings" upper left
+    //              ul x,y                w,h   color
+    tft->drawBitmap(05, 05, iconGear20, 20, 20, cFAINT);         // "settings" upper left
     tft->drawBitmap(300, 5, iconRightArrow18, 14, 18, cFAINT);   // "next screen" upper right
+
+    float volts = gpsBattery.readCoinBatteryVoltage();
+    if (volts < GOOD_BATTERY_MINIMUM) {
+      int iconColor = gpsBattery.getBatteryColor(volts);
+      tft->drawBitmap(36, 06, iconLowBattery, 14, 20, iconColor);   // "low battery" warning
+    }
   }
+
   void showScreenBorder() {   // optionally outline visible area
 #ifdef SHOW_SCREEN_BORDER
     tft->drawRect(0, 0, gScreenWidth, gScreenHeight, ILI9341_BLUE);   // debug: border around screen
 #endif
   }
+
   void showScreenCenterline() {
     if (showCenterline) {
       // show centerline at       x1,y1                x2,y2              color

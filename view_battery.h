@@ -35,10 +35,12 @@
 #include "logger.h"             // conditional printing to Serial port
 #include "TextField.h"          // Optimize TFT display text for proportional fonts
 #include "view.h"               // Base class for all views
+#include "model_adc.h"          // Model of the analog-digital converter
 
 // ========== extern ===========================================
 extern Logger logger;                                                                // Griduino.ino
 void floatToCharArray(char *result, int maxlen, double fValue, int decimalPlaces);   // Griduino.ino
+extern BatteryVoltage gpsBattery;                                                    // model_adc.h
 
 // ========== class ViewBattery =================================
 class ViewBattery : public View {
@@ -68,7 +70,7 @@ protected:
 
   const int xV = 150;   // left-align values
 
-  const int xVolts = 218;                        // "2.951" voltage display
+  const int xVolts = 218;                        // "2.951" voltage display, pixels
   const int yVolts = (gScreenHeight / 2) - 40;   //
 
   // ----- screen text
@@ -113,16 +115,6 @@ protected:
 
   int previous_y0 = 0;   // (pixels) optimize screen draw
 
-  // local functions
-  uint16_t getColor(float v) {
-    if (v >= 2.25) {
-      return ILI9341_GREEN;
-    } else if (v >= 2.0) {
-      return ILI9341_YELLOW;
-    } else {
-      return ILI9341_RED;
-    }
-  }
 };   // end class ViewBattery
 
 // ============== implement public interface ================
@@ -130,11 +122,7 @@ void ViewBattery::updateScreen() {
   // called on every pass through main()
 
   // update measured voltage
-  const float analogRef     = 3.3;    // analog reference voltage
-  const uint16_t analogBits = 1024;   // ADC resolution is 10 bits
-
-  int coin_adc       = analogRead(BATTERY_ADC);
-  float coin_voltage = (float)coin_adc * analogRef / analogBits;
+  float coin_voltage = gpsBattery.readCoinBatteryVoltage();
   char sVolts[12];
   floatToCharArray(sVolts, sizeof(sVolts), coin_voltage, 3);
   txtValues[MEASUREMENT].print(sVolts);
@@ -143,7 +131,7 @@ void ViewBattery::updateScreen() {
   int percent = (int)((coin_voltage - 1.5) / (3.5 - 1.5) * 100);
   int y0      = map(percent, 0, 100, gyLR, gyUL);
   y0          = constrain(y0, gyUL, gyLR - 1);
-  int color   = getColor(coin_voltage);
+  int color   = gpsBattery.getBatteryColor(coin_voltage);
 
   // ----- if no change since last pass, do nothing
   if (true) {           // (y0 != previous_y0) {

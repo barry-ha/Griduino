@@ -28,14 +28,25 @@ public:
   void setup() {
   }
 
-  float getCoinBatteryVoltage() {
-#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
-    coinBattery       = analogRead(A1);
-    float coinVoltage = coinBattery * voltsPerSample;
-    return coinVoltage;
-#else
-    return -1.0;   // indicate no coin battery voltage sensor
-#endif
+  uint16_t getBatteryColor(float v) {
+    if (v >= GOOD_BATTERY_MINIMUM) {
+      return ILI9341_GREEN;
+    } else if (v >= WARNING_BATTERY_MINIMUM) {
+      return ILI9341_YELLOW;
+    } else {
+      return ILI9341_RED;
+    }
+  }
+
+  float readCoinBatteryVoltage() {
+    const float analogRef     = 3.3;    // analog reference voltage
+    const uint16_t analogBits = 1024;   // ADC resolution is 10 bits = 2^10 = 1024
+
+    int coin_adc       = analogRead(BATTERY_ADC);
+    float coin_voltage = (float)coin_adc * analogRef / analogBits;
+    // return GOOD_BATTERY_MINIMUM - 0.1;     // debug - show yellow icon
+    return WARNING_BATTERY_MINIMUM - 0.1;   // debug - show red icon
+    return coin_voltage;                    // production release
   }
 
 };   // end class BatteryVoltage
