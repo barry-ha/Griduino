@@ -147,8 +147,8 @@ protected:
   const int yBot       = gScreenHeight - MARGIN - DESCENDERS - TEXTHEIGHT;
   const int yTop       = yBot - graphHeight;
 
-  // ========== text screen layout ===================================
-  // these are names for the array indexes, must be named in same order as array below
+  // ----- screen text
+  // names for the array indexes, must be named in same order as array below
   enum txtIndex {
     eTitle = 0,
     eDate,
@@ -159,17 +159,19 @@ protected:
     unitPressure,
   };
 
+  // ----- static + dynamic screen text
+  // clang-format off
 #define numBaroFields 7
   TextField txtBaro[numBaroFields] = {
-      // text            x,y    color       align       font
-      {"Baroduino", -1, 18, cTITLE, ALIGNCENTER, eFONTSMALLEST},    // [eTitle] screen title, centered
-      {"01-02", 48, 18, cWARN, ALIGNLEFT, eFONTSMALLEST},           // [eDate]
-      {"0#", 48, 36, cWARN, ALIGNLEFT, eFONTSMALLEST},              // [eNumSat]
-      {"12:34", 276, 18, cWARN, ALIGNRIGHT, eFONTSMALLEST},         // [eTimeHHMM]
-      {"56", 276, 36, cWARN, ALIGNRIGHT, eFONTSMALLEST},            // [eTimeSS]
-      {"30.000", 162, 46, ILI9341_WHITE, ALIGNRIGHT, eFONTSMALL},   // [valPressure]
+      {"Baroduino", -1, 18,   cTITLE,        ALIGNCENTER,  eFONTSMALLEST},    // [eTitle] screen title, centered
+      {"01-02",    60, 18,     cWARN,          ALIGNLEFT,  eFONTSMALLEST},    // [eDate]
+      {"0#",       60, 36,     cWARN,          ALIGNLEFT,  eFONTSMALLEST},    // [eNumSat]
+      {"12:34",   276, 18,     cWARN,          ALIGNRIGHT, eFONTSMALLEST},    // [eTimeHHMM]
+      {"56",      276, 36,     cWARN,          ALIGNRIGHT, eFONTSMALLEST},    // [eTimeSS]
+      {"30.000",  162, 46, ILI9341_WHITE,      ALIGNRIGHT, eFONTSMALL},       // [valPressure]
       {"inHg", 180, 46, ILI9341_WHITE, ALIGNLEFT, eFONTSMALL},      // [unitPressure]
   };
+  // clang-format on
 
   void showReadings() {
     clearScreen(yTop, graphHeight);   // erase only the graph area, not the whole screen, to reduce blinking

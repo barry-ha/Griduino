@@ -167,13 +167,12 @@ void drawNumSatellites() {
 void drawCoinBatteryVoltage() {
   setFontSize(0);
   char sVoltage[12];
-  float coinVoltage = gpsBattery.getCoinBatteryVoltage();
+  float coinVoltage = gpsBattery.readCoinBatteryVoltage();
   floatToCharArray(sVoltage, sizeof(sVoltage), coinVoltage, 2);
   strcat(sVoltage, "v");
-#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
-  // Show battery voltage only on Griduino PCB v7+
+
+  // Show battery voltage only on Griduino PCB v7+ (todo)
   txtGrid[COINBATT].print(sVoltage);
-#endif
 }
 
 void drawAltitude() {

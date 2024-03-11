@@ -105,30 +105,32 @@ protected:
     eSealevelMetric,
   };
 
+  // ----- static + dynamic screen text
+  // clang-format off
 #define nTextAltimeter 15
   TextField txtAltimeter[nTextAltimeter] = {
-      // text            x,y    color       align       font
-      {"Altitude", -1, 18, cTITLE, ALIGNCENTER, eFONTSMALLEST},   // [eTitle] screen title, centered
-      {"mm-dd", 48, 18, cWARN, ALIGNLEFT, eFONTSMALLEST},         // [eDate]
-      {"0#", 48, 36, cWARN, ALIGNLEFT, eFONTSMALLEST},            // [eNumSat]
-      {"hh:mm", 276, 18, cWARN, ALIGNRIGHT, eFONTSMALLEST},       // [eTimeHHMM]
-      {"ss", 276, 36, cWARN, ALIGNRIGHT, eFONTSMALLEST},          // [eTimeSS]
+      {"Altitude", -1, 18,    cTITLE,        ALIGNCENTER,  eFONTSMALLEST},   // [eTitle] screen title, centered
+      {"mm-dd",    60, 18,     cWARN,          ALIGNLEFT,  eFONTSMALLEST},    // [eDate]
+      {"0#",       60, 36,     cWARN,          ALIGNLEFT,  eFONTSMALLEST},    // [eNumSat]
+      {"hh:mm",   276, 18,     cWARN,          ALIGNRIGHT, eFONTSMALLEST},    // [eTimeHHMM]
+      {"ss",      276, 36,     cWARN,          ALIGNRIGHT, eFONTSMALLEST},    // [eTimeSS]
 
-      {"Barometer:", col1, yRow1, cLABEL, ALIGNLEFT, eFONTSMALL},   // [eBaroLabel]
-      {"12.3", col2, yRow1, cVALUE, ALIGNRIGHT, eFONTBIG},          // [eBaroValue]
-      {"ft", col3, yRow1, cLABEL, ALIGNLEFT, eFONTSMALL},           // [eBaroUnits]
+      {"Barometer:", col1, yRow1, cLABEL, ALIGNLEFT, eFONTSMALL},      // [eBaroLabel]
+      {"12.3",       col2, yRow1, cVALUE, ALIGNRIGHT, eFONTBIG},       // [eBaroValue]
+      {"ft",         col3, yRow1, cLABEL, ALIGNLEFT, eFONTSMALL},      // [eBaroUnits]
 
-      {"GPS:", col1, yRow2, cLABEL, ALIGNLEFT, eFONTSMALL},    // [eGpsLabel]
-      {"4567.8", col2, yRow2, cVALUE, ALIGNRIGHT, eFONTBIG},   // [eGpsValue]
-      {"ft", col3, yRow2, cLABEL, ALIGNLEFT, eFONTSMALL},      // [eGpsUnits]
+      {"GPS:",       col1, yRow2, cLABEL, ALIGNLEFT, eFONTSMALL},      // [eGpsLabel]
+      {"4567.8",     col2, yRow2, cVALUE, ALIGNRIGHT, eFONTBIG},       // [eGpsValue]
+      {"ft", col3,  yRow2, cLABEL, ALIGNLEFT, eFONTSMALL},             // [eGpsUnits]
 
       {"Enter local sea level pressure.",
-       -1, 162, cFAINT, ALIGNCENTER, eFONTSMALLEST},   // [ePrompt1]
+       -1, 162, cFAINT, ALIGNCENTER, eFONTSMALLEST},                  // [ePrompt1]
       {"Accuracy depends on your input.",
        -1, 184, cFAINT, ALIGNCENTER, eFONTSMALLEST},                  // [ePrompt21]
       {"34.567 inHg", -1, 208, cVALUE, ALIGNCENTER, eFONTSMALLEST},   // [eSealevelEnglish]
       {"1111.1 hPa", -1, 230, cVALUE, ALIGNCENTER, eFONTSMALLEST},    // [eSealevelMetric]
   };
+  // clang-format on
 
   enum buttonID {
     ePressurePlus,
@@ -228,7 +230,7 @@ protected:
 
       // loop using _increasing_ pressure until altitudes match
       while (baroAltitude < model->gAltitude) {
-
+        /* debug
         Serial.print(count);
         Serial.print(". ");
         Serial.print(baroAltitude);
@@ -237,6 +239,7 @@ protected:
         Serial.print(" Pa, ");
         Serial.print(gpsAltitude);
         Serial.println(" m");
+        /* */
 
         sealevelPa += delta();
         if (++count > 1000)
@@ -253,6 +256,7 @@ protected:
 
       // loop using _decreasing_ pressure until altitudes match
       while (baroAltitude > gpsAltitude) {
+        /* debug
         Serial.print(count);
         Serial.print(". ");
         Serial.print(baroAltitude);
@@ -261,6 +265,7 @@ protected:
         Serial.print(" Pa, while GPS altitude is ");
         Serial.print(gpsAltitude);
         Serial.println(" m");
+        /* */
 
         sealevelPa -= delta();
         if (++count > 1000)
