@@ -45,7 +45,7 @@ public:
     int coin_adc       = analogRead(BATTERY_ADC);
     float coin_voltage = (float)coin_adc * analogRef / analogBits;
     // return GOOD_BATTERY_MINIMUM - 0.1;     // debug - show yellow icon
-    return WARNING_BATTERY_MINIMUM - 0.1;   // debug - show red icon
+    // return WARNING_BATTERY_MINIMUM - 0.1;   // debug - show red icon
     return coin_voltage;                    // production release
   }
 
