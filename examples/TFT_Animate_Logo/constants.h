@@ -271,7 +271,7 @@ public:
 
   // print ourself - a sanity check
   void printLocation(const char *comment = NULL) {   // debug
-    Serial.println(". Rec, ___Date___ __Time__, (__Lat__, __Long__=), Alt, Spd, Dir, Sats");
+    Serial.println(". Rec, ___Date___ __Time__, (__Lat__, __Long__), Alt, Spd, Dir, Sats");
 
     char out[128];
     Serial.print(". ");
