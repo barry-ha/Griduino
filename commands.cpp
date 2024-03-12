@@ -211,12 +211,25 @@ void run_unittest() {
   runUnitTest();        // see "unit_test.cpp"
 }
 
+void removeCRLF(char *pBuffer) {
+  // remove 0x0d and 0x0a from character arrays, shortening the array in-place
+  const char key[] = "\r\n";
+  char *pch        = strpbrk(pBuffer, key);
+  while (pch != NULL) {
+    strcpy(pch, pch + 1);
+    pch = strpbrk(pBuffer, key);
+  }
+}
+
 // do the thing
 void processCommand(char *cmd) {
 
   for (char *p = cmd; *p != '\0'; ++p) {   // convert to lower case
     *p = tolower(*p);
   }
+
+  removeCRLF(cmd);   // Arduino IDE can optionally add \r\n
+
   Serial.print(cmd);
   Serial.print(": ");
 
