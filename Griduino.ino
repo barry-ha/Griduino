@@ -328,31 +328,31 @@ BarometerModel baroModel;   // create instance of the model
 
 // alias names for all views - MUST be in same order as "viewTable" array below, alphabetical by class name
 enum VIEW_INDEX {
-  ALTIMETER_VIEW = 0,    // altimeter
-  BARO_VIEW,             // barometer graph
-  BATTERY_VIEW,          // coin battery voltage
-  CFG_AUDIO_TYPE,        // audio output Morse/speech
-  CFG_CROSSING,          // announce grid crossing 4/6 digit boundaries
-  CFG_GPS,               // gps/simulator
-  CFG_GPS_RESET,         // factory reset GPS
-  CFG_NMEA,              // broadcast NMEA
-  CFG_REBOOT,            // confirm reboot
-  CFG_ROTATION,          // screen rotation
-  CFG_UNITS,             // english/metric
-  EVENTS_VIEW,           // Groundhog Day, Halloween, or other day-counting screen
-  GRID_VIEW,             //
-  GRID_CROSSINGS_VIEW,   // log of time in each grid
-  HELP_VIEW,             // hints at startup
-  SAT_COUNT_VIEW,        // number of satellites acquired
-  SCREEN1_VIEW,          // first bootup screen
-  SPLASH_VIEW,           // startup
-  STATUS_VIEW,           // size and scale of this grid
-  TEN_MILE_ALERT_VIEW,   // microwave rover view
-  TIME_VIEW,             //
-  CFG_VOLUME,            //
-  GOTO_SETTINGS,         // command the state machine to show control panel
-  GOTO_NEXT_VIEW,        // command the state machine to show next screen
-  MAX_VIEWS,             // sentinel at end of list
+  ALTIMETER_VIEW = 0,    // 0 altimeter
+  BARO_VIEW,             // 1 barometer graph
+  BATTERY_VIEW,          // 2 coin battery voltage
+  CFG_AUDIO_TYPE,        // 3 audio output Morse/speech
+  CFG_CROSSING,          // 4 announce grid crossing 4/6 digit boundaries
+  CFG_GPS,               // 5 gps/simulator
+  CFG_GPS_RESET,         // 6 factory reset GPS
+  CFG_NMEA,              // 7 broadcast NMEA
+  CFG_REBOOT,            // 8 confirm reboot
+  CFG_ROTATION,          // 9 screen rotation
+  CFG_UNITS,             // 10 english/metric
+  EVENTS_VIEW,           // 11 Groundhog Day, Halloween, or other day-counting screen
+  GRID_VIEW,             // 12 <-- this is the primary navigation view
+  GRID_CROSSINGS_VIEW,   // 13 log of time in each grid
+  HELP_VIEW,             // 14 hints at startup
+  SAT_COUNT_VIEW,        // 15 number of satellites acquired
+  SCREEN1_VIEW,          // 16 first bootup screen
+  SPLASH_VIEW,           // 17 startup
+  STATUS_VIEW,           // 18 size and scale of this grid
+  TEN_MILE_ALERT_VIEW,   // 19 microwave rover view
+  TIME_VIEW,             // 20
+  CFG_VOLUME,            // 21
+  GOTO_SETTINGS,         // 22 command the state machine to show control panel
+  GOTO_NEXT_VIEW,        // 23 command the state machine to show next screen
+  MAX_VIEWS,             // 24 sentinel at end of list
 };
 /*const*/ int help_view      = HELP_VIEW;
 /*const*/ int sat_count_view = SAT_COUNT_VIEW;
@@ -422,7 +422,7 @@ void selectNewView(int cmd) {
   };
 
   int currentView = pView->screenID;
-  int nextView    = BARO_VIEW;   // GRID_VIEW;       // default
+  int nextView;
   // clang-format off
   if (cmd == GOTO_NEXT_VIEW) {
     // operator requested the next NORMAL user view
@@ -466,31 +466,33 @@ void selectNewView(int cmd) {
     // a specific view was requested, such as HELP_VIEW via a USB command
     nextView = cmd;
   } else {
-    logger.error("Requested view was out of range: %d where maximum is %d", cmd, MAX_VIEWS);
+    logger.error("Requested view is out of range: %d where maximum is %d", cmd, MAX_VIEWS);
   }
   // clang-format on
   logger.info("selectNewView() from %d to %d", currentView, nextView);
-  pView->endScreen();                   // a goodbye-kiss to the departing view
-  pView = viewTable[ nextView ];
+  if (currentView != nextView) {
+    pView->endScreen();                   // a goodbye-kiss to the departing view
+    pView = viewTable[ nextView ];
 
-  // Every view has an initial setup to prepare its layout
-  // After initial setup the view can assume it "owns" the screen
-  // and can safely repaint only the parts that change
-  pView->startScreen();
-  pView->updateScreen();
+    // Every view has an initial setup to prepare its layout
+    // After initial setup the view can assume it "owns" the screen
+    // and thereafter safely repaint only the parts that change
+    pView->startScreen();
+    pView->updateScreen();
+  }
 }
 
-// ----- console Serial port helper
+// ----- console Serial port helper AND animated splash screen
 void waitForSerial(int howLong) {
   // Adafruit Feather M4 Express takes awhile to restore its USB connection to the PC
   // and the operator takes awhile to restart the IDE console (Tools > Serial Monitor)
   // so give them a few seconds for this to settle before sending messages to IDE
 
-  pView = &screen1View;
+  pView = &screen1View;   // select very first screen shown at startup
   screen1View.startScreen();
   while (pView == &screen1View) {
     screen1View.updateScreen();
-  }  
+  }
 }
 
 //==============================================================
@@ -559,7 +561,6 @@ void announceGrid(const String gridName, int length) {
 
         char myfile[32];
         char letter = tolower( grid[ii] );
-        logger.fencepost("Griduino.ino speech", __LINE__);   // debug
         snprintf(myfile, sizeof(myfile), "/audio/%c.wav", letter);
 
         if (!dacSpeech.play( myfile )) {
@@ -646,6 +647,11 @@ void sayGrid(const char *name) {
 #endif
 }
 
+elapsedSeconds viewHelpTimer;         // timer to show Help screen for only a few seconds at startup
+uint viewHelpTimeout = 10;            // seconds to show Help screen at startup
+                                      // startup: initialized to about 10 seconds
+                                      // command: initialized to a long time, several minutes
+
 //=========== setup ============================================
 void setup() {
 
@@ -654,9 +660,9 @@ void setup() {
   analogWrite(TFT_BL, 255);   // set backlight to full brightness
 
   // ----- init TFT display
-  tft.begin();                  // initialize TFT display
-  tft.setRotation(LANDSCAPE);   // 1=landscape (default is 0=portrait)
-  tft.fillScreen(ILI9341_BLACK);      // note that "begin()" does not clear screen
+  tft.begin();                        // initialize TFT display
+  tft.setRotation(LANDSCAPE);         // 1=landscape (default is 0=portrait)
+  tft.fillScreen(ILI9341_BLACK);      // note that "begin()" did not clear screen
 
   // ----- init screen orientation
   cfgRotation.loadConfig();           // restore previous screen orientation
@@ -675,7 +681,13 @@ void setup() {
 
   // ----- init serial monitor (do not "Serial.print" before this, it won't show up in console)
   Serial.begin(115200);               // init for debugging in the Arduino IDE
-  waitForSerial(howLongToWait);       // wait for developer to connect debugging console
+  waitForSerial(howLongToWait);       // display very first screen, an animation splash at startup
+                                      // AND wait for developer to connect debugging console
+
+  pView = &helpView;                  // select very second screen shown at startup
+  viewHelpTimer = 0;                  // start counting time for user to read the hint screen
+  pView->startScreen();
+  pView->updateScreen();
 
   // now that Serial is ready and connected (or we gave up)...
   Serial.println(PROGRAM_TITLE " " PROGRAM_VERSION);  // Report our program name to console
@@ -834,9 +846,9 @@ void setup() {
   }
 
   // ----- all done with setup, show opening view screen
-  pView = &gridView;
-  pView->startScreen();               // start current view
-  pView->updateScreen();              // update current view
+  // at this point, we finished showing the splash screen
+  // next up is the Help screen which is already in progress
+  // by virtue of waitForSerial()
 }
 
 //=========== main work loop ===================================
@@ -1071,6 +1083,10 @@ void loop() {
     //whereAmI.printLocation();                                 // debug
     trail.rememberGPS(whereAmI);
     trail.saveGPSBreadcrumbTrail();   // autosave timer
+  }
+
+  if ((pView->screenID == HELP_VIEW) && (viewHelpTimer > viewHelpTimeout)) {
+    selectNewView(grid_view);
   }
 
   // if there's touchscreen input, handle it

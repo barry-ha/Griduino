@@ -13,6 +13,7 @@
 
 #include <Arduino.h>             // for Serial
 #include "constants.h"           // Griduino constants and colors
+#include <elapsedMillis.h>       // Scheduling intervals in main loop
 #include "logger.h"              // conditional printing to Serial port
 #include "model_breadcrumbs.h"   // breadcrumb trail
 #include "model_gps.h"           // Model of a GPS for model-view-controller
@@ -149,8 +150,13 @@ void stop_gmt() {
 
 void view_help() {
   Serial.println("view Help screen");
-  extern /*const*/ int help_view;   // see "Griduino.ino"
-  selectNewView(help_view);         // see "Griduino.ino"
+  extern /*const*/ int help_view;   // Griduino.ino
+  extern uint viewHelpTimeout;      // Griduino.ino
+  extern elapsedSeconds viewHelpTimer;
+
+  viewHelpTimer   = 0;               // reset timer
+  viewHelpTimeout = SECS_PER_1MIN;   // a loooong time for user to read the 3-word help screen
+  selectNewView(help_view);          // Griduino.ino
 }
 
 void view_splash() {
