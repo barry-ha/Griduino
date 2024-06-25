@@ -71,7 +71,9 @@ Command cmdList[] = {
     {"view crossings", view_crossings, 0},
     {"view events", view_events, 0},
 
-    {"list files", list_files, Newline},
+    {"dir", list_files, Newline},
+    {"list files", list_files, 0},
+    
     {"type gpshistory", type_gpshistory, Newline},
     {"run unittest", run_unittest, 0},
 };
@@ -96,6 +98,7 @@ void help() {
 
 void version() {
   Serial.println(PROGRAM_TITLE " " PROGRAM_VERSION);
+  Serial.println("Hardware PCB " HARDWARE_VERSION);
   Serial.println("Compiled " PROGRAM_COMPILED);
   Serial.println(PROGRAM_LINE1 "  " PROGRAM_LINE2);
   Serial.println(PROGRAM_FILE);
