@@ -94,7 +94,34 @@ In the rare case you need to start over with a clean file system, here's how. Ad
 * **SdFat format** - SPI Flash FatFs formatting example. Use the console (serial monitor) to respond to prompts to confirm the operation. Partitioning and formatting will take about 60 seconds.
 * **Flash speedtest** - measures size and R/W speed of the RAM file system. This will erase the chip but not reformat it. You'll need to install CircuitPy next to format the filesystem.
 
-<h2 id="uf2">5. How to Create a Binary File for Distribution</h2>
+<h2 id="uf2">5. Understanding File System's Configuration Files</h2>
+
+Griduino automatically creates and updates its internal configuration files. These are in a binary format you'll never need to work with them. However, it may be interesting to know where they are and how they work.
+
+The files are stored in Flash memory in a section of onboard memory. To see the directory of files:
+
+* **Terminal window:** Open a terminal window and send the command "list files", or
+* **CircuitPy:** Reload Griduino with the CircuitPy program and use Windows File Explorer
+
+The files you can expect to see are:
+
+* Directory of audio
+   * `19004 0.wav`
+   * `24712 1.wav`
+   * `19602 2.wav`
+   * etc
+   * `25040 z.wav`
+   * `38 files, 799330 bytes`
+* Directory of Griduino
+   * ` 97 announce.cfg` - Morse code, Spoken word, No audio
+   * `272 gpshistory.csv` - GPS breadcrumb trail
+   * `216 gpsmodel.cfg` - latitude, longitude, altitude, metric/english, timezone
+   * ` 97 nmea.cfg` - send NMEA sentences to USB cable yes/no
+   * `100 screen.cfg` - screen orientation
+   * `100 volume.cfg` - audio volume
+   * `9 files, 882 bytes`
+
+<h2 id="uf2">6. How to Create a Binary File for Distribution</h2>
 
 It may be useful to know how to create a binary image of a compiled program for Arduino processors in general. If you ever want to distribute your own Arduino program, it is easier for your users to install your binary image than to compile the source code themselves.
 
@@ -121,7 +148,7 @@ Run the Python conversion script (author https://github.com/microsoft/uf2):
    - Run the Python converter script, e.g.:<br/>**py uf2conv.py -c -b 0x4000 -o downloads/griduino.uf2 Griduino.ino.feather_m4.bin**
    - Where "**-c:**" will pass remaining arguments to python script, "**-b 0x4000**" will set start of program, "**-o file.uf2**" is output file, and "**file.bin**" is input file
 
-<h2 id="ide">6. How to Setup the Arduino IDE for Griduino</h2>
+<h2 id="ide">7. How to Setup the Arduino IDE for Griduino</h2>
 
 If you want to compile Griduino source code or work with its example files (and we hope you do) then here's everything you need to setup the workbench.
 
@@ -184,7 +211,7 @@ These components are outside of Arduino's Library Manager, so follow these links
 - https://github.com/tom-dudman/DS1804 v0.1.1 - library to control DS1804 Digital Potentiometer
 - https://github.com/barry-ha/Audio_QSPI v1.1.0 - library to play WAV files from Quad-SPI memory chip
 
-<h2 id=serialconsole>7. How to Use a Serial Console</h2>
+<h2 id=serialconsole>8. How to Use a Serial Console</h2>
 
 You can download GPS tracks from Griduino without the Arduino IDE. There are some common "serial terminal" programs that can interact directly with Griduino's console interface over the USB connection.
 
@@ -215,7 +242,7 @@ How to use Tera Term to capture the breadcrumb trail in both KML and CSV format:
 Now you can open <i>griduino.kml</i> in Google Earth and <i>griduino.csv</i> in Microsoft XML.
 
 
-<h2 id=disclaimer>8. Disclaimer</h2>
+<h2 id=disclaimer>9. Disclaimer</h2>
 
 The information provided is for general education and entertainment. We hope you learn from this and enjoy your hobbies in a safe manner with this new GPS information available at a glance. We take no responsibility for your assembly and construction, nor for how you use these devices. 
 
