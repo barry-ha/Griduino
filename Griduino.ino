@@ -690,7 +690,7 @@ void setup() {
   pView->updateScreen();
 
   // now that Serial is ready and connected (or we gave up)...
-  Serial.println(PROGRAM_TITLE " " PROGRAM_VERSION);  // Report our program name to console
+  Serial.println(PROGRAM_TITLE " " PROGRAM_VERSION " " HARDWARE_VERSION);  // Report our program name to console
   Serial.println("Compiled " PROGRAM_COMPILED);       // Report our compiled date
   Serial.println(__FILE__);                           // Report our source code file name
 
@@ -841,7 +841,7 @@ void setup() {
     tft.setCursor(0, 48);
     tft.setTextColor(cWARN);
     setFontSize(12);
-    tft.println("Error!\n Unable to init\n  barometric sensor\n   check wiring");
+    tft.println("Error!\n Unable to init\n  barometric sensor");
     delay(5000);
   }
 

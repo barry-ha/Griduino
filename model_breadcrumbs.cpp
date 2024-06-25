@@ -129,8 +129,8 @@ int Breadcrumbs::saveGPSBreadcrumbTrail() {   // returns 1=success, 0=failure
 
   // line 1,2,3,4: filename, data format, version, compiled
   char msg[256];
-  snprintf(msg, sizeof(msg), "\nFile:,%s\nData format:,%s\nGriduino:,%s\nCompiled:,%s",
-           HISTORY_FILE, HISTORY_VERSION, PROGRAM_VERSION, PROGRAM_COMPILED);
+  snprintf(msg, sizeof(msg), "\nFile:,%s\nData format:,%s\nPCB:,%s\nGriduino:,%s\nCompiled:,%s",
+           HISTORY_FILE, HISTORY_VERSION, HARDWARE_VERSION, PROGRAM_VERSION, PROGRAM_COMPILED);
   config.writeLine(msg);
 
   // line 5: column headings
