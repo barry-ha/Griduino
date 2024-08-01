@@ -43,7 +43,8 @@ public:
   // This derived class must implement the public interface:
   ViewCfgNMEA(Adafruit_ILI9341 *vtft, int vid)   // ctor
       : View{vtft, vid} {
-    background = cBACKGROUND;   // every view can have its own background color
+    background     = cBACKGROUND;   // every view can have its own background color
+    selectedOption = SEND_NMEA;     // default: assume a program like NMEATime2 is listening
   }
   void updateScreen();
   void startScreen();
