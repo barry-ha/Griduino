@@ -122,8 +122,8 @@ public:
     Wire1.begin();
     bool initialized = baro.begin(0x76, 0x58);   // Griduino v7 pcb, I2C
 #else
-    //ol initialized = baro.begin_SPI(bmp_cs);   // Griduino v4 pcb, SPI
-    bool initialized = baro.begin_I2C();   // Griduino v11 pcb, I2C
+    bool initialized = baro.begin_SPI(bmp_cs);   // Griduino v4 pcb, SPI
+    //bool initialized = baro.begin_I2C();   // Griduino v11 pcb, I2C
 #endif
     if (initialized) {
       //  IIR:
