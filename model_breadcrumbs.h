@@ -191,7 +191,7 @@ public:
       strncpy(vLoc.recordType, rGPS, sizeof(vLoc.recordType));
       remember(vLoc);
     } else {
-      vLoc.printLocation("Bogus GPS date ");
+      vLoc.printLocation("Bogus GPS date is before our first release and is ignored:");
     }
   }
 
@@ -201,7 +201,7 @@ public:
     if (vTime > cutoff) {
       remember(gps);
     } else {
-      gps.printLocation("Bogus GPS date ");
+      gps.printLocation("Bogus GPS date is before our first release (ignored): ");
     }
   }
 
