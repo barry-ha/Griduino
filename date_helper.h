@@ -27,13 +27,13 @@ public:
     // Example 1:
     //      char sDate[24];
     //      datetimeToString( sDate, sizeof(sDate), now(), " GMT" );
-    //      Serial.println( sDate );
+    //      logger.println( sDate );
     //      --> "2022-12-3 08:07 GMT"
     // Example 2:
     //      char sDate[24];
-    //      Serial.print("The current date is ");
-    //      Serial.print( datetimeToString(sDate, sizeof(sDate), now()) );
-    //      Serial.println(" GMT");
+    //      logger.print("The current date is ");
+    //      logger.print( datetimeToString(sDate, sizeof(sDate), now()) );
+    //      logger.println(" GMT");
     snprintf(msg, len, "%04d-%d-%d %02d:%02d:%02d",
              year(tm), month(tm), day(tm),
              hour(tm), minute(tm), second(tm));

@@ -56,7 +56,7 @@ public:
   // severities
   bool print_debug   = false;   // true;
   bool print_info    = false;   // true;   // set FALSE for NmeaTime2 by www.visualgps.net
-  bool print_warning = false;   // true;
+  bool print_warning = true;
   bool print_error   = true;
 
   // ---------- categories ----------
@@ -126,12 +126,26 @@ public:
       Serial.println(pText);
     }
   }
-  // This is used in all modules named "cfg_xxxxx"
+  // logger.config() is used in all modules named "cfg_xxxxx"
   // to log all setup-screen touches and resulting actions
   void config(const char *pText) {
     if (print_config) {
       Serial.println(pText);
     }
+  }
+  // logger.print() is used when text MUST be sent out to the console.
+  // For example, when the console sends us a 'help' request
+  // then we must reply by printing to the console, no matter what.
+  // Note: This function does not send \n newline.
+  //       logger.print() is a direct replacement for Serial.print() 
+  void print(const char *pText) {
+    Serial.print(pText);
+  }
+  void println() {
+    Serial.println();
+  }
+  void println(const char *pText) {
+    Serial.println(pText);
   }
 
   // ---------- Severities ----------

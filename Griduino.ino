@@ -545,7 +545,7 @@ void announceGrid(const String gridName, int length) {
   char grid[7];
   strncpy(grid, gridName.c_str(), sizeof(grid));
   grid[length] = 0;   // null-terminate string to requested 4- or 6-character length
-  Serial.print("Announcing grid: "); Serial.println(grid);
+  logger.info("Announcing grid: "); Serial.println(grid);
 
 #if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
   // todo - for now, RP2040 has no DAC, no audio, no speech
@@ -615,9 +615,7 @@ void showActivityBar(int row, uint16_t foreground, uint16_t background) {
 }
 
 void sayGrid(const char *name) {
-  logger.fencepost("Griduino.ino say", __LINE__);   // debug
-  Serial.print("Say ");
-  Serial.println(name);
+  logger.info("Say ", name);
 
 #if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
   // todo - for now, RP2040 has no DAC, no audio, no speech
@@ -639,9 +637,9 @@ void sayGrid(const char *name) {
     // example: play audio through DAC
     bool rc = dacSpeech.play(myfile);
     if (!rc) {
-      Serial.print("sayGrid(");
-      Serial.print(letter);
-      Serial.println(") failed");
+      char out[128];
+      snprintf(out, sizeof(out), "sayGrid(%s) failed", letter);
+      logger.error(out);
     }
   }
 #endif

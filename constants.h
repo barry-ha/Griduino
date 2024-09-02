@@ -282,12 +282,12 @@ public:
 
   // print ourself - a sanity check
   void printLocation(const char *comment = NULL) {   // debug
+    // note: must use Serial.print (not logger) because the logger.h cannot be included at this level
     Serial.println(". Rec, ___Date___ __Time__, (__Lat__, __Long__), Alt, Spd, Dir, Sats");
 
     char out[128];
-    Serial.print(". ");
-    Serial.print(recordType);
-    Serial.print(", ");
+    snprintf(out, sizeof(out), ". %s , ", recordType);
+    Serial.print(out);
 
     // timestamp
     TimeElements time;   // https://github.com/PaulStoffregen/Time

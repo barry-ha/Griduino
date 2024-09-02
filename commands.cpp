@@ -82,16 +82,16 @@ const int numCmds = sizeof(cmdList) / sizeof(cmdList[0]);
 // ----- functions to implement commands
 void help() {
   logger.commands("help");
-  Serial.print("Available commands are:\n");
+  logger.print("Available commands are:\n");
   for (int ii = 0; ii < numCmds; ii++) {
     if (cmdList[ii].crlf) {
-      Serial.println();
+      logger.println();
     }
 
-    Serial.print(cmdList[ii].text);
+    logger.print(cmdList[ii].text);
 
     if (ii < numCmds - 1) {
-      Serial.print(", ");
+      logger.print(", ");
     }
   }
   Serial.println();
@@ -246,8 +246,8 @@ void processCommand(char *cmd) {
 
   removeCRLF(cmd);   // Arduino IDE can optionally add \r\n
 
-  Serial.print(cmd);
-  Serial.print(": ");
+  logger.print(cmd);
+  logger.print(": ");
 
   bool found = false;
   for (int ii = 0; ii < numCmds; ii++) {        // loop through table of commands
@@ -258,6 +258,6 @@ void processCommand(char *cmd) {
     }
   }
   if (!found) {
-    Serial.println("Unsupported");
+    logger.println("Unsupported");
   }
 }

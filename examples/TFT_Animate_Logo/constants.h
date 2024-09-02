@@ -306,4 +306,4 @@ public:
       Serial.println(comment);
     }
   }
-};
+};  // end class Location
