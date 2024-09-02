@@ -705,8 +705,8 @@ void setup() {
   // baud rate for GlobalTop GPS
   /*
   #define PMTK_SET_BAUD_38400  "$PMTK251,38400*27"
-  Serial.print("Set GPS baud rate to 38400: ");
-  Serial.println(PMTK_SET_BAUD_38400);
+  logger.gps_setup("Set GPS baud rate to 38400: ");
+  logger.gps_setup(PMTK_SET_BAUD_38400);
   GPS.sendCommand(PMTK_SET_BAUD_38400);
   delay(50);
   GPS.begin(38400);
@@ -714,8 +714,8 @@ void setup() {
   */
 
   /* ***** 576000 is for Adafruit Ultimate GPS only 
-  Serial.print("Set GPS baud rate to 57600: ");
-  Serial.println(PMTK_SET_BAUD_57600);
+  logger.gps_setup("Set GPS baud rate to 57600: ");
+  logger.gps_setup(PMTK_SET_BAUD_57600);
   GPS.sendCommand(PMTK_SET_BAUD_57600);
   delay(50);
   GPS.begin(57600);
@@ -723,35 +723,36 @@ void setup() {
   ***** */
 
   // init Quectel L86 chip to improve USA satellite acquisition
+  logger.gps_setup("$PMTK353,1,0,0,0,0*2A");
   GPS.sendCommand("$PMTK353,1,0,0,0,0*2A");   // search American GPS satellites only (not Russian GLONASS satellites)
   delay(50);
 
-  Serial.print("Turn on RMC (recommended minimum) and GGA (fix data) including altitude: ");
-  Serial.println(PMTK_SET_NMEA_OUTPUT_RMCGGA);
+  logger.gps_setup("Turn on RMC (recommended minimum) and GGA (fix data) including altitude: ");
+  logger.gps_setup(PMTK_SET_NMEA_OUTPUT_RMCGGA);
   GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
   delay(50);
 
-  Serial.print("Set GPS 1 Hz update rate: ");
-  Serial.println(PMTK_SET_NMEA_UPDATE_1HZ);
+  logger.gps_setup("Set GPS 1 Hz update rate: ");
+  logger.gps_setup(PMTK_SET_NMEA_UPDATE_1HZ);
   GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);                // 1 Hz
   //GPS.sendCommand(PMTK_SET_NMEA_UPDATE_200_MILLIHERTZ);   // Every 5 seconds
   delay(50);
 
   if (0) {   // this command is saved in the GPS chip NVR, so always send one of these cmds
-    Serial.print("Request antenna status: ");
-    Serial.println(PGCMD_ANTENNA);    // echo command to console log
+    logger.gps_setup("Request antenna status: ");
+    logger.gps_setup(PGCMD_ANTENNA);    // echo command to console log
     GPS.sendCommand(PGCMD_ANTENNA);   // tell GPS to send us antenna status
                                       // expected reply: $PGTOP,11,...
   } else {
-    Serial.print("Request to NOT send antenna status: ");
-    Serial.println(PGCMD_NOANTENNA);    // echo command to console log
+    logger.gps_setup("Request to NOT send antenna status: ");
+    logger.gps_setup(PGCMD_NOANTENNA);    // echo command to console log
     GPS.sendCommand(PGCMD_NOANTENNA);   // tell GPS to NOT send us antena status
   }
   delay(50);
 
   // ----- query GPS firmware
-  Serial.print("Query GPS Firmware version: ");
-  Serial.println(PMTK_Q_RELEASE);    // Echo query to console
+  logger.gps_setup("Query GPS Firmware version: ");
+  logger.gps_setup(PMTK_Q_RELEASE);    // Echo query to console
   GPS.sendCommand(PMTK_Q_RELEASE);   // Send query to GPS unit
                                      // expected reply: $PMTK705,AXN_2.10...
   delay(50);
@@ -765,8 +766,8 @@ void setup() {
 //                                          | | | | GPGSA   GPS Satellites Active
 //                                          | | | | | GPGSV GPS Satellites in View
 #define PMTK_SENTENCE_FREQUENCIES "$PMTK314,0,1,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0*28"
-  Serial.print("Set sentence output frequencies: ");
-  Serial.println(PMTK_SENTENCE_FREQUENCIES);    // Echo command to console
+  logger.gps_setup("Set sentence output frequencies: ");
+  logger.gps_setup(PMTK_SENTENCE_FREQUENCIES);    // Echo command to console
   GPS.sendCommand(PMTK_SENTENCE_FREQUENCIES);   // Send command to GPS unit
   delay(50);
 

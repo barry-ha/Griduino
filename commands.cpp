@@ -81,6 +81,7 @@ const int numCmds = sizeof(cmdList) / sizeof(cmdList[0]);
 
 // ----- functions to implement commands
 void help() {
+  logger.commands("help");
   Serial.print("Available commands are:\n");
   for (int ii = 0; ii < numCmds; ii++) {
     if (cmdList[ii].crlf) {
@@ -97,6 +98,7 @@ void help() {
 }
 
 void version() {
+  logger.commands("version");
   Serial.println(PROGRAM_TITLE " " PROGRAM_VERSION);
   Serial.println("Hardware PCB " HARDWARE_VERSION);
   Serial.println("Compiled " PROGRAM_COMPILED);
@@ -106,14 +108,17 @@ void version() {
 }
 
 void dump_kml() {
+  logger.commands("dump KML");
   trail.dumpHistoryKML();
 }
 
 void dump_gps_history() {
+  logger.commands("dump GPS");
   trail.dumpHistoryGPS();
 }
 
 void erase_gps_history() {
+  logger.commands("erase history");
   trail.clearHistory();
   trail.rememberPUP();
   trail.deleteFile();   // out with the old history file
@@ -122,37 +127,39 @@ void erase_gps_history() {
 }
 
 void list_files() {
+  logger.commands("list files");
   SaveRestore saver("x", "y");   // dummy config object, we won't actually save anything
   saver.listFiles("/");          // list all files starting at root
 }
 
 void type_gpshistory() {
+  logger.commands("type gpshistory");
   SaveRestoreStrings saver("/Griduino/gpshistory.csv", "No Version");
   saver.typeFile();
 }
 
 void start_nmea() {
-  Serial.println("started NMEA");
+  logger.commands("started NMEA");
   logger.print_nmea = true;
 }
 
 void stop_nmea() {
-  Serial.println("stopped NMEA");
+  logger.commands("stopped NMEA");
   logger.print_nmea = false;
 }
 
 void start_gmt() {
-  Serial.println("started");
+  logger.commands("started GMT");
   logger.print_gmt = true;
 }
 
 void stop_gmt() {
-  Serial.println("stopped");
+  logger.commands("stopped");
   logger.print_gmt = false;
 }
 
 void view_help() {
-  Serial.println("view Help screen");
+  logger.commands("view Help screen");
   extern /*const*/ int help_view;   // Griduino.ino
   extern uint viewHelpTimeout;      // Griduino.ino
   extern elapsedSeconds viewHelpTimer;
@@ -163,59 +170,59 @@ void view_help() {
 }
 
 void view_splash() {
-  Serial.println("view Splash screen");
+  logger.commands("view Splash screen");
   extern /*const*/ int splash_view;   // see "Griduino.ino"
   selectNewView(splash_view);         // see "Griduino.ino"
 }
 
 void view_screen1() {
-  Serial.println("view Screen 1");
+  logger.commands("view Screen 1");
   extern /*const*/ int screen1_view;   // see "Griduino.ino"
   selectNewView(screen1_view);         // see "Griduino.ino"
 }
 
 void view_crossings() {
-  logger.info("view grid crossings");
+  logger.commands("view grid crossings");
   extern /*const*/ int grid_crossings_view;   // see Griduino.com
   selectNewView(grid_crossings_view);
 }
 
 void view_events() {
-  logger.info("view calendar events");
+  logger.commands("view calendar events");
   extern /*const*/ int events_view;   // see Griduino.com
   selectNewView(events_view);
 }
 
 void show_touch() {
-  Serial.println("showing touch targets");
+  logger.commands("showing touch targets");
   showTouchTargets = true;
   pView->startScreen();
   pView->updateScreen();
 }
 
 void hide_touch() {
-  Serial.println("hiding touch targets");
+  logger.commands("hiding touch targets");
   showTouchTargets = false;
   pView->startScreen();
   pView->updateScreen();
 }
 
 void show_centerline() {
-  Serial.println("showing centerline");
+  logger.commands("showing centerline");
   showCenterline = true;
   pView->startScreen();
   pView->updateScreen();
 }
 
 void hide_centerline() {
-  Serial.println("hiding centerline");
+  logger.commands("hiding centerline");
   showCenterline = false;
   pView->startScreen();
   pView->updateScreen();
 }
 
 void run_unittest() {
-  Serial.println("running unit test suite");
+  logger.commands("running unit test suite");
   void runUnitTest();   // extern declaration
   runUnitTest();        // see "unit_test.cpp"
 }

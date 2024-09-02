@@ -45,14 +45,20 @@ void floatToCharArray(char *result, int maxlen, double fValue, int decimalPlaces
 class Logger {
 
 public:
-  bool print_nmea      = true;    // set TRUE for NmeaTime2 by www.visualgps.net
-  bool print_gmt       = false;   // the time reports are frequent (1 per second) so by default it's off
-  bool print_fencepost = true;
-  bool print_debug     = true;
-  bool print_info      = true;   // set FALSE for NmeaTime2 by www.visualgps.net
-  bool print_warning   = true;
-  bool print_error     = true;
+  // categories
+  bool print_nmea      = true;    // set TRUE to send NMEA sentences to the console (for NmeaTime2 by www.visualgps.net)
+  bool print_gmt       = false;   // set TRUE to send time-of-day reports to the console (these are frequent (1 per second) so by default it's off)
+  bool print_fencepost = false;   // set TRUE to send function entry/exit reports to the console
+  bool print_commands  = false;   // set TRUE to tell the console about commands received (commands.cpp)
+  bool print_gps_setup = true;    // set TRUE to echo on the console all commands we send to our GPS chip
 
+  // severities
+  bool print_debug   = false;   // true;
+  bool print_info    = false;   // true;   // set FALSE for NmeaTime2 by www.visualgps.net
+  bool print_warning = false;   // true;
+  bool print_error   = true;
+
+  // ---------- categories ----------
   // NMEA messages, such as $GPRMC
   // this has frequent output messages (1 per second) so by default it's off
   void nmea(const char *pText) {
@@ -108,6 +114,18 @@ public:
       Serial.println("] ");
     }
   }
+  void commands(const char *pText) {
+    if (print_commands) {
+      Serial.print(pText);
+    }
+  }
+  void gps_setup(const char *pText) {
+    if (print_gps_setup) {
+      Serial.println(pText);
+    }
+  }
+
+  // ---------- Severities ----------
   void info(const char *pText) {   // one string arg
     if (print_info) {
       Serial.println(pText);
