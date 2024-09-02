@@ -51,6 +51,7 @@ public:
   bool print_fencepost = false;   // set TRUE to send function entry/exit reports to the console
   bool print_commands  = false;   // set TRUE to tell the console about commands received (commands.cpp)
   bool print_gps_setup = true;    // set TRUE to echo on the console all commands we send to our GPS chip
+  bool print_config    = false;   // set TRUE to report all screen touches
 
   // severities
   bool print_debug   = false;   // true;
@@ -114,6 +115,7 @@ public:
       Serial.println("] ");
     }
   }
+  // This is used in commands.cpp to log all incoming commands from the USB port API
   void commands(const char *pText) {
     if (print_commands) {
       Serial.print(pText);
@@ -121,6 +123,13 @@ public:
   }
   void gps_setup(const char *pText) {
     if (print_gps_setup) {
+      Serial.println(pText);
+    }
+  }
+  // This is used in all modules named "cfg_xxxxx"
+  // to log all setup-screen touches and resulting actions
+  void config(const char *pText) {
+    if (print_config) {
       Serial.println(pText);
     }
   }

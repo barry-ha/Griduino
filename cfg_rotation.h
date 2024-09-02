@@ -107,7 +107,7 @@ protected:
 
   // ---------- local functions for this derived class ----------
   void fRotateScreen() {
-    logger.info("->->-> Clicked OTHER EDGE UP button.");
+    logger.config("->->-> Clicked OTHER EDGE UP button.");
     if (this->screenRotation == LANDSCAPE) {
       this->setScreenRotation(FLIPPED_LANDSCAPE);
     } else {
@@ -191,7 +191,7 @@ void ViewCfgRotation::startScreen() {
 }   // end startScreen()
 
 bool ViewCfgRotation::onTouch(Point touch) {
-  logger.info("->->-> Touched settings screen.");
+  logger.config("->->-> Touched settings screen.");
   bool handled = false;   // assume a touch target was not hit
   for (int ii = 0; ii < nButtons; ii++) {
     FunctionButton item = myButtons[ii];

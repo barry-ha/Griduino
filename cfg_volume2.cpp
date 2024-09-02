@@ -199,7 +199,7 @@ void startVolume2Screen() {
   updateVolume2Screen();   // fill in values immediately, don't wait for loop() to eventually get around to it
 }
 bool onTouchVolume2(Point touch) {
-  logger.info("->->-> Touched volume2 screen.");
+  logger.config("->->-> Touched volume2 screen.");
   bool handled = false;   // assume a touch target was not hit
   for (int ii = 0; ii < nVolButtons; ii++) {
     Button item = volButtons2[ii];

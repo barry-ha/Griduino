@@ -119,7 +119,7 @@ enum buttonID {
   // ---------- local functions for this derived class ----------
   void rebootGriduino() {   // operator confirmed: reboot to USB for software update
     // Do The Thing!
-    logger.info("---> REBOOTING");   // the end of our world is nigh
+    logger.warning("---> REBOOTING");   // the end of our world is nigh
     delay(100);                      // allow time for Serial to send message
 
     this->clearScreen(this->background);   // clear screen and post message
@@ -159,11 +159,11 @@ enum buttonID {
 #endif
   }
   void fCancel() {
-    logger.info("->->-> Clicked CANCEL button.");
+    logger.config("->->-> Clicked CANCEL button.");
     selectNewView(goto_next_cfg);
   }
   void fReboot() {
-    logger.info("->->-> Clicked REBOOT button.");
+    logger.config("->->-> Clicked REBOOT button.");
     rebootGriduino();
   }
 
@@ -212,7 +212,7 @@ void ViewCfgReboot::startScreen() {
 }   // end startScreen()
 
 bool ViewCfgReboot::onTouch(Point touch) {
-  logger.info("->->-> Touched reboot screen.");
+  logger.config("->->-> Touched reboot screen.");
   bool handled = false;   // assume a touch target was not hit
   for (int ii = 0; ii < nRebootButtons; ii++) {
     FunctionButton item = myButtons[ii];

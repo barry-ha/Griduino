@@ -93,7 +93,7 @@ protected:
 
   // ---------- local functions for this derived class ----------
   void f4Digit() {
-    logger.info("->->-> Clicked 4-DIGIT button.");
+    logger.config("->->-> Clicked 4-DIGIT button.");
     model->compare4digits = true;
     this->updateScreen();   // update UI before starting the slow morse code
 
@@ -104,7 +104,7 @@ protected:
   }
 
   void f6Digit() {
-    logger.info("->->-> Clicked 6-DIGIT button.");
+    logger.config("->->-> Clicked 6-DIGIT button.");
     model->compare4digits = false;
     this->updateScreen();   // update UI before starting the slow morse code
 
@@ -205,7 +205,7 @@ void ViewCfgCrossing::startScreen() {
 }   // end startScreen()
 
 bool ViewCfgCrossing::onTouch(Point touch) {
-  logger.info("->->-> Touched settings screen.");
+  logger.config("->->-> Touched settings screen.");
   bool handled = false;   // assume a touch target was not hit
   for (int ii = 0; ii < nButtonsDigits; ii++) {
     FunctionButton item = myButtons[ii];

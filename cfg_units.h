@@ -88,11 +88,11 @@ protected:
 
   // ---------- local functions for this derived class ----------
   void setEnglish() {
-    logger.info("->->-> Clicked ENGLISH UNITS button.");
+    logger.config("->->-> Clicked ENGLISH UNITS button.");
     model->setEnglish();
   }
   void setMetric() {
-    logger.info("->->-> Clicked METRIC UNITS button.");
+    logger.config("->->-> Clicked METRIC UNITS button.");
     model->setMetric();
   }
 

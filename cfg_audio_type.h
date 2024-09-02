@@ -109,7 +109,7 @@ protected:
 
   // ---------- local functions for this derived class ----------
   void setMorse() {
-    logger.info("->->-> Clicked MORSE CODE button.");
+    logger.config("->->-> Clicked MORSE CODE button.");
     selectedAudio = MORSE;
     updateScreen();   // update UI before the long pause to send sample audio
 
@@ -120,7 +120,7 @@ protected:
   }
 
   void setSpeech() {
-    logger.info("->->-> Clicked SPEECH button.");
+    logger.config("->->-> Clicked SPEECH button.");
     selectedAudio = MORSE;   // 2024-01-03 disabled "SPEECH" temporarily because it's a crasher
     updateScreen();          // update UI before the long pause to send sample audio
 
@@ -130,7 +130,7 @@ protected:
     announceGrid(newGrid4, 4);   // announce 4-digit grid by Morse code OR speech
   }
   void setNone() {
-    logger.info("->->-> Clicked NO AUDIO button.");
+    logger.config("->->-> Clicked NO AUDIO button.");
     selectedAudio = NO_AUDIO;
     updateScreen();   // update UI before the long pause to send sample audio
   }
@@ -221,7 +221,7 @@ void ViewCfgAudioType::endScreen() {
 }
 
 bool ViewCfgAudioType::onTouch(Point touch) {
-  logger.info("->->-> Touched settings screen.");
+  logger.config("->->-> Touched settings screen.");
   bool handled = false;   // assume a touch target was not hit
   for (int ii = 0; ii < nButtonsAudio; ii++) {
     FunctionButton item = myButtons[ii];
