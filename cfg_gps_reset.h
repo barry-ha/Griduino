@@ -112,7 +112,7 @@ enum buttonID {
 
   // ---------- local functions for this derived class ----------
   void fRestart() {
-    logger.config("->->-> Clicked RESTART button.");
+    logger.log(CONFIG, INFO, "->->-> Clicked RESTART button.");
     txtStatic[CONFIRMATION].color = cVALUEFAINT;
     txtStatic[CONFIRMATION].dirty = true;
     txtStatic[CONFIRMATION].print();
@@ -171,7 +171,7 @@ void ViewCfgGpsReset::startScreen() {
 }   // end startScreen()
 
 bool ViewCfgGpsReset::onTouch(Point touch) {
-  logger.config("->->-> Touched GPS restart screen.");
+  logger.log(CONFIG, INFO, "->->-> Touched GPS restart screen.");
   bool handled = false;   // assume a touch target was not hit
   for (int ii = 0; ii < nRestartButtons; ii++) {
     FunctionButton item = myButtons[ii];
@@ -183,7 +183,7 @@ bool ViewCfgGpsReset::onTouch(Point touch) {
         fRestart();
         break;
       default:
-        logger.error("Internal error, unknown function ", item.functionIndex);
+        logger.log(CONFIG, ERROR, "unknown function %d", item.functionIndex);
         break;
       }
     }
