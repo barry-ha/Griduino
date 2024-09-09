@@ -73,7 +73,7 @@ Command cmdList[] = {
 
     {"dir", list_files, Newline},
     {"list files", list_files, 0},
-    
+
     {"type gpshistory", type_gpshistory, Newline},
     {"run unittest", run_unittest, 0},
 };
@@ -81,8 +81,8 @@ const int numCmds = sizeof(cmdList) / sizeof(cmdList[0]);
 
 // ----- functions to implement commands
 void help() {
-  logger.commands("help");
-  logger.print("Available commands are:\n");
+  logger.log(COMMAND, CONSOLE, "help");
+  logger.log(COMMAND, CONSOLE, "Available commands are:\n");
   for (int ii = 0; ii < numCmds; ii++) {
     if (cmdList[ii].crlf) {
       logger.println();
@@ -94,72 +94,71 @@ void help() {
       logger.print(", ");
     }
   }
-  Serial.println();
+  logger.println();
 }
 
 void version() {
-  logger.commands("version");
-  Serial.println(PROGRAM_TITLE " " PROGRAM_VERSION);
-  Serial.println("Hardware PCB " HARDWARE_VERSION);
-  Serial.println("Compiled " PROGRAM_COMPILED);
-  Serial.println(PROGRAM_LINE1 "  " PROGRAM_LINE2);
-  Serial.println(PROGRAM_FILE);
-  Serial.println(PROGRAM_GITHUB);
+  logger.log(COMMAND, CONSOLE, "version");
+  logger.log(COMMAND, CONSOLE, PROGRAM_TITLE " " PROGRAM_VERSION);
+  logger.log(COMMAND, CONSOLE, "Hardware PCB " HARDWARE_VERSION);
+  logger.log(COMMAND, CONSOLE, "Compiled " PROGRAM_COMPILED);
+  logger.log(COMMAND, CONSOLE, PROGRAM_LINE1 "  " PROGRAM_LINE2);
+  logger.log(COMMAND, CONSOLE, PROGRAM_FILE);
+  logger.log(COMMAND, CONSOLE, PROGRAM_GITHUB);
 }
 
 void dump_kml() {
-  logger.commands("dump KML");
+  logger.log(COMMAND, CONSOLE, "dump KML");
   trail.dumpHistoryKML();
 }
 
 void dump_gps_history() {
-  logger.commands("dump GPS");
+  logger.log(COMMAND, CONSOLE, "dump GPS");
   trail.dumpHistoryGPS();
 }
 
 void erase_gps_history() {
-  logger.commands("erase history");
+  logger.log(COMMAND, CONSOLE, "erase history");
   trail.clearHistory();
   trail.rememberPUP();
-  trail.deleteFile();   // out with the old history file
-  logger.fencepost("commands.cpp", __LINE__);
+  trail.deleteFile();               // out with the old history file
   trail.saveGPSBreadcrumbTrail();   // start over with new history file
 }
 
 void list_files() {
-  logger.commands("list files");
+  logger.log(COMMAND, CONSOLE, "list files");
   SaveRestore saver("x", "y");   // dummy config object, we won't actually save anything
   saver.listFiles("/");          // list all files starting at root
 }
 
 void type_gpshistory() {
-  logger.commands("type gpshistory");
+  logger.log(COMMAND, CONSOLE, "type gpshistory");
   SaveRestoreStrings saver("/Griduino/gpshistory.csv", "No Version");
   saver.typeFile();
 }
 
 void start_nmea() {
-  logger.commands("started NMEA");
-  logger.print_nmea = true;
+  logger.log(COMMAND, CONSOLE, "started NMEA");
+  logger.printSystem[NMEA] = true;
 }
 
 void stop_nmea() {
-  logger.commands("stopped NMEA");
-  logger.print_nmea = false;
+  logger.log(COMMAND, CONSOLE, "stopped NMEA");
+  logger.printSystem[NMEA] = false;
 }
 
 void start_gmt() {
-  logger.commands("started GMT");
-  logger.print_gmt = true;
+  logger.log(COMMAND, CONSOLE, "started GMT");
+  logger.printSystem[GMT] = true;
 }
 
 void stop_gmt() {
-  logger.commands("stopped");
-  logger.print_gmt = false;
+  logger.log(COMMAND, CONSOLE, "stopped");
+  logger.printSystem[GMT] = false;
 }
 
 void view_help() {
-  logger.commands("view Help screen");
+  logger.log(COMMAND, CONSOLE, "view Help screen");
   extern /*const*/ int help_view;   // Griduino.ino
   extern uint viewHelpTimeout;      // Griduino.ino
   extern elapsedSeconds viewHelpTimer;
@@ -170,59 +169,59 @@ void view_help() {
 }
 
 void view_splash() {
-  logger.commands("view Splash screen");
+  logger.log(COMMAND, CONSOLE, "view Splash screen");
   extern /*const*/ int splash_view;   // see "Griduino.ino"
   selectNewView(splash_view);         // see "Griduino.ino"
 }
 
 void view_screen1() {
-  logger.commands("view Screen 1");
+  logger.log(COMMAND, CONSOLE, "view Screen 1");
   extern /*const*/ int screen1_view;   // see "Griduino.ino"
   selectNewView(screen1_view);         // see "Griduino.ino"
 }
 
 void view_crossings() {
-  logger.commands("view grid crossings");
+  logger.log(COMMAND, CONSOLE, "view grid crossings");
   extern /*const*/ int grid_crossings_view;   // see Griduino.com
   selectNewView(grid_crossings_view);
 }
 
 void view_events() {
-  logger.commands("view calendar events");
+  logger.log(COMMAND, CONSOLE, "view calendar events");
   extern /*const*/ int events_view;   // see Griduino.com
   selectNewView(events_view);
 }
 
 void show_touch() {
-  logger.commands("showing touch targets");
+  logger.log(COMMAND, CONSOLE, "showing touch targets");
   showTouchTargets = true;
   pView->startScreen();
   pView->updateScreen();
 }
 
 void hide_touch() {
-  logger.commands("hiding touch targets");
+  logger.log(COMMAND, CONSOLE, "hiding touch targets");
   showTouchTargets = false;
   pView->startScreen();
   pView->updateScreen();
 }
 
 void show_centerline() {
-  logger.commands("showing centerline");
+  logger.log(COMMAND, CONSOLE, "showing centerline");
   showCenterline = true;
   pView->startScreen();
   pView->updateScreen();
 }
 
 void hide_centerline() {
-  logger.commands("hiding centerline");
+  logger.log(COMMAND, CONSOLE, "hiding centerline");
   showCenterline = false;
   pView->startScreen();
   pView->updateScreen();
 }
 
 void run_unittest() {
-  logger.commands("running unit test suite");
+  logger.log(COMMAND, CONSOLE, "running unit test suite");
   void runUnitTest();   // extern declaration
   runUnitTest();        // see "unit_test.cpp"
 }
