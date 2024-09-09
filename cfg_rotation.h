@@ -107,7 +107,7 @@ protected:
 
   // ---------- local functions for this derived class ----------
   void fRotateScreen() {
-    logger.config("->->-> Clicked OTHER EDGE UP button.");
+    logger.log(CONFIG, INFO, "->->-> Clicked OTHER EDGE UP button.");
     if (this->screenRotation == LANDSCAPE) {
       this->setScreenRotation(FLIPPED_LANDSCAPE);
     } else {
@@ -191,7 +191,7 @@ void ViewCfgRotation::startScreen() {
 }   // end startScreen()
 
 bool ViewCfgRotation::onTouch(Point touch) {
-  logger.config("->->-> Touched settings screen.");
+  logger.log(CONFIG, INFO, "->->-> Touched settings screen.");
   bool handled = false;   // assume a touch target was not hit
   for (int ii = 0; ii < nButtons; ii++) {
     FunctionButton item = myButtons[ii];
@@ -207,7 +207,7 @@ bool ViewCfgRotation::onTouch(Point touch) {
         fRotateScreen();
         break;
       default:
-        logger.error("Error, unknown function ", item.functionIndex);
+        logger.log(CONFIG, ERROR, "unknown function %d", item.functionIndex);
         break;
       }
       updateScreen();       // update UI immediately, don't wait for laggy mainline loop
@@ -246,14 +246,14 @@ void ViewCfgRotation::loadConfig() {
       char msg[256];
       snprintf(msg, sizeof(msg), "%s has unexpected screen orientation: %d",
                SCREEN_CONFIG_FILE, tempRotation);
-      logger.error(msg);
+      logger.log(CONFIG, ERROR, msg);
       this->screenRotation = LANDSCAPE;
       break;
     }
     tft->setRotation(this->screenRotation);   // 0=portrait (default), 1=landscape, 3=180 degrees
-    logger.info("Loaded rotation value: ", this->screenRotation);
+    logger.log(CONFIG, INFO, "Loaded rotation value: ", this->screenRotation);
   } else {
-    logger.error("Failed to load, re-initializing config file");
+    logger.log(CONFIG, ERROR, "Failed to load screen rotation, re-initializing file");
     this->screenRotation = LANDSCAPE;
     saveConfig();
   }
@@ -262,5 +262,5 @@ void ViewCfgRotation::loadConfig() {
 void ViewCfgRotation::saveConfig() {
   SaveRestore config(SCREEN_CONFIG_FILE, CONFIG_SCREEN_VERSION);
   int rc = config.writeConfig((byte *)&screenRotation, sizeof(screenRotation));
-  logger.info("Finished ViewCfgNMEA::saveConfig() with rc = %d", rc);   // debug
+  logger.log(CONFIG, DEBUG, "Finished ViewCfgNMEA::saveConfig() with rc = %d", rc);   // debug
 }
