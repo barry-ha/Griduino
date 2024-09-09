@@ -136,7 +136,6 @@ int testTimeDiff(const char *sExpected, time_t time1, time_t time2) {
   char msg[256];
   snprintf(msg, sizeof(msg), "Time difference: from %d to %d is %d sec / %d min / %d hr / %d days, expected '%s', actual '%s'",
            time1, time2, nSeconds, nMinutes, nHours, nDays, sExpected, sActual);
-  Serial.print(msg);
   /* ... */
 
   if (strncmp(sExpected, sActual, sizeof(sActual)) == 0) {
