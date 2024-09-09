@@ -466,10 +466,10 @@ void selectNewView(int cmd) {
     // a specific view was requested, such as HELP_VIEW via a USB command
     nextView = cmd;
   } else {
-    logger.error("Requested view is out of range: %d where maximum is %d", cmd, MAX_VIEWS);
+    logger.log(CONFIG, ERROR, "Requested view is out of range: %d where maximum is %d", cmd, MAX_VIEWS);
   }
   // clang-format on
-  logger.info("selectNewView() from %d to %d", currentView, nextView);
+  logger.log(CONFIG, INFO, "selectNewView() from %d to %d", currentView, nextView);
   if (currentView != nextView) {
     pView->endScreen();                   // a goodbye-kiss to the departing view
     pView = viewTable[ nextView ];
@@ -517,7 +517,7 @@ void adjustBrightness() {
   gCurrentBrightnessIndex = (gCurrentBrightnessIndex + 1) % gNumLevels;   // incr index
   int brightness          = gaBrightness[gCurrentBrightnessIndex];        // look up brightness
   PWM_backlight.setPWM(TFT_BL, frequency, brightness);                    // write to hardware
-  logger.info("Set brightness %d", brightness);
+  logger.log(CONFIG, INFO, "Set brightness %d", brightness);
 }
 #else
 // ----- adjust screen brightness: Feather M4
@@ -530,7 +530,7 @@ void adjustBrightness() {
   gCurrentBrightnessIndex = (gCurrentBrightnessIndex + 1) % gNumLevels;   // incr index
   int brightness          = gaBrightness[gCurrentBrightnessIndex];        // look up brightness
   analogWrite(TFT_BL, brightness);                                        // write to hardware
-  logger.info("Set brightness %d", brightness);
+  logger.log(CONFIG, INFO, "Set brightness %d", brightness);
 }
 #endif
 
@@ -545,11 +545,11 @@ void announceGrid(const String gridName, int length) {
   char grid[7];
   strncpy(grid, gridName.c_str(), sizeof(grid));
   grid[length] = 0;   // null-terminate string to requested 4- or 6-character length
-  logger.info("Announcing grid: "); Serial.println(grid);
+  logger.log(AUDIO, INFO, "Announcing grid: %s", grid);
 
 #if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
   // todo - for now, RP2040 has no DAC, no audio, no speech
-  logger.error("Unsupported audio in line ", __LINE__ );
+  logger.log(AUDIO, ERROR, "Unsupported audio in line ", __LINE__ );
 #else
   switch (cfgAudioType.selectedAudio) {
     case ViewCfgAudioType::MORSE: 
@@ -574,7 +574,7 @@ void announceGrid(const String gridName, int length) {
       break;
     default:
       // should not happen
-      logger.error("Internal error: unsupported audio, line ", __LINE__);
+      logger.log(AUDIO, ERROR, "Internal error: unsupported audio, line ", __LINE__);
       break;
   }
 #endif
@@ -615,11 +615,11 @@ void showActivityBar(int row, uint16_t foreground, uint16_t background) {
 }
 
 void sayGrid(const char *name) {
-  logger.info("Say ", name);
+  logger.log(AUDIO, INFO, "Say ", name);
 
 #if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
   // todo - for now, RP2040 has no DAC, no audio, no speech
-  logger.error("Unsupported audio in line ", __LINE__ );
+  logger.log(AUDIO, ERROR, "Unsupported audio in line ", __LINE__ );
 #else
   for (int ii = 0; ii < strlen(name); ii++) {
     logger.fencepost("Griduino.ino", __LINE__);   // debug
@@ -639,7 +639,7 @@ void sayGrid(const char *name) {
     if (!rc) {
       char out[128];
       snprintf(out, sizeof(out), "sayGrid(%s) failed", letter);
-      logger.error(out);
+      logger.log(AUDIO, ERROR, out);
     }
   }
 #endif
@@ -675,9 +675,8 @@ void setup() {
   pixel.clear();                      // turn off NeoPixel
   pinMode(RED_LED, OUTPUT);           // diagnostics RED LED
   digitalWrite(PIN_LED, LOW);         // turn off little red LED
-  Serial.println("NeoPixel initialized and turned off");
 
-  // ----- init serial monitor (do not "Serial.print" before this, it won't show up in console)
+  // ----- init serial monitor (do not "Serial.print" or "logger.log" before this, it won't show up in console)
   Serial.begin(115200);               // init for debugging in the Arduino IDE
   waitForSerial(howLongToWait);       // display very first screen, an animation splash at startup
                                       // AND wait for developer to connect debugging console
@@ -688,12 +687,13 @@ void setup() {
   pView->updateScreen();
 
   // now that Serial is ready and connected (or we gave up)...
-  Serial.println(PROGRAM_TITLE " " PROGRAM_VERSION " " HARDWARE_VERSION);  // Report our program name to console
-  Serial.println("Compiled " PROGRAM_COMPILED);       // Report our compiled date
-  Serial.println(__FILE__);                           // Report our source code file name
+  logger.log(CONFIG, INFO,"NeoPixel initialized and turned off");
+  logger.log(CONFIG, INFO, PROGRAM_TITLE " " PROGRAM_VERSION " " HARDWARE_VERSION);  // Report our program name to console
+  logger.log(CONFIG, INFO, "Compiled " PROGRAM_COMPILED);       // Report our compiled date
+  logger.log(CONFIG, INFO, __FILE__);                           // Report our source code file name
 
   // ----- init NMEA broadcasting on/off
-  logger.info("Starting cfgNMEA.loadConfig()...");
+  logger.log(CONFIG, INFO, "Starting cfgNMEA.loadConfig()...");
   cfgNMEA.loadConfig();
 
   // ----- init GPS
@@ -703,8 +703,8 @@ void setup() {
   // baud rate for GlobalTop GPS
   /*
   #define PMTK_SET_BAUD_38400  "$PMTK251,38400*27"
-  logger.gps_setup("Set GPS baud rate to 38400: ");
-  logger.gps_setup(PMTK_SET_BAUD_38400);
+  logger.log(GPS_SETUP, INFO, "Set GPS baud rate to 38400: ");
+  logger.log(GPS_SETUP, INFO, PMTK_SET_BAUD_38400);
   GPS.sendCommand(PMTK_SET_BAUD_38400);
   delay(50);
   GPS.begin(38400);
@@ -712,8 +712,8 @@ void setup() {
   */
 
   /* ***** 576000 is for Adafruit Ultimate GPS only 
-  logger.gps_setup("Set GPS baud rate to 57600: ");
-  logger.gps_setup(PMTK_SET_BAUD_57600);
+  logger.log(GPS_SETUP, INFO, "Set GPS baud rate to 57600: ");
+  logger.log(GPS_SETUP, INFO, PMTK_SET_BAUD_57600);
   GPS.sendCommand(PMTK_SET_BAUD_57600);
   delay(50);
   GPS.begin(57600);
@@ -721,36 +721,36 @@ void setup() {
   ***** */
 
   // init Quectel L86 chip to improve USA satellite acquisition
-  logger.gps_setup("$PMTK353,1,0,0,0,0*2A");
+  logger.log(GPS_SETUP, INFO, "$PMTK353,1,0,0,0,0*2A");
   GPS.sendCommand("$PMTK353,1,0,0,0,0*2A");   // search American GPS satellites only (not Russian GLONASS satellites)
   delay(50);
 
-  logger.gps_setup("Turn on RMC (recommended minimum) and GGA (fix data) including altitude: ");
-  logger.gps_setup(PMTK_SET_NMEA_OUTPUT_RMCGGA);
+  logger.log(GPS_SETUP, INFO, "Turn on RMC (recommended minimum) and GGA (fix data) including altitude: ");
+  logger.log(GPS_SETUP, INFO, PMTK_SET_NMEA_OUTPUT_RMCGGA);
   GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
   delay(50);
 
-  logger.gps_setup("Set GPS 1 Hz update rate: ");
-  logger.gps_setup(PMTK_SET_NMEA_UPDATE_1HZ);
+  logger.log(GPS_SETUP, INFO, "Set GPS 1 Hz update rate: ");
+  logger.log(GPS_SETUP, INFO, PMTK_SET_NMEA_UPDATE_1HZ);
   GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);                // 1 Hz
   //GPS.sendCommand(PMTK_SET_NMEA_UPDATE_200_MILLIHERTZ);   // Every 5 seconds
   delay(50);
 
   if (0) {   // this command is saved in the GPS chip NVR, so always send one of these cmds
-    logger.gps_setup("Request antenna status: ");
-    logger.gps_setup(PGCMD_ANTENNA);    // echo command to console log
+    logger.log(GPS_SETUP, INFO, "Request antenna status: ");
+    logger.log(GPS_SETUP, INFO, PGCMD_ANTENNA);    // echo command to console log
     GPS.sendCommand(PGCMD_ANTENNA);   // tell GPS to send us antenna status
                                       // expected reply: $PGTOP,11,...
   } else {
-    logger.gps_setup("Request to NOT send antenna status: ");
-    logger.gps_setup(PGCMD_NOANTENNA);    // echo command to console log
+    logger.log(GPS_SETUP, INFO, "Request to NOT send antenna status: ");
+    logger.log(GPS_SETUP, INFO, PGCMD_NOANTENNA);    // echo command to console log
     GPS.sendCommand(PGCMD_NOANTENNA);   // tell GPS to NOT send us antena status
   }
   delay(50);
 
   // ----- query GPS firmware
-  logger.gps_setup("Query GPS Firmware version: ");
-  logger.gps_setup(PMTK_Q_RELEASE);    // Echo query to console
+  logger.log(GPS_SETUP, INFO, "Query GPS Firmware version: ");
+  logger.log(GPS_SETUP, INFO, PMTK_Q_RELEASE);    // Echo query to console
   GPS.sendCommand(PMTK_Q_RELEASE);   // Send query to GPS unit
                                      // expected reply: $PMTK705,AXN_2.10...
   delay(50);
@@ -764,22 +764,22 @@ void setup() {
 //                                          | | | | GPGSA   GPS Satellites Active
 //                                          | | | | | GPGSV GPS Satellites in View
 #define PMTK_SENTENCE_FREQUENCIES "$PMTK314,0,1,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0*28"
-  logger.gps_setup("Set sentence output frequencies: ");
-  logger.gps_setup(PMTK_SENTENCE_FREQUENCIES);    // Echo command to console
+  logger.log(GPS_SETUP, INFO, "Set sentence output frequencies: ");
+  logger.log(GPS_SETUP, INFO, PMTK_SENTENCE_FREQUENCIES);    // Echo command to console
   GPS.sendCommand(PMTK_SENTENCE_FREQUENCIES);   // Send command to GPS unit
   delay(50);
 
   // ----- report on our memory hogs
   char temp[200];
-  Serial.println("Large resources:");
+  logger.log(CONFIG, INFO, "Large resources:");
   snprintf(temp, sizeof(temp), 
           ". Model.history[%d] uses %d bytes/entry = %d bytes total",
              trail.capacity, trail.recordSize, trail.totalSize);
-  Serial.println(temp);
+  logger.log(CONFIG, INFO, temp);
   snprintf(temp, sizeof(temp),
           ". baroModel.pressureStack[%d] uses %d bytes/entry = %d bytes total",
              maxReadings, sizeof(BaroReading), sizeof(baroModel.pressureStack));
-  Serial.println(temp);
+  logger.log(CONFIG, INFO, temp);
 
   // ----- init RTC
   // Note: See the main() loop.
@@ -825,9 +825,9 @@ void setup() {
 
   // ----- restore barometric pressure history
   if (baroModel.loadHistory()) {
-    logger.info("Successfully restored barometric pressure log");
+    logger.log(CONFIG, INFO, "Successfully restored barometric pressure log");
   } else {
-    logger.error("Failed to load barometric pressure log, re-initializing config file");
+    logger.log(CONFIG, WARNING, "Failed to load barometric pressure log, re-initializing file");
     baroModel.saveHistory();
   }
 
@@ -888,7 +888,7 @@ void loop() {
   if (GPS.newNMEAreceived()) {
     // optionally send NMEA sentences to Serial port, possibly for NMEATime2
     // Note: Adafruit parser doesn't handle $GPGSV (satellites in vieW) so we send all sentences regardless of content
-    logger.nmea(GPS.lastNMEA());
+    logger.nmea(CONSOLE, GPS.lastNMEA());
 
     // sentence received -- verify checksum, parse it
     // a tricky thing here is if we print the NMEA sentence, or data
@@ -915,7 +915,7 @@ void loop() {
     snprintf(msg, sizeof(msg), "Received first valid GPS time: %d-%02d-%02d at %02d:%02d:%02d",
                                 GPS.year,GPS.month,GPS.day, 
                                 GPS.hour,GPS.minute,GPS.seconds);
-    Serial.println(msg);              // debug
+    logger.log(CONFIG, INFO, msg);    // debug
 
     // write this to the breadcrumb trail as preliminary indication of acquiring satellites
     TimeElements tm{GPS.seconds, GPS.minute, GPS.hour, 0, GPS.day, GPS.month, (byte)(2000-1970+GPS.year)};
@@ -955,7 +955,7 @@ void loop() {
     char msg[32];      // strlen("2022-01-01 21:49:49+00:00") = 25
     snprintf(msg, sizeof(msg), "%04d-%02d-%02d %02d:%02d:%02d+00:00\n",
                          year(rtc), month(rtc), day(rtc), hour(rtc), minute(rtc), second(rtc));
-    logger.gmt(msg);
+    logger.log(GMT, INFO, msg);
     prevTimeRTC = rtc;
   }
 
@@ -1039,7 +1039,7 @@ void loop() {
     prevRememberedGPS = currentGPS;
 
     if (0 == (trail.getHistoryCount() % trail.saveInterval)) {
-      logger.fencepost("Moved a visible distance",__LINE__);  // debug
+      logger.log(GPS_SETUP, DEBUG, "Moved a visible distance (line %d)", __LINE__);  // debug
       trail.saveGPSBreadcrumbTrail();   // have moved a visible distance
     }
   }
@@ -1067,7 +1067,7 @@ void loop() {
 
     int coin_adc       = analogRead(BATTERY_ADC);
     float coin_voltage = (float)coin_adc * analogRef / analogBits;
-    logger.info("Coin battery = %s", coin_voltage, 3);
+    logger.log(BATTERY, INFO, "Coin battery = %s", coin_voltage, 3);
 
     trail.rememberBAT(coin_voltage);
   }
@@ -1078,7 +1078,7 @@ void loop() {
 
     Location whereAmI;
     model->makeLocation(&whereAmI);
-    logger.fencepost("Griduino.ino autolog timer",__LINE__);  // debug
+    logger.log(GPS_SETUP, DEBUG, "Griduino.ino autolog timer (line %d)", __LINE__);  // debug
     //whereAmI.printLocation();                                 // debug
     trail.rememberGPS(whereAmI);
     trail.saveGPSBreadcrumbTrail();   // autosave timer

@@ -19,10 +19,10 @@
               int tempValue;
               int result = config.readConfig((byte *)&tempValue, sizeof(tempValue));
               if (result) {
-                Serial.print("Loaded my value from NVR: ");
-                Serial.println(myValue);
+                logger.print("Loaded my value from NVR: ");
+                logger.println(myValue);
               } else {
-                Serial.println("Failed to load settings, re-initializing config file");
+                logger.println("Failed to load settings, re-initializing config file");
                 saveConfig();
               }
             }

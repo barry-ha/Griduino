@@ -90,7 +90,7 @@ void ViewSplash::startScreen() {
 
 bool ViewSplash::onTouch(Point touch) {
   // do nothing - this screen does not respond to buttons
-  logger.info("->->-> Touched splash screen.");
+  logger.log(CONFIG, INFO, "->->-> Touched splash screen.");
   return false;   // true=handled, false=controller uses default action
 
 }   // end onTouch()

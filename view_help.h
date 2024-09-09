@@ -118,7 +118,7 @@ void ViewHelp::startScreen() {
 
 bool ViewHelp::onTouch(Point touch) {
   // do nothing - this screen does not respond to buttons
-  logger.info("->->-> Touched help screen.");
+  logger.log(CONFIG, INFO, "->->-> Touched help screen.");
   return false;   // true=handled, false=controller uses default action
 
 }   // end onTouch()

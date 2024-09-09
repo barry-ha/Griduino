@@ -121,7 +121,7 @@ public:
     for (uint ii = 0; ii < capacity; ii++) {
       history[ii].reset();
     }
-    logger.info("Breadcrumb trail history[%d] has been erased", capacity);
+    logger.log(CONFIG, INFO, "Breadcrumb trail history[%d] has been erased", capacity);
   }
 
   // ----- State tracking
@@ -191,7 +191,7 @@ public:
       strncpy(vLoc.recordType, rGPS, sizeof(vLoc.recordType));
       remember(vLoc);
     } else {
-      vLoc.printLocation("Bogus GPS date is before our first release and is ignored:");
+      vLoc.printLocation("Bogus GPS date is before our first release and is ignored");
     }
   }
 
@@ -201,7 +201,7 @@ public:
     if (vTime > cutoff) {
       remember(gps);
     } else {
-      gps.printLocation("Bogus GPS date is before our first release (ignored): ");
+      gps.printLocation("Bogus GPS date is before our first release (ignored)");
     }
   }
 

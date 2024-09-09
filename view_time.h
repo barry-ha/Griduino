@@ -234,7 +234,7 @@ void ViewTime::endScreen() {
 }
 
 bool ViewTime::onTouch(Point touch) {
-  logger.info("->->-> Touched time screen.");
+  logger.log(CONFIG, INFO, "->->-> Touched time screen.");
 
   bool handled = false;   // assume a touch target was not hit
   for (int ii = 0; ii < nTimeButtons; ii++) {
@@ -250,7 +250,7 @@ bool ViewTime::onTouch(Point touch) {
         model->timeZoneMinus();
         break;
       default:
-        logger.error("Error, unknown function ", item.functionIndex);
+        logger.log(CONFIG, ERROR, "unknown function %d", item.functionIndex);
         break;
       }
       updateScreen();   // show the result

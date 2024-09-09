@@ -269,7 +269,6 @@ void ViewSatCount::startScreen() {
   }
 
   graphRefreshRequested = true;
-  // logger.fencepost("--- startScreen()", __LINE__);
   updateScreen();   // update UI immediately, don't wait for the main loop to eventually get around to it
 }
 

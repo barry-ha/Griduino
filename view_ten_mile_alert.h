@@ -140,10 +140,7 @@ protected:
     startLat  = model->gLatitude;
     startLong = model->gLongitude;
 
-    Serial.print("Set new starting point: ");
-    Serial.print(startLat, 4);
-    Serial.print(", ");
-    Serial.println(startLong, 4);
+    logger.logTwoFloats(GPS_SETUP, INFO, "Set new starting point: %s, %s", startLat, 4, startLong, 4);
 
     startCompass();
     clearDirectionName();
@@ -254,20 +251,17 @@ protected:
     // purely for debug in the console
     static int prevDegrees;
     if (compassDegrees != prevDegrees) {
-      Serial.print("Heading ");
-      Serial.print(theta, 3);
-      Serial.print(" radians, ");
-      Serial.print(compassDegrees);
-      Serial.print(" degrees, index ");
-      Serial.print(index);
-      Serial.print(", ");
+      prevDegrees = compassDegrees;   // do the thing
+
+      char sTheta[10], sDirection[10], msg[128];   // report that we did the thing
+      floatToCharArray(sTheta, sizeof(sTheta), theta, 3);
       if (0 <= index && index < 9) {
-        Serial.print(names[index]);
+        strcpy(sDirection, names[index]);
       } else {
-        Serial.print("?");
+        strcpy(sDirection, "?");
       }
-      Serial.println();
-      prevDegrees = compassDegrees;
+      snprintf(msg, sizeof(msg), "Heading %s radians, %d degrees, index %d, %s", sTheta, compassDegrees, index, sDirection);
+      logger.log(GPS_SETUP, INFO, msg);
     }
   }
 
@@ -348,7 +342,7 @@ void ViewTenMileAlert::startScreen() {
   }
 
   // ----- draw static parts of direction indicators
-  prevDiffLat  = 99.9;  // force the pointer to be refreshed
+  prevDiffLat  = 99.9;   // force the pointer to be refreshed
   prevDiffLong = 99.9;
   startCompass();
   clearDirectionName();
@@ -377,7 +371,7 @@ void ViewTenMileAlert::endScreen() {
 }
 
 bool ViewTenMileAlert::onTouch(Point touch) {
-  logger.info("->->-> Touched 10-mile alert screen.");
+  logger.log(CONFIG, INFO, "->->-> Touched 10-mile alert screen.");
 
   bool handled = false;   // assume a touch target was not hit
   for (int ii = 0; ii < nTenMileAlertButtons; ii++) {
@@ -390,14 +384,14 @@ bool ViewTenMileAlert::onTouch(Point touch) {
         handled = true;
         break;
       default:
-        logger.error("Error, unknown function ", item.functionIndex);
+        logger.log(CONFIG, ERROR, "unknown function %d", item.functionIndex);
         break;
       }
       updateScreen();   // update UI immediately, don't wait for laggy mainline loop
     }
   }
   if (!handled) {
-    logger.info("No match to my hit targets.");   // debug
+    logger.log(CONFIG, INFO, "No match to my hit targets.");
   }
   return handled;   // true=handled, false=controller uses default action
 }   // end onTouch()
@@ -414,9 +408,9 @@ void ViewTenMileAlert::saveConfig() {
   SaveRestore config(TEN_MILE_START, TEN_MILE_VERSION);
   int rc = config.writeConfig((byte *)this, sizeof(ViewTenMileAlert));
   if (rc) {
-    logger.info("Success, Ten-Mile Alert object stored to SDRAM");
+    logger.log(GPS_SETUP, INFO, "Success, Ten-Mile Alert object stored to SDRAM");
   } else {
-    logger.error("Error, failed to save Ten Mile Alert object to SDRAM");
+    logger.log(GPS_SETUP, ERROR, "failed to save Ten Mile Alert object to SDRAM");
   }
 }
 
@@ -430,20 +424,15 @@ void ViewTenMileAlert::loadConfig() {
   if (rc) {
     // warning: this can corrupt our object's data if something failed
     // so we blob the bytes to a work area and copy individual values
-    logger.info(". Success, settings restored from SDRAM");
+    logger.log(CONFIG, INFO, ". Success, settings restored from SDRAM");
 
     // pick'n pluck values from the restored instance
     this->startLat  = temp.startLat;
     this->startLong = temp.startLong;
-    if (logger.print_info) {
-      Serial.print("Loaded starting point (");
-      Serial.print(this->startLat, 4);
-      Serial.print(", ");
-      Serial.print(this->startLong, 4);
-      Serial.println(")");
-    }
+    logger.logFloat(CONFIG, INFO, "Loaded starting latitude: %s", this->startLat, 4);
+    logger.logFloat(CONFIG, INFO, "Loaded starting longitude: %s", this->startLong, 4);
   } else {
-    logger.error("Failed to load Ten Mile Alert settings, re-initializing config file");
+    logger.log(CONFIG, ERROR, "Failed to load Ten Mile Alert settings, re-initializing config file");
     saveConfig();
   }
 }

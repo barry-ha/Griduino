@@ -56,14 +56,14 @@ int testNMEAtime(const time_t expected, uint8_t yr, uint8_t mo, uint8_t day,
   char msg[120];
   snprintf(msg, sizeof(msg), "[%d] Expected %lu, actual %lu from %02d-%02d-%02d %02d:%02d:%02d",
            line, ulExpected, ulActual, yr, mo, day, hr, min, sec);
-  Serial.print(msg);
+  logger.print(msg);
   int fails = 0;
   if (ulExpected == ulActual) {
-    Serial.println();   // success
+    logger.println();   // success
   } else {
     long diff = ulExpected - ulActual;
-    Serial.print(" <-- Unequal, diff = ");
-    Serial.println(diff);
+    logger.print(" <-- Unequal, diff = ");
+    logger.println(diff);
     fails++;
     // todo: also display message on screen, e.g. "Unit test failure at line 71"
   }
@@ -136,12 +136,13 @@ int testTimeDiff(const char *sExpected, time_t time1, time_t time2) {
   char msg[256];
   snprintf(msg, sizeof(msg), "Time difference: from %d to %d is %d sec / %d min / %d hr / %d days, expected '%s', actual '%s'",
            time1, time2, nSeconds, nMinutes, nHours, nDays, sExpected, sActual);
+  logger.print(msg);
   /* ... */
 
   if (strncmp(sExpected, sActual, sizeof(sActual)) == 0) {
-    Serial.println();   // success
+    logger.println();   // success
   } else {
-    Serial.println(" <-- Unequal");
+    logger.println(" <-- Unequal");
     fails++;
   }
   return fails;
@@ -332,21 +333,21 @@ int testDistanceLong(double expected, double lat, double fromLong, double toLong
 // verify Morse Code
 int verifyMorseCode() {
   logger.fencepost("unittest.cpp", "verifyMorseCode", __LINE__);
-  logger.info("Connect speaker and listen");
+  logger.log(AUDIO, CONSOLE, "Connect speaker and listen");
   dacMorse.setup();
   dacMorse.dump();
 
-  logger.info("\nStarting dits");
+  logger.log(AUDIO, CONSOLE, "\nStarting dits");
   for (int ii = 1; ii <= 40; ii++) {
     //~Serial.print(ii); //~Serial.print(" ");
     if (ii % 10 == 0)   //~Serial.print("\n");
       dacMorse.send_dit();
   }
-  logger.info("Finished dits");
+  logger.log(AUDIO, CONSOLE, "Finished dits");
   dacMorse.send_word_space();
 
   // ----- test dit-dah
-  logger.info("Starting dit-dah");
+  logger.log(AUDIO, CONSOLE, "Starting dit-dah");
   for (int ii = 1; ii <= 20; ii++) {
     //~Serial.print(ii); //~Serial.print(" ");
     if (ii % 10 == 0)   //~Serial.print("\n");
@@ -354,7 +355,7 @@ int verifyMorseCode() {
     dacMorse.send_dah();
   }
   dacMorse.send_word_space();
-  logger.info("Finished dit-dah");
+  logger.log(AUDIO, CONSOLE, "Finished dit-dah");
   // Indicate success - this test is not able to detect errors
   // To validate morse code, connect speaker and listen
   return 0;
@@ -363,7 +364,7 @@ int verifyMorseCode() {
 // verify Save/Restore Volume settings in SDRAM
 int verifySaveRestoreVolume() {
   logger.fencepost("unittest.cpp", "verifySaveRestoreVolume", __LINE__);
-  logger.info("Please watch the TFT display");
+  logger.log(AUDIO, CONSOLE, "Please watch the TFT display");
 
 #define TEST_CONFIG_FILE    CONFIG_FOLDER "/test.cfg"   // strictly 8.3 names
 #define TEST_CONFIG_VERSION "Test v02"
@@ -603,7 +604,7 @@ int verifyBreadCrumbTrail2(int howMany) {
   trail.rememberPUP();         // test "power up" record type (also writes it to file)
   generateSineWave(howMany);   // put known data into breadcrumb trail
 
-  Serial.println(". History as known by verifyBreadCrumbTrail2()...");
+  logger.log(FILES, CONSOLE, ". History as known by verifyBreadCrumbTrail2()...");
   trail.dumpHistoryGPS();    // did it remember? (go review serial console)
   gridView.updateScreen();   // does it look like a sine wave? (go look at TFT display)
   return r;
@@ -619,7 +620,7 @@ int verifySaveTrail(int howMany) {
   // ail.rememberFirstValidTime()    // todo
   generateSineWave(howMany);   // generate known data to be saved
 
-  Serial.println("History as known by verifySaveTrail()...");
+  logger.log(FILES, CONSOLE, "History as known by verifySaveTrail()...");
   trail.dumpHistoryGPS(howMany + 4);   // did it remember? (go review serial console)
 
   trail.saveGPSBreadcrumbTrail();   // write to NVR, so we can test Restore
@@ -633,7 +634,7 @@ int verifyRestoreTrail(int howMany) {
   int interval = trail.saveInterval;
   trail.restoreGPSBreadcrumbTrail();   // this takes noticeable time (~0.2 sec)
 
-  Serial.println("History as known by verifyRestoreTrail()...");
+  logger.log(FILES, CONSOLE, "History as known by verifyRestoreTrail()...");
   trail.dumpHistoryGPS(howMany + 4);   // did it remember? (go review serial console)
 
   trail.saveInterval = interval;   // restore default trail setting
@@ -725,20 +726,20 @@ int verifyComputingGridLines() {
 }
 // =============================================================
 void countDown(int iSeconds) {
-  Serial.print("Wait ");
+  logger.print("Wait ");
   setFontSize(0);
   tft.setTextSize(2);
   tft.setTextColor(ILI9341_BLACK, ILI9341_WHITE);
   for (int ii = iSeconds; ii > 0; ii--) {
-    Serial.print(ii);   // to console
-    // Serial.print(" ");
+    logger.print(ii);   // to console
+    logger.print(" ");
     tft.setCursor(2, gScreenHeight - 16);
     tft.print(" Wait ");   // to TFT display
     tft.print(ii);
     tft.print(" ");
     delay(1000);
   }
-  Serial.println();
+  logger.println();
 }
 // ================ main unit test =============================
 void runUnitTest() {
@@ -749,7 +750,7 @@ void runUnitTest() {
   tft.setCursor(12, 38);
   tft.setTextColor(ILI9341_WHITE);
   tft.print("--Unit Test--");
-  Serial.println("--Unit Test--");
+  logger.println("--Unit Test--");
 
   setFontSize(0);
   tft.setTextSize(1);
@@ -796,10 +797,9 @@ void runUnitTest() {
 
   logger.fencepost("unittest.cpp", "End Unit Test", __LINE__);
   if (f) {
-    Serial.println("====================");
-    Serial.print(f);
-    Serial.println(" failures");
+    logger.log(FILES, CONSOLE, "====================");
+    logger.log(FILES, CONSOLE, "%d failures", f);
   } else {
-    Serial.println("100% successful");
+    logger.log(FILES, CONSOLE, "100% successful");
   }
 }

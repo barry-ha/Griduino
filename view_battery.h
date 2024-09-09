@@ -207,6 +207,6 @@ void ViewBattery::startScreen() {
 }
 
 bool ViewBattery::onTouch(Point touch) {
-  logger.info("->->-> Touched battery screen.");
+  logger.log(CONFIG, INFO, "->->-> Touched battery screen.");
   return false;   // true=handled, false=controller uses default action
 }   // end onTouch()

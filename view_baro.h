@@ -247,7 +247,6 @@ protected:
     txtBaro[eTitle].print();
     txtBaro[valPressure].print(fPressure, decimals);
     txtBaro[unitPressure].print(sUnits);
-    // Serial.print("Displaying "); Serial.print(fPressure, decimals); Serial.print(" "); Serial.println(sUnits);
   }
 
   void tickMarks(int t, int h) {
@@ -258,14 +257,6 @@ protected:
     for (int x = xRight; x > xDay1; x = x - deltaX) {
       tft->drawLine(x, yBot, x, yBot - h, cSCALECOLOR);
     }
-  }
-
-  void printTwoFloats(float one, float two) {
-    Serial.print("(");
-    Serial.print(one, 2);
-    Serial.print(",");
-    Serial.print(two, 2);
-    Serial.print(")");
   }
 
   void autoScaleGraph() {
@@ -306,20 +297,10 @@ protected:
     fMinHg = (int)(lowestHg / HG_RES) * HG_RES;
     fMaxHg = (int)((highestHg / HG_RES) + 1) * HG_RES;
 
-    if (logger.print_info) {
-      Serial.print(": Minimum and maximum reported pressure = ");
-      printTwoFloats(lowestPa, highestPa);
-      Serial.println(" Pa");   // debug
-      Serial.print(": Minimum and maximum vertical scale = ");
-      printTwoFloats(fMinPa, fMaxPa);
-      Serial.println(" Pa");   // debug
-      Serial.print(": Minimum and maximum reported pressure = ");
-      printTwoFloats(lowestHg, highestHg);
-      Serial.println(" inHg");   // debug
-      Serial.print(": Minimum and maximum vertical scale = ");
-      printTwoFloats(fMinHg, fMaxHg);
-      Serial.println(" inHg");   // debug
-    }
+    logger.logTwoFloats(BARO, DEBUG, ": Minimum and maximum reported pressure = (%s, %s) Pa", lowestPa, 2, highestPa, 2);
+    logger.logTwoFloats(BARO, DEBUG, ": Minimum and maximum vertical scale = (%s, %s) Pa", fMinPa, 2, fMaxPa, 2);
+    logger.logTwoFloats(BARO, DEBUG, ": Minimum and maximum reported pressure = (%s, %s) inHg", lowestHg, 2, highestHg, 2);
+    logger.logTwoFloats(BARO, DEBUG, ": Minimum and maximum vertical scale = (%s, %s) inHg", lowestPa, 2, highestPa, 2);
   }
 
   void scaleMarks(int p, int len) {
@@ -409,7 +390,7 @@ protected:
     snprintf(msg, sizeof(msg), "RTC time %d-%d-%d at %02d:%02d:%02d",
              year(today), month(today), day(today),
              hour(today), minute(today), second(today));
-    Serial.println(msg);   // debug
+    logger.log(BARO, DEBUG, msg);   // debug
 
     TextField::setTextDirty(txtDate, numDates);
     txtDate[eTODAY].print();
@@ -428,7 +409,7 @@ protected:
   void drawGraph() {
     // check that RTC has been initialized, otherwise we cannot display a sensible graph
     if (timeStatus() == timeNotSet) {
-      Serial.println("!! No graph, real-time clock has not been set.");
+      logger.log(BARO, WARNING, "!! No graph, real-time clock has not been set.");
       return;
     }
 
@@ -443,34 +424,26 @@ protected:
     snprintf(msg, sizeof(msg), ". Right now is %d-%d-%d at %02d:%02d:%02d",
              year(today), month(today), day(today),
              hour(today), minute(today), second(today));
-    logger.info(msg);   // debug
+    logger.log(BARO, INFO, msg);   // debug
     snprintf(msg, sizeof(msg), ". Leftmost graph minTime = %d-%02d-%02d at %02d:%02d:%02d (x=%d)",
              year(minTime), month(minTime), day(minTime),
              hour(minTime), minute(minTime), second(minTime),
              xDay1);
-    logger.info(msg);   // debug
+    logger.log(BARO, INFO, msg);   // debug
     snprintf(msg, sizeof(msg), ". Rightmost graph maxTime = %d-%02d-%02d at %02d:%02d:%02d (x=%d)",
              year(maxTime), month(maxTime), day(maxTime),
              hour(maxTime), minute(maxTime), second(maxTime),
              xRight);
-    logger.info(msg);   // debug
+    logger.log(BARO, INFO, msg);   // debug
 
     float yTopPa = (model->gMetric) ? fMaxPa : (fMaxHg * PASCALS_PER_INCHES_MERCURY);
     float yBotPa = (model->gMetric) ? fMinPa : (fMinHg * PASCALS_PER_INCHES_MERCURY);
 
-    if (logger.print_info) {
-      Serial.print(". Top graph pressure = ");
-      Serial.print(yTopPa, 1);
-      Serial.println(" Pa");   // debug
-      Serial.print(". Bottom graph pressure = ");
-      Serial.print(yBotPa, 1);
-      Serial.println(" Pa");   // debug
-      Serial.print(". Saving ");
-      Serial.print(sizeof(baroModel.pressureStack));
-      Serial.print(" bytes, ");   // debug
-      Serial.print(sizeof(baroModel.pressureStack) / sizeof(baroModel.pressureStack[0]));
-      Serial.println(" readings");   // debug
-    }
+    logger.logFloat(BARO, INFO, ". Top graph pressure = %s Pa", yTopPa, 1);
+    logger.logFloat(BARO, INFO, ". Bottom graph pressure = %s", yBotPa, 1);
+    logger.logFloat(BARO, INFO, ". Saving %d bytes, %d readings",
+                    sizeof(baroModel.pressureStack),
+                    sizeof(baroModel.pressureStack));   // todo: error, use actual number of readings saved
 
     // loop through entire saved array of pressure readings
     // each reading is one point, i.e., one pixel (we don't draw lines connecting the dots)
@@ -584,8 +557,8 @@ void ViewBaro::startScreen() {
   drawAllIcons();              // draw gear (settings) and arrow (next screen)
   showDefaultTouchTargets();   // optionally draw box around default button-touch areas
   // showMyTouchTargets(baroButtons, nBaroButtons);   // no buttons on barometric graphing screen
-  showScreenBorder();          // optionally outline visible area
-  showScreenCenterline();      // optionally draw visual alignment bar
+  showScreenBorder();       // optionally outline visible area
+  showScreenCenterline();   // optionally draw visual alignment bar
 
   // ----- draw page title
   txtBaro[eTitle].print();
@@ -595,7 +568,7 @@ void ViewBaro::startScreen() {
 }   // end startScreen()
 
 bool ViewBaro::onTouch(Point touch) {
-  logger.info("->->-> Touched baro screen.");
+  logger.log(CONFIG, INFO, "->->-> Touched baro screen.");
 
   bool handled = false;   // assume a touch target was not hit
   return handled;         // true=handled, false=controller uses default action

@@ -64,7 +64,7 @@ public:
    * Called whenever the touchscreen has an event for this view
    */
   virtual bool onTouch(Point touch) {
-    logger.info("->->-> Touched screen.");
+    logger.log(CONFIG, INFO, "->->-> Touched screen.");
     return false;   // true=handled, false=controller uses default action
   }
 

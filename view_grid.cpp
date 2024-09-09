@@ -290,18 +290,10 @@ void translateGPStoScreen(Point *result, const PointGPS loc, const PointGPS orig
 
   result->x = gMarginX + (int)((loc.lng - origin.lng) * xPixelsPerDegree);
   result->y = gMarginY + gBoxHeight - (int)((loc.lat - origin.lat) * yPixelsPerDegree);
-
-  // Serial.print("~ From ("); Serial.print(loc.lat,3); Serial.print(","); Serial.print(loc.lng,3); Serial.print(")");
-  // Serial.print(" to ("); Serial.print(result->x); Serial.print(","); Serial.print(result->y); Serial.print(")");
-  // Serial.print(" using grid corner("); Serial.print(origin.lat,1); Serial.print(","); Serial.print(origin.lng,1); Serial.print(")");
-  // Serial.println("");
 }
 // =============================================================
 void plotRoute(Breadcrumbs *trail, const PointGPS origin) {
   // show route track using history saved in bread crumb trail
-  // logger.fencepost("plotRoute()", __LINE__);   // debug
-  // Serial.print("~ Plot relative to origin("); Serial.print(origin.lat); Serial.print(","); Serial.print(origin.lng); Serial.println(")");
-  // trail->dumpHistoryGPS();    // debug
 
   Point prevPixel{0, 0};   // keep track of previous dot plotted
 
@@ -409,10 +401,10 @@ void plotCurrentPosition(const PointGPS loc, const PointGPS origin) {
       floatToCharArray(sOriginLat, sizeof(sOriginLat), origin.lat, 4);
       floatToCharArray(sOriginLng, sizeof(sOriginLng), origin.lng, 4);
 
-      char msg[128];              // debug
+      char msg[128];
       snprintf(msg, sizeof(msg), "Plot vehicle gps(%s,%s) with origin(%s,%s) on screen(%d,%d)",
                                   sLat, sLng, sOriginLat, sOriginLng, result.x, result.y);
-      Serial.println(msg);        // debug
+      logger.log(BARO, DEBUG, msg);
       // ----- end debug messages
       /* ... */
 
@@ -435,13 +427,13 @@ void plotCurrentPosition(const PointGPS loc, const PointGPS origin) {
         static int nn                    = 0;               // debug - echo status once in awhile
         if (++nn % 100) {                                   // debug
           nn = 0;                                           // debug
-          Serial.print("carHistory: ");                     // debug
+          logger.print("carHistory: ");                     // debug
           for (int ii = 0; ii < carHistoryLength; ii++) {   // debug
             char msg[24];                                   // debug
             snprintf(msg, sizeof(msg), "(%d,%d), ", carHistory[ii].x, carHistory[ii].y);
-            Serial.print(msg);                              // debug
+            logger.print(msg);                              // debug
           }                                                 // debug
-          Serial.println();                                 // debug
+          logger.println();                                 // debug
         }                                                   // debug
         *****/
       }
@@ -490,21 +482,11 @@ void ViewGrid::startScreen() {
   txtGrid[0].setBackground(this->background);   // set background for all TextFields in this view
   TextField::setTextDirty(txtGrid, numTextGrid);
 
-  double lngMiles = grid.calcDistanceLong(model->gLatitude, 0.0, minLong, model->gMetric);
-  if (logger.print_info) {
-    Serial.print("Minimum visible E-W movement x=long=");
-    Serial.print(minLong, 6);
-    Serial.print(" degrees = ");
-    Serial.print(lngMiles, 2);
-    Serial.println(" miles");
+  double lngMiles = grid.calcDistanceLong(model->gLatitude, 0.0, minLong, false);
+  double latMiles = grid.calcDistanceLat(0.0, minLat, false);   // arg3 'false' for miles (not km)
 
-    double latMiles = grid.calcDistanceLat(0.0, minLat, model->gMetric);
-    Serial.print("Minimum visible N-S movement y=lat=");
-    Serial.print(minLat, 6);
-    Serial.print(" degrees = ");
-    Serial.print(latMiles, 2);
-    Serial.println(" miles");
-  }
+  logger.logTwoFloats(GPS_SETUP, INFO, "Minimum visible E-W movement x=long=%s degrees = %s miles", minLong, 6, lngMiles, 2);
+  logger.logTwoFloats(GPS_SETUP, INFO, "Minimum visible N-S movement y=lat=%s degrees = %s miles", minLat, 6, latMiles, 2);
 
   setFontSize(12);
   drawGridOutline();           // box outline around grid
@@ -528,6 +510,6 @@ void ViewGrid::startScreen() {
 }
 
 bool ViewGrid::onTouch(Point touch) {
-  logger.info("->->-> Touched grid detail screen.");
+  logger.log(CONFIG, INFO, "->->-> Touched grid detail screen.");
   return false;   // true=handled, false=controller uses default action
 }

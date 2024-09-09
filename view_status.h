@@ -199,6 +199,6 @@ void ViewStatus::startScreen() {
 }
 
 bool ViewStatus::onTouch(Point touch) {
-  logger.info("->->-> Touched status screen.");
+  logger.log(CONFIG, INFO, "->->-> Touched status screen.");
   return false;   // true=handled, false=controller uses default action
 }   // end onTouch()

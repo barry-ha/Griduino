@@ -8,12 +8,15 @@
 */
 
 #include <Arduino.h>             // for "strncpy" and others
-#include "constants.h"           // Griduino constants and colors
+#include "constants.h"           // Griduino constants, colors and typedefs
+#include "logger.h"              // conditional printing to Serial port
 #include "grid_helper.h"         // lat/long conversion routines
 #include "date_helper.h"         // date/time conversions
 #include "save_restore.h"        // Configuration data in nonvolatile RAM
 #include "model_breadcrumbs.h"   // breadcrumb trail
 
+// ========== extern ===========================================
+extern Logger logger;                                                                // Griduino.ino
 void floatToCharArray(char *result, int maxlen, double fValue, int decimalPlaces);   // Griduino.ino
 
 // ----- save GPS history[] to non-volatile memory as CSV file -----
@@ -23,38 +26,31 @@ const char HISTORY_VERSION[25] = "GPS Breadcrumb Trail v2";         // <-- alway
 void Breadcrumbs::deleteFile() {
   SaveRestoreStrings config(HISTORY_FILE, HISTORY_VERSION);
   config.deleteFile(HISTORY_FILE);
-  Serial.println("Breadcrumb trail erased and file deleted");
 }
 
 void Breadcrumbs::dumpHistoryGPS(int limit) {
   // limit = for unit tests, how many entries to dump from 0..limit
-  Serial.print("\nMaximum saved records = ");
-  Serial.println(capacity);
+  logger.log(FILES, CONSOLE, "\nMaximum saved records = %d", capacity);
 
-  Serial.print("Current number of records saved = ");
   int count = getHistoryCount();
-  Serial.println(count);
+  logger.log(FILES, CONSOLE, "Current number of records saved = %d", count);
 
   if (limit) {
-    logger.info("Limited to first %d records", limit);
+    logger.log(FILES, CONSOLE, "Limited to first %d records", limit);
   } else {
     limit = capacity;   // default to all records
   }
 
-  logger.info("Next record to be written = %d", head);
+  logger.log(FILES, INFO, "Next record to be written = %d", head);
 
-  // time_t tm = now();                           // debug: show current time in seconds
-  // Serial.print("now() = ");                    // debug
-  // Serial.print(tm);                            // debug
-  // Serial.println(" seconds since 1-1-1970");   // debug
+  time_t tm = now();                                     // debug: show current time in seconds
+  char sDate[24];                                        // show current time decoded
+  date.datetimeToString(sDate, sizeof(sDate), tm);       // date_helper.h
+  char msg[40];                                          // sizeof("Today is 12-31-2022  12:34:56 GMT") = 32
+  snprintf(msg, sizeof(msg), "now() = %s GMT", sDate);   //
+  logger.log(FILES, INFO, msg);                          //
 
-  // char sDate[24];                                        // show current time decoded
-  // date.datetimeToString(sDate, sizeof(sDate), tm);       // date_helper.h
-  // char msg[40];                                          // sizeof("Today is 12-31-2022  12:34:56 GMT") = 32
-  // snprintf(msg, sizeof(msg), "now() = %s GMT", sDate);   //
-  // logger.info(msg);                                      //
-
-  Serial.println("Record, Type, Date GMT, Time GMT, Grid, Lat, Long, Alt(m), Speed(mph), Direction(Degrees), Sats");
+  logger.log(FILES, CONSOLE, "Record, Type, Date GMT, Time GMT, Grid, Lat, Long, Alt(m), Speed(mph), Direction(Degrees), Sats");
   int ii         = 0;
   Location *item = begin();
   while (item) {
@@ -103,19 +99,19 @@ void Breadcrumbs::dumpHistoryGPS(int limit) {
     } else {
       // format for "should not happen" messages
       snprintf(out, sizeof(out), "%d, --> Type '%s' unknown: ", ii, item->recordType);
-      Serial.print(out);
+      logger.log(FILES, ERROR, out);
       //                           1   2   3   4   5   6   7   8   9  10
       snprintf(out, sizeof(out), "%s, %s, %s, %s, %s, %s, %s, %s, %s, %d",
                item->recordType, sDate, sTime, grid6, sLat, sLng, sAltitude, sSpeed, sDirection, nSats);
     }
-    Serial.println(out);
+    logger.log(FILES, CONSOLE, out);
     ii++;
     item = next();
   }
 
   int remaining = getHistoryCount() - limit;
   if (remaining > 0) {
-    logger.info("... and %d more", remaining);
+    logger.log(FILES, WARNING, "... and %d more", remaining);
   }
 }
 
@@ -165,13 +161,13 @@ int Breadcrumbs::saveGPSBreadcrumbTrail() {   // returns 1=success, 0=failure
       // record type must always contain 3 characters
       snprintf(msg, sizeof(msg), "[%d] Empty record type: %s,%s,%s,%s,%s,%s,%s,%s,%s,%d",
                ii, loc->recordType, sDate, sTime, sGrid6, sLat, sLng, sAlt, sSpeed, sAngle, numSatellites);
-      logger.error(msg);
+      logger.log(CONFIG, ERROR, msg);
 
     } else if (!Location::isValidRecordType(loc->recordType)) {
       // record type must always be one of the allowed 3-char values
       snprintf(msg, sizeof(msg), "[%d] Invalid record type: %s,%s,%s,%s,%s,%s,%s,%s,%s,%d",
                ii, loc->recordType, sDate, sTime, sGrid6, sLat, sLng, sAlt, sSpeed, sAngle, numSatellites);
-      logger.error(msg);
+      logger.log(CONFIG, ERROR, msg);
 
     } else {
       // good data, write it to file
@@ -196,7 +192,7 @@ int Breadcrumbs::restoreGPSBreadcrumbTrail() {   // returns 1=success, 0=failure
   // open file
   SaveRestoreStrings config(HISTORY_FILE, HISTORY_VERSION);
   if (!config.open(HISTORY_FILE, "r")) {
-    logger.error("SaveRestoreStrings::open() failed to open ", HISTORY_FILE);
+    logger.log(CONFIG, ERROR, "SaveRestoreStrings::open() failed to open %s", HISTORY_FILE);
 
     // most likely error is 'file not found' so create a new one for next time
     saveGPSBreadcrumbTrail();
@@ -220,12 +216,12 @@ int Breadcrumbs::restoreGPSBreadcrumbTrail() {   // returns 1=success, 0=failure
     // process line according to # bytes read
     char msg[256];
     if (count == 0) {
-      logger.info(". EOF");
+      logger.log(FILES, INFO, ". EOF");
       done = true;
       break;
     } else if (count < 0) {
       int err = config.getError();
-      logger.error(". File error %d", err);   // 1=write, 2=read
+      logger.log(CONFIG, ERROR, ". File error %d", err);   // 1=write, 2=read
       done = true;
       break;
     } else if (isValidBreadcrumb(original_line)) {
@@ -263,12 +259,12 @@ int Breadcrumbs::restoreGPSBreadcrumbTrail() {   // returns 1=success, 0=failure
     } else {
       snprintf(msg, sizeof(msg), ". CSV string[%2d] = \"%s\" - ignored",
                csv_line_number, original_line);   // debug
-      logger.warning(msg);                        // debug
+      logger.log(CONFIG, WARNING, msg);
     }
     csv_line[0] = 0;
     csv_line_number++;
   }
-  logger.info(". Restored %d breadcrumbs from %d lines in CSV file", items_restored, csv_line_number);
+  logger.log(CONFIG, INFO, ". Restored %d breadcrumbs from %d lines in CSV file", items_restored, csv_line_number);
 
   // The above "restore" always fills history[] from 0..N
   // Oldest allowed acceptable GPS date is Griduino's first release
@@ -308,8 +304,8 @@ int Breadcrumbs::restoreGPSBreadcrumbTrail() {   // returns 1=success, 0=failure
   char msg1[256], msg2[256];
   snprintf(msg1, sizeof(msg1), ". Oldest date = history[%d] = %s", indexOldest, sOldest);
   snprintf(msg2, sizeof(msg2), ". Newest date = history[%d] = %s", indexNewest, sNewest);
-  logger.info(msg1);
-  logger.info(msg2);
+  logger.log(FILES, INFO, msg1);
+  logger.log(FILES, INFO, msg2);
 
   // close file
   config.close();
@@ -392,8 +388,8 @@ const char *PLACE[7] = {
 
 void Breadcrumbs::dumpHistoryKML() {
 
-  Serial.print(KML_PREFIX);   // begin KML file
-  bool startFound = false;    // the first few items are typically "power up" events so look for first valid GPS event
+  logger.log(FILES, CONSOLE, KML_PREFIX);   // begin KML file
+  bool startFound = false;                  // the first few items are typically "power up" events so look for first valid GPS event
 
   // loop through the GPS history buffer
   Location *item = begin();
@@ -415,15 +411,19 @@ void Breadcrumbs::dumpHistoryKML() {
           time_t tm = item->timestamp;
           snprintf(pushpinDate, sizeof(pushpinDate), "%02d/%02d/%04d", month(tm), day(tm), year(tm));
 
-          Serial.print(PUSHPIN_PREFIX_PART1);
-          Serial.print(pushpinDate);
-          Serial.print(PUSHPIN_PREFIX_PART3);
+          // It's too messy here to use snprintf() due to so many parts of the message
+          // and some of them are floats, so we take a shortcut and directly print them.
+          // All of this is required to go to the console.
+          logger.print(PUSHPIN_PREFIX_PART1);
+          logger.print(pushpinDate);
+          logger.print(PUSHPIN_PREFIX_PART3);
 
-          Serial.print(item->loc.lng, 4);   // KML demands longitude first
-          Serial.print(",");
-          Serial.print(item->loc.lat, 4);
-          Serial.print(",0");
-          Serial.print(PUSHPIN_SUFFIX);   // end of KML pushpin
+          logger.print(item->loc.lng, 4);   // KML demands longitude first
+          logger.print(",");
+          logger.print(item->loc.lat, 4);   // then latitude
+          logger.print(",0");               // then altitude
+          logger.print(PUSHPIN_SUFFIX);     // end of KML pushpin
+
           startFound = true;
         }
 
@@ -446,18 +446,18 @@ void Breadcrumbs::dumpHistoryKML() {
 
         char msg[128];
         // clang-format off
-        snprintf(msg, sizeof(msg), PLACE[0]);        Serial.print(msg);
-        snprintf(msg, sizeof(msg), PLACE[1], grid6); Serial.print(msg);
+        snprintf(msg, sizeof(msg), PLACE[0]);               logger.print(msg);
+        snprintf(msg, sizeof(msg), PLACE[1], grid6);        logger.print(msg);
         snprintf(msg, sizeof(msg), PLACE[2], 
             time.Year + 1970, time.Month, time.Day, 
             time.Hour, time.Minute, time.Second,
-            sSpeed, sDirection, sAltitude, numSats); Serial.print(msg);
+            sSpeed, sDirection, sAltitude, numSats);        logger.print(msg);
         snprintf(msg, sizeof(msg), PLACE[3], 
             time.Year + 1970, time.Month, time.Day, 
-            time.Hour, time.Minute, time.Second);    Serial.print(msg);
-        snprintf(msg, sizeof(msg), PLACE[4], sLng, sLat);  Serial.print(msg);
-        snprintf(msg, sizeof(msg), PLACE[5]);        Serial.print(msg);
-        snprintf(msg, sizeof(msg), PLACE[6]);        Serial.print(msg);
+            time.Hour, time.Minute, time.Second);           logger.print(msg);
+        snprintf(msg, sizeof(msg), PLACE[4], sLng, sLat);   logger.print(msg);
+        snprintf(msg, sizeof(msg), PLACE[5]);               logger.print(msg);
+        snprintf(msg, sizeof(msg), PLACE[6]);               logger.print(msg);
         // clang-format on
       }
     }

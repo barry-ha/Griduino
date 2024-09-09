@@ -72,7 +72,7 @@ class Logger {
 
 public:
   // master on/off switch
-  bool log_enabled = false;
+  bool log_enabled = true;
 
   // subsystems
   bool printSystem[numSystems] = {
@@ -90,9 +90,9 @@ public:
 
   // severities
   bool printLevel[numLevels] = {
-      true,   // DEBUG = 0,   // verbose
-      true,   // FENCE,       // fencepost debug
-      true,   // INFO,        // non critical
+      false,  // DEBUG = 0,   // verbose
+      false,  // FENCE,       // fencepost debug
+      false,  // INFO,        // non critical
       true,   // WARNING,     // important
       true,   // ERROR,       // critical
       true,   // CONSOLE,     // required output
@@ -277,6 +277,9 @@ public:
   }
   void println() {
     Serial.println();
+  }
+  void println(long value) {
+    Serial.println(value);
   }
   void println(const char *pText) {
     Serial.println(pText);

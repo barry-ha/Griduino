@@ -257,7 +257,10 @@ protected:
   void nextDateEvent() {
     whichEvent = (whichEvent + 1) % (sizeof(eventList) / sizeof(eventList[0]));
     target     = eventList[whichEvent];
-    // logger.info(". Changed event to #%d, %d", whichEvent, eventList[whichEvent].line3);
+
+    char msg[64];
+    snprintf(msg, sizeof(msg), ". Changed event to #%d, %d", whichEvent, eventList[whichEvent].line3);
+    logger.log(TIME, DEBUG, msg);
   }
 
   // Formatted elapsed time
@@ -283,7 +286,7 @@ void ViewEvents::updateScreen() {
     char msg[128];
     snprintf(msg, sizeof(msg), "%02d:%02d:%02d GMT",
              GPS.hour, GPS.minute, GPS.seconds);
-    logger.info(msg);
+    logger.log(TIME, INFO, msg);
   }
 
   //                       s,m,h, dow, d,m,y
@@ -306,9 +309,9 @@ void ViewEvents::updateScreen() {
   }
 
   int elapsedDays = elapsed / SECS_PER_DAY;
-  // if (GPS.seconds == 0) {   // debug
-  //   logger.info("elapsed time count: ", (int)elapsed);   // typecast to int, required by compiler
-  // }
+  if (GPS.seconds == 0) {                                              // debug
+    logger.log(TIME, DEBUG, "elapsed time count: %d", (int)elapsed);   // typecast to int, required by compiler
+  }
   char sTime[24];   // strlen("01:23:45") = 8
   getTimeElapsed(sTime, sizeof(sTime), elapsed);
 
@@ -393,7 +396,7 @@ void ViewEvents::endScreen() {
 }
 
 bool ViewEvents::onTouch(Point touch) {
-  logger.info("->->-> Touched date screen.");
+  logger.log(CONFIG, INFO, "->->-> Touched date screen.");
 
   bool handled = false;   // assume a touch target was not hit
   for (int ii = 0; ii < nDateButtons; ii++) {
@@ -406,7 +409,7 @@ bool ViewEvents::onTouch(Point touch) {
         handled = true;
         break;
       default:
-        logger.error("Error, unknown function ", item.functionIndex);
+        logger.log(CONFIG, ERROR, "unknown function %d", item.functionIndex);
         break;
       }
       startScreen();
