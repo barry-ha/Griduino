@@ -80,7 +80,7 @@ Button volButtons2[] = {
 };
 const int nVolButtons = sizeof(volButtons2) / sizeof(Button);
 int volLevel2[11]     = {
-        // Digital potentiometer settings, about 2 dB steps = ratio 1.585
+    // Digital potentiometer settings, about 2 dB steps = ratio 1.585
     /* 0 */ 0,    // mute, lowest allowed wiper position
     /* 1 */ 1,    // lowest possible position with non-zero output
     /* 2 */ 2,    // next lowest poss
@@ -100,7 +100,7 @@ void setVolume2(int volIndex) {
   // @param wiperPosition = 0..10
   int wiperPosition = volLevel2[volIndex];
   volume.setWiperPosition(wiperPosition);
-  logger.info("Set wiper position ", wiperPosition);
+  logger.log(CONFIG, INFO, "Set wiper position %d", wiperPosition);
   // saveConfigVolume();     // non-volatile storage
 }
 void changeVolume2(int diff) {
@@ -136,7 +136,7 @@ int loadConfigVolume() {
   if (result) {
     gVolIndex2 = constrain( tempVolIndex, 0, 10);  // global volume index
     setVolume2( gVolIndex2 );                       // set the hardware to this volume index
-    logger.info(". Loaded volume setting: ", gVolIndex2);
+    logger.log(CONFIG, INFO, ". Loaded volume setting: %d", gVolIndex2);
   }
   return result;
 }
@@ -199,18 +199,13 @@ void startVolume2Screen() {
   updateVolume2Screen();   // fill in values immediately, don't wait for loop() to eventually get around to it
 }
 bool onTouchVolume2(Point touch) {
-  logger.config("->->-> Touched volume2 screen.");
+  logger.log(CONFIG, INFO, "->->-> Touched volume2 screen.");
   bool handled = false;   // assume a touch target was not hit
   for (int ii = 0; ii < nVolButtons; ii++) {
     Button item = volButtons2[ii];
     if (touch.x >= item.x && touch.x <= item.x + item.w && touch.y >= item.y && touch.y <= item.y + item.h) {
       handled = true;    // hit!
       item.function();   // do the thing
-
-#ifdef SHOW_TOUCH_TARGETS
-      const int radius = 3;                                     // debug: show where touched
-      tft.fillCircle(touch.x, touch.y, radius, cTOUCHTARGET);   // debug - show dot
-#endif
     }
   }
   return handled;   // true=handled, false=controller uses default action
