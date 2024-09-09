@@ -148,7 +148,7 @@ protected:
 
     char msg[256];
     snprintf(msg, 256, "Set volume index %d, wiper position %d", volIndex, wiperPosition);   // debug
-    logger.info(msg);
+    logger.log(CONFIG, INFO, msg);
   }
   void changeVolume(int diff) {
     gVolIndex += diff;
@@ -270,7 +270,7 @@ void ViewVolume::endScreen() {
 }
 
 bool ViewVolume::onTouch(Point touch) {
-  logger.config("->->-> Touched volume screen.");
+  logger.log(CONFIG, INFO, "->->-> Touched volume screen.");
   bool handled = false;   // assume a touch target was not hit
   for (int ii = 0; ii < nVolButtons; ii++) {
     FunctionButton item = volButtons[ii];
@@ -288,7 +288,7 @@ bool ViewVolume::onTouch(Point touch) {
         volumeMute();
         break;
       default:
-        logger.error("Error, unknown function ", item.functionIndex);
+        logger.log(CONFIG, ERROR, "unknown function %d", item.functionIndex);
         break;
       }
       updateScreen();   // update UI immediately, don't wait for laggy mainline loop
@@ -325,9 +325,9 @@ void ViewVolume::loadConfig() {
   if (result) {
     gVolIndex = constrain(tempVolIndex, 0, 10);   // global volume index
     setVolume(gVolIndex);                         // set the hardware to this volume index
-    logger.info("Loaded volume setting from NVR: ", gVolIndex);
+    logger.log(CONFIG, INFO, "Loaded volume setting from NVR: ", gVolIndex);
   } else {
-    logger.error("Failed to load Volume control settings, re-initializing config file");
+    logger.log(CONFIG, ERROR, "Failed to load Volume control settings, re-initializing file");
     saveConfig();
   }
 }
