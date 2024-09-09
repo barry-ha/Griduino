@@ -53,11 +53,11 @@ public:
     char msg[64];                                                                             // debug
     if (o1 < 0 || o2 < 0 || o3 < 0 || o4 < 0) {                                               // debug
       snprintf(msg, sizeof(msg), ". Longitude remainders: %d, %d, %d, %d", o1, o2, o3, o4);   // debug
-      Serial.println(msg);                                                                    // debug
+      logger.log(DEBUG, msg);                                                                 // debug
     }                                                                                         // debug
     if (a1 < 0 || a2 < 0 || a3 < 0 || a4 < 0) {                                               // debug
       snprintf(msg, sizeof(msg), ". Latitude remainders:  %d, %d, %d, %d", a1, a2, a3, a4);   // debug
-      Serial.println(msg);                                                                    // debug
+      logger.log(DEBUG, msg);                                                                 // debug
     }
     ... */
 

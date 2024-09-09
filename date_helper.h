@@ -81,7 +81,7 @@ public:
       // debug - issue message to console to help track down timing problem in Baroduino view
       // char msg[120];
       // snprintf(msg, sizeof(msg), "Date ymd not valid: %d-%d-%d");
-      // Serial.println(msg);
+      // logger.log(GMT, DEBUG, msg);
     }
     return valid;
   }
