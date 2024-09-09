@@ -214,7 +214,7 @@ bool ViewCfgNMEA::onTouch(Point touch) {
         fStopNMEA();
         break;
       default:
-        logger.error("Error, unknown function ", item.functionIndex);
+        logger.log(CONFIG, ERROR, "unknown function %d", item.functionIndex);
         break;
       }
       updateScreen();   // update UI immediately, don't wait for laggy mainline loop
@@ -251,14 +251,14 @@ void ViewCfgNMEA::loadConfig() {
       char msg[256];
       snprintf(msg, sizeof(msg), "%s has unexpected setting: %d",
                NMEA_CONFIG_FILE, tempOption);
-      logger.error(msg);
+      logger.log(CONFIG, ERROR, msg);
       this->selectedOption = SILENT;
       stop_nmea();
       break;
     }
-    logger.info("Loaded NMEA value: %d", this->selectedOption);
+    logger.log(NMEA, INFO, "Loaded NMEA value: %d", this->selectedOption);
   } else {
-    logger.error("Failed to load, re-initializing config file");
+    logger.log(NMEA, ERROR, "Failed to load config, re-initializing file");
     this->selectedOption = SILENT;
     saveConfig();
   }
@@ -266,7 +266,7 @@ void ViewCfgNMEA::loadConfig() {
 // ----- save to SDRAM -----
 void ViewCfgNMEA::saveConfig() {
   SaveRestore config(NMEA_CONFIG_FILE, NMEA_CONFIG_VERSION);
-  logger.info("Saving value: %d", selectedOption);
+  logger.log(NMEA, INFO, "Saving value: %d", selectedOption);
   int rc = config.writeConfig((byte *)&selectedOption, sizeof(selectedOption));
-  logger.info("Finished ViewCfgRotation::saveConfig(%d) with rc = %d", selectedOption, rc);   // debug
+  logger.log(NMEA, DEBUG, "Finished ViewCfgRotation::saveConfig(%d) with rc = %d", selectedOption, rc);   // debug
 }
