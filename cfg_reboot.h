@@ -119,8 +119,8 @@ enum buttonID {
   // ---------- local functions for this derived class ----------
   void rebootGriduino() {   // operator confirmed: reboot to USB for software update
     // Do The Thing!
-    logger.warning("---> REBOOTING");   // the end of our world is nigh
-    delay(100);                      // allow time for Serial to send message
+    logger.log(CONFIG, WARNING, "---> REBOOTING");   // the end of our world is nigh
+    delay(100);                                      // allow time for Serial to send message
 
     this->clearScreen(this->background);   // clear screen and post message
 
@@ -159,11 +159,11 @@ enum buttonID {
 #endif
   }
   void fCancel() {
-    logger.config("->->-> Clicked CANCEL button.");
+    logger.log(CONFIG, INFO, "->->-> Clicked CANCEL button.");
     selectNewView(goto_next_cfg);
   }
   void fReboot() {
-    logger.config("->->-> Clicked REBOOT button.");
+    logger.log(CONFIG, INFO, "->->-> Clicked REBOOT button.");
     rebootGriduino();
   }
 
@@ -212,7 +212,7 @@ void ViewCfgReboot::startScreen() {
 }   // end startScreen()
 
 bool ViewCfgReboot::onTouch(Point touch) {
-  logger.config("->->-> Touched reboot screen.");
+  logger.log(CONFIG, INFO, "->->-> Touched reboot screen.");
   bool handled = false;   // assume a touch target was not hit
   for (int ii = 0; ii < nRebootButtons; ii++) {
     FunctionButton item = myButtons[ii];
@@ -227,7 +227,7 @@ bool ViewCfgReboot::onTouch(Point touch) {
         fReboot();
         break;
       default:
-        logger.error("Internal error, unknown function ", item.functionIndex);
+        logger.log(CONFIG, ERROR, "unknown function %d", item.functionIndex);
         break;
       }
     }
