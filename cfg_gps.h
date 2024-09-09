@@ -110,25 +110,26 @@ protected:
 
   // ---------- local functions for this derived class ----------
   void fClear() {
-    logger.config("->->-> Clicked CLEAR button.");
+    logger.log(CONFIG, INFO, "->->-> Clicked CLEAR button.");
     trail.clearHistory();
     trail.rememberPUP();
-    trail.deleteFile();   // out with the old history file
+    trail.deleteFile();               // out with the old history file
     trail.saveGPSBreadcrumbTrail();   // start over with new history file
+    logger.log(FILES, INFO, "Breadcrumb trail erased and file deleted");
   }
   void fReceiver() {
     // select GPS receiver data
-    logger.config("->->-> Clicked GPS RECEIVER button.");
+    logger.log(CONFIG, INFO, "->->-> Clicked GPS RECEIVER button.");
     fSetReceiver();   // use "class Model" for GPS receiver hardware
   }
   void fSimulated() {
     // simulate satellite track
-    logger.config("->->-> Clicked GPS SIMULATOR button.");
+    logger.log(CONFIG, INFO, "->->-> Clicked GPS SIMULATOR button.");
     fSetSimulated();   // use "class MockModel" for simulated track
   }
   void fFactoryReset() {
     // todo: clear all settings, erase all saved files
-    logger.config("->->-> Clicked FACTORY RESET button.");
+    logger.log(CONFIG, INFO, "->->-> Clicked FACTORY RESET button.");
   }
 
 };   // end class ViewCfgGPS
@@ -210,7 +211,7 @@ void ViewCfgGPS::startScreen() {
 }
 
 bool ViewCfgGPS::onTouch(Point touch) {
-  logger.config("->->-> Touched settings screen.");
+  logger.log(CONFIG, INFO, "->->-> Touched settings screen.");
   bool handled = false;   // assume a touch target was not hit
   for (int ii = 0; ii < nButtonsGPS; ii++) {
     FunctionButton item = settings2Buttons[ii];
@@ -228,7 +229,7 @@ bool ViewCfgGPS::onTouch(Point touch) {
         fSimulated();
         break;
       default:
-        logger.error("Error, unknown function ", item.functionIndex);
+        logger.log(CONFIG, ERROR, "unknown function %d", item.functionIndex);
         break;
       }
     }
