@@ -88,11 +88,11 @@ protected:
 
   // ---------- local functions for this derived class ----------
   void setEnglish() {
-    logger.config("->->-> Clicked ENGLISH UNITS button.");
+    logger.log(CONFIG, INFO, "->->-> Clicked ENGLISH UNITS button.");
     model->setEnglish();
   }
   void setMetric() {
-    logger.config("->->-> Clicked METRIC UNITS button.");
+    logger.log(CONFIG, INFO, "->->-> Clicked METRIC UNITS button.");
     model->setMetric();
   }
 
@@ -191,7 +191,7 @@ bool ViewCfgUnits::onTouch(Point touch) {
         setMetric();
         break;
       default:
-        logger.error("Error, unknown function ", item.functionIndex);
+        logger.log(CONFIG, ERROR, "unknown function %d", item.functionIndex);
         break;
       }
       updateScreen();   // update UI immediately, don't wait for laggy mainline loop
