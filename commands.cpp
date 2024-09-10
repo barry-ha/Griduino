@@ -37,45 +37,56 @@ void view_help(), view_screen1(), view_splash(), view_crossings(), view_events()
 void show_touch(), hide_touch();
 void show_centerline(), hide_centerline();
 void run_unittest();
+void enable_console_log(), disable_console_log();
+void log_level_debug(), log_level_fence(), log_level_info(), log_level_warning(), log_level_error();
 
 // ----- table of commands
 #define Newline true   // use this to insert a CRLF before listing this command in help text
 struct Command {
+  bool crlf;
   char text[20];
   simpleFunction function;
-  bool crlf;
 };
 Command cmdList[] = {
-    {"help", help, 0},
-    {"version", version, 0},
+    {0, "help", help},
+    {0, "version", version},
 
-    {"dump kml", dump_kml, Newline},
-    {"dump gps", dump_gps_history, 0},
-    {"erase history", erase_gps_history, 0},
+    {Newline, "dump kml", dump_kml},
+    {0, "dump gps", dump_gps_history},
+    {0, "erase history", erase_gps_history},
 
-    {"start nmea", start_nmea, Newline},
-    {"stop nmea", stop_nmea, 0},
+    {Newline, "start nmea", start_nmea},
+    {0, "stop nmea", stop_nmea},
 
-    {"start gmt", start_gmt, Newline},
-    {"stop gmt", stop_gmt, 0},
+    {Newline, "start gmt", start_gmt},
+    {0, "stop gmt", stop_gmt},
 
-    {"show touch", show_touch, Newline},
-    {"hide touch", hide_touch, 0},
+    {Newline, "show touch", show_touch},
+    {0, "hide touch", hide_touch},
 
-    {"show centerline", show_centerline, Newline},
-    {"hide centerline", hide_centerline, 0},
+    {Newline, "show centerline", show_centerline},
+    {0, "hide centerline", hide_centerline},
 
-    {"view help", view_help, Newline},
-    {"view splash", view_splash, 0},
-    {"view screen1", view_screen1, 0},
-    {"view crossings", view_crossings, 0},
-    {"view events", view_events, 0},
+    {Newline, "view help", view_help},
+    {0, "view splash", view_splash},
+    {Newline, "view screen1", view_screen1},
+    {0, "view crossings", view_crossings},
+    {0, "view events", view_events},
 
-    {"dir", list_files, Newline},
-    {"list files", list_files, 0},
+    {Newline, "dir", list_files},
+    {0, "list files", list_files},
 
-    {"type gpshistory", type_gpshistory, Newline},
-    {"run unittest", run_unittest, 0},
+    {Newline, "type gpshistory", type_gpshistory},
+    {0, "run unittest", run_unittest},
+
+    {Newline, "enable console log", enable_console_log},
+    {0, "disable console log", disable_console_log},
+
+    {Newline, "log level debug", log_level_debug},
+    {0, "log level fence", log_level_fence},
+    {0, "log level info", log_level_info},
+    {0, "log level warning", log_level_warning},
+    {0, "log level error", log_level_error},
 };
 const int numCmds = sizeof(cmdList) / sizeof(cmdList[0]);
 
@@ -224,6 +235,37 @@ void run_unittest() {
   logger.log(COMMAND, CONSOLE, "running unit test suite");
   void runUnitTest();   // extern declaration
   runUnitTest();        // see "unit_test.cpp"
+}
+
+void enable_console_log() {
+  logger.log(COMMAND, CONSOLE, "enabling logging to console");
+  logger.log_enabled = true;
+}
+
+void disable_console_log() {
+  logger.log(COMMAND, CONSOLE, "disabling all logging to console");
+  logger.log_enabled = false;
+}
+
+void log_level_debug() {
+  logger.log(COMMAND, CONSOLE, "setting log level debug, fence, info, warning, error, console");
+  logger.setLevel(DEBUG);
+}
+void log_level_fence() {
+  logger.log(COMMAND, CONSOLE, "setting log level fence, info, warning, error, console");
+  logger.setLevel(POST);
+}
+void log_level_info() {
+  logger.log(COMMAND, CONSOLE, "setting log level info, warning, error, console");
+  logger.setLevel(INFO);
+}
+void log_level_warning() {
+  logger.log(COMMAND, CONSOLE, "setting log level warning, error, console");
+  logger.setLevel(WARNING);
+}
+void log_level_error() {
+  logger.log(COMMAND, CONSOLE, "setting log level error, console");
+  logger.setLevel(ERROR);
 }
 
 void removeCRLF(char *pBuffer) {

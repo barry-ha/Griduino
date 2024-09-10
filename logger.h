@@ -47,8 +47,8 @@ enum LogLevel {
 
 // ----- Subsystem
 enum LogSystem {
-  NMEA = 0,
-  GMT,
+  NMEA = 0,     //
+  GMT,          //
   FENCE,        // fencepost debug
   COMMAND,      //
   GPS_SETUP,    //
@@ -90,13 +90,26 @@ public:
 
   // severities
   bool printLevel[numLevels] = {
-      false,  // DEBUG = 0,   // verbose
-      false,  // FENCE,       // fencepost debug
-      false,  // INFO,        // non critical
+      true,   // DEBUG = 0,   // verbose
+      true,   // FENCE,       // fencepost debug
+      true,   // INFO,        // non critical
       true,   // WARNING,     // important
       true,   // ERROR,       // critical
       true,   // CONSOLE,     // required output
   };
+
+  void setLevel(LogLevel lvl) {
+    if (lvl >= numLevels) {
+      log(COMMAND, ERROR, "Level %d is not allowed", lvl);
+    }
+    for (int ii = 0; ii < numLevels; ii++) {
+      if (ii < lvl) {
+        printLevel[ii] = false;
+      } else {
+        printLevel[ii] = true;
+      }
+    }
+  }
 
   // subsystems
   bool print_nmea = true;   // set TRUE to send NMEA sentences to the console (for NmeaTime2 by www.visualgps.net)
@@ -173,7 +186,8 @@ public:
   }
 
   bool ok_to_log(LogSystem system, LogLevel severity) {
-    if (severity == CONSOLE) return true;
+    if (severity == CONSOLE)
+      return true;
     if (log_enabled && printLevel[severity]) {
       return true;
     }
@@ -305,7 +319,7 @@ protected:
       Serial.print("Error, ");
       break;
     case CONSOLE:
-      Serial.print("(c)" );
+      Serial.print("(c)");
       break;
     default:
       break;
