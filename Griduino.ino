@@ -1067,7 +1067,7 @@ void loop() {
 
     int coin_adc       = analogRead(BATTERY_ADC);
     float coin_voltage = (float)coin_adc * analogRef / analogBits;
-    logger.log(BATTERY, INFO, "Coin battery = %s", coin_voltage, 3);
+    logger.logFloat(BATTERY, INFO, "Coin battery = %sv", coin_voltage, 3);
 
     trail.rememberBAT(coin_voltage);
   }
