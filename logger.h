@@ -68,6 +68,11 @@ enum LogSystem {
 // extern
 void floatToCharArray(char *result, int maxlen, double fValue, int decimalPlaces);   // Griduino.ino
 
+struct systemDef {
+  bool enabled;
+  char name[5];
+};
+
 class Logger {
 
 public:
@@ -75,17 +80,17 @@ public:
   bool log_enabled = true;
 
   // subsystems
-  bool printSystem[numSystems] = {
-      true,   // NMEA = 1,
-      true,   // GMT,
-      true,   // FENCE,   // fencepost debug
-      true,   // COMMAND,
-      true,   // GPS_SETUP,
-      true,   // CONFIG,       // is used in all modules named "cfg_xxxxx"
-      true,   // BARO,         // barometric pressure sensor
-      true,   // AUDIO,        // morse code and speech output
-      true,   // BATTERY,      // coin battery for GPS
-      true,   // FILES,        // all file handling, including save/restore
+  systemDef printSystem[numSystems] = {
+      {true, "NMEA"},    // NMEA = 0,     // MUST be in same order as enum
+      {false, "GMT "},   // GMT,
+      {true, "FENC"},    // FENCE,        // fencepost debug
+      {false, "CMD "},   // COMMAND,
+      {true, "GPS "},    // GPS_SETUP,
+      {false, "CFG "},   // CONFIG,       // is used in all modules named "cfg_xxxxx"
+      {false, "BARO"},   // BARO,         // barometric pressure sensor
+      {false, "AUD "},   // AUDIO,        // morse code and speech output
+      {false, "BATT"},   // BATTERY,      // coin battery for GPS
+      {true, "FILE"},    // FILES,        // all file handling, including save/restore
   };
 
   // severities
@@ -147,7 +152,7 @@ public:
   void log(LogSystem system, LogLevel severity, const char *pText) {
     if (ok_to_log(system, severity)) {
 
-      printSeverity(severity);
+      printPrefix(system, severity);
       Serial.println(pText);
     }
   }
@@ -156,7 +161,7 @@ public:
   void log(LogSystem system, LogLevel severity, const char *pFormat, const char *pStr) {
     if (ok_to_log(system, severity)) {
 
-      printSeverity(severity);
+      printPrefix(system, severity);
       char msg[256];
       snprintf(msg, sizeof(msg), pFormat, pStr);
       Serial.println(msg);
@@ -167,7 +172,7 @@ public:
   void log(LogSystem system, LogLevel severity, const char *pFormat, const char *pStr1, const char *pStr2) {
     if (ok_to_log(system, severity)) {
 
-      printSeverity(severity);
+      printPrefix(system, severity);
       char msg[256];
       snprintf(msg, sizeof(msg), pFormat, pStr1, pStr2);
       Serial.println(msg);
@@ -178,7 +183,7 @@ public:
   void log(LogSystem system, LogLevel severity, const char *pFormat, const int value) {
     if (ok_to_log(system, severity)) {
 
-      printSeverity(severity);
+      printPrefix(system, severity);
       char msg[256];
       snprintf(msg, sizeof(msg), pFormat, value);
       Serial.println(msg);
@@ -186,12 +191,19 @@ public:
   }
 
   bool ok_to_log(LogSystem system, LogLevel severity) {
-    if (severity == CONSOLE)
-      return true;
-    if (log_enabled && printLevel[severity]) {
+    if (severity == CONSOLE) {
       return true;
     }
-    // todo: check that this 'system' is enabled
+
+    if (log_enabled) {
+      // check that this severity level is enabled
+      if (printLevel[severity]) {
+        // check that this 'system' is enabled
+        if (printSystem[system].enabled) {
+          return true;
+        }
+      }
+    }
     return false;
   }
 
@@ -199,7 +211,7 @@ public:
   void log(LogSystem system, LogLevel severity, const char *pFormat, const int value1, const int value2) {
     if (ok_to_log(system, severity)) {
 
-      printSeverity(severity);
+      printPrefix(system, severity);
       char msg[256];
       snprintf(msg, sizeof(msg), pFormat, value1, value2);
       Serial.println(msg);
@@ -211,7 +223,7 @@ public:
     if (ok_to_log(system, severity)) {
 
       // print 'error' and 'warning' if needed
-      printSeverity(severity);
+      printPrefix(system, severity);
 
       // print the given text and value
       char msg[256];
@@ -227,7 +239,7 @@ public:
     if (ok_to_log(system, severity)) {
 
       // print 'error' and 'warning' if needed
-      printSeverity(severity);
+      printPrefix(system, severity);
 
       // print the given text and value
       char sFloat1[8], sFloat2[8];
@@ -257,10 +269,15 @@ public:
 
   // ----- debug statements to confirm a certain line of code is executed
   void fencepost(const char *pModule, const int lineno) {
-    // example output: "Griduino.ino[123]"
-    char msg[128];
-    snprintf(msg, sizeof(msg), "%s[%d]", pModule, lineno);
-    log(FENCE, POST, msg);
+    //const LogSystem sys = FENCE;
+    //const LogLevel sev = POST;
+    //if (ok_to_log(sys, sev)) {
+    //  printPrefix(sys, sev);
+      // example output: "Griduino.ino[123]"
+      char msg[128];
+      snprintf(msg, sizeof(msg), "%s[%d]", pModule, lineno);
+      log(FENCE, POST, msg);
+    //}
   }
   void fencepost(const char *pModule, const char *pSubroutine, const int lineno) {
     // This is used extensively in unittest.cpp
@@ -268,7 +285,7 @@ public:
     // example output: "----- subroutineName(), unit_test.cpp[123]"
     char msg[128];
     snprintf(msg, sizeof(msg), "----- %s, %s[%d] ", pSubroutine, pModule, lineno);
-    log(FENCE, POST, pModule);
+    log(FENCE, POST, msg);
   }
 
   // ---------- print direct to console
@@ -299,29 +316,37 @@ public:
     Serial.println(pText);
   }
 
-  // ---------- Severities ----------
-  // todo: implement a severity filter
-
 protected:
   // helper: issue prefix for warnings and errors
-  void printSeverity(LogLevel severity) {
+  void printPrefix(LogSystem system, LogLevel severity) {
+    char pfx[32];
     switch (severity) {
     case DEBUG:
-      Serial.print("(d) ");
+      snprintf(pfx, sizeof(pfx), "(d, %s) ", printSystem[system].name);
+      Serial.print(pfx);
+      break;
+    case POST:
+      snprintf(pfx, sizeof(pfx), "(fencepost) ", printSystem[system].name);
+      Serial.print(pfx);
       break;
     case INFO:
-      Serial.print("(i) ");
+      snprintf(pfx, sizeof(pfx), "(i, %s) ", printSystem[system].name);
+      Serial.print(pfx);
       break;
     case WARNING:
-      Serial.print("Warning, ");
+      snprintf(pfx, sizeof(pfx), "%s Warning, ", printSystem[system].name);
+      Serial.print(pfx);
       break;
     case ERROR:
-      Serial.print("Error, ");
+      snprintf(pfx, sizeof(pfx), "%s Error, ", printSystem[system].name);
+      Serial.print(pfx);
       break;
     case CONSOLE:
-      Serial.print("(c)");
+      snprintf(pfx, sizeof(pfx), "(c, %s) ", printSystem[system].name);
+      Serial.print(pfx);
       break;
     default:
+      Serial.print("(severity?) ");
       break;
     }
   }

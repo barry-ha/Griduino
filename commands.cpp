@@ -150,22 +150,22 @@ void type_gpshistory() {
 
 void start_nmea() {
   logger.log(COMMAND, CONSOLE, "started NMEA");
-  logger.printSystem[NMEA] = true;
+  logger.printSystem[NMEA].enabled = true;
 }
 
 void stop_nmea() {
   logger.log(COMMAND, CONSOLE, "stopped NMEA");
-  logger.printSystem[NMEA] = false;
+  logger.printSystem[NMEA].enabled = false;
 }
 
 void start_gmt() {
   logger.log(COMMAND, CONSOLE, "started GMT");
-  logger.printSystem[GMT] = true;
+  logger.printSystem[GMT].enabled = true;
 }
 
 void stop_gmt() {
   logger.log(COMMAND, CONSOLE, "stopped");
-  logger.printSystem[GMT] = false;
+  logger.printSystem[GMT].enabled = false;
 }
 
 void view_help() {
