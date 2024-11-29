@@ -153,7 +153,7 @@ Run the Python conversion script (author https://github.com/microsoft/uf2):
 If you want to compile Griduino source code or work with its example files (and we hope you do) then here's everything you need to setup the workbench.
 
 1. **Download and Run Arduino IDE**<br/>
-The Arduino IDE (integrated development environment) is the main workbench for writing, compiling and testing Arduino programs. As of November 2022, the latest version is Arduino IDE v2.0.1. We recommend the latest version, although most previous development was done with v1.18.
+The Arduino IDE (integrated development environment) is the main workbench for writing, compiling and testing Arduino programs. As of October 2024, the latest version is Arduino IDE v2.3.3. We recommend the latest version, although initial development was done with v1.18,  and the majority of work was done with v2.0 and v2.2.
 
   * Visit www.arduino.cc and find the **Software Downloads** section.
   * Scroll down to the **Download the Arduino IDE** section.
@@ -175,9 +175,9 @@ The IDE can't find the list of SAMD boards unless we add their magic URL to pref
 In this step, we will install support files needed by Arduino IDE to talk to the Feather M4. Here's how:<br/>
 In the Arduino IDE menu bar, go to **Tools > Board > Boards Manager**. It will display a long list of hardware. Install the latest version of:
 
-  * Arduino AVR Boards, Built-In by Arduino: v1.8.3
-  * Arduino SAMD Boards (32-bits ARM Cortex-M0+): v1.8.11
-  * Adafruit SAMD Boards: v1.7.5
+  * Arduino AVR Boards, Built-In by Arduino: v1.8.6
+  * Arduino SAMD Boards (32-bits ARM Cortex-M0+): v1.8.14
+  * Adafruit SAMD Boards: v1.7.16
 
 4. **Select Board**<br/>
 On the Arduino IDE menu bar, select **Tools > Board > Arduino SAMD (32-bits ARM Cortex-M0+ and Cortex-M4) > Adafruit Feather M4 Express**<br/>
@@ -188,23 +188,24 @@ You'll need to figure out your COM port for this step. Here's how:<br/>
 On Windows, run the **Device Manager** and expand the section for **Ports**. One of the items listed under Ports represents the Griduino device. It is possible for the port assignment to change from day to day, so be prepared to return to the Device Manager as needed.<br/>
 In the Arduino IDE menu bar, go to **Tools > Port** and select the COM port that was given by the Device Manager. If there was more than one port listed, try them one by one.
 
-6. **Install Libraries**</br>
+6. **Install Library Dependencies**</br>
 In the Arduino IDE menu bar, go to **Tools > Manage Libraries**. Install the latest version (and their dependencies) of these libraries:
-   - AudioZero v1.1.1
-   - SD v1.2.4
-   - TFT v1.0.6
-   - Adafruit BMP3XX Library v2.1.2
-   - Adafruit BusIO Library v1.11.0 (a known issue with v1.11.1)
-   - Adafruit GFX Library v1.10.13
-   - Adafruit GPS Library v1.6.0
-   - Adafruit ILI9341 v1.5.10
-   - Adafruit ImageReader Library v2.7.0
-   - Adafruit NeoPixel v1.10.4
-   - Adafruit SPIFlash v3.9.0
-   - Adafruit TouchScreen v1.1.3
-   - elapsedMillis by Paul Stoffregen v1.0.6
-   - SdFat – Adafruit Fork by Bill Greiman v1.5.1 <br>*Note:* Use v1, as we have not tested v2<br> *Note:* There are two libraries with similar names. Be sure to install "SdFat - Adafruit Fork" and not "SdFat" which has an incompatible SdFat.h file
-   - Time by Michael Margolis v1.6.1 <br>*Note:* searching the library manager for the word "time" lists just about every library. Searching for the word "timekeeping" will show the correct library.
+   - ##AudioZero## by Arduino v1.1.2 (orig v1.1.1)
+   - ##SD## by Arduino, SparkFun v1.3.0 (orig v1.2.4)
+   - ##Adafruit TFTLCD Library## by Adafruit v1.0.3? (orig v1.0.6)
+   - ##Adafruit BMP3XX Library## by Adafruit v2.1.5 (orig v2.1.2)
+   - ##Adafruit BusIO## by Adafruit v1.16.1 (orig v1.11.0) (there is a known issue with v1.11.1)
+   - ##I2CDevice" by Adafruit
+   - ##Adafruit GFX Library## by Adafruit v1.11.10 (orig v1.10.13)
+   - ##Adafruit GPS Library## by Adafruit v1.7.5 (orig v1.6.0)
+   - ##Adafruit ILI9341## by Adafruit v1.6.1 (orig v1.5.10) also available: ILI9341_t3 by Limor Fired, Adafruit, Paul Stoffregen v1.0.0
+   - ##Adafruit ImageReader Library## by Adafruit v2.9.2 (orig v2.7.0)
+   - ##Adafruit NeoPixel## by Adafruit v1.12.3 (orig v1.10.4)
+   - ##Adafruit SPIFlash## by Adafruit v5.0.0 (orig v3.9.0)
+   - ##Adafruit TouchScreen## by Adafruit v1.1.5 (orig v1.1.3)
+   - ##elapsedMillis## by Paul Stoffregen v1.0.6
+   - ##SdFat – Adafruit Fork## by Bill Greiman v2.2.3 (orig v1.5.1)<br>*Note:* Use v1, as we have not tested v2<br> *Note:* There are two libraries with similar names. Be sure to install "SdFat - Adafruit Fork" and not "SdFat" which has an incompatible SdFat.h file
+   - #Time# by Michael Margolis v1.6.1 <br>*Note:* searching the library manager for the word "time" lists just about every library. Searching for the word "timekeeping" will show the correct library.
 
 These components are outside of Arduino's Library Manager, so follow these links to GitHub and install the latest version:
 
