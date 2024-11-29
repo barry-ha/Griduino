@@ -64,15 +64,15 @@
 */
 
 #if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
-  #include <Wire.h>
-  #include <Adafruit_BMP280.h>   // Precision barometric and temperature sensor
-  #include <Adafruit_Sensor.h>
+#include <Wire.h>
+#include <Adafruit_BMP280.h>   // Precision barometric and temperature sensor
+#include <Adafruit_Sensor.h>
 #else
-  #include <Adafruit_BMP3XX.h>   // Precision barometric and temperature sensor
+#include <Adafruit_BMP3XX.h>   // Precision barometric and temperature sensor
 #endif
-#include "constants.h"         // Griduino constants, colors, typedefs
-#include "logger.h"            // conditional printing to Serial port
-#include "date_helper.h"       // date/time conversions
+#include "constants.h"     // Griduino constants, colors, typedefs
+#include "logger.h"        // conditional printing to Serial port
+#include "date_helper.h"   // date/time conversions
 
 // ========== extern ===========================================
 extern Logger logger;   // Griduino.ino
@@ -142,7 +142,6 @@ public:
       baro->setPressureOversampling(BMP3_OVERSAMPLING_4X);
       baro->setIIRFilterCoeff(BMP3_IIR_FILTER_COEFF_7);   // was 3, too busy
       baro->setOutputDataRate(BMP3_ODR_50_HZ);
-      // logger.fencepost("model_baro.h", __LINE__);
 
       /*****
         // ----- Settings from Adafruit example
@@ -171,7 +170,7 @@ public:
       //      }
       //
     } else {
-      logger.error("Error, unable to initialize Bosch pressure sensor");
+      logger.log(BARO, ERROR, "unable to initialize Bosch pressure sensor");
 #if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
       uint8_t id = baro.sensorID();
       switch (id) {
