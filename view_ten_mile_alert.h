@@ -17,11 +17,11 @@
             |   /     \    00.00 miles                |
     xCenter |  |   +   |         NNE                  |
             |   \     /                               |
-            |    \---/                                |
-            |                                       S |
-            |     Here:    CN87bb                   E |
-            |     Start:   CN87aa                   T |
-            |                                         |
+            |    \---/                            +---|
+            |                                     | S |
+            |     Here:    CN87bb                 | E |
+            |     Start:   CN87aa                 | T |
+            |                                     +---|
             +-----------------------------------------+
               :     :            : :
               col1  yCenter   col2 col3
