@@ -256,7 +256,7 @@ void ViewVolume::startScreen() {
   yy = volButtons[1].y + volButtons[1].h / 2;
   tft->fillTriangle(xx - ww, yy - nn, xx + ww, yy - nn, xx, yy + ht - nn, cVALUE);   // arrow DOWN
 
-  showProgressBar(1, 8);   // draw marker for advancing through settings
+  showProgressBar(1, 9);   // draw marker for advancing through settings
   updateScreen();          // update UI immediately, don't wait for laggy mainline loop
 }   // end startScreen()
 

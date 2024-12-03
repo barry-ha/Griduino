@@ -204,7 +204,7 @@ void ViewCfgAudioType::startScreen() {
     txtSettings5[ii].print();
   }
 
-  showProgressBar(2, 8);    // draw marker for advancing through settings
+  showProgressBar(2, 9);    // draw marker for advancing through settings
   showScreenBorder();       // optionally outline visible area
   showScreenCenterline();   // optionally draw alignment bar
 
@@ -260,7 +260,7 @@ void ViewCfgAudioType::loadConfig() {
     this->selectedAudio = tempAudioOutputType;
     logger.log(AUDIO, INFO, "Loaded audio output type: %d", this->selectedAudio);
   } else {
-    logger.log(AUDIO, WARNING, "Failed to load Audio Output Type, re-initializing config file");
+    logger.log(AUDIO, ERROR, "Failed to load Audio Output Type, re-initializing config file");
     saveConfig();
   }
 }

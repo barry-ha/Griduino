@@ -204,7 +204,7 @@ void ViewCfgGPS::startScreen() {
     tft->drawCircle(xCenter, yCenter, 7, cVALUE);
   }
 
-  showProgressBar(4, 8);   // draw marker for advancing through settings
+  showProgressBar(4, 9);   // draw marker for advancing through settings
   updateScreen();          // fill in values immediately, don't wait for the main loop to eventually get around to it
 
   showScreenCenterline();   // optionally draw alignment bar
