@@ -115,6 +115,7 @@
 #include "cfg_gps_reset.h"            // config GPS reset to factory
 #include "cfg_nmea.h"                 // config NMEA broadcasting
 #include "cfg_reboot.h"               // show firmware update option
+#include "cfg_reformat.h"             // reformat flash memory
 #include "cfg_rotation.h"             // config screen rotation 
 #include "cfg_units.h"                // config english/metric
 #include "cfg_volume.h"               // config volume level
@@ -337,22 +338,23 @@ enum VIEW_INDEX {
   CFG_GPS_RESET,         // 6 factory reset GPS
   CFG_NMEA,              // 7 broadcast NMEA
   CFG_REBOOT,            // 8 confirm reboot
-  CFG_ROTATION,          // 9 screen rotation
-  CFG_UNITS,             // 10 english/metric
-  EVENTS_VIEW,           // 11 Groundhog Day, Halloween, or other day-counting screen
-  GRID_VIEW,             // 12 <-- this is the primary navigation view
-  GRID_CROSSINGS_VIEW,   // 13 log of time in each grid
-  HELP_VIEW,             // 14 hints at startup
-  SAT_COUNT_VIEW,        // 15 number of satellites acquired
-  SCREEN1_VIEW,          // 16 first bootup screen
-  SPLASH_VIEW,           // 17 startup
-  STATUS_VIEW,           // 18 size and scale of this grid
-  TEN_MILE_ALERT_VIEW,   // 19 microwave rover view
-  TIME_VIEW,             // 20
-  CFG_VOLUME,            // 21
-  GOTO_SETTINGS,         // 22 command the state machine to show control panel
-  GOTO_NEXT_VIEW,        // 23 command the state machine to show next screen
-  MAX_VIEWS,             // 24 sentinel at end of list
+  CFG_REFORMAT,          // 9 reformat flash
+  CFG_ROTATION,          // 10 screen rotation
+  CFG_UNITS,             // 11 english/metric
+  EVENTS_VIEW,           // 12 Groundhog Day, Halloween, or other day-counting screen
+  GRID_VIEW,             // 13 <-- this is the primary navigation view
+  GRID_CROSSINGS_VIEW,   // 14 log of time in each grid
+  HELP_VIEW,             // 15 hints at startup
+  SAT_COUNT_VIEW,        // 16 number of satellites acquired
+  SCREEN1_VIEW,          // 17 first bootup screen
+  SPLASH_VIEW,           // 18 startup
+  STATUS_VIEW,           // 19 size and scale of this grid
+  TEN_MILE_ALERT_VIEW,   // 20 microwave rover view
+  TIME_VIEW,             // 21
+  CFG_VOLUME,            // 22
+  GOTO_SETTINGS,         // 23 command the state machine to show control panel
+  GOTO_NEXT_VIEW,        // 24 command the state machine to show next screen
+  MAX_VIEWS,             // 25 sentinel at end of list
 };
 /*const*/ int help_view      = HELP_VIEW;
 /*const*/ int sat_count_view = SAT_COUNT_VIEW;
@@ -361,6 +363,7 @@ enum VIEW_INDEX {
 /*const*/ int grid_view      = GRID_VIEW;
 /*const*/ int grid_crossings_view = GRID_CROSSINGS_VIEW;
 /*const*/ int events_view    = EVENTS_VIEW;
+/*const*/ int reformat_view  = CFG_REFORMAT;
 /*const*/ int goto_next_view = GOTO_NEXT_VIEW;
 /*const*/ int goto_next_cfg  = GOTO_SETTINGS;
 
@@ -377,6 +380,7 @@ ViewCfgGPS        cfgGPS(&tft, CFG_GPS);
 ViewCfgGpsReset   cfgGpsReset(&tft, CFG_GPS_RESET);
 ViewCfgNMEA       cfgNMEA(&tft, CFG_NMEA);
 ViewCfgReboot     cfgReboot(&tft, CFG_REBOOT);
+ViewCfgReformat   cfgReformat(&tft, CFG_REFORMAT);
 ViewCfgRotation   cfgRotation(&tft, CFG_ROTATION);
 ViewCfgUnits      cfgUnits(&tft, CFG_UNITS);
 ViewEvents        eventsView(&tft, EVENTS_VIEW);
@@ -406,6 +410,7 @@ void selectNewView(int cmd) {
       &cfgGpsReset,         // [CFG_GPS_RESET]
       &cfgNMEA,             // [CFG_NMEA]
       &cfgReboot,           // [CFG_REBOOT]
+      &cfgReformat,         // [CFG_REFORMAT]
       &cfgRotation,         // [CFG_ROTATION]
       &cfgUnits,            // [CFG_UNITS]
       &eventsView,          // [EVENTS_VIEW]
@@ -451,7 +456,8 @@ void selectNewView(int cmd) {
       case CFG_CROSSING:   nextView = CFG_GPS; break;
       case CFG_GPS:        nextView = CFG_NMEA; break;
       case CFG_NMEA:       nextView = CFG_GPS_RESET; break;
-      case CFG_GPS_RESET:  nextView = CFG_UNITS; break;
+      case CFG_GPS_RESET:  nextView = CFG_REFORMAT; break;
+      case CFG_REFORMAT:   nextView = CFG_UNITS; break;
       case CFG_UNITS:      nextView = CFG_ROTATION; break;
 #if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
       case CFG_ROTATION:   nextView = CFG_REBOOT; break;

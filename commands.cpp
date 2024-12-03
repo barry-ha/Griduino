@@ -1,6 +1,6 @@
 // Please format this file with clang before check-in to GitHub
 /*
-  File:     morse_dac.cpp
+  File:     commands.cpp
 
   Date:     2022-08-20 created
 
@@ -34,6 +34,7 @@ void help(), version();
 void dump_kml(), dump_gps_history(), erase_gps_history(), list_files(), type_gpshistory();
 void start_nmea(), stop_nmea(), start_gmt(), stop_gmt();
 void view_help(), view_screen1(), view_splash(), view_crossings(), view_events();
+void cfg_reformat();
 void show_touch(), hide_touch();
 void show_centerline(), hide_centerline();
 void run_unittest();
@@ -72,6 +73,7 @@ Command cmdList[] = {
     {Newline, "view screen1", view_screen1},
     {0, "view crossings", view_crossings},
     {0, "view events", view_events},
+    {0, "reformat flash", cfg_reformat},
 
     {Newline, "dir", list_files},
     {0, "list files", list_files},
@@ -201,6 +203,12 @@ void view_events() {
   logger.log(COMMAND, CONSOLE, "view calendar events");
   extern /*const*/ int events_view;   // see Griduino.com
   selectNewView(events_view);
+}
+
+void cfg_reformat() {
+  logger.log(COMMAND, CONSOLE, "reformat flash memory");
+  extern /*const*/ int reformat_view;   // see Griduino.com
+  selectNewView(reformat_view);
 }
 
 void show_touch() {
