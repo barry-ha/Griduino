@@ -441,8 +441,7 @@ int SaveRestore::openFlash() {
     logger.log(FILES, ERROR, "Error, unable to begin using Flash onboard memory");
     return 0;
   }
-  // logger.print(". Flash chip JEDEC ID: 0x");
-  // logger.println(gFlash.getJEDECID(), HEX);
+  logger.log(FILES, INFO, ". Flash chip JEDEC ID: 0x%h", gFlash.getJEDECID());
 
   // First call begin to mount the filesystem.  Check that it returns true
   // to make sure the filesystem was mounted.
