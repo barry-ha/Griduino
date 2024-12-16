@@ -65,35 +65,20 @@ protected:
   const int yRow5 = yRow4 + lineHeight;
   const int yRow6 = yRow5 + lineHeight;
   const int yRow7 = yRow6 + lineHeight;
-  const int yRow9 = gScreenHeight - 10;   // "v1.14, Jan 22 2024"
+  const int yRow9 = gScreenHeight - 10;   // "v1.14.4, compiled Dec 16, 2024"
 
   const int labelX = 10;   // left-adjusted static text
 
   // ----- screen text
-  // names for the array indexes, must be named in same order as array below
-  enum txtIndex {
-    TITLE = 0,
-    LINE1,
-    LINE2,
-    LINE3,
-    LINE4,
-    LINE5,
-    LINE6,
-    LINE7,
-    GMT_DATE,
-    GMT_TIME,
-    GMT,
-  };
-
   // clang-format off
 #define nTextReformat 6
   TextField txtStatic[nTextReformat] = {
-      {"Reformat Flash Memory",                   -1,     yRow1, cTITLE, ALIGNCENTER, eFONTSMALLEST},     // [TITLE] view title, centered
-      {"All settings, logs, trails and audio",    labelX, yRow2, cHIGHLIGHT, ALIGNLEFT, eFONTSMALLEST},   // [LINE2]
-      {"files will be erased. If you need to",    labelX, yRow3, cHIGHLIGHT, ALIGNLEFT, eFONTSMALLEST},   // [LINE3]
-      {"reformat frequently, please let us",      labelX, yRow4, cHIGHLIGHT, ALIGNLEFT, eFONTSMALLEST},   // [LINE4]
-      {"know at griduino@gmail.com",              labelX, yRow5, cHIGHLIGHT, ALIGNLEFT, eFONTSMALLEST},   // [LINE5]
-      {"Program " PROGRAM_VERDATE,                -1,     yRow9, cLABEL, ALIGNCENTER},
+      {"Reformat Flash Memory",                   -1,     yRow1, cTITLE, ALIGNCENTER,   eFONTSMALLEST},   // view title, centered
+      {"All settings, logs, trails and audio",    labelX, yRow2, cHIGHLIGHT, ALIGNLEFT, eFONTSMALLEST},
+      {"files will be erased. If you need to",    labelX, yRow3, cHIGHLIGHT, ALIGNLEFT, eFONTSMALLEST},
+      {"reformat frequently, please let us",      labelX, yRow4, cHIGHLIGHT, ALIGNLEFT, eFONTSMALLEST},
+      {"know at griduino@gmail.com",              labelX, yRow5, cHIGHLIGHT, ALIGNLEFT, eFONTSMALLEST},
+      {PROGRAM_VERDATE,                           -1,     yRow9, cLABEL, ALIGNCENTER},
   };
 
 #define nTextWait 1

@@ -71,7 +71,7 @@ protected:
       {"Rotation",        -1, 20,    cHIGHLIGHT, ALIGNCENTER},
       {"Screen",        col1, yRow1, cVALUE},
       {"Orientation",   col1, yRow1 + 20, cVALUE},
-      {PROGRAM_VERDATE,   -1, yRow9, cLABEL, ALIGNCENTER},
+      {PROGRAM_VERSION,   -1, yRow9, cLABEL, ALIGNCENTER},
   };
   // clang-format on
 

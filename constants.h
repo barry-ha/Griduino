@@ -10,7 +10,7 @@
 #define HARDWARE_VERSION "Rev 12"  // Rev 4 | Rev 7 | Rev 12
 #define PROGRAM_LINE1    "Barry K7BWH"
 #define PROGRAM_LINE2    "John KM7O"
-#define PROGRAM_VERDATE  PROGRAM_VERSION ", " __DATE__
+#define PROGRAM_VERDATE  PROGRAM_VERSION ", compiled " __DATE__
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
 #define PROGRAM_FILE     __FILE__
 #define PROGRAM_GITHUB   "https://github.com/barry-ha/Griduino"
