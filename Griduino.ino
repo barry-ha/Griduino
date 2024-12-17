@@ -884,9 +884,9 @@ const int GPS_PROCESS_INTERVAL =  13;   // seconds between updating the model's 
 const int CLOCK_DISPLAY_INTERVAL = 1000;   // refresh clock display every 1 second (1,000 msec)
 const uint32_t GPS_AUTOSAVE_INTERVAL = SECS_PER_10MIN; // seconds between saving breadcrumb trail to file
 //const int BAROMETRIC_PROCESS_INTERVAL = 15*60*1000;  // fifteen minutes in milliseconds
-const uint LOG_PRESSURE_INTERVAL = 15*60*1000;   // 15 minutes, in milliseconds
-const uint LOS_ANNOUNCEMENT_INTERVAL = SECS_PER_5MIN * 1000;   // msec between LOS announcements
-const int  LOG_COIN_BATTERY_INTERVAL = 2 * SECS_PER_1MIN;      // seconds between logging the coin battery voltage
+const uint LOG_PRESSURE_INTERVAL = 15*60*1000;                  // 15 minutes, in milliseconds
+const uint LOS_ANNOUNCEMENT_INTERVAL = SECS_PER_5MIN * 1000;    // msec between LOS announcements
+const int  LOG_COIN_BATTERY_INTERVAL = 10 * SECS_PER_1MIN;      // seconds between logging the coin battery voltage
 
 void loop() {
 

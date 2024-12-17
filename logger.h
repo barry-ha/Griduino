@@ -102,8 +102,8 @@ public:
 
   // severities
   levelDef printLevel[numLevels] = {
-      {true, 'd', "DEBUG"},     // DEBUG = 0,   // verbose
-      {true, 'f', "POST"},      // POST,        // fencepost debug
+      {false, 'd', "DEBUG"},     // DEBUG = 0,   // verbose
+      {false, 'f', "POST"},      // POST,        // fencepost debug
       {true, 'i', "INFO"},      // INFO,        // non critical
       {true, 'w', "WARNING"},   // WARNING,     // important
       {true, 'e', "ERROR"},     // ERROR,       // critical
@@ -349,27 +349,27 @@ protected:
     char pfx[32];
     switch (severity) {
     case DEBUG:
-      snprintf(pfx, sizeof(pfx), "(d, %s) ", printSystem[system].name);
+      snprintf(pfx, sizeof(pfx), "d, %s: ", printSystem[system].name);
       Serial.print(pfx);
       break;
     case POST:
-      snprintf(pfx, sizeof(pfx), "(fencepost) ", printSystem[system].name);
+      snprintf(pfx, sizeof(pfx), "fencepost: ", printSystem[system].name);
       Serial.print(pfx);
       break;
     case INFO:
-      snprintf(pfx, sizeof(pfx), "(i, %s) ", printSystem[system].name);
+      snprintf(pfx, sizeof(pfx), "i, %s: ", printSystem[system].name);
       Serial.print(pfx);
       break;
     case WARNING:
-      snprintf(pfx, sizeof(pfx), "%s Warning, ", printSystem[system].name);
+      snprintf(pfx, sizeof(pfx), "w, %s: Warning, ", printSystem[system].name);
       Serial.print(pfx);
       break;
     case ERROR:
-      snprintf(pfx, sizeof(pfx), "%s Error, ", printSystem[system].name);
+      snprintf(pfx, sizeof(pfx), "e, %s: Error, ", printSystem[system].name);
       Serial.print(pfx);
       break;
     case CONSOLE:
-      snprintf(pfx, sizeof(pfx), "(c, %s) ", printSystem[system].name);
+      snprintf(pfx, sizeof(pfx), "c, %s: ", printSystem[system].name);
       Serial.print(pfx);
       break;
     default:
