@@ -65,7 +65,7 @@ int SaveRestore::readConfig(byte *pData, const unsigned int sizeData) {
   // returns 1=success, 0=failure
   int result = 1;   // assume success
   logger.log(FILES, INFO, "Reading config from SDRAM...");
-  logger.log(FILES, INFO, ". ", fqFilename);
+  logger.log(FILES, INFO, ". %s", fqFilename);
 
   result = openFlash();   // open file system and report errors
   if (!result) {
@@ -327,7 +327,7 @@ int SaveRestore::listFiles(const char *dirname) {
   } else {
 
     int count = 1;
-    logger.log(FILES, INFO, "\r\nDirectory of ", dirname);   // announce start of directory listing
+    logger.log(FILES, INFO, "Directory of ", dirname);   // announce start of directory listing
 
     int fileCount = 0;
     int byteCount = 0;
@@ -441,7 +441,9 @@ int SaveRestore::openFlash() {
     logger.log(FILES, ERROR, "Error, unable to begin using Flash onboard memory");
     return 0;
   }
-  logger.log(FILES, INFO, ". Flash chip JEDEC ID: 0x%h", gFlash.getJEDECID());
+  uint32_t jedec_id = gFlash.getJEDECID();
+  logger.log(FILES, INFO, ". Flash chip JEDEC ID: 0x%h ", jedec_id);
+  logger.log(FILES, INFO, ". Flash size (usable): %d KB", gFlash.size() / 1024);
 
   // First call begin to mount the filesystem.  Check that it returns true
   // to make sure the filesystem was mounted.

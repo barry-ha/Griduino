@@ -44,7 +44,7 @@ public:
   ViewCfgNMEA(Adafruit_ILI9341 *vtft, int vid)   // ctor
       : View{vtft, vid} {
     background     = cBACKGROUND;   // every view can have its own background color
-    selectedOption = SEND_NMEA;     // default: assume a program like NMEATime2 is listening
+    selectedOption = SILENT;        // SEND_NMEA;     // power-on default [NMEA]: assume a program like NMEATime2 is listening
   }
   void updateScreen();
   void startScreen();
@@ -54,8 +54,8 @@ public:
   void saveConfig();
 
   enum functionID {
-    SEND_NMEA = 0,
-    SILENT,
+    SILENT = 0,
+    SEND_NMEA,
   };
   functionID selectedOption;   // <-- this is the whole reason for this module's existence
 
@@ -133,10 +133,10 @@ void ViewCfgNMEA::updateScreen() {
     int yCenter         = item.y + (item.h / 2);
     int buttonFillColor = cBACKGROUND;
 
-    if (ii == eSTART_NMEA && logger.print_nmea) {
+    if (ii == eSTART_NMEA && logger.printSystem[NMEA].enabled) {
       buttonFillColor = cLABEL;
     }
-    if (ii == eSTOP_NMEA && !logger.print_nmea) {
+    if (ii == eSTOP_NMEA && !logger.printSystem[NMEA].enabled) {
       buttonFillColor = cLABEL;
     }
     tft->fillCircle(xCenter, yCenter, 4, buttonFillColor);

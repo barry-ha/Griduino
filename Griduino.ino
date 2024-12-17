@@ -847,6 +847,7 @@ void setup() {
     tft.setTextColor(cWARN);
     setFontSize(12);
     tft.println("Error!\n Unable to init\n  barometric sensor");
+    logger.log(BARO, ERROR, "Unable to init barometric sensor");
     delay(5000);
   }
 
@@ -894,7 +895,14 @@ void loop() {
   if (GPS.newNMEAreceived()) {
     // optionally send NMEA sentences to Serial port, possibly for NMEATime2
     // Note: Adafruit parser doesn't handle $GPGSV (satellites in vieW) so we send all sentences regardless of content
-    logger.nmea(CONSOLE, GPS.lastNMEA());
+    // But first, our GPS sends several NMEA sentences in a row, so let's flag the start of each group in the log
+    char firstNMEA[7] = "$GPGGA";
+    if (strncmp(GPS.lastNMEA(), firstNMEA, sizeof(firstNMEA)-1) == 0) {
+      // insert divider into log for readability
+      char divider[5] = "----";
+      logger.log(NMEA, INFO, divider);
+    }
+    logger.log(NMEA, INFO, GPS.lastNMEA());
 
     // sentence received -- verify checksum, parse it
     // a tricky thing here is if we print the NMEA sentence, or data

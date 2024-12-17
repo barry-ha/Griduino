@@ -116,34 +116,30 @@ public:
     }
   }
 
-  // subsystems
-  bool print_nmea = true;   // set TRUE to send NMEA sentences to the console (for NmeaTime2 by www.visualgps.net)
-
   // ---------- categories ----------
   // NMEA messages, such as $GPRMC
   // this has frequent output messages (1 per second) so by default it's off
+  // todo - delete, unused
   void nmea(LogLevel severity, const char *pText) {
     if (ok_to_log(NMEA, severity)) {
-      if (print_nmea) {
-        //
-        //    ---GPRMC---         ---GPGGA---
-        //    hh:mm:ss              hh:mm:ss
-        //    Sat status            Latitude
-        //    Latitude              Longitude
-        //    Longitude             Fix quality
-        //    Ground speed (knots)  No. of sats in use
-        //    Track angle           Altitude (m)
-        //    DD:MM:YY
-        //
-        // this GPS info is required by NMEATime2 by www.visualgps.com
-        const char haystack[] = "$GPRMC $GPGGA $GPGSA $GPGSV ";
-        char needle[7];
-        strncpy(needle, pText, 6);
-        needle[6] = 0;   // null terminated
-        Serial.print(pText);
-        if (strstr("$GPRMC", needle)) {
-          Serial.println();
-        }
+      //
+      //    ---GPRMC---         ---GPGGA---
+      //    hh:mm:ss              hh:mm:ss
+      //    Sat status            Latitude
+      //    Latitude              Longitude
+      //    Longitude             Fix quality
+      //    Ground speed (knots)  No. of sats in use
+      //    Track angle           Altitude (m)
+      //    DD:MM:YY
+      //
+      // these NEMA sentences are used by NMEATime2 by www.visualgps.com
+      const char haystack[] = "$GPRMC $GPGGA $GPGSA $GPGSV ";
+      char needle[7];
+      strncpy(needle, pText, 6);
+      needle[6] = 0;   // null terminated
+      Serial.print(pText);
+      if (strstr("$GPRMC", needle)) {
+        Serial.println();   // insert blank line after $GPRMC
       }
     }
   }
@@ -153,7 +149,18 @@ public:
     if (ok_to_log(system, severity)) {
 
       printPrefix(system, severity);
-      Serial.println(pText);
+      if (strlen(pText) < 4) {
+        // allow caller to send up to this many newlines together
+        Serial.print(pText);
+      } else {
+        if (pText[strlen(pText) - 1] == '\n') {
+          // use the trailing newline from NEMA sentences from the GPS module
+          Serial.print(pText);
+        } else {
+          // add our own newline
+          Serial.println(pText);
+        }
+      }
     }
   }
 
@@ -179,7 +186,7 @@ public:
     }
   }
 
-  // ----- general log: text + int
+  // ----- general log: text + number
   void log(LogSystem system, LogLevel severity, const char *pFormat, const int value) {
     if (ok_to_log(system, severity)) {
 
@@ -190,15 +197,28 @@ public:
     }
   }
 
+  // ----- general log: text + hexadecimal
+  /*
+  void logHex(LogSystem system, LogLevel severity, const char *pFormat, const int value) {
+    if (ok_to_log(system, severity)) {
+
+      printPrefix(system, severity);
+
+      char msg[256];
+      snprintf(msg, sizeof(msg), pFormat, value);
+      Serial.println(msg);
+    }
+  }
+  */
+
   bool ok_to_log(LogSystem system, LogLevel severity) {
     if (severity == CONSOLE) {
       return true;
     }
 
     if (log_enabled) {
-      // check that this severity level is enabled
+      // check that this severity level AND system component is enabled
       if (printLevel[severity]) {
-        // check that this 'system' is enabled
         if (printSystem[system].enabled) {
           return true;
         }
@@ -269,14 +289,14 @@ public:
 
   // ----- debug statements to confirm a certain line of code is executed
   void fencepost(const char *pModule, const int lineno) {
-    //const LogSystem sys = FENCE;
-    //const LogLevel sev = POST;
-    //if (ok_to_log(sys, sev)) {
-    //  printPrefix(sys, sev);
-      // example output: "Griduino.ino[123]"
-      char msg[128];
-      snprintf(msg, sizeof(msg), "%s[%d]", pModule, lineno);
-      log(FENCE, POST, msg);
+    // const LogSystem sys = FENCE;
+    // const LogLevel sev = POST;
+    // if (ok_to_log(sys, sev)) {
+    //   printPrefix(sys, sev);
+    //  example output: "Griduino.ino[123]"
+    char msg[128];
+    snprintf(msg, sizeof(msg), "%s[%d]", pModule, lineno);
+    log(FENCE, POST, msg);
     //}
   }
   void fencepost(const char *pModule, const char *pSubroutine, const int lineno) {

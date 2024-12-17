@@ -346,9 +346,10 @@ public:
 
 private:
   void echoGPSinfo() {
+    logger.fencepost("model_gps.h", "getGPS()", __LINE__);  // debug
     // send GPS statistics from the Adafruit_GPS library (not from our own data in our model)
     // to serial console for desktop debugging
-    char sDate[20];   // strlen("0000-00-00 hh:mm:ss") = 19
+    char sDate[21];   // strlen("0000-00-00  hh:mm:ss") = 20
     getCurrentDateTime(sDate);
 
     char msg[64];
