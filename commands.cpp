@@ -73,10 +73,10 @@ Command cmdList[] = {
     {Newline, "view screen1", view_screen1},
     {0, "view crossings", view_crossings},
     {0, "view events", view_events},
-    {0, "reformat flash", cfg_reformat},
 
     {Newline, "dir", list_files},
     {0, "list files", list_files},
+    {0, "reformat flash", cfg_reformat},
 
     {Newline, "type gpshistory", type_gpshistory},
     {0, "run unittest", run_unittest},
