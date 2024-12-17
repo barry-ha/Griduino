@@ -152,7 +152,7 @@ int SaveRestore::writeConfig(const byte *pData, const unsigned int sizeData) {
   }
 
   logger.log(FILES, INFO, ". fqFilename %s", fqFilename);
-  logger.log(FILES, INFO, ". sVersion %s", sVersion);
+  logger.log(FILES, DEBUG, ". sVersion %s", sVersion);
   logger.log(FILES, INFO, ". Data length %d", sizeData);
 
   // write config data to file...
@@ -442,8 +442,8 @@ int SaveRestore::openFlash() {
     return 0;
   }
   uint32_t jedec_id = gFlash.getJEDECID();
-  logger.log(FILES, INFO, ". Flash chip JEDEC ID: 0x%h ", jedec_id);
-  logger.log(FILES, INFO, ". Flash size (usable): %d KB", gFlash.size() / 1024);
+  logger.log(FILES, DEBUG, ". Flash chip JEDEC ID: 0x%X ", jedec_id);
+  logger.log(FILES, DEBUG, ". Flash size (usable): %d KB", gFlash.size() / 1024);
 
   // First call begin to mount the filesystem.  Check that it returns true
   // to make sure the filesystem was mounted.
