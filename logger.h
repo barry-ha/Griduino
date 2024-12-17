@@ -72,6 +72,11 @@ struct systemDef {
   bool enabled;
   char name[5];
 };
+struct levelDef {
+  bool enabled;
+  char abbr;
+  char name[8];
+};
 
 class Logger {
 
@@ -91,16 +96,18 @@ public:
       {false, "AUD "},   // AUDIO,        // morse code and speech output
       {false, "BATT"},   // BATTERY,      // coin battery for GPS
       {true, "FILE"},    // FILES,        // all file handling, including save/restore
+      {true, "TIME"},    // TIME
+      {true, "SCRN"},    // SCREEN
   };
 
   // severities
-  bool printLevel[numLevels] = {
-      true,   // DEBUG = 0,   // verbose
-      true,   // FENCE,       // fencepost debug
-      true,   // INFO,        // non critical
-      true,   // WARNING,     // important
-      true,   // ERROR,       // critical
-      true,   // CONSOLE,     // required output
+  levelDef printLevel[numLevels] = {
+      {true, 'd', "DEBUG"},     // DEBUG = 0,   // verbose
+      {true, 'f', "POST"},      // POST,        // fencepost debug
+      {true, 'i', "INFO"},      // INFO,        // non critical
+      {true, 'w', "WARNING"},   // WARNING,     // important
+      {true, 'e', "ERROR"},     // ERROR,       // critical
+      {true, 'c', "CONSOLE"},   // CONSOLE,     // required output
   };
 
   void setLevel(LogLevel lvl) {
@@ -109,9 +116,9 @@ public:
     }
     for (int ii = 0; ii < numLevels; ii++) {
       if (ii < lvl) {
-        printLevel[ii] = false;
+        printLevel[ii].enabled = false;
       } else {
-        printLevel[ii] = true;
+        printLevel[ii].enabled = true;
       }
     }
   }
@@ -218,7 +225,7 @@ public:
 
     if (log_enabled) {
       // check that this severity level AND system component is enabled
-      if (printLevel[severity]) {
+      if (printLevel[severity].enabled) {
         if (printSystem[system].enabled) {
           return true;
         }

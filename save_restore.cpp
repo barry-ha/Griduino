@@ -392,8 +392,8 @@ void SaveRestore::showFile(const char *indent, const int count, const char *file
   // Example: "        6240 barometr.dat"
   //          "1...5....0.. filename.ext"
   char msg[256];
-  snprintf(msg, sizeof(msg), "%12d %s", filesize, filename);
-  logger.log(FILES, INFO, msg);
+  snprintf(msg, sizeof(msg), "%10d %s", filesize, filename);
+  logger.log(FILES, CONSOLE, msg);
 }
 void SaveRestore::showDirectory(const char *dirname) {
   // Example:  "1...5....0.. Griduino  <dir>"

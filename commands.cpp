@@ -40,6 +40,7 @@ void show_centerline(), hide_centerline();
 void run_unittest();
 void enable_console_log(), disable_console_log();
 void log_level_debug(), log_level_fence(), log_level_info(), log_level_warning(), log_level_error();
+void show_logging_status();
 
 // ----- table of commands
 #define Newline true   // use this to insert a CRLF before listing this command in help text
@@ -54,6 +55,7 @@ Command cmdList[] = {
 
     {Newline, "dump kml", dump_kml},
     {0, "dump gps", dump_gps_history},
+    {0, "type gpshistory", type_gpshistory},
     {0, "erase history", erase_gps_history},
 
     {Newline, "start nmea", start_nmea},
@@ -70,16 +72,15 @@ Command cmdList[] = {
 
     {Newline, "view help", view_help},
     {0, "view splash", view_splash},
-    {Newline, "view screen1", view_screen1},
+    {0, "view screen1", view_screen1},
     {0, "view crossings", view_crossings},
     {0, "view events", view_events},
+    {0, "view reformat", cfg_reformat},
 
     {Newline, "dir", list_files},
     {0, "list files", list_files},
-    {0, "reformat flash", cfg_reformat},
 
-    {Newline, "type gpshistory", type_gpshistory},
-    {0, "run unittest", run_unittest},
+    {Newline, "run unittest", run_unittest},
 
     {Newline, "enable console log", enable_console_log},
     {0, "disable console log", disable_console_log},
@@ -89,6 +90,8 @@ Command cmdList[] = {
     {0, "log level info", log_level_info},
     {0, "log level warning", log_level_warning},
     {0, "log level error", log_level_error},
+
+    {Newline, "show logging", show_logging_status},
 };
 const int numCmds = sizeof(cmdList) / sizeof(cmdList[0]);
 
@@ -254,7 +257,29 @@ void disable_console_log() {
   logger.log(COMMAND, CONSOLE, "disabling all logging to console");
   logger.log_enabled = false;
 }
+// ----- log sybsystems
+void show_logging_status() {
+  logger.log(COMMAND, CONSOLE, "subsystems being logged are:");
+  for (int ii = 0; ii < numSystems; ii++) {
+    if (logger.printSystem[ii].enabled) {
+      logger.log(COMMAND, CONSOLE, "%s = true", logger.printSystem[ii].name);
+    } else {
+      logger.log(COMMAND, CONSOLE, "%s = .", logger.printSystem[ii].name);
+    }
+  }
 
+  logger.log(COMMAND, CONSOLE, "severity levels being logged are:");
+  char str[20];
+  for (int ii = 0; ii < numLevels; ii++) {
+    snprintf(str, sizeof(str), "%c = %s", logger.printLevel[ii].abbr, logger.printLevel[ii].name);
+    if (logger.printLevel[ii].enabled) {
+      logger.log(COMMAND, CONSOLE, "%s = true", str);
+    } else {
+      logger.log(COMMAND, CONSOLE, "%s = .", str);
+    }
+  }
+}
+// ----- log severity levels
 void log_level_debug() {
   logger.log(COMMAND, CONSOLE, "setting log level debug, fence, info, warning, error, console");
   logger.setLevel(DEBUG);
