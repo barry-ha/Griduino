@@ -25,11 +25,12 @@
             xLeft    xButtonUL
 */
 
-#include <Adafruit_ILI9341.h>   // TFT color display library
-#include "constants.h"          // Griduino constants and colors
-#include "logger.h"             // conditional printing to Serial port
-#include "TextField.h"          // Optimize TFT display text for proportional fonts
-#include "view.h"               // Base class for all views
+#include <Adafruit_ILI9341.h>            // TFT color display library
+#include "constants.h"                   // Griduino constants and colors
+#include "logger.h"                      // conditional printing to Serial port
+#include "TextField.h"                   // Optimize TFT display text for proportional fonts
+#include "view.h"                        // Base class for all views
+#include "SdFat_format/SdFat_format.h"   // Adafruit FAT formatter
 
 // ========== extern ===========================================
 extern Logger logger;        // Griduino.ino
@@ -127,12 +128,17 @@ protected:
       tft->setTextColor(item.color);
       tft->print(item.text);
     }
-    delay(30 * 1000);   // debug
 
     // Call fatfs begin and passed flash object to initialize file system
-    // format_fat12();   // TODO
-    // check_fat12();    // TODO
-    logger.log(CONFIG, INFO, "Flash chip successfully formatted with new empty filesystem");
+    logger.fencepost("cfg_refornat.h", "format_fat12()", __LINE__);   // debug
+    format_fat12();
+
+    logger.fencepost("cfg_refornat.h", "check_fat12()", __LINE__);   // debug
+    check_fat12();
+
+    logger.fencepost("cfg_refornat.h", "reformatFlash()", __LINE__);   // debug
+
+    // logger.log(CONFIG, INFO, "Flash chip successfully formatted with new empty filesystem");
   }
 };   // end class ViewCfgReformat
 

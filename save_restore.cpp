@@ -40,12 +40,12 @@ int openFlash();
 // ========== globals =================================
 #if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
 // Adafruit Feather RP2040, https://www.adafruit.com/product/4884
-Adafruit_FlashTransport_RP2040_CPY flashTransport;   // onboard RAM, compatible with CircuitPy
+Adafruit_FlashTransport_RP2040_CPY flTransport;   // onboard RAM, compatible with CircuitPy
 #else
 // Adafruit Feather M4, https://www.adafruit.com/product/3857
-Adafruit_FlashTransport_QSPI flashTransport;   // Quad SPI 2MB memory chip
+Adafruit_FlashTransport_QSPI flTransport;   // Quad SPI 2MB memory chip
 #endif
-Adafruit_SPIFlash gFlash(&flashTransport);
+Adafruit_SPIFlash gFlash(&flTransport);
 FatFileSystem gFatfs;   // file system object from SdFat
 extern Logger logger;   // Griduino.ino
 
