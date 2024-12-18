@@ -138,7 +138,13 @@ protected:
 
     logger.fencepost("cfg_refornat.h", "reformatFlash()", __LINE__);   // debug
 
-    // logger.log(CONFIG, INFO, "Flash chip successfully formatted with new empty filesystem");
+    // TODO - turn off spoken-word audio (if it was on)
+
+    // TODO - success message should tell user
+    // 1. Flash reformat success/failure
+    // 2. To re-install audio files, see github.com/barry-ha/Griduino docs folder
+
+    logger.log(CONFIG, INFO, "Flash chip formatting finished");
   }
 };   // end class ViewCfgReformat
 
