@@ -327,7 +327,7 @@ int SaveRestore::listFiles(const char *dirname) {
   } else {
 
     int count = 1;
-    logger.log(FILES, INFO, "Directory of ", dirname);   // announce start of directory listing
+    logger.log(FILES, CONSOLE, "Directory of ", dirname);   // announce start of directory listing
 
     int fileCount = 0;
     int byteCount = 0;
@@ -355,7 +355,7 @@ int SaveRestore::listFiles(const char *dirname) {
         // increment loop counters
         child = testDir.openNextFile();
         if (++count > 64) {
-          logger.log(CONFIG, WARNING, "And many more, but I'm stopping here.");
+          logger.log(FILES, WARNING, "And many more, but I'm stopping here.");
           rc = 0;
         }
       }
@@ -363,7 +363,7 @@ int SaveRestore::listFiles(const char *dirname) {
 
     char msg[256];   // report summary for the directory
     snprintf(msg, sizeof(msg), "%12d Files, %d bytes", fileCount, byteCount);
-    logger.log(FILES, INFO, msg);
+    logger.log(FILES, CONSOLE, msg);
 
     // Now, having listed the FILES, let's loop through again for DIRECTORIES
     testDir = gFatfs.open(dirname);
