@@ -103,7 +103,7 @@ public:
   // severities
   levelDef printLevel[numLevels] = {
       {false, 'd', "DEBUG"},     // DEBUG = 0,   // verbose
-      {false, 'f', "POST"},      // POST,        // fencepost debug
+      {true, 'f', "POST"},      // POST,        // fencepost debug
       {true, 'i', "INFO"},      // INFO,        // non critical
       {true, 'w', "WARNING"},   // WARNING,     // important
       {true, 'e', "ERROR"},     // ERROR,       // critical
