@@ -1,5 +1,6 @@
 // clang-format off
 // Please do not reformat, so it can be compared to original.
+
 /*----------------------------------------------------------------------------/
 /  FatFs - Generic FAT Filesystem Module  R0.13c                              /
 /-----------------------------------------------------------------------------/
@@ -19,6 +20,7 @@
 / by use of this software.
 /
 /----------------------------------------------------------------------------*/
+
 
 #include "ff.h"			/* Declarations of FatFs API */
 #include "ff_diskio.h"		/* Declarations of device I/O functions */

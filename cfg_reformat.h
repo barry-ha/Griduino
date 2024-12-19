@@ -136,13 +136,8 @@ protected:
     // Call fatfs begin and passed flash object to initialize file system
     logger.fencepost("cfg_refornat.h", "ff_setup()", __LINE__);   // debug
     ff_setup();
-
-    logger.fencepost("cfg_refornat.h", "format_fat12()", __LINE__);   // debug
     format_fat12();
-
-    logger.fencepost("cfg_refornat.h", "check_fat12()", __LINE__);   // debug
     check_fat12();
-
     logger.fencepost("cfg_refornat.h", "reformatFlash()", __LINE__);   // debug
 
     // TODO - turn off spoken-word audio (if it was on)

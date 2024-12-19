@@ -1,5 +1,6 @@
 // clang-format off
 // Please do not reformat, so it can be compared to original.
+
 /*----------------------------------------------------------------------------/
 /  FatFs - Generic FAT Filesystem module  R0.13c                              /
 /-----------------------------------------------------------------------------/
@@ -270,6 +271,7 @@ typedef enum {
 	FR_NOT_ENABLED,			/* (12) The volume has no work area */
 	FR_NO_FILESYSTEM,		/* (13) There is no valid FAT volume */
 	FR_MKFS_ABORTED,		/* (14) The f_mkfs() aborted due to any problem */
+                                // Provide specific individual points of failure within f_mkfs():
 	FR_MKFS_ABORTED_1 = 1401,	// 1401 if (sz_vol < b_data + pau * 16 - b_vol)
 	FR_MKFS_ABORTED_2 = 1402,	// 1402 if (pte[PTE_System] == 0)	: no partition
 	FR_MKFS_ABORTED_3 = 1403,	// 1403 if (sz_vol < b_vol)			: size for volume, compared to volume start sector

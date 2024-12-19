@@ -1,3 +1,6 @@
+// clang-format off
+// Please do not reformat, so it can be compared to original.
+
 /*-----------------------------------------------------------------------/
 /  Low level disk interface module include file   (C)ChaN, 2014          /
 /-----------------------------------------------------------------------*/
