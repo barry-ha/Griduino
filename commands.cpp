@@ -33,8 +33,7 @@ extern View *pView;                   // Griduino.ino
 void help(), version();
 void dump_kml(), dump_gps_history(), erase_gps_history(), list_files(), type_gpshistory();
 void start_nmea(), stop_nmea(), start_gmt(), stop_gmt();
-void view_help(), view_screen1(), view_splash(), view_crossings(), view_events();
-void cfg_reformat();
+void show_help(), show_screen1(), show_splash(), show_crossings(), show_events(), show_reformat();
 void show_touch(), hide_touch();
 void show_centerline(), hide_centerline();
 void run_unittest();
@@ -70,12 +69,12 @@ Command cmdList[] = {
     {Newline, "show centerline", show_centerline},
     {0, "hide centerline", hide_centerline},
 
-    {Newline, "view help", view_help},
-    {0, "view splash", view_splash},
-    {0, "view screen1", view_screen1},
-    {0, "view crossings", view_crossings},
-    {0, "view events", view_events},
-    {0, "view reformat", cfg_reformat},
+    {Newline, "show help", show_help},
+    {0, "show splash", show_splash},
+    {0, "show screen1", show_screen1},
+    {0, "show crossings", show_crossings},
+    {0, "show events", show_events},
+    {0, "show reformat", show_reformat},
 
     {Newline, "dir", list_files},
     {0, "list files", list_files},
@@ -173,8 +172,8 @@ void stop_gmt() {
   logger.printSystem[GMT].enabled = false;
 }
 
-void view_help() {
-  logger.log(COMMAND, CONSOLE, "view Help screen");
+void show_help() {
+  logger.log(COMMAND, CONSOLE, "show Help screen");
   extern /*const*/ int help_view;   // Griduino.ino
   extern uint viewHelpTimeout;      // Griduino.ino
   extern elapsedSeconds viewHelpTimer;
@@ -184,32 +183,32 @@ void view_help() {
   selectNewView(help_view);          // Griduino.ino
 }
 
-void view_splash() {
-  logger.log(COMMAND, CONSOLE, "view Splash screen");
+void show_splash() {
+  logger.log(COMMAND, CONSOLE, "show Splash screen");
   extern /*const*/ int splash_view;   // see "Griduino.ino"
   selectNewView(splash_view);         // see "Griduino.ino"
 }
 
-void view_screen1() {
-  logger.log(COMMAND, CONSOLE, "view Screen 1");
+void show_screen1() {
+  logger.log(COMMAND, CONSOLE, "show Screen 1");
   extern /*const*/ int screen1_view;   // see "Griduino.ino"
   selectNewView(screen1_view);         // see "Griduino.ino"
 }
 
-void view_crossings() {
-  logger.log(COMMAND, CONSOLE, "view grid crossings");
+void show_crossings() {
+  logger.log(COMMAND, CONSOLE, "show grid crossings screen");
   extern /*const*/ int grid_crossings_view;   // see Griduino.com
   selectNewView(grid_crossings_view);
 }
 
-void view_events() {
-  logger.log(COMMAND, CONSOLE, "view calendar events");
+void show_events() {
+  logger.log(COMMAND, CONSOLE, "show calendar events screen");
   extern /*const*/ int events_view;   // see Griduino.com
   selectNewView(events_view);
 }
 
-void cfg_reformat() {
-  logger.log(COMMAND, CONSOLE, "reformat flash memory");
+void show_reformat() {
+  logger.log(COMMAND, CONSOLE, "show reformat flash memory screen");
   extern /*const*/ int reformat_view;   // see Griduino.com
   selectNewView(reformat_view);
 }
