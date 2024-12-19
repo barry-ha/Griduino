@@ -1,11 +1,12 @@
 // clang-format off
 // Please do not reformat, so it can be compared to original.
 
-// Adafruit SPI Flash FatFs Format Example
-// Author: Tony DiCola
 // Modified: Barry Hansen  2024-12-18
 //    This is minimally-modified copy of SdFat_format.ino
 //    from examples/SdFat_format
+
+// Adafruit SPI Flash FatFs Format Example
+// Author: Tony DiCola
 //
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 // !!  NOTE: YOU WILL ERASE ALL DATA BY RUNNING THIS SKETCH!  !!
@@ -58,7 +59,6 @@ int format_fat12(void) {
   if (r != FR_OK) {
     Serial.print(F("Error, f_mkfs failed with error code: "));
     Serial.println(r, DEC);
-    delay(3000);  // bwh instead of: while (1) yield();
     return r;
   }
   Serial.println(F("Success, f_mkfs"));
@@ -68,7 +68,6 @@ int format_fat12(void) {
   if (r != FR_OK) {
     Serial.print(F("Error, f_mount failed with error code: "));
     Serial.println(r, DEC);
-    delay(3000);  // bwh instead of: while (1) yield();
     return r;
   }
   Serial.println(F("Success, f_mount"));
@@ -79,7 +78,6 @@ int format_fat12(void) {
   if (r != FR_OK) {
     Serial.print(F("Error, f_setlabel failed with error code: "));
     Serial.println(r, DEC);
-    delay(3000);  // bwh instead of: while (1) yield();
     return r;
   }
   Serial.println(F("Success f_setlabel"));
@@ -100,7 +98,6 @@ int check_fat12(void) {
   // Check new filesystem
   if (!fatfs.begin(&flash)) {
     Serial.println(F("Error, failed to mount newly formatted filesystem!"));
-    delay(3000);  // bwh instead of: while (1) yield();
     r = FR_NO_FILESYSTEM;
   }
   return r;
@@ -108,18 +105,9 @@ int check_fat12(void) {
 
 
 void ff_setup(void) {
-  /* bwh: serial has already been set up
-  // Initialize serial port and wait for it to open before continuing.
-  Serial.begin(115200);
-  while (!Serial) delay(100);
-
-  Serial.println(F("Adafruit SPI Flash FatFs Format Example"));
-  */
-
   // Initialize flash library and check its chip ID.
   if (!flash.begin()) {
     Serial.println(F("Error, failed to initialize flash chip!"));
-    delay(3000);  // bwh instead of while (1) yield();
   }
 
   Serial.print(F("Flash chip JEDEC ID: 0x"));
@@ -131,19 +119,6 @@ void ff_setup(void) {
   // Uncomment to flash LED while writing to flash
   // flash.setIndicator(LED_BUILTIN, true);
 
-  /* bwh: user has already confirmed
-  // Wait for user to send OK to continue.
-  Serial.setTimeout(30000);  // Increase timeout to print message less frequently.
-  do {
-    Serial.println(F("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"));
-    Serial.println(F("This sketch will ERASE ALL DATA on the flash chip and format it with a new filesystem!"));
-    Serial.println(F("Type OK (all caps) and press enter to continue."));
-    Serial.println(F("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"));
-  } while (!Serial.find((char *)"OK"));
-
-  // Call fatfs begin and passed flash object to initialize file system
-  Serial.println(F("Creating and formatting FAT filesystem (this takes ~60 seconds)..."));
-  */
 
   format_fat12();
 
@@ -152,13 +127,6 @@ void ff_setup(void) {
   // Done!
   Serial.println(F("Flash chip successfully formatted with new empty filesystem!"));
 }
-
-/* bwh: loop() provided by Griduino.ino
-void loop() {
-  // Nothing to be done in the main loop.
-}
-*/
-/* ****************************************** */
 
 
 //--------------------------------------------------------------------+
