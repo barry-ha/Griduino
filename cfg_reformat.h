@@ -1,6 +1,6 @@
 #pragma once   // Please format this file with clang before check-in to GitHub
 /*
-   File:    cfg_reformat.h
+  File:    cfg_reformat.h
 
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
@@ -30,11 +30,15 @@
 #include "logger.h"                      // conditional printing to Serial port
 #include "TextField.h"                   // Optimize TFT display text for proportional fonts
 #include "view.h"                        // Base class for all views
-#include "SdFat_format/SdFat_format.h"   // Adafruit FAT formatter
+//#include "SdFat_format/SdFat_format.h"   // Adafruit FAT formatter: provides format_fat12(), check_fat12()
 
 // ========== extern ===========================================
 extern Logger logger;        // Griduino.ino
 extern int goto_next_view;   // Griduino.ino
+extern void ff_setup(void);     // ff_SdFat_Format.cpp
+extern void format_fat12(void); // ff_SdFat_format.cpp
+extern void check_fat12(void);  // ff_SdFat_format.cpp
+
 
 // ========== class ViewCfgReformat =================================
 class ViewCfgReformat : public View {
@@ -130,6 +134,9 @@ protected:
     }
 
     // Call fatfs begin and passed flash object to initialize file system
+    logger.fencepost("cfg_refornat.h", "ff_setup()", __LINE__);   // debug
+    ff_setup();
+
     logger.fencepost("cfg_refornat.h", "format_fat12()", __LINE__);   // debug
     format_fat12();
 

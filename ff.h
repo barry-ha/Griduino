@@ -1,3 +1,5 @@
+// clang-format off
+// Please do not reformat, so it can be compared to original.
 /*----------------------------------------------------------------------------/
 /  FatFs - Generic FAT Filesystem module  R0.13c                              /
 /-----------------------------------------------------------------------------/
@@ -26,10 +28,10 @@
 extern "C" {
 #endif
 
-#include "ffconf.h"		/* FatFs configuration options */
+#include "ff_conf.h"		/* FatFs configuration options */
 
 #if FF_DEFINED != FFCONF_DEF
-#error Wrong configuration file (ffconf.h).
+#error Wrong configuration file (ff_conf.h).
 #endif
 
 
@@ -268,9 +270,9 @@ typedef enum {
 	FR_NOT_ENABLED,			/* (12) The volume has no work area */
 	FR_NO_FILESYSTEM,		/* (13) There is no valid FAT volume */
 	FR_MKFS_ABORTED,		/* (14) The f_mkfs() aborted due to any problem */
-	FR_MKFS_ABORTED_1 = 1401,
-	FR_MKFS_ABORTED_2 = 1402,
-	FR_MKFS_ABORTED_3 = 1403,
+	FR_MKFS_ABORTED_1 = 1401,	// 1401 if (sz_vol < b_data + pau * 16 - b_vol)
+	FR_MKFS_ABORTED_2 = 1402,	// 1402 if (pte[PTE_System] == 0)	: no partition
+	FR_MKFS_ABORTED_3 = 1403,	// 1403 if (sz_vol < b_vol)			: size for volume, compared to volume start sector
 	FR_MKFS_ABORTED_4 = 1404,
 	FR_MKFS_ABORTED_5 = 1405,
 	FR_MKFS_ABORTED_6 = 1406,

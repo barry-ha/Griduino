@@ -1,3 +1,12 @@
+// clang-format off
+// Please do not reformat, so it can be compared to original.
+/*
+  File:     ff_conf.h - flash format configuration for Griduino
+  Modified: Barry Hansen  2024-12-18
+            This is minimally-modified copy of SdFat_format.ino
+            from examples/SdFat_format
+*/
+
 /*---------------------------------------------------------------------------/
 /  FatFs Functional Configurations
 /---------------------------------------------------------------------------*/
