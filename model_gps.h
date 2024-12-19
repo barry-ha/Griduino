@@ -123,7 +123,7 @@ public:
       // warning: this can corrupt our object's data if something failed
       // so we blob the bytes to a work area and copy individual values
       copyFrom(tempModel);
-      logger.log(GPS_SETUP, INFO, "Success, GPS Model restored from SDRAM");
+      logger.log(GPS_SETUP, DEBUG, "Success, GPS Model restored from SDRAM");
     } else {
       logger.log(GPS_SETUP, ERROR, "failed to restore GPS Model object to SDRAM");
       rc = 0;   // return failure

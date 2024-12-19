@@ -64,8 +64,7 @@ int SaveRestore::deleteFile(const char *vFilename) {
 int SaveRestore::readConfig(byte *pData, const unsigned int sizeData) {
   // returns 1=success, 0=failure
   int result = 1;   // assume success
-  logger.log(FILES, INFO, "Reading config from SDRAM...");
-  logger.log(FILES, INFO, ". %s", fqFilename);
+  logger.log(FILES, INFO, "Reading config: %s", fqFilename);
 
   result = openFlash();   // open file system and report errors
   if (!result) {
@@ -137,7 +136,7 @@ int SaveRestore::writeConfig(const byte *pData, const unsigned int sizeData) {
   // initialize configuration file in file system, called by setup() if needed
   // assumes this is Feather M4 Express with 2 MB Quad-SPI flash memory
   // returns 1=success, 0=failure
-  logger.log(FILES, INFO, "Writing config data to flash");
+  logger.log(FILES, INFO, "Writing file: %s", fqFilename);
 
   int result = openFlash();   // open file system and report errors
   if (!result) {
@@ -151,7 +150,6 @@ int SaveRestore::writeConfig(const byte *pData, const unsigned int sizeData) {
     return 0;
   }
 
-  logger.log(FILES, INFO, ". fqFilename %s", fqFilename);
   logger.log(FILES, DEBUG, ". sVersion %s", sVersion);
   logger.log(FILES, INFO, ". Data length %d", sizeData);
 
@@ -185,9 +183,9 @@ int SaveRestore::writeConfig(const byte *pData, const unsigned int sizeData) {
 int SaveRestoreStrings::open(const char *fqFilename, const char *mode) {   // https://cplusplus.com/reference/cstdio/fopen/
   // returns 1=success, 0=failure
   if (*mode == 'w') {
-    logger.log(FILES, INFO, "Writing to file system: ", fqFilename);
+    logger.log(FILES, INFO, "Writing file: %s", fqFilename);
   } else {
-    logger.log(FILES, INFO, "Reading from file system: ", fqFilename);
+    logger.log(FILES, INFO, "Reading file: %s", fqFilename);
   }
 
   int result = openFlash();   // open file system and report errors
