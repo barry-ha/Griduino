@@ -74,7 +74,7 @@ int SaveRestore::readConfig(byte *pData, const unsigned int sizeData) {
   // open config file
   File32 readFile = gFatfs.open(fqFilename, FILE_READ);
   if (!readFile) {
-    logger.log(FILES, ERROR, "Error, failed to open config file for reading, ", fqFilename);
+    logger.log(FILES, ERROR, "Failed to open config file for reading, ", fqFilename);
     return 0;
   }
 
@@ -146,7 +146,7 @@ int SaveRestore::writeConfig(const byte *pData, const unsigned int sizeData) {
   // replace an existing config file
   File32 writeFile = gFatfs.open(fqFilename, O_RDWR | O_CREAT | O_TRUNC);
   if (!writeFile) {
-    logger.log(FILES, ERROR, "failed to open config file for writing, %s", fqFilename);
+    logger.log(FILES, ERROR, "Failed to open config file for writing, %s", fqFilename);
     return 0;
   }
 
