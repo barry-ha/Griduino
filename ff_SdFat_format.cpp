@@ -103,7 +103,6 @@ int check_fat12(void) {
   return r;
 }
 
-
 void ff_setup(void) {
   // Initialize flash library and check its chip ID.
   if (!flash.begin()) {
@@ -116,21 +115,11 @@ void ff_setup(void) {
   Serial.print(flash.size() / 1024);
   Serial.println(F(" KB"));
 
-  // Uncomment to flash LED while writing to flash
-  // flash.setIndicator(LED_BUILTIN, true);
-
-
-  format_fat12();
-
-  check_fat12();
-
-  // Done!
-  Serial.println(F("Flash chip successfully formatted with new empty filesystem!"));
 }
-
 
 //--------------------------------------------------------------------+
 // fatfs diskio
+//    Implement disk functions required by ff.c
 //--------------------------------------------------------------------+
 extern "C" {
 
@@ -145,29 +134,29 @@ extern "C" {
   }
 
   DRESULT disk_read(
-    BYTE pdrv,    /* Physical drive nmuber to identify the drive */
-    BYTE *buff,   /* Data buffer to store read data */
-    DWORD sector, /* Start sector in LBA */
-    UINT count    /* Number of sectors to read */
+    BYTE pdrv,    // Physical drive nmuber to identify the drive
+    BYTE *buff,   // Data buffer to store read data
+    DWORD sector, // Start sector in LBA
+    UINT count    // Number of sectors to read
   ) {
     (void)pdrv;
     return flash.readBlocks(sector, buff, count) ? RES_OK : RES_ERROR;
   }
 
   DRESULT disk_write(
-    BYTE pdrv,        /* Physical drive nmuber to identify the drive */
-    const BYTE *buff, /* Data to be written */
-    DWORD sector,     /* Start sector in LBA */
-    UINT count        /* Number of sectors to write */
+    BYTE pdrv,        // Physical drive nmuber to identify the drive
+    const BYTE *buff, // Data to be written
+    DWORD sector,     // Start sector in LBA
+    UINT count        // Number of sectors to write
   ) {
     (void)pdrv;
     return flash.writeBlocks(sector, buff, count) ? RES_OK : RES_ERROR;
   }
 
   DRESULT disk_ioctl(
-    BYTE pdrv, /* Physical drive nmuber (0..) */
-    BYTE cmd,  /* Control code */
-    void *buff /* Buffer to send/receive control data */
+    BYTE pdrv, // Physical drive nmuber (0..)
+    BYTE cmd,  // Control code
+    void *buff // Buffer to send/receive control data
   ) {
     (void)pdrv;
 
