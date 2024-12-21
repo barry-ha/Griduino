@@ -74,6 +74,22 @@ public:
                       // on a schedule convenient to their UI timing, typ. "endView()"
                       // because saving entire model is slow, ~1 second
   }
+  void factoryReset() {
+    // Should never be needed, but in rare cases the GPS gets into some state 
+    // where it goes for days/weeks without acquiring satellites. 
+    // This will nuke it from orbit.
+    // It erases stored time, position, almanacs, ephemeris, clears
+    // system/user configurations, and resets receiver to factory status.
+    // Please allow 15 minutes to 2 hours to reacquire satellites.
+    #define PMTK_FACTORY_RESET "$PMTK104*37" ///< Full cold start, factory reset
+
+    Serial.print("Full cold start: ");
+    Serial.println(PMTK_FACTORY_RESET);
+    GPS.sendCommand(PMTK_FACTORY_RESET);
+
+    GPS.fix = false;      // reset the Adafruit interface object, too
+    GPS.satellites = 0;   // 
+  }
 
   // ========== load/save config setting =========================
   const char MODEL_FILE[25] = CONFIG_FOLDER "/gpsmodel.cfg";   // CONFIG_FOLDER

@@ -287,13 +287,19 @@ void init_Adafruit_GPS() {
   delay(50);
 
 // ----- turn on additional satellite reporting to support NMEATime2
-//                                          GPGLL           Geographic Latitude longitude
-//                                          | GPRMC         Recommended Minimum Coordinates
-//                                          | | GPVTG       Velocity Over Ground
-//                                          | | | GPGGA     GPS Fix Data
-//                                          | | | | GPGSA   GPS Satellites Active
-//                                          | | | | | GPGSV GPS Satellites in View
+//                                          GPGLL              Geographic Latitude longitude
+//                                          | GPRMC            Recommended Minimum Coordinates
+//                                          | | GPVTG          Velocity Over Ground
+//                                          | | | GPGGA        GPS Fix Data
+//                                          | | | | GPGSA      GNSS DOPS and Active Satellites
+//                                          | | | | | GPGSV    GNSS Satellites in View
 #define PMTK_SENTENCE_FREQUENCIES "$PMTK314,0,1,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0*28"
+//                                                      | | | | | PMTKDBG  MTK debug information
+//                                                      | | | | MTKDGP   GPS differential correction information
+//                                                      | | | PMTKEPH  GPS ephemeris information
+//                                                      | | PMTKALM  GPS almanac information
+//                                                      | GPGST  GNSS Pseudorange Errors Statistics
+//                                                      GPGRS  GNSS Range Residuals
   Serial.print("Sending command to set sentence output frequencies: ");
   Serial.println(PMTK_SENTENCE_FREQUENCIES);    // Echo command to console
   GPS.sendCommand(PMTK_SENTENCE_FREQUENCIES);   // Send command to GPS unit
