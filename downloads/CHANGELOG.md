@@ -8,7 +8,23 @@ Version numbers correspond to [Downloads](https://github.com/barry-ha/Griduino/t
 
 The changelog format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and the Griduino project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-**v1.13.2 alpha** &nbsp; 2024-01-04
+**v1.14.4 alpha** &nbsp; 2024-12-20
+
+Version 1.14.4 is an Alpha release, bringing enhancements and fixes over the last twelve months that were made while preparing new hardware.
+
+New: "Reformat Flash Memory" screen can recover from corrupted flash memory situations
+
+New: major new general-purpose debug logging system is configurable by subsystem and severity
+
+New: Coin Battery measurement, bar graph, low battery warning, and logging (new hardware only)
+
+New: moved Help screen into main loop, now it's just another view of many
+
+New: "dir" command, synonymous with "list files"
+
+New: added example NeoPixel program, the simplest possible thing that can work
+
+**v1.13.2 beta** &nbsp; 2024-01-04
 
 Version 1.13.2 is a Beta release.
 
