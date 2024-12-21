@@ -1,4 +1,3 @@
-#line 1 "C:\\Users\\barry\\Documents\\Arduino\\Griduino\\examples\\Coin_Battery\\Coin_Battery.ino"
 // Please format this file with clang before check-in to GitHub
 /*
   Coin_Battery -- simple voltage measurement of coin battery
@@ -20,15 +19,6 @@ const float analogRef     = 3.3;    // default analog reference voltage
 const uint16_t analogBits = 1024;   // default ADC resolution bits
 int pcbVersion            = 0;      // default to unknown PCB
 
-#line 22 "C:\\Users\\barry\\Documents\\Arduino\\Griduino\\examples\\Coin_Battery\\Coin_Battery.ino"
-bool detectDevice(int address);
-#line 66 "C:\\Users\\barry\\Documents\\Arduino\\Griduino\\examples\\Coin_Battery\\Coin_Battery.ino"
-int pcb_detect();
-#line 80 "C:\\Users\\barry\\Documents\\Arduino\\Griduino\\examples\\Coin_Battery\\Coin_Battery.ino"
-void setup();
-#line 93 "C:\\Users\\barry\\Documents\\Arduino\\Griduino\\examples\\Coin_Battery\\Coin_Battery.ino"
-void loop();
-#line 22 "C:\\Users\\barry\\Documents\\Arduino\\Griduino\\examples\\Coin_Battery\\Coin_Battery.ino"
 bool detectDevice(int address) {
   // https://github.com/adafruit/Adafruit_BusIO/blob/master/Adafruit_I2CDevice.h
   Adafruit_I2CDevice device(address);
