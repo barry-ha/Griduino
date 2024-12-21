@@ -86,12 +86,12 @@ public:
 
   // subsystems
   systemDef printSystem[numSystems] = {
-      {true, "NMEA"},    // NMEA = 0,     // MUST be in same order as enum
+      {false, "NMEA"},   // NMEA = 0,     // MUST be in same order as enum
       {false, "GMT "},   // GMT,
-      {true, "FENC"},    // FENCE,        // fencepost debug
-      {false, "CMD "},   // COMMAND,
-      {true, "GPS "},    // GPS_SETUP,
-      {false, "CFG "},   // CONFIG,       // is used in all modules named "cfg_xxxxx"
+      {false, "FENC"},   // FENCE,        // fencepost debug
+      {true, "CMD "},    // COMMAND,
+      {false, "GPS "},   // GPS_SETUP,
+      {true, "CFG "},    // CONFIG,       // is used in all modules named "cfg_xxxxx"
       {false, "BARO"},   // BARO,         // barometric pressure sensor
       {false, "AUD "},   // AUDIO,        // morse code and speech output
       {false, "BATT"},   // BATTERY,      // coin battery for GPS
@@ -102,8 +102,8 @@ public:
 
   // severities
   levelDef printLevel[numLevels] = {
-      {false, 'd', "DEBUG"},     // DEBUG = 0,   // verbose
-      {true, 'f', "POST"},      // POST,        // fencepost debug
+      {false, 'd', "DEBUG"},    // DEBUG = 0,   // verbose
+      {false, 'f', "POST"},     // POST,        // fencepost debug
       {true, 'i', "INFO"},      // INFO,        // non critical
       {true, 'w', "WARNING"},   // WARNING,     // important
       {true, 'e', "ERROR"},     // ERROR,       // critical
