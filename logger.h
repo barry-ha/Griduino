@@ -5,8 +5,16 @@
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
 
-  Purpose:  "class Logger" prints to the USB port and allows the
-            listener at the other end to select what messages are sent.
+  Purpose:  "class Logger" prints messages to the console (a USB port) and allows
+            the listener at the other end to select what messages are sent.
+
+            General design:   void subsystem(enum eLogLevel level, const char *msg);
+            Example usage:    logger.log(SUBSYSTEM, INFO, "Hi mom");
+
+            Because logging can change system timing, sometimes the logging
+            needs to be turned off globally:
+                void logGlobalOn();
+                void logGlobalOff();
 
  ******************************************************************************
   Licensed under the GNU General Public License v3.0
@@ -26,34 +34,101 @@
   limitations under the License.
 */
 
-/*
-enum {
-  NMEA = 1,
-  DEBUG,
-  INFO,
-  WARNING,
-  ERROR,
-}
-*/
+// ----- Severity Level
+enum LogLevel {
+  DEBUG = 0,   // verbose
+  POST,        // fencepost debug
+  INFO,        // non critical
+  WARNING,     // important
+  ERROR,       // critical
+  CONSOLE,     // required output
+  numLevels,   // array size
+};
+
+// ----- Subsystem
+enum LogSystem {
+  NMEA = 0,     //
+  GMT,          //
+  FENCE,        // fencepost debug
+  COMMAND,      //
+  GPS_SETUP,    //
+  CONFIG,       // is used in all modules named "cfg_xxxxx"
+  BARO,         // barometric pressure sensor
+  AUDIO,        // morse code and speech output
+  BATTERY,      // coin battery for GPS
+  FILES,        // all file handling, breadcrumbs, save/restore
+  TIME,         // RTC, dates, calendar, events
+  SCREEN,       // TFT display
+  numSystems,   // array size
+};
 
 #include <Arduino.h>   // for "strncpy" and others
 #include "logger.h"    // conditional printing to Serial port
 
+// extern
+void floatToCharArray(char *result, int maxlen, double fValue, int decimalPlaces);   // Griduino.ino
+
+struct systemDef {
+  bool enabled;
+  char name[5];
+};
+struct levelDef {
+  bool enabled;
+  char abbr;
+  char name[8];
+};
+
 class Logger {
 
 public:
-  bool print_nmea      = true;    // set TRUE for NmeaTime2 by www.visualgps.net
-  bool print_gmt       = false;   // the time reports are frequent (1 per second) so by default it's off
-  bool print_fencepost = true;
-  bool print_debug     = true;
-  bool print_info      = true;   // set FALSE for NmeaTime2 by www.visualgps.net
-  bool print_warning   = true;
-  bool print_error     = true;
+  // master on/off switch
+  bool log_enabled = true;
 
+  // subsystems
+  systemDef printSystem[numSystems] = {
+      {false, "NMEA"},   // NMEA = 0,     // MUST be in same order as enum
+      {false, "GMT "},   // GMT,
+      {false, "FENC"},   // FENCE,        // fencepost debug
+      {true, "CMD "},    // COMMAND,
+      {false, "GPS "},   // GPS_SETUP,
+      {true, "CFG "},    // CONFIG,       // is used in all modules named "cfg_xxxxx"
+      {false, "BARO"},   // BARO,         // barometric pressure sensor
+      {false, "AUD "},   // AUDIO,        // morse code and speech output
+      {false, "BATT"},   // BATTERY,      // coin battery for GPS
+      {true, "FILE"},    // FILES,        // all file handling, including save/restore
+      {true, "TIME"},    // TIME
+      {true, "SCRN"},    // SCREEN
+  };
+
+  // severities
+  levelDef printLevel[numLevels] = {
+      {false, 'd', "DEBUG"},    // DEBUG = 0,   // verbose
+      {false, 'f', "POST"},     // POST,        // fencepost debug
+      {true, 'i', "INFO"},      // INFO,        // non critical
+      {true, 'w', "WARNING"},   // WARNING,     // important
+      {true, 'e', "ERROR"},     // ERROR,       // critical
+      {true, 'c', "CONSOLE"},   // CONSOLE,     // required output
+  };
+
+  void setLevel(LogLevel lvl) {
+    if (lvl >= numLevels) {
+      log(COMMAND, ERROR, "Level %d is not allowed", lvl);
+    }
+    for (int ii = 0; ii < numLevels; ii++) {
+      if (ii < lvl) {
+        printLevel[ii].enabled = false;
+      } else {
+        printLevel[ii].enabled = true;
+      }
+    }
+  }
+
+  // ---------- categories ----------
   // NMEA messages, such as $GPRMC
   // this has frequent output messages (1 per second) so by default it's off
-  void nmea(const char *pText) {
-    if (print_nmea) {
+  // todo - delete, unused
+  void nmea(LogLevel severity, const char *pText) {
+    if (ok_to_log(NMEA, severity)) {
       //
       //    ---GPRMC---         ---GPGGA---
       //    hh:mm:ss              hh:mm:ss
@@ -64,129 +139,243 @@ public:
       //    Track angle           Altitude (m)
       //    DD:MM:YY
       //
-      // this GPS info is required by NMEATime2 by www.visualgps
+      // these NEMA sentences are used by NMEATime2 by www.visualgps.com
       const char haystack[] = "$GPRMC $GPGGA $GPGSA $GPGSV ";
       char needle[7];
       strncpy(needle, pText, 6);
       needle[6] = 0;   // null terminated
       Serial.print(pText);
       if (strstr("$GPRMC", needle)) {
-        Serial.println();
+        Serial.println();   // insert blank line after $GPRMC
       }
     }
   }
 
-  // GMT time reports
-  void gmt(const char *pText) {
-    if (print_gmt) {
-      Serial.print(pText);
+  // ----- general log: text-only
+  void log(LogSystem system, LogLevel severity, const char *pText) {
+    if (ok_to_log(system, severity)) {
+
+      printPrefix(system, severity);
+      if (strlen(pText) < 4) {
+        // allow caller to send up to this many newlines together
+        Serial.print(pText);
+      } else {
+        if (pText[strlen(pText) - 1] == '\n') {
+          // use the trailing newline from NEMA sentences from the GPS module
+          Serial.print(pText);
+        } else {
+          // add our own newline
+          Serial.println(pText);
+        }
+      }
     }
   }
-  void fencepost(const char *pModule, const int lineno) {
-    // example output: "Griduino.ino[123]"
-    if (print_fencepost) {
-      Serial.print(pModule);
-      Serial.print("[");
-      Serial.print(lineno);
-      Serial.println("]");
+
+  // ----- general log: text + text
+  void log(LogSystem system, LogLevel severity, const char *pFormat, const char *pStr) {
+    if (ok_to_log(system, severity)) {
+
+      printPrefix(system, severity);
+      char msg[256];
+      snprintf(msg, sizeof(msg), pFormat, pStr);
+      Serial.println(msg);
     }
+  }
+
+  // ----- general log: text + text + text
+  void log(LogSystem system, LogLevel severity, const char *pFormat, const char *pStr1, const char *pStr2) {
+    if (ok_to_log(system, severity)) {
+
+      printPrefix(system, severity);
+      char msg[256];
+      snprintf(msg, sizeof(msg), pFormat, pStr1, pStr2);
+      Serial.println(msg);
+    }
+  }
+
+  // ----- general log: text + number
+  void log(LogSystem system, LogLevel severity, const char *pFormat, const int value) {
+    if (ok_to_log(system, severity)) {
+
+      printPrefix(system, severity);
+      char msg[256];
+      snprintf(msg, sizeof(msg), pFormat, value);
+      Serial.println(msg);
+    }
+  }
+
+  // ----- general log: text + hexadecimal
+  /*
+  void logHex(LogSystem system, LogLevel severity, const char *pFormat, const int value) {
+    if (ok_to_log(system, severity)) {
+
+      printPrefix(system, severity);
+
+      char msg[256];
+      snprintf(msg, sizeof(msg), pFormat, value);
+      Serial.println(msg);
+    }
+  }
+  */
+
+  bool ok_to_log(LogSystem system, LogLevel severity) {
+    if (severity == CONSOLE) {
+      return true;
+    }
+
+    if (log_enabled) {
+      // check that this severity level AND system component is enabled
+      if (printLevel[severity].enabled) {
+        if (printSystem[system].enabled) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  // ----- general log: text + int + int
+  void log(LogSystem system, LogLevel severity, const char *pFormat, const int value1, const int value2) {
+    if (ok_to_log(system, severity)) {
+
+      printPrefix(system, severity);
+      char msg[256];
+      snprintf(msg, sizeof(msg), pFormat, value1, value2);
+      Serial.println(msg);
+    }
+  }
+
+  // ----- general log: text + float
+  void logFloat(LogSystem system, LogLevel severity, const char *pFormat, const float value1, const int decimalPlaces) {
+    if (ok_to_log(system, severity)) {
+
+      // print 'error' and 'warning' if needed
+      printPrefix(system, severity);
+
+      // print the given text and value
+      char msg[256];
+      char sFloat[8];
+      floatToCharArray(sFloat, sizeof(sFloat), value1, decimalPlaces);
+      snprintf(msg, sizeof(msg), pFormat, sFloat);
+      Serial.println(msg);
+    }
+  }
+
+  // ----- general log: text + float
+  void logTwoFloats(LogSystem system, LogLevel severity, const char *pFormat, const float value1, const int places1, const float value2, const int places2) {
+    if (ok_to_log(system, severity)) {
+
+      // print 'error' and 'warning' if needed
+      printPrefix(system, severity);
+
+      // print the given text and value
+      char sFloat1[8], sFloat2[8];
+      floatToCharArray(sFloat1, sizeof(sFloat1), value1, places1);
+      floatToCharArray(sFloat2, sizeof(sFloat2), value2, places2);
+
+      char msg[256];
+      snprintf(msg, sizeof(msg), pFormat, sFloat1, sFloat2);
+      Serial.println(msg);
+    }
+  }
+
+  // ----- debug helper
+  void dumpHex(LogSystem system, LogLevel severity, const char *text, char *buff, int len) {
+    if (ok_to_log(system, severity)) {
+      // debug helper to put hexadecimal data on console
+      char out[128];
+      snprintf(out, sizeof(out), ". %s [%d] : '%s' : ", text, len, buff);
+      Serial.print(out);
+      for (int i = 0; i < len; i++) {
+        sprintf(out, "%02x ", buff[i]);
+        Serial.print(out);
+      }
+      Serial.println("");
+    }
+  }
+
+  // ----- debug statements to confirm a certain line of code is executed
+  void fencepost(const char *pModule, const int lineno) {
+    // const LogSystem sys = FENCE;
+    // const LogLevel sev = POST;
+    // if (ok_to_log(sys, sev)) {
+    //   printPrefix(sys, sev);
+    //  example output: "Griduino.ino[123]"
+    char msg[128];
+    snprintf(msg, sizeof(msg), "%s[%d]", pModule, lineno);
+    log(FENCE, POST, msg);
+    //}
   }
   void fencepost(const char *pModule, const char *pSubroutine, const int lineno) {
     // This is used extensively in unittest.cpp
     // example input:  logger.fencepost("unittest.cpp", "subroutineName()", __LINE__);
     // example output: "----- subroutineName(), unit_test.cpp[123]"
-    if (print_fencepost) {
-      Serial.print("----- ");
-      Serial.print(pSubroutine);
-      Serial.print(", ");
-      Serial.print(pModule);
-      Serial.print("[");
-      Serial.print(lineno);
-      Serial.println("] ");
-    }
+    char msg[128];
+    snprintf(msg, sizeof(msg), "----- %s, %s[%d] ", pSubroutine, pModule, lineno);
+    log(FENCE, POST, msg);
   }
-  void info(const char *pText) {   // one string arg
-    if (print_info) {
-      Serial.println(pText);
-    }
+
+  // ---------- print direct to console
+  // logger.print() is used when text MUST be sent out to the console.
+  // For example, when the console sends us a 'help' request
+  // then we must reply by printing to the console, no matter what.
+  // Note: This function does not send \n newline.
+  //       logger.print() is a direct replacement for Serial.print()
+  void print(const char *pText) {
+    Serial.print(pText);
   }
-  void info(const char *pText, const int value) {   // one format string containing %d, one number
-    if (print_info) {
-      char msg[256];
-      snprintf(msg, sizeof(msg), pText, value);
-      Serial.println(msg);
-    }
+  void print(int value) {
+    Serial.print(value);
   }
-  void info(const char *pText, const int value1, const int value2) {   // one format string, two numbers
-    if (print_info) {
-      char msg[256];
-      snprintf(msg, sizeof(msg), pText, value1, value2);
-      Serial.println(msg);
-    }
+  void print(long value) {
+    Serial.print(value);
   }
-  void info(const char *pText1, const char *pText2) {   // two string args
-    if (print_info) {
-      Serial.print(pText1);
-      Serial.println(pText2);
-    }
+  void print(float f, int places) {
+    Serial.print(f, places);
   }
-  void info(const int int1, const char *pText2) {   // linenumber, one string arg
-    if (print_info) {
-      Serial.print(int1);
-      Serial.println(pText2);
-    }
+  void println() {
+    Serial.println();
   }
-  void info(const char *pText1, const char *pText2, const char *pText3) {   // three string args
-    if (print_info) {
-      Serial.print(pText1);
-      Serial.print(pText2);
-      Serial.println(pText3);
-    }
+  void println(long value) {
+    Serial.println(value);
   }
-  void info(const int int1, const char *pText2, const char *pText3) {   // linenumber, two string args
-    if (print_info) {
-      Serial.print(int1);
-      Serial.print(pText2);
-      Serial.println(pText3);
-    }
-  }
-  void debug(const char *pText) {
-    if (print_debug) {
-      Serial.println(pText);
-    }
-  }
-  void warning(const char *pText) {
-    if (print_warning) {
-      Serial.println(pText);
-    }
-  }
-  void error(const char *pText) {   // one string arg
-    if (print_error) {
-      Serial.println(pText);
-    }
-  }
-  void error(const char *pText1, const char *pText2) {   // two string args
-    if (print_error) {
-      Serial.print(pText1);
-      Serial.println(pText2);
-    }
-  }
-  void error(const char *pFormatString, const int val1, const int val2 = 0) {   // format string, one or two numbers
-    if (print_error) {
-      char msg[256];
-      snprintf(msg, sizeof(msg), pFormatString, val1, val2);
-      Serial.println(msg);
-    }
-  }
-  void error(const char *pText1, const char *pText2, const char *pText3) {   // three string args
-    if (print_error) {
-      Serial.print(pText1);
-      Serial.print(pText2);
-      Serial.println(pText3);
-    }
+  void println(const char *pText) {
+    Serial.println(pText);
   }
 
 protected:
-  // nothing yet
+  // helper: issue prefix for warnings and errors
+  void printPrefix(LogSystem system, LogLevel severity) {
+    char pfx[32];
+    switch (severity) {
+    case DEBUG:
+      snprintf(pfx, sizeof(pfx), "d, %s: ", printSystem[system].name);
+      Serial.print(pfx);
+      break;
+    case POST:
+      snprintf(pfx, sizeof(pfx), "fencepost: ", printSystem[system].name);
+      Serial.print(pfx);
+      break;
+    case INFO:
+      snprintf(pfx, sizeof(pfx), "i, %s: ", printSystem[system].name);
+      Serial.print(pfx);
+      break;
+    case WARNING:
+      snprintf(pfx, sizeof(pfx), "w, %s: Warning, ", printSystem[system].name);
+      Serial.print(pfx);
+      break;
+    case ERROR:
+      snprintf(pfx, sizeof(pfx), "e, %s: Error, ", printSystem[system].name);
+      Serial.print(pfx);
+      break;
+    case CONSOLE:
+      snprintf(pfx, sizeof(pfx), "c, %s: ", printSystem[system].name);
+      Serial.print(pfx);
+      break;
+    default:
+      Serial.print("(severity?) ");
+      break;
+    }
+  }
 
 };   // end class Logger

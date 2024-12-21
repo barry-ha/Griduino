@@ -94,7 +94,34 @@ In the rare case you need to start over with a clean file system, here's how. Ad
 * **SdFat format** - SPI Flash FatFs formatting example. Use the console (serial monitor) to respond to prompts to confirm the operation. Partitioning and formatting will take about 60 seconds.
 * **Flash speedtest** - measures size and R/W speed of the RAM file system. This will erase the chip but not reformat it. You'll need to install CircuitPy next to format the filesystem.
 
-<h2 id="uf2">5. How to Create a Binary File for Distribution</h2>
+<h2 id="uf2">5. Understanding File System's Configuration Files</h2>
+
+Griduino automatically creates and updates its internal configuration files. These are in a binary format you'll never need to work with them. However, it may be interesting to know where they are and how they work.
+
+The files are stored in Flash memory in a section of onboard memory. To see the directory of files:
+
+* **Terminal window:** Open a terminal window and send the command "list files", or
+* **CircuitPy:** Reload Griduino with the CircuitPy program and use Windows File Explorer
+
+The files you can expect to see are:
+
+* Directory of audio
+   * `19004 0.wav`
+   * `24712 1.wav`
+   * `19602 2.wav`
+   * etc
+   * `25040 z.wav`
+   * `38 files, 799330 bytes`
+* Directory of Griduino
+   * ` 97 announce.cfg` - Morse code, Spoken word, No audio
+   * `272 gpshistory.csv` - GPS breadcrumb trail
+   * `216 gpsmodel.cfg` - latitude, longitude, altitude, metric/english, timezone
+   * ` 97 nmea.cfg` - send NMEA sentences to USB cable yes/no
+   * `100 screen.cfg` - screen orientation
+   * `100 volume.cfg` - audio volume
+   * `9 files, 882 bytes`
+
+<h2 id="uf2">6. How to Create a Binary File for Distribution</h2>
 
 It may be useful to know how to create a binary image of a compiled program for Arduino processors in general. If you ever want to distribute your own Arduino program, it is easier for your users to install your binary image than to compile the source code themselves.
 
@@ -121,12 +148,12 @@ Run the Python conversion script (author https://github.com/microsoft/uf2):
    - Run the Python converter script, e.g.:<br/>**py uf2conv.py -c -b 0x4000 -o downloads/griduino.uf2 Griduino.ino.feather_m4.bin**
    - Where "**-c:**" will pass remaining arguments to python script, "**-b 0x4000**" will set start of program, "**-o file.uf2**" is output file, and "**file.bin**" is input file
 
-<h2 id="ide">6. How to Setup the Arduino IDE for Griduino</h2>
+<h2 id="ide">7. How to Setup the Arduino IDE for Griduino</h2>
 
 If you want to compile Griduino source code or work with its example files (and we hope you do) then here's everything you need to setup the workbench.
 
 1. **Download and Run Arduino IDE**<br/>
-The Arduino IDE (integrated development environment) is the main workbench for writing, compiling and testing Arduino programs. As of November 2022, the latest version is Arduino IDE v2.0.1. We recommend the latest version, although most previous development was done with v1.18.
+The Arduino IDE (integrated development environment) is the main workbench for writing, compiling and testing Arduino programs. As of October 2024, the latest version is Arduino IDE v2.3.3. We recommend the latest version, although initial development was done with v1.18,  and the majority of work was done with v2.0 and v2.2.
 
   * Visit www.arduino.cc and find the **Software Downloads** section.
   * Scroll down to the **Download the Arduino IDE** section.
@@ -148,9 +175,9 @@ The IDE can't find the list of SAMD boards unless we add their magic URL to pref
 In this step, we will install support files needed by Arduino IDE to talk to the Feather M4. Here's how:<br/>
 In the Arduino IDE menu bar, go to **Tools > Board > Boards Manager**. It will display a long list of hardware. Install the latest version of:
 
-  * Arduino AVR Boards, Built-In by Arduino: v1.8.3
-  * Arduino SAMD Boards (32-bits ARM Cortex-M0+): v1.8.11
-  * Adafruit SAMD Boards: v1.7.5
+  * Arduino AVR Boards, Built-In by Arduino: v1.8.6
+  * Arduino SAMD Boards (32-bits ARM Cortex-M0+): v1.8.14
+  * Adafruit SAMD Boards: v1.7.16
 
 4. **Select Board**<br/>
 On the Arduino IDE menu bar, select **Tools > Board > Arduino SAMD (32-bits ARM Cortex-M0+ and Cortex-M4) > Adafruit Feather M4 Express**<br/>
@@ -161,30 +188,31 @@ You'll need to figure out your COM port for this step. Here's how:<br/>
 On Windows, run the **Device Manager** and expand the section for **Ports**. One of the items listed under Ports represents the Griduino device. It is possible for the port assignment to change from day to day, so be prepared to return to the Device Manager as needed.<br/>
 In the Arduino IDE menu bar, go to **Tools > Port** and select the COM port that was given by the Device Manager. If there was more than one port listed, try them one by one.
 
-6. **Install Libraries**</br>
+6. **Install Library Dependencies**</br>
 In the Arduino IDE menu bar, go to **Tools > Manage Libraries**. Install the latest version (and their dependencies) of these libraries:
-   - AudioZero v1.1.1
-   - SD v1.2.4
-   - TFT v1.0.6
-   - Adafruit BMP3XX Library v2.1.2
-   - Adafruit BusIO Library v1.11.0 (a known issue with v1.11.1)
-   - Adafruit GFX Library v1.10.13
-   - Adafruit GPS Library v1.6.0
-   - Adafruit ILI9341 v1.5.10
-   - Adafruit ImageReader Library v2.7.0
-   - Adafruit NeoPixel v1.10.4
-   - Adafruit SPIFlash v3.9.0
-   - Adafruit TouchScreen v1.1.3
-   - elapsedMillis by Paul Stoffregen v1.0.6
-   - SdFat – Adafruit Fork by Bill Greiman v1.5.1 <br>*Note:* Use v1, as we have not tested v2<br> *Note:* There are two libraries with similar names. Be sure to install "SdFat - Adafruit Fork" and not "SdFat" which has an incompatible SdFat.h file
-   - Time by Michael Margolis v1.6.1 <br>*Note:* searching the library manager for the word "time" lists just about every library. Searching for the word "timekeeping" will show the correct library.
+   - ##AudioZero## by Arduino v1.1.2 (orig v1.1.1)
+   - ##SD## by Arduino, SparkFun v1.3.0 (orig v1.2.4)
+   - ##Adafruit TFTLCD Library## by Adafruit v1.0.3? (orig v1.0.6)
+   - ##Adafruit BMP3XX Library## by Adafruit v2.1.5 (orig v2.1.2)
+   - ##Adafruit BusIO## by Adafruit v1.16.1 (orig v1.11.0) (there is a known issue with v1.11.1)
+   - ##I2CDevice" by Adafruit
+   - ##Adafruit GFX Library## by Adafruit v1.11.10 (orig v1.10.13)
+   - ##Adafruit GPS Library## by Adafruit v1.7.5 (orig v1.6.0)
+   - ##Adafruit ILI9341## by Adafruit v1.6.1 (orig v1.5.10) also available: ILI9341_t3 by Limor Fired, Adafruit, Paul Stoffregen v1.0.0
+   - ##Adafruit ImageReader Library## by Adafruit v2.9.2 (orig v2.7.0)
+   - ##Adafruit NeoPixel## by Adafruit v1.12.3 (orig v1.10.4)
+   - ##Adafruit SPIFlash## by Adafruit v5.0.0 (orig v3.9.0)
+   - ##Adafruit TouchScreen## by Adafruit v1.1.5 (orig v1.1.3)
+   - ##elapsedMillis## by Paul Stoffregen v1.0.6
+   - ##SdFat – Adafruit Fork## by Bill Greiman v2.2.3 (orig v1.5.1)<br>*Note:* Use v1, as we have not tested v2<br> *Note:* There are two libraries with similar names. Be sure to install "SdFat - Adafruit Fork" and not "SdFat" which has an incompatible SdFat.h file
+   - #Time# by Michael Margolis v1.6.1 <br>*Note:* searching the library manager for the word "time" lists just about every library. Searching for the word "timekeeping" will show the correct library.
 
 These components are outside of Arduino's Library Manager, so follow these links to GitHub and install the latest version:
 
 - https://github.com/tom-dudman/DS1804 v0.1.1 - library to control DS1804 Digital Potentiometer
 - https://github.com/barry-ha/Audio_QSPI v1.1.0 - library to play WAV files from Quad-SPI memory chip
 
-<h2 id=serialconsole>7. How to Use a Serial Console</h2>
+<h2 id=serialconsole>8. How to Use a Serial Console</h2>
 
 You can download GPS tracks from Griduino without the Arduino IDE. There are some common "serial terminal" programs that can interact directly with Griduino's console interface over the USB connection.
 
@@ -215,7 +243,7 @@ How to use Tera Term to capture the breadcrumb trail in both KML and CSV format:
 Now you can open <i>griduino.kml</i> in Google Earth and <i>griduino.csv</i> in Microsoft XML.
 
 
-<h2 id=disclaimer>8. Disclaimer</h2>
+<h2 id=disclaimer>9. Disclaimer</h2>
 
 The information provided is for general education and entertainment. We hope you learn from this and enjoy your hobbies in a safe manner with this new GPS information available at a glance. We take no responsibility for your assembly and construction, nor for how you use these devices. 
 

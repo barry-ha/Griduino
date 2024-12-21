@@ -88,11 +88,11 @@ protected:
 
   // ---------- local functions for this derived class ----------
   void setEnglish() {
-    logger.info("->->-> Clicked ENGLISH UNITS button.");
+    logger.log(CONFIG, INFO, "->->-> Clicked ENGLISH UNITS button.");
     model->setEnglish();
   }
   void setMetric() {
-    logger.info("->->-> Clicked METRIC UNITS button.");
+    logger.log(CONFIG, INFO, "->->-> Clicked METRIC UNITS button.");
     model->setMetric();
   }
 
@@ -163,7 +163,7 @@ void ViewCfgUnits::startScreen() {
     tft->drawCircle(xCenter, yCenter, 7, cVALUE);
   }
 
-  showProgressBar(6, 7);   // draw marker for advancing through settings
+  showProgressBar(8, 9);   // draw marker for advancing through settings
   updateScreen();          // update UI immediately, don't wait for laggy mainline loop
 }   // end startScreen()
 
@@ -191,7 +191,7 @@ bool ViewCfgUnits::onTouch(Point touch) {
         setMetric();
         break;
       default:
-        logger.error("Error, unknown function ", item.functionIndex);
+        logger.log(CONFIG, ERROR, "unknown function %d", item.functionIndex);
         break;
       }
       updateScreen();   // update UI immediately, don't wait for laggy mainline loop

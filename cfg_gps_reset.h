@@ -20,7 +20,7 @@
             |             |               |             |
             |             +---------------+             |
             |             :                             |
-            |  Please allow time to acquire satellites. |... yRow8 Confirmation
+            |  Done. Please power cycle Griduino.       |... yRow8 Confirmation
             | v1.14, Feb 15 2024                        |... yRow9
             +-------------:-----------------------------+
                           :
@@ -95,7 +95,7 @@ protected:
       {"If your GPS receives no satellites",       -1, yRow2, cFAINT,     ALIGNCENTER, eFONTSMALLEST},   // [LINE1]
       {"for hours, this action might help.",       -1, yRow3, cFAINT,     ALIGNCENTER, eFONTSMALLEST},   // [LINE2]
       {"n#",                                 (320-32), yBtnText, cLABEL,  ALIGNRIGHT},                   // [NUMSATS]
-      {"Done! Please allow time to acquire sats.", -1, yRow8, cBACKGROUND, ALIGNCENTER},                 // [CONFIRMATION]
+      {"Restarting! Please power cycle Griduino.", -1, yRow8, cBACKGROUND, ALIGNCENTER},                 // [CONFIRMATION]
       {PROGRAM_VERDATE,                            -1, yRow9, cFAINT,     ALIGNCENTER, eFONTSMALLEST},   // [COMPILED]
   };
 
@@ -112,7 +112,7 @@ enum buttonID {
 
   // ---------- local functions for this derived class ----------
   void fRestart() {
-    logger.info("->->-> Clicked RESTART button.");
+    logger.log(CONFIG, INFO, "->->-> Clicked RESTART button.");
     txtStatic[CONFIRMATION].color = cVALUEFAINT;
     txtStatic[CONFIRMATION].dirty = true;
     txtStatic[CONFIRMATION].print();
@@ -166,12 +166,12 @@ void ViewCfgGpsReset::startScreen() {
     tft->print(item.text);
   }
 
-  showProgressBar(6, 8);   // draw marker for advancing through settings
+  showProgressBar(6, 9);   // draw marker for advancing through settings
   updateScreen();          // update UI immediately, don't wait for the main loop to eventually get around to it
 }   // end startScreen()
 
 bool ViewCfgGpsReset::onTouch(Point touch) {
-  logger.info("->->-> Touched GPS restart screen.");
+  logger.log(CONFIG, INFO, "->->-> Touched GPS restart screen.");
   bool handled = false;   // assume a touch target was not hit
   for (int ii = 0; ii < nRestartButtons; ii++) {
     FunctionButton item = myButtons[ii];
@@ -183,7 +183,7 @@ bool ViewCfgGpsReset::onTouch(Point touch) {
         fRestart();
         break;
       default:
-        logger.error("Internal error, unknown function ", item.functionIndex);
+        logger.log(CONFIG, ERROR, "unknown function %d", item.functionIndex);
         break;
       }
     }

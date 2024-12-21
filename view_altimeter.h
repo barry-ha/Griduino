@@ -105,30 +105,32 @@ protected:
     eSealevelMetric,
   };
 
+  // ----- static + dynamic screen text
+  // clang-format off
 #define nTextAltimeter 15
   TextField txtAltimeter[nTextAltimeter] = {
-      // text            x,y    color       align       font
-      {"Altitude", -1, 18, cTITLE, ALIGNCENTER, eFONTSMALLEST},   // [eTitle] screen title, centered
-      {"mm-dd", 48, 18, cWARN, ALIGNLEFT, eFONTSMALLEST},         // [eDate]
-      {"0#", 48, 36, cWARN, ALIGNLEFT, eFONTSMALLEST},            // [eNumSat]
-      {"hh:mm", 276, 18, cWARN, ALIGNRIGHT, eFONTSMALLEST},       // [eTimeHHMM]
-      {"ss", 276, 36, cWARN, ALIGNRIGHT, eFONTSMALLEST},          // [eTimeSS]
+      {"Altitude", -1, 18,    cTITLE,        ALIGNCENTER,  eFONTSMALLEST},   // [eTitle] screen title, centered
+      {"mm-dd",    60, 18,     cWARN,          ALIGNLEFT,  eFONTSMALLEST},    // [eDate]
+      {"0#",       60, 36,     cWARN,          ALIGNLEFT,  eFONTSMALLEST},    // [eNumSat]
+      {"hh:mm",   276, 18,     cWARN,          ALIGNRIGHT, eFONTSMALLEST},    // [eTimeHHMM]
+      {"ss",      276, 36,     cWARN,          ALIGNRIGHT, eFONTSMALLEST},    // [eTimeSS]
 
-      {"Barometer:", col1, yRow1, cLABEL, ALIGNLEFT, eFONTSMALL},   // [eBaroLabel]
-      {"12.3", col2, yRow1, cVALUE, ALIGNRIGHT, eFONTBIG},          // [eBaroValue]
-      {"ft", col3, yRow1, cLABEL, ALIGNLEFT, eFONTSMALL},           // [eBaroUnits]
+      {"Barometer:", col1, yRow1, cLABEL, ALIGNLEFT, eFONTSMALL},      // [eBaroLabel]
+      {"12.3",       col2, yRow1, cVALUE, ALIGNRIGHT, eFONTBIG},       // [eBaroValue]
+      {"ft",         col3, yRow1, cLABEL, ALIGNLEFT, eFONTSMALL},      // [eBaroUnits]
 
-      {"GPS:", col1, yRow2, cLABEL, ALIGNLEFT, eFONTSMALL},    // [eGpsLabel]
-      {"4567.8", col2, yRow2, cVALUE, ALIGNRIGHT, eFONTBIG},   // [eGpsValue]
-      {"ft", col3, yRow2, cLABEL, ALIGNLEFT, eFONTSMALL},      // [eGpsUnits]
+      {"GPS:",       col1, yRow2, cLABEL, ALIGNLEFT, eFONTSMALL},      // [eGpsLabel]
+      {"4567.8",     col2, yRow2, cVALUE, ALIGNRIGHT, eFONTBIG},       // [eGpsValue]
+      {"ft", col3,  yRow2, cLABEL, ALIGNLEFT, eFONTSMALL},             // [eGpsUnits]
 
       {"Enter local sea level pressure.",
-       -1, 162, cFAINT, ALIGNCENTER, eFONTSMALLEST},   // [ePrompt1]
+       -1, 162, cFAINT, ALIGNCENTER, eFONTSMALLEST},                  // [ePrompt1]
       {"Accuracy depends on your input.",
        -1, 184, cFAINT, ALIGNCENTER, eFONTSMALLEST},                  // [ePrompt21]
       {"34.567 inHg", -1, 208, cVALUE, ALIGNCENTER, eFONTSMALLEST},   // [eSealevelEnglish]
       {"1111.1 hPa", -1, 230, cVALUE, ALIGNCENTER, eFONTSMALLEST},    // [eSealevelMetric]
   };
+  // clang-format on
 
   enum buttonID {
     ePressurePlus,
@@ -199,18 +201,12 @@ protected:
 
   void increaseSeaLevelPressure() {
     sealevelPa += delta();
-    Serial.print("Sea level pressure increased by ");
-    Serial.print(delta());
-    Serial.print(" to ");
-    Serial.println(sealevelPa, 1);
+    logger.logTwoFloats(BARO, DEBUG, "Sea level pressure increased by %s to %s Pa", delta(), 2, sealevelPa, 1);
   }
 
   void decreaseSeaLevelPressure() {
     sealevelPa -= delta();
-    Serial.print("Sea level pressure decreased by ");
-    Serial.print(delta());
-    Serial.print(" to ");
-    Serial.println(sealevelPa, 1);
+    logger.logTwoFloats(BARO, DEBUG, "Sea level pressure decreased by %s to %s Pa", delta(), 2, sealevelPa, 1);
   }
 
   void syncBarometerToGPS() {
@@ -219,49 +215,22 @@ protected:
     float gpsAltitude  = model->gAltitude;                    // meters
 
     if (baroAltitude < gpsAltitude) {
-      Serial.println("~~> Barometer's altitude is lower than GPS' altitude.");
-      Serial.print(". INCREASE sea level pressure from ");
-      Serial.print(sealevelPa, 1);
-      Serial.print(" Pa in steps of ");
-      Serial.print(delta(), 1);
-      Serial.println(" Pa");
+      logger.log(BARO, DEBUG, "~~> Barometer's altitude is lower than GPS' altitude.");
+      logger.logTwoFloats(BARO, DEBUG, ". INCREASE sea level pressure from %s Pa in steps of %s Pa", sealevelPa, 1, delta(), 2);
 
       // loop using _increasing_ pressure until altitudes match
       while (baroAltitude < model->gAltitude) {
-
-        Serial.print(count);
-        Serial.print(". ");
-        Serial.print(baroAltitude);
-        Serial.print(" m <- ");
-        Serial.print(sealevelPa);
-        Serial.print(" Pa, ");
-        Serial.print(gpsAltitude);
-        Serial.println(" m");
-
         sealevelPa += delta();
         if (++count > 1000)
           break;   // avoid infinite loop
         baroAltitude = baroModel.getAltitude(sealevelPa);
       }
     } else {
-      Serial.println("~~> Barometer's altitude higher than GPS' altitude.");
-      Serial.print(". DECREASE sea level pressure from ");
-      Serial.print(sealevelPa, 1);
-      Serial.print(" Pa in steps of ");
-      Serial.print(delta(), 1);
-      Serial.println(" Pa");
+      logger.log(BARO, DEBUG, "~~> Barometer's altitude is higher than GPS' altitude.");
+      logger.logTwoFloats(BARO, DEBUG, ". DECREASE sea level pressure from %s Pa in steps of %s Pa", sealevelPa, 1, delta(), 2);
 
       // loop using _decreasing_ pressure until altitudes match
       while (baroAltitude > gpsAltitude) {
-        Serial.print(count);
-        Serial.print(". ");
-        Serial.print(baroAltitude);
-        Serial.print(" m, based on ");
-        Serial.print(sealevelPa);
-        Serial.print(" Pa, while GPS altitude is ");
-        Serial.print(gpsAltitude);
-        Serial.println(" m");
-
         sealevelPa -= delta();
         if (++count > 1000)
           break;   // avoid infinite loop
@@ -269,11 +238,12 @@ protected:
       }
     }
 
-    Serial.print(". Altimeter synchronized to GPS at ");
-    Serial.print(sealevelPa, 1);
-    Serial.print(" Pa, ");
-    Serial.print(count);
-    Serial.println(" steps");
+    logger.logTwoFloats(BARO, DEBUG, ". Altimeter synchronized to GPS at %s Pa, %s steps", sealevelPa, 1, count, 0);
+
+    char msg[128], sPressure[12];
+    floatToCharArray(sPressure, sizeof(sPressure), sealevelPa, 1);
+    snprintf(msg, sizeof(msg), ". Altimeter synchronized to GPS at %s Pa, %d steps", sPressure, count);
+    logger.log(BARO, DEBUG, msg);
   }
 
 };   // end class ViewAltimeter
@@ -294,8 +264,6 @@ void ViewAltimeter::updateScreen() {
   float altFeet   = altMeters * feetPerMeters;
   // altMeters += 2000;              // debug, helps test layout with large numbers
   // altFeet += 2000;                // debug
-  // Serial.print("Altimeter: "); Serial.print(altFeet); Serial.print(" ft [viewaltimeter.h ");
-  // Serial.print(__LINE__); Serial.println("]"); // debug
   if (model->gMetric) {
     int precision = (abs(altMeters) < 10) ? 1 : 0;
     txtAltimeter[eBaroValue].print(altMeters, precision);
@@ -368,7 +336,6 @@ void ViewAltimeter::startScreen() {
     tft->setCursor(xx, item.y + item.h / 2 + 5);   // place text centered inside button
     tft->setTextColor(item.color);
     tft->print(item.text);
-
   }
 
   // ----- draw text fields
@@ -400,7 +367,7 @@ void ViewAltimeter::endScreen() {
 }
 
 bool ViewAltimeter::onTouch(Point touch) {
-  logger.info("->->-> Touched altimeter screen.");
+  logger.log(CONFIG, INFO, "->->-> Touched altimeter screen.");
 
   bool handled = false;   // assume a touch target was not hit
   for (int ii = 0; ii < nPressureButtons; ii++) {
@@ -421,14 +388,14 @@ bool ViewAltimeter::onTouch(Point touch) {
         handled = true;
         break;
       default:
-        logger.error("Error, unknown function ", item.functionIndex);
+        logger.log(CONFIG, ERROR, "unknown function %d", item.functionIndex);
         break;
       }
       updateScreen();   // update UI immediately, don't wait for laggy mainline loop
     }
   }
   if (!handled) {
-    logger.info("No match to my hit targets.");   // debug
+    logger.log(CONFIG, DEBUG, "No match to my hit targets.");
   }
   return handled;   // true=handled, false=controller uses default action
 }   // end onTouch()
@@ -448,14 +415,10 @@ void ViewAltimeter::loadConfig() {
   float tempPressure;
   int result = config.readConfig((byte *)&tempPressure, sizeof(tempPressure));
   if (result) {
-
     this->sealevelPa = tempPressure;
-    if (logger.print_info) {
-      Serial.print("Loaded sea level pressure: ");
-      Serial.println(this->sealevelPa, 1);
-    }
+    logger.log(CONFIG, INFO, "Loaded sea level pressure: %s", this->sealevelPa, 1);
   } else {
-    logger.error("Failed to load sea level pressure, re-initializing config file");
+    logger.log(CONFIG, ERROR, "Failed to load sea level pressure, re-initializing config file");
     saveConfig();
   }
 }

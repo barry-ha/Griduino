@@ -1,15 +1,21 @@
 // Please format this file with clang before check-in to GitHub
 /*
- * File: TextField.cpp
- */
+  File:     TextField.cpp - screen handling
 
-#include <Arduino.h>
-//#include "Adafruit_GFX.h"           // Core graphics display library
+  Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
+  Hardware: John Vanderbeck, KM7O, Seattle, WA
+
+*/
+
+#include <Arduino.h>   // for "strncpy" and others
+// #include "Adafruit_GFX.h"      // Core graphics display library
 #include "Adafruit_ILI9341.h"   // TFT color display library
 #include "constants.h"          // Griduino constants, colors and typedefs
+#include "logger.h"             // conditional printing to Serial port
 #include "TextField.h"          // Optimize TFT display text for proportional fonts
 
-// ========== extern ==================================
+// ========== extern ===========================================
+extern Logger logger;                // Griduino.ino
 extern Adafruit_ILI9341 tft;         // Griduino.ino  TODO: eliminate this global
 extern void setFontSize(int font);   // Griduino.ino  TODO: eliminate this extern
 
@@ -65,19 +71,13 @@ void TextButton::print() {   // override base class: buttons draw their own outl
   x = leftEdge;
   y = topEdge;
 
-  Serial.print("Placement of text: ");
-  Serial.println(text);
+  logger.log(SCREEN, DEBUG, "Placement of text: %s", this->text);
+
   char temp[255];
   snprintf(temp, sizeof(temp),
            ". button outline (%d,%d,%d,%d), text posn(%d,%d)",
            buttonArea.ul.x, buttonArea.ul.y, buttonArea.size.x, buttonArea.size.y, leftEdge, topEdge);
-  Serial.println(temp);   // debug
-
-#ifdef SHOW_TOUCH_TARGETS
-  tft.drawRect(hitTarget.ul.x, hitTarget.ul.y,   // debug: draw outline around hit target
-               hitTarget.size.x, hitTarget.size.y,
-               cTOUCHTARGET);
-#endif
+  logger.log(SCREEN, DEBUG, temp);
 
   // base class will draw text
   TextField::print(text);
@@ -123,9 +123,7 @@ void setFontSize(int font) {
     break;
 
   default:
-    Serial.print("Error, unknown font size (");
-    Serial.print(font);
-    Serial.println(")");
+    logger.log(SCREEN, ERROR, "Error, unknown font size (%d)");
     break;
   }
 }

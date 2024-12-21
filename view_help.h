@@ -5,10 +5,12 @@
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
 
-  Purpose:  This is a brief screen displayed at startup to
-            remind the user about the controls on the main
-            screen. They are not outlined or shown and you
-            will need to simply remember where they are.
+  Purpose:  This is a brief screen displayed at startup to remind
+            the user about the controls on the main screen. After
+            that, the controls are not outlined or shown. The users
+            need to simply remember where they are.
+  Note:     The Help screen duration is controlled by the controller
+            and not by the view itself. See timer named 'viewTimer'.
 
             +-Hint:-------+-----------------------------+
             |             |                             |
@@ -30,6 +32,8 @@
 // ========== extern ===========================================
 extern Logger logger;                    // Griduino.ino
 extern void showDefaultTouchTargets();   // Griduino.ino
+extern void selectNewView(int cmd);      // Griduino.ino
+extern int grid_view;                    // Griduino.ino
 
 // ========== class ViewHelp ===================================
 class ViewHelp : public View {
@@ -56,13 +60,11 @@ protected:
   enum txtIndex {
     SETTINGS = 0,
     NEXTVIEW,
-    REBOOT,
     BRIGHTNESS,
     VIEWNAME,
   };
 
 // ----- static screen text
-// const int cl = gScreenWidth/2;
 // clang-format off
 #define nHelpButtons 3
   Button helpButtons[nHelpButtons] = {
@@ -70,9 +72,9 @@ protected:
       {"Settings",   margin,     margin,  98, 105, radius, cBUTTONLABEL},   //[SETTINGS]
       {"Next view",  margin+108, margin, 192, 105, radius, cBUTTONLABEL},   //[NEXTVIEW]
       {"Brightness", margin,     126,    300, 105, radius, cBUTTONLABEL},   //[BRIGHTNESS]
-    //{"Hint",       cl-38,      4,       76,  26, radius/2, cHIGHLIGHT},   //[VIEWNAME]
+    //{"Hint:",           1,1,            10, 10,  0,      cWARN},          //[VIEWNAME]
   };
-// clang-format on
+  // clang-format on
 
 };   // end class ViewHelp
 
@@ -112,12 +114,11 @@ void ViewHelp::startScreen() {
   // ----- label this view in upper left corner
   showNameOfView("Hint: ", cWARN, cBACKGROUND);
 
-  delay(2000);   // give user time to read the hint screen
 }   // end startScreen()
 
 bool ViewHelp::onTouch(Point touch) {
   // do nothing - this screen does not respond to buttons
-  logger.info("->->-> Touched help screen.");
+  logger.log(CONFIG, INFO, "->->-> Touched help screen.");
   return false;   // true=handled, false=controller uses default action
 
 }   // end onTouch()

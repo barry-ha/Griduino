@@ -109,7 +109,7 @@ protected:
 
   // ---------- local functions for this derived class ----------
   void setMorse() {
-    logger.info("->->-> Clicked MORSE CODE button.");
+    logger.log(CONFIG, INFO, "->->-> Clicked MORSE CODE button.");
     selectedAudio = MORSE;
     updateScreen();   // update UI before the long pause to send sample audio
 
@@ -120,7 +120,7 @@ protected:
   }
 
   void setSpeech() {
-    logger.info("->->-> Clicked SPEECH button.");
+    logger.log(CONFIG, INFO, "->->-> Clicked SPEECH button.");
     selectedAudio = MORSE;   // 2024-01-03 disabled "SPEECH" temporarily because it's a crasher
     updateScreen();          // update UI before the long pause to send sample audio
 
@@ -130,7 +130,7 @@ protected:
     announceGrid(newGrid4, 4);   // announce 4-digit grid by Morse code OR speech
   }
   void setNone() {
-    logger.info("->->-> Clicked NO AUDIO button.");
+    logger.log(CONFIG, INFO, "->->-> Clicked NO AUDIO button.");
     selectedAudio = NO_AUDIO;
     updateScreen();   // update UI before the long pause to send sample audio
   }
@@ -204,7 +204,7 @@ void ViewCfgAudioType::startScreen() {
     txtSettings5[ii].print();
   }
 
-  showProgressBar(2, 8);    // draw marker for advancing through settings
+  showProgressBar(2, 9);    // draw marker for advancing through settings
   showScreenBorder();       // optionally outline visible area
   showScreenCenterline();   // optionally draw alignment bar
 
@@ -221,7 +221,7 @@ void ViewCfgAudioType::endScreen() {
 }
 
 bool ViewCfgAudioType::onTouch(Point touch) {
-  logger.info("->->-> Touched settings screen.");
+  logger.log(CONFIG, INFO, "->->-> Touched settings screen.");
   bool handled = false;   // assume a touch target was not hit
   for (int ii = 0; ii < nButtonsAudio; ii++) {
     FunctionButton item = myButtons[ii];
@@ -239,7 +239,7 @@ bool ViewCfgAudioType::onTouch(Point touch) {
         setNone();
         break;
       default:
-        logger.error("Error, unknown function ", item.functionIndex);
+        logger.log(CONFIG, ERROR, "unknown function %d", item.functionIndex);
         break;
       }
     }
@@ -258,9 +258,9 @@ void ViewCfgAudioType::loadConfig() {
   int result = config.readConfig((byte *)&tempAudioOutputType, sizeof(tempAudioOutputType));
   if (result) {
     this->selectedAudio = tempAudioOutputType;
-    logger.info("Loaded audio output type: ", this->selectedAudio);
+    logger.log(AUDIO, INFO, "Loaded audio output type: %d", this->selectedAudio);
   } else {
-    logger.warning("Failed to load Audio Output Type, re-initializing config file");
+    logger.log(AUDIO, ERROR, "Failed to load Audio Output Type, re-initializing config file");
     saveConfig();
   }
 }

@@ -119,8 +119,8 @@ enum buttonID {
   // ---------- local functions for this derived class ----------
   void rebootGriduino() {   // operator confirmed: reboot to USB for software update
     // Do The Thing!
-    logger.info("---> REBOOTING");   // the end of our world is nigh
-    delay(100);                      // allow time for Serial to send message
+    logger.log(CONFIG, WARNING, "---> REBOOTING");   // the end of our world is nigh
+    delay(100);                                      // allow time for Serial to send message
 
     this->clearScreen(this->background);   // clear screen and post message
 
@@ -159,11 +159,11 @@ enum buttonID {
 #endif
   }
   void fCancel() {
-    logger.info("->->-> Clicked CANCEL button.");
+    logger.log(CONFIG, INFO, "->->-> Clicked CANCEL button.");
     selectNewView(goto_next_cfg);
   }
   void fReboot() {
-    logger.info("->->-> Clicked REBOOT button.");
+    logger.log(CONFIG, INFO, "->->-> Clicked REBOOT button.");
     rebootGriduino();
   }
 
@@ -207,12 +207,12 @@ void ViewCfgReboot::startScreen() {
     tft->print(item.text);
   }
 
-  showProgressBar(7, 8);   // draw marker for advancing through settings
-  updateScreen();          // update UI immediately, don't wait for the main loop to eventually get around to it
+  showProgressBar(10, 9);   // draw marker for advancing through settings
+  updateScreen();           // update UI immediately, don't wait for the main loop to eventually get around to it
 }   // end startScreen()
 
 bool ViewCfgReboot::onTouch(Point touch) {
-  logger.info("->->-> Touched reboot screen.");
+  logger.log(CONFIG, INFO, "->->-> Touched reboot screen.");
   bool handled = false;   // assume a touch target was not hit
   for (int ii = 0; ii < nRebootButtons; ii++) {
     FunctionButton item = myButtons[ii];
@@ -227,7 +227,7 @@ bool ViewCfgReboot::onTouch(Point touch) {
         fReboot();
         break;
       default:
-        logger.error("Internal error, unknown function ", item.functionIndex);
+        logger.log(CONFIG, ERROR, "unknown function %d", item.functionIndex);
         break;
       }
     }

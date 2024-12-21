@@ -68,7 +68,7 @@ protected:
   const int yRow4 = yRow3 + space;
   const int yRow5 = yRow4 + space + half;
   const int yRow6 = yRow5 + space;
-  const int yRow7 = 226;   // GMT date on bottom row, "226" will match other views
+  const int yRow7 = 230;   // GMT date on bottom row, "230" will match other views
 
   const int labelX = 122;   // right-align labels, near their values
   const int valueX = 140;   // left-align values
@@ -199,6 +199,6 @@ void ViewStatus::startScreen() {
 }
 
 bool ViewStatus::onTouch(Point touch) {
-  logger.info("->->-> Touched status screen.");
+  logger.log(CONFIG, INFO, "->->-> Touched status screen.");
   return false;   // true=handled, false=controller uses default action
 }   // end onTouch()

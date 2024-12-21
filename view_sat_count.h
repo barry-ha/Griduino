@@ -121,10 +121,10 @@ protected:
 #define nSatCountValues 11
   TextField txtValues[nSatCountValues] = {
       {"Satellites", -1, yRow1,cTITLE,         ALIGNCENTER, eFONTSMALLEST},   // [TITLE] view title, centered
-      {"01-02",    48, 18,     cWARN,          ALIGNLEFT,  eFONTSMALLEST},    // [eDate]
-      {"0#",       48, 36,     cWARN,          ALIGNLEFT,  eFONTSMALLEST},    // [eNumSat]
-      {"12:34",   276, 18,     cWARN,          ALIGNRIGHT, eFONTSMALLEST},    // [eTimeHHMM]
-      {"56",      276, 36,     cWARN,          ALIGNRIGHT, eFONTSMALLEST},    // [eTimeSS]
+      {"mm-dd",    60, 18,     cWARN,          ALIGNLEFT,  eFONTSMALLEST},    // [eDate]
+      {"0#",       60, 36,     cWARN,          ALIGNLEFT,  eFONTSMALLEST},    // [eNumSat]
+      {"hh:mm",   276, 18,     cWARN,          ALIGNRIGHT, eFONTSMALLEST},    // [eTimeHHMM]
+      {"ss",      276, 36,     cWARN,          ALIGNRIGHT, eFONTSMALLEST},    // [eTimeSS]
       {"10+",  labelX, yRow10, ILI9341_GREEN,  ALIGNLEFT,  eFONTSMALLEST},    // [TEN]
       {" 8",   labelX, yRow8,  ILI9341_GREEN,  ALIGNLEFT,  eFONTSMALLEST},    // [EIGHT]
       {" 6",   labelX, yRow6,  ILI9341_GREEN,  ALIGNLEFT,  eFONTSMALLEST},    // [SIX]
@@ -269,7 +269,6 @@ void ViewSatCount::startScreen() {
   }
 
   graphRefreshRequested = true;
-  // logger.fencepost("--- startScreen()", __LINE__);
   updateScreen();   // update UI immediately, don't wait for the main loop to eventually get around to it
 }
 

@@ -43,7 +43,8 @@ public:
   // This derived class must implement the public interface:
   ViewCfgNMEA(Adafruit_ILI9341 *vtft, int vid)   // ctor
       : View{vtft, vid} {
-    background = cBACKGROUND;   // every view can have its own background color
+    background     = cBACKGROUND;   // every view can have its own background color
+    selectedOption = SILENT;        // SEND_NMEA;     // power-on default [NMEA]: assume a program like NMEATime2 is listening
   }
   void updateScreen();
   void startScreen();
@@ -53,8 +54,8 @@ public:
   void saveConfig();
 
   enum functionID {
-    SEND_NMEA = 0,
-    SILENT,
+    SILENT = 0,
+    SEND_NMEA,
   };
   functionID selectedOption;   // <-- this is the whole reason for this module's existence
 
@@ -132,10 +133,10 @@ void ViewCfgNMEA::updateScreen() {
     int yCenter         = item.y + (item.h / 2);
     int buttonFillColor = cBACKGROUND;
 
-    if (ii == eSTART_NMEA && logger.print_nmea) {
+    if (ii == eSTART_NMEA && logger.printSystem[NMEA].enabled) {
       buttonFillColor = cLABEL;
     }
-    if (ii == eSTOP_NMEA && !logger.print_nmea) {
+    if (ii == eSTOP_NMEA && !logger.printSystem[NMEA].enabled) {
       buttonFillColor = cLABEL;
     }
     tft->fillCircle(xCenter, yCenter, 4, buttonFillColor);
@@ -185,7 +186,7 @@ void ViewCfgNMEA::startScreen() {
     tft->drawCircle(xCenter, yCenter, 7, cVALUE);
   }
 
-  showProgressBar(5, 8);   // draw marker for advancing through settings
+  showProgressBar(5, 9);   // draw marker for advancing through settings
   updateScreen();          // update UI immediately, don't wait for laggy mainline loop
 }   // end startScreen()
 
@@ -213,7 +214,7 @@ bool ViewCfgNMEA::onTouch(Point touch) {
         fStopNMEA();
         break;
       default:
-        logger.error("Error, unknown function ", item.functionIndex);
+        logger.log(CONFIG, ERROR, "unknown function %d", item.functionIndex);
         break;
       }
       updateScreen();   // update UI immediately, don't wait for laggy mainline loop
@@ -250,14 +251,14 @@ void ViewCfgNMEA::loadConfig() {
       char msg[256];
       snprintf(msg, sizeof(msg), "%s has unexpected setting: %d",
                NMEA_CONFIG_FILE, tempOption);
-      logger.error(msg);
+      logger.log(CONFIG, ERROR, msg);
       this->selectedOption = SILENT;
       stop_nmea();
       break;
     }
-    logger.info("Loaded NMEA value: %d", this->selectedOption);
+    logger.log(NMEA, INFO, "Loaded NMEA value: %d", this->selectedOption);
   } else {
-    logger.error("Failed to load, re-initializing config file");
+    logger.log(NMEA, ERROR, "Failed to load config, re-initializing file");
     this->selectedOption = SILENT;
     saveConfig();
   }
@@ -265,7 +266,7 @@ void ViewCfgNMEA::loadConfig() {
 // ----- save to SDRAM -----
 void ViewCfgNMEA::saveConfig() {
   SaveRestore config(NMEA_CONFIG_FILE, NMEA_CONFIG_VERSION);
-  logger.info("Saving value: %d", selectedOption);
+  logger.log(NMEA, INFO, "Saving value: %d", selectedOption);
   int rc = config.writeConfig((byte *)&selectedOption, sizeof(selectedOption));
-  logger.info("Finished ViewCfgRotation::saveConfig(%d) with rc = %d", selectedOption, rc);   // debug
+  logger.log(NMEA, DEBUG, "Finished ViewCfgRotation::saveConfig(%d) with rc = %d", selectedOption, rc);   // debug
 }

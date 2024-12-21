@@ -93,7 +93,7 @@ protected:
 
   // ---------- local functions for this derived class ----------
   void f4Digit() {
-    logger.info("->->-> Clicked 4-DIGIT button.");
+    logger.log(CONFIG, INFO, "->->-> Clicked 4-DIGIT button.");
     model->compare4digits = true;
     this->updateScreen();   // update UI before starting the slow morse code
 
@@ -104,7 +104,7 @@ protected:
   }
 
   void f6Digit() {
-    logger.info("->->-> Clicked 6-DIGIT button.");
+    logger.log(CONFIG, INFO, "->->-> Clicked 6-DIGIT button.");
     model->compare4digits = false;
     this->updateScreen();   // update UI before starting the slow morse code
 
@@ -197,7 +197,7 @@ void ViewCfgCrossing::startScreen() {
     txtSettings4[ii].print();
   }
 
-  showProgressBar(3, 8);    // draw marker for advancing through settings
+  showProgressBar(3, 9);    // draw marker for advancing through settings
   showScreenBorder();       // optionally outline visible area
   showScreenCenterline();   // optionally draw alignment bar
 
@@ -205,7 +205,7 @@ void ViewCfgCrossing::startScreen() {
 }   // end startScreen()
 
 bool ViewCfgCrossing::onTouch(Point touch) {
-  logger.info("->->-> Touched settings screen.");
+  logger.log(CONFIG, INFO, "->->-> Touched settings screen.");
   bool handled = false;   // assume a touch target was not hit
   for (int ii = 0; ii < nButtonsDigits; ii++) {
     FunctionButton item = myButtons[ii];
@@ -220,7 +220,7 @@ bool ViewCfgCrossing::onTouch(Point touch) {
         f6Digit();
         break;
       default:
-        logger.error("Error, unknown function ", item.functionIndex);
+        logger.log(CONFIG, ERROR, "unknown function %d", item.functionIndex);
         break;
       }
       this->saveConfig();   // after UI is updated, save setting to nvr

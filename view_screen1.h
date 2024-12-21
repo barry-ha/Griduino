@@ -75,6 +75,7 @@ extern Logger logger;                    // Griduino.ino
 extern void showDefaultTouchTargets();   // Griduino.ino
 extern void selectNewView(int cmd);      // Griduino.ino
 extern int goto_next_view;               // Griduino.ino
+extern int help_view;                    // Griduino.ino
 
 // ========== class ViewScreen1 =================================
 class ViewScreen1 : public View {
@@ -101,8 +102,8 @@ protected:
 // ============== implement public interface, common to all ================
 void ViewScreen1::updateScreen() {
   bool allDone = continueViewing();
-  if (allDone) {
-    selectNewView(goto_next_view);
+  if (allDone) {                // all done with very first screen
+    selectNewView(help_view);   // switch to very second screen
   }
 }
 

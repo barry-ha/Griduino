@@ -97,6 +97,7 @@
 
 #include "view.h"                     // Griduino screens base class, followed by derived classes in alphabetical order
 #include "view_altimeter.h"           // altimeter
+#include "view_battery.h"             // coin battery
 #include "view_baro.h"                // barometric pressure graph
 #include "view_events.h"              // counting days to/from calendar events
 #include "view_grid_crossings.h"      // list of time spent in each grid
@@ -114,6 +115,7 @@
 #include "cfg_gps_reset.h"            // config GPS reset to factory
 #include "cfg_nmea.h"                 // config NMEA broadcasting
 #include "cfg_reboot.h"               // show firmware update option
+#include "cfg_reformat.h"             // reformat flash memory
 #include "cfg_rotation.h"             // config screen rotation 
 #include "cfg_units.h"                // config english/metric
 #include "cfg_volume.h"               // config volume level
@@ -327,30 +329,32 @@ BarometerModel baroModel;   // create instance of the model
 
 // alias names for all views - MUST be in same order as "viewTable" array below, alphabetical by class name
 enum VIEW_INDEX {
-  ALTIMETER_VIEW = 0,    // altimeter
-  BARO_VIEW,             // barometer graph
-  CFG_AUDIO_TYPE,        // audio output Morse/speech
-  CFG_CROSSING,          // announce grid crossing 4/6 digit boundaries
-  CFG_GPS,               // gps/simulator
-  CFG_GPS_RESET,         // factory reset GPS
-  CFG_NMEA,              // broadcast NMEA
-  CFG_REBOOT,            // confirm reboot
-  CFG_ROTATION,          // screen rotation
-  CFG_UNITS,             // english/metric
-  EVENTS_VIEW,           // Groundhog Day, Halloween, or other day-counting screen
-  GRID_VIEW,             //
-  GRID_CROSSINGS_VIEW,   // log of time in each grid
-  HELP_VIEW,             // hints at startup
-  SAT_COUNT_VIEW,        // number of satellites acquired
-  SCREEN1_VIEW,          // first bootup screen
-  SPLASH_VIEW,           // startup
-  STATUS_VIEW,           // size and scale of this grid
-  TEN_MILE_ALERT_VIEW,   // microwave rover view
-  TIME_VIEW,             //
-  CFG_VOLUME,            //
-  GOTO_SETTINGS,         // command the state machine to show control panel
-  GOTO_NEXT_VIEW,        // command the state machine to show next screen
-  MAX_VIEWS,             // sentinel at end of list
+  ALTIMETER_VIEW = 0,    // 0 altimeter
+  BARO_VIEW,             // 1 barometer graph
+  BATTERY_VIEW,          // 2 coin battery voltage
+  CFG_AUDIO_TYPE,        // 3 audio output Morse/speech
+  CFG_CROSSING,          // 4 announce grid crossing 4/6 digit boundaries
+  CFG_GPS,               // 5 gps/simulator
+  CFG_GPS_RESET,         // 6 factory reset GPS
+  CFG_NMEA,              // 7 broadcast NMEA
+  CFG_REBOOT,            // 8 confirm reboot
+  CFG_REFORMAT,          // 9 reformat flash
+  CFG_ROTATION,          // 10 screen rotation
+  CFG_UNITS,             // 11 english/metric
+  EVENTS_VIEW,           // 12 Groundhog Day, Halloween, or other day-counting screen
+  GRID_VIEW,             // 13 <-- this is the primary navigation view
+  GRID_CROSSINGS_VIEW,   // 14 log of time in each grid
+  HELP_VIEW,             // 15 hints at startup
+  SAT_COUNT_VIEW,        // 16 number of satellites acquired
+  SCREEN1_VIEW,          // 17 first bootup screen
+  SPLASH_VIEW,           // 18 startup
+  STATUS_VIEW,           // 19 size and scale of this grid
+  TEN_MILE_ALERT_VIEW,   // 20 microwave rover view
+  TIME_VIEW,             // 21
+  CFG_VOLUME,            // 22
+  GOTO_SETTINGS,         // 23 command the state machine to show control panel
+  GOTO_NEXT_VIEW,        // 24 command the state machine to show next screen
+  MAX_VIEWS,             // 25 sentinel at end of list
 };
 /*const*/ int help_view      = HELP_VIEW;
 /*const*/ int sat_count_view = SAT_COUNT_VIEW;
@@ -359,6 +363,7 @@ enum VIEW_INDEX {
 /*const*/ int grid_view      = GRID_VIEW;
 /*const*/ int grid_crossings_view = GRID_CROSSINGS_VIEW;
 /*const*/ int events_view    = EVENTS_VIEW;
+/*const*/ int reformat_view  = CFG_REFORMAT;
 /*const*/ int goto_next_view = GOTO_NEXT_VIEW;
 /*const*/ int goto_next_cfg  = GOTO_SETTINGS;
 
@@ -368,12 +373,14 @@ View* pView;      // pointer to a derived class
 // vvv sort vvv
 ViewAltimeter     altimeterView(&tft, ALTIMETER_VIEW);  // alphabetical order by class name
 ViewBaro          baroView(&tft, BARO_VIEW);            // instantiate derived classes
+ViewBattery       batteryView(&tft, BATTERY_VIEW);
 ViewCfgAudioType  cfgAudioType(&tft, CFG_AUDIO_TYPE);
 ViewCfgCrossing   cfgCrossing(&tft, CFG_CROSSING);
 ViewCfgGPS        cfgGPS(&tft, CFG_GPS);
 ViewCfgGpsReset   cfgGpsReset(&tft, CFG_GPS_RESET);
 ViewCfgNMEA       cfgNMEA(&tft, CFG_NMEA);
 ViewCfgReboot     cfgReboot(&tft, CFG_REBOOT);
+ViewCfgReformat   cfgReformat(&tft, CFG_REFORMAT);
 ViewCfgRotation   cfgRotation(&tft, CFG_ROTATION);
 ViewCfgUnits      cfgUnits(&tft, CFG_UNITS);
 ViewEvents        eventsView(&tft, EVENTS_VIEW);
@@ -396,12 +403,14 @@ void selectNewView(int cmd) {
       // vvv same order as enum vvv
       &altimeterView,       // [ALTIMETER_VIEW]
       &baroView,            // [BARO_VIEW]
+      &batteryView,         // [BATTERY_VIEW]
       &cfgAudioType,        // [CFG_AUDIO_TYPE]
       &cfgCrossing,         // [CFG_CROSSING]
       &cfgGPS,              // [CFG_GPS]
       &cfgGpsReset,         // [CFG_GPS_RESET]
       &cfgNMEA,             // [CFG_NMEA]
       &cfgReboot,           // [CFG_REBOOT]
+      &cfgReformat,         // [CFG_REFORMAT]
       &cfgRotation,         // [CFG_ROTATION]
       &cfgUnits,            // [CFG_UNITS]
       &eventsView,          // [EVENTS_VIEW]
@@ -418,7 +427,7 @@ void selectNewView(int cmd) {
   };
 
   int currentView = pView->screenID;
-  int nextView    = BARO_VIEW;   // GRID_VIEW;       // default
+  int nextView;
   // clang-format off
   if (cmd == GOTO_NEXT_VIEW) {
     // operator requested the next NORMAL user view
@@ -431,7 +440,8 @@ void selectNewView(int cmd) {
       case SAT_COUNT_VIEW: nextView = BARO_VIEW; break;
       case BARO_VIEW:      nextView = ALTIMETER_VIEW; break;
       case ALTIMETER_VIEW: nextView = STATUS_VIEW; break;
-      case STATUS_VIEW:    nextView = TEN_MILE_ALERT_VIEW; break;
+      case STATUS_VIEW:    nextView = BATTERY_VIEW; break;
+      case BATTERY_VIEW:   nextView = TEN_MILE_ALERT_VIEW; break;
       case TEN_MILE_ALERT_VIEW: nextView = GRID_VIEW; break;
       case EVENTS_VIEW:    nextView = GRID_VIEW; break;   // skip EVENTS_VIEW (nobody uses it)
       // none of above: we must be showing some settings view, so go to the first normal user view
@@ -446,7 +456,8 @@ void selectNewView(int cmd) {
       case CFG_CROSSING:   nextView = CFG_GPS; break;
       case CFG_GPS:        nextView = CFG_NMEA; break;
       case CFG_NMEA:       nextView = CFG_GPS_RESET; break;
-      case CFG_GPS_RESET:  nextView = CFG_UNITS; break;
+      case CFG_GPS_RESET:  nextView = CFG_REFORMAT; break;
+      case CFG_REFORMAT:   nextView = CFG_UNITS; break;
       case CFG_UNITS:      nextView = CFG_ROTATION; break;
 #if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
       case CFG_ROTATION:   nextView = CFG_REBOOT; break;
@@ -461,31 +472,33 @@ void selectNewView(int cmd) {
     // a specific view was requested, such as HELP_VIEW via a USB command
     nextView = cmd;
   } else {
-    logger.error("Requested view was out of range: %d where maximum is %d", cmd, MAX_VIEWS);
+    logger.log(CONFIG, ERROR, "Requested view is out of range: %d where maximum is %d", cmd, MAX_VIEWS);
   }
   // clang-format on
-  logger.info("selectNewView() from %d to %d", currentView, nextView);
-  pView->endScreen();                   // a goodbye-kiss to the departing view
-  pView = viewTable[ nextView ];
+  logger.log(CONFIG, INFO, "selectNewView() from %d to %d", currentView, nextView);
+  if (currentView != nextView) {
+    pView->endScreen();                   // a goodbye-kiss to the departing view
+    pView = viewTable[ nextView ];
 
-  // Every view has an initial setup to prepare its layout
-  // After initial setup the view can assume it "owns" the screen
-  // and can safely repaint only the parts that change
-  pView->startScreen();
-  pView->updateScreen();
+    // Every view has an initial setup to prepare its layout
+    // After initial setup the view can assume it "owns" the screen
+    // and thereafter safely repaint only the parts that change
+    pView->startScreen();
+    pView->updateScreen();
+  }
 }
 
-// ----- console Serial port helper
+// ----- console Serial port helper AND animated splash screen
 void waitForSerial(int howLong) {
   // Adafruit Feather M4 Express takes awhile to restore its USB connection to the PC
   // and the operator takes awhile to restart the IDE console (Tools > Serial Monitor)
   // so give them a few seconds for this to settle before sending messages to IDE
 
-  pView = &screen1View;
+  pView = &screen1View;   // select very first screen shown at startup
   screen1View.startScreen();
   while (pView == &screen1View) {
     screen1View.updateScreen();
-  }  
+  }
 }
 
 //==============================================================
@@ -510,7 +523,7 @@ void adjustBrightness() {
   gCurrentBrightnessIndex = (gCurrentBrightnessIndex + 1) % gNumLevels;   // incr index
   int brightness          = gaBrightness[gCurrentBrightnessIndex];        // look up brightness
   PWM_backlight.setPWM(TFT_BL, frequency, brightness);                    // write to hardware
-  logger.info("Set brightness %d", brightness);
+  logger.log(CONFIG, INFO, "Set brightness %d", brightness);
 }
 #else
 // ----- adjust screen brightness: Feather M4
@@ -523,7 +536,7 @@ void adjustBrightness() {
   gCurrentBrightnessIndex = (gCurrentBrightnessIndex + 1) % gNumLevels;   // incr index
   int brightness          = gaBrightness[gCurrentBrightnessIndex];        // look up brightness
   analogWrite(TFT_BL, brightness);                                        // write to hardware
-  logger.info("Set brightness %d", brightness);
+  logger.log(CONFIG, INFO, "Set brightness %d", brightness);
 }
 #endif
 
@@ -538,11 +551,11 @@ void announceGrid(const String gridName, int length) {
   char grid[7];
   strncpy(grid, gridName.c_str(), sizeof(grid));
   grid[length] = 0;   // null-terminate string to requested 4- or 6-character length
-  Serial.print("Announcing grid: "); Serial.println(grid);
+  logger.log(AUDIO, INFO, "Announcing grid: %s", grid);
 
 #if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
   // todo - for now, RP2040 has no DAC, no audio, no speech
-  logger.error("Unsupported audio in line ", __LINE__ );
+  logger.log(AUDIO, ERROR, "Unsupported audio in line ", __LINE__ );
 #else
   switch (cfgAudioType.selectedAudio) {
     case ViewCfgAudioType::MORSE: 
@@ -554,7 +567,6 @@ void announceGrid(const String gridName, int length) {
 
         char myfile[32];
         char letter = tolower( grid[ii] );
-        logger.fencepost("Griduino.ino speech", __LINE__);   // debug
         snprintf(myfile, sizeof(myfile), "/audio/%c.wav", letter);
 
         if (!dacSpeech.play( myfile )) {
@@ -568,7 +580,7 @@ void announceGrid(const String gridName, int length) {
       break;
     default:
       // should not happen
-      logger.error("Internal error: unsupported audio, line ", __LINE__);
+      logger.log(AUDIO, ERROR, "Internal error: unsupported audio, line ", __LINE__);
       break;
   }
 #endif
@@ -609,13 +621,11 @@ void showActivityBar(int row, uint16_t foreground, uint16_t background) {
 }
 
 void sayGrid(const char *name) {
-  logger.fencepost("Griduino.ino say", __LINE__);   // debug
-  Serial.print("Say ");
-  Serial.println(name);
+  logger.log(AUDIO, INFO, "Say ", name);
 
 #if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
   // todo - for now, RP2040 has no DAC, no audio, no speech
-  logger.error("Unsupported audio in line ", __LINE__ );
+  logger.log(AUDIO, ERROR, "Unsupported audio in line ", __LINE__ );
 #else
   for (int ii = 0; ii < strlen(name); ii++) {
     logger.fencepost("Griduino.ino", __LINE__);   // debug
@@ -633,13 +643,18 @@ void sayGrid(const char *name) {
     // example: play audio through DAC
     bool rc = dacSpeech.play(myfile);
     if (!rc) {
-      Serial.print("sayGrid(");
-      Serial.print(letter);
-      Serial.println(") failed");
+      char out[128];
+      snprintf(out, sizeof(out), "sayGrid(%s) failed", letter);
+      logger.log(AUDIO, ERROR, out);
     }
   }
 #endif
 }
+
+elapsedSeconds viewHelpTimer;         // timer to show Help screen for only a few seconds at startup
+uint viewHelpTimeout = 10;            // seconds to show Help screen at startup
+                                      // startup: initialized to about 10 seconds
+                                      // command: initialized to a long time, several minutes
 
 //=========== setup ============================================
 void setup() {
@@ -649,9 +664,9 @@ void setup() {
   analogWrite(TFT_BL, 255);   // set backlight to full brightness
 
   // ----- init TFT display
-  tft.begin();                  // initialize TFT display
-  tft.setRotation(LANDSCAPE);   // 1=landscape (default is 0=portrait)
-  tft.fillScreen(ILI9341_BLACK);      // note that "begin()" does not clear screen
+  tft.begin();                        // initialize TFT display
+  tft.setRotation(LANDSCAPE);         // 1=landscape (default is 0=portrait)
+  tft.fillScreen(ILI9341_BLACK);      // note that "begin()" did not clear screen
 
   // ----- init screen orientation
   cfgRotation.loadConfig();           // restore previous screen orientation
@@ -666,69 +681,82 @@ void setup() {
   pixel.clear();                      // turn off NeoPixel
   pinMode(RED_LED, OUTPUT);           // diagnostics RED LED
   digitalWrite(PIN_LED, LOW);         // turn off little red LED
-  Serial.println("NeoPixel initialized and turned off");
 
-  // ----- init serial monitor (do not "Serial.print" before this, it won't show up in console)
+  // ----- init serial monitor (do not "Serial.print" or "logger.log" before this, it won't show up in console)
   Serial.begin(115200);               // init for debugging in the Arduino IDE
-  waitForSerial(howLongToWait);       // wait for developer to connect debugging console
+  waitForSerial(howLongToWait);       // display very first screen, an animation splash at startup
+                                      // AND wait for developer to connect debugging console
+
+  pView = &helpView;                  // select very second screen shown at startup
+  viewHelpTimer = 0;                  // start counting time for user to read the hint screen
+  pView->startScreen();
+  pView->updateScreen();
 
   // now that Serial is ready and connected (or we gave up)...
-  Serial.println(PROGRAM_TITLE " " PROGRAM_VERSION);  // Report our program name to console
-  Serial.println("Compiled " PROGRAM_COMPILED);       // Report our compiled date
-  Serial.println(__FILE__);                           // Report our source code file name
+  logger.log(CONFIG, INFO,"NeoPixel initialized and turned off");
+  logger.log(CONFIG, INFO, PROGRAM_TITLE " " PROGRAM_VERSION " " HARDWARE_VERSION);  // Report our program name to console
+  logger.log(CONFIG, INFO, "Compiled " PROGRAM_COMPILED);       // Report our compiled date
+  logger.log(CONFIG, INFO, __FILE__);                           // Report our source code file name
 
   // ----- init NMEA broadcasting on/off
-  logger.info("Starting cfgNMEA.loadConfig()...");
+  logger.log(CONFIG, INFO, "Starting cfgNMEA.loadConfig()...");
   cfgNMEA.loadConfig();
 
   // ----- init GPS
   GPS.begin(9600);   // 9600 NMEA is the default baud rate for Adafruit MTK GPS's
   delay(50);         // is delay really needed?
 
-  Serial.print("Set GPS baud rate to 57600: ");
-  Serial.println(PMTK_SET_BAUD_57600);
+  // baud rate for GlobalTop GPS
+  /*
+  #define PMTK_SET_BAUD_38400  "$PMTK251,38400*27"
+  logger.log(GPS_SETUP, INFO, "Set GPS baud rate to 38400: ");
+  logger.log(GPS_SETUP, INFO, PMTK_SET_BAUD_38400);
+  GPS.sendCommand(PMTK_SET_BAUD_38400);
+  delay(50);
+  GPS.begin(38400);
+  delay(50);
+  */
+
+  /* ***** 576000 is for Adafruit Ultimate GPS only 
+  logger.log(GPS_SETUP, INFO, "Set GPS baud rate to 57600: ");
+  logger.log(GPS_SETUP, INFO, PMTK_SET_BAUD_57600);
   GPS.sendCommand(PMTK_SET_BAUD_57600);
   delay(50);
   GPS.begin(57600);
   delay(50);
-
-  /****************** DANGER ****************/
-  // one-time usage
-  // Full Cold Restart: reset the receiver to the factory status
-  //GPS.sendCommand("$PMTK104*37\r\n");
-  //delay(50);
-  /****************** DANGER ****************/
+  ***** */
 
   // init Quectel L86 chip to improve USA satellite acquisition
+  logger.log(GPS_SETUP, INFO, "$PMTK353,1,0,0,0,0*2A");
   GPS.sendCommand("$PMTK353,1,0,0,0,0*2A");   // search American GPS satellites only (not Russian GLONASS satellites)
   delay(50);
 
-  Serial.print("Turn on RMC (recommended minimum) and GGA (fix data) including altitude: ");
-  Serial.println(PMTK_SET_NMEA_OUTPUT_RMCGGA);
+  logger.log(GPS_SETUP, INFO, "Turn on RMC (recommended minimum) and GGA (fix data) including altitude: ");
+  logger.log(GPS_SETUP, INFO, PMTK_SET_NMEA_OUTPUT_RMCGGA);
   GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
   delay(50);
 
-  Serial.print("Set GPS 1 Hz update rate: ");
-  Serial.println(PMTK_SET_NMEA_UPDATE_1HZ);
+  logger.log(GPS_SETUP, INFO, "Set GPS 1 Hz update rate: ");
+  logger.log(GPS_SETUP, INFO, PMTK_SET_NMEA_UPDATE_1HZ);
   GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);                // 1 Hz
   //GPS.sendCommand(PMTK_SET_NMEA_UPDATE_200_MILLIHERTZ);   // Every 5 seconds
   delay(50);
 
   if (0) {   // this command is saved in the GPS chip NVR, so always send one of these cmds
-    Serial.print("Request antenna status: ");
-    Serial.println(PGCMD_ANTENNA);    // echo command to console log
+    logger.log(GPS_SETUP, INFO, "Request antenna status: ");
+    logger.log(GPS_SETUP, INFO, PGCMD_ANTENNA);    // echo command to console log
     GPS.sendCommand(PGCMD_ANTENNA);   // tell GPS to send us antenna status
                                       // expected reply: $PGTOP,11,...
   } else {
-    Serial.print("Request to NOT send antenna status: ");
-    Serial.println(PGCMD_NOANTENNA);    // echo command to console log
+    logger.log(GPS_SETUP, INFO, "Request to NOT send antenna status: ");
+    logger.log(GPS_SETUP, INFO, PGCMD_NOANTENNA);    // echo command to console log
     GPS.sendCommand(PGCMD_NOANTENNA);   // tell GPS to NOT send us antena status
   }
   delay(50);
 
   // ----- query GPS firmware
-  Serial.print("Query GPS Firmware version: ");
-  Serial.println(PMTK_Q_RELEASE);    // Echo query to console
+  logger.log(GPS_SETUP, INFO, "Query GPS Firmware version: ");
+  logger.log(GPS_SETUP, INFO, PMTK_Q_RELEASE);    // Echo query to console
   GPS.sendCommand(PMTK_Q_RELEASE);   // Send query to GPS unit
                                      // expected reply: $PMTK705,AXN_2.10...
   delay(50);
@@ -742,22 +770,22 @@ void setup() {
 //                                          | | | | GPGSA   GPS Satellites Active
 //                                          | | | | | GPGSV GPS Satellites in View
 #define PMTK_SENTENCE_FREQUENCIES "$PMTK314,0,1,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0*28"
-  Serial.print("Set sentence output frequencies: ");
-  Serial.println(PMTK_SENTENCE_FREQUENCIES);    // Echo command to console
+  logger.log(GPS_SETUP, INFO, "Set sentence output frequencies: ");
+  logger.log(GPS_SETUP, INFO, PMTK_SENTENCE_FREQUENCIES);    // Echo command to console
   GPS.sendCommand(PMTK_SENTENCE_FREQUENCIES);   // Send command to GPS unit
   delay(50);
 
   // ----- report on our memory hogs
   char temp[200];
-  Serial.println("Large resources:");
+  logger.log(CONFIG, INFO, "Large resources:");
   snprintf(temp, sizeof(temp), 
           ". Model.history[%d] uses %d bytes/entry = %d bytes total",
              trail.capacity, trail.recordSize, trail.totalSize);
-  Serial.println(temp);
+  logger.log(CONFIG, INFO, temp);
   snprintf(temp, sizeof(temp),
           ". baroModel.pressureStack[%d] uses %d bytes/entry = %d bytes total",
              maxReadings, sizeof(BaroReading), sizeof(baroModel.pressureStack));
-  Serial.println(temp);
+  logger.log(CONFIG, INFO, temp);
 
   // ----- init RTC
   // Note: See the main() loop.
@@ -803,9 +831,9 @@ void setup() {
 
   // ----- restore barometric pressure history
   if (baroModel.loadHistory()) {
-    logger.info("Successfully restored barometric pressure log");
+    logger.log(CONFIG, INFO, "Successfully restored barometric pressure log");
   } else {
-    logger.error("Failed to load barometric pressure log, re-initializing config file");
+    logger.log(CONFIG, WARNING, "Failed to load barometric pressure log, re-initializing file");
     baroModel.saveHistory();
   }
 
@@ -818,14 +846,15 @@ void setup() {
     tft.setCursor(0, 48);
     tft.setTextColor(cWARN);
     setFontSize(12);
-    tft.println("Error!\n Unable to init\n  barometric sensor\n   check wiring");
+    tft.println("Error!\n Unable to init\n  barometric sensor");
+    logger.log(BARO, ERROR, "Unable to init barometric sensor");
     delay(5000);
   }
 
   // ----- all done with setup, show opening view screen
-  pView = &gridView;
-  pView->startScreen();               // start current view
-  pView->updateScreen();              // update current view
+  // at this point, we finished showing the splash screen
+  // next up is the Help screen which is already in progress
+  // by virtue of waitForSerial()
 }
 
 //=========== main work loop ===================================
@@ -834,6 +863,7 @@ void setup() {
 //uint32_t prevTimeGPS = millis();
 elapsedSeconds saveGpsTimer;          // timer to process and save the current GPS location
 elapsedSeconds autoLogTimer;          // timer to save GPS trail periodically no matter what
+elapsedSeconds batteryTimer;          // timer to log the coin battery voltage
 uint32_t prevTimeBaro = millis();
 time_t prevTimeRTC = 0;               // timer to print RTC to serial port (1 second)
 elapsedMillis displayClockTimer;      // timer to update time-of-day display (1 second)
@@ -854,8 +884,9 @@ const int GPS_PROCESS_INTERVAL =  13;   // seconds between updating the model's 
 const int CLOCK_DISPLAY_INTERVAL = 1000;   // refresh clock display every 1 second (1,000 msec)
 const uint32_t GPS_AUTOSAVE_INTERVAL = SECS_PER_10MIN; // seconds between saving breadcrumb trail to file
 //const int BAROMETRIC_PROCESS_INTERVAL = 15*60*1000;  // fifteen minutes in milliseconds
-const uint LOG_PRESSURE_INTERVAL = 15*60*1000;   // 15 minutes, in milliseconds
-const uint LOS_ANNOUNCEMENT_INTERVAL = SECS_PER_5MIN * 1000;   // msec between LOS announcements
+const uint LOG_PRESSURE_INTERVAL = 15*60*1000;                  // 15 minutes, in milliseconds
+const uint LOS_ANNOUNCEMENT_INTERVAL = SECS_PER_5MIN * 1000;    // msec between LOS announcements
+const int  LOG_COIN_BATTERY_INTERVAL = 10 * SECS_PER_1MIN;      // seconds between logging the coin battery voltage
 
 void loop() {
 
@@ -864,7 +895,14 @@ void loop() {
   if (GPS.newNMEAreceived()) {
     // optionally send NMEA sentences to Serial port, possibly for NMEATime2
     // Note: Adafruit parser doesn't handle $GPGSV (satellites in vieW) so we send all sentences regardless of content
-    logger.nmea(GPS.lastNMEA());
+    // But first, our GPS sends several NMEA sentences in a row, so let's flag the start of each group in the log
+    char firstNMEA[7] = "$GPGGA";
+    if (strncmp(GPS.lastNMEA(), firstNMEA, sizeof(firstNMEA)-1) == 0) {
+      // insert divider into log for readability
+      char divider[5] = "----";
+      logger.log(NMEA, INFO, divider);
+    }
+    logger.log(NMEA, INFO, GPS.lastNMEA());
 
     // sentence received -- verify checksum, parse it
     // a tricky thing here is if we print the NMEA sentence, or data
@@ -891,7 +929,7 @@ void loop() {
     snprintf(msg, sizeof(msg), "Received first valid GPS time: %d-%02d-%02d at %02d:%02d:%02d",
                                 GPS.year,GPS.month,GPS.day, 
                                 GPS.hour,GPS.minute,GPS.seconds);
-    Serial.println(msg);              // debug
+    logger.log(CONFIG, INFO, msg);    // debug
 
     // write this to the breadcrumb trail as preliminary indication of acquiring satellites
     TimeElements tm{GPS.seconds, GPS.minute, GPS.hour, 0, GPS.day, GPS.month, (byte)(2000-1970+GPS.year)};
@@ -931,7 +969,7 @@ void loop() {
     char msg[32];      // strlen("2022-01-01 21:49:49+00:00") = 25
     snprintf(msg, sizeof(msg), "%04d-%02d-%02d %02d:%02d:%02d+00:00\n",
                          year(rtc), month(rtc), day(rtc), hour(rtc), minute(rtc), second(rtc));
-    logger.gmt(msg);
+    logger.log(GMT, INFO, msg);
     prevTimeRTC = rtc;
   }
 
@@ -1015,7 +1053,7 @@ void loop() {
     prevRememberedGPS = currentGPS;
 
     if (0 == (trail.getHistoryCount() % trail.saveInterval)) {
-      logger.fencepost("Moved a visible distance",__LINE__);  // debug
+      logger.log(GPS_SETUP, DEBUG, "Moved a visible distance (line %d)", __LINE__);  // debug
       trail.saveGPSBreadcrumbTrail();   // have moved a visible distance
     }
   }
@@ -1033,16 +1071,35 @@ void loop() {
     }
   }
 
+  // periodically log the coin battery's voltage 
+  // todo: sensor exists only on PCB v11+
+  if (batteryTimer > LOG_COIN_BATTERY_INTERVAL) {
+    batteryTimer = 0;
+
+    const float analogRef     = 3.3;    // analog reference voltage
+    const uint16_t analogBits = 1024;   // ADC resolution is 10 bits
+
+    int coin_adc       = analogRead(BATTERY_ADC);
+    float coin_voltage = (float)coin_adc * analogRef / analogBits;
+    logger.logFloat(BATTERY, INFO, "Coin battery = %sv", coin_voltage, 3);
+
+    trail.rememberBAT(coin_voltage);
+  }
+
   // log GPS position every few minutes, to keep track of lingering in one spot
   if (autoLogTimer > GPS_AUTOSAVE_INTERVAL) {
     autoLogTimer = 0;
 
     Location whereAmI;
     model->makeLocation(&whereAmI);
-    logger.fencepost("Griduino.ino autolog timer",__LINE__);  // debug
+    logger.log(GPS_SETUP, DEBUG, "Griduino.ino autolog timer (line %d)", __LINE__);  // debug
     //whereAmI.printLocation();                                 // debug
     trail.rememberGPS(whereAmI);
     trail.saveGPSBreadcrumbTrail();   // autosave timer
+  }
+
+  if ((pView->screenID == HELP_VIEW) && (viewHelpTimer > viewHelpTimeout)) {
+    selectNewView(grid_view);
   }
 
   // if there's touchscreen input, handle it

@@ -75,20 +75,20 @@ public:
                       // because saving entire model is slow, ~1 second
   }
   void factoryReset() {
-    // Should never be needed, but in rare cases the GPS gets into some state 
-    // where it goes for days/weeks without acquiring satellites. 
-    // This will nuke it from orbit.
-    // It erases stored time, position, almanacs, ephemeris, clears
-    // system/user configurations, and resets receiver to factory status.
-    // Please allow 15 minutes to 2 hours to reacquire satellites.
-    #define PMTK_FACTORY_RESET "$PMTK104*37" ///< Full cold start, factory reset
+// Should never be needed, but in rare cases the GPS gets into some state
+// where it goes for days/weeks without acquiring satellites.
+// This will nuke it from orbit.
+// It erases stored time, position, almanacs, ephemeris, clears
+// system/user configurations, and resets receiver to factory status.
+// Please allow 15 minutes to 2 hours to reacquire satellites.
+#define PMTK_FACTORY_RESET "$PMTK104*37"   ///< Full cold start, factory reset
 
-    Serial.print("Full cold start: ");
-    Serial.println(PMTK_FACTORY_RESET);
+    logger.log(GPS_SETUP, INFO, "Full cold start:");
+    logger.log(GPS_SETUP, INFO, PMTK_FACTORY_RESET);
     GPS.sendCommand(PMTK_FACTORY_RESET);
 
-    GPS.fix = false;      // reset the Adafruit interface object, too
-    GPS.satellites = 0;   // 
+    GPS.fix        = false;   // reset the Adafruit interface object, too
+    GPS.satellites = 0;       //
   }
 
   // ========== load/save config setting =========================
@@ -99,14 +99,13 @@ public:
   int save() {   // returns 1=success, 0=failure
     SaveRestore sdram(MODEL_FILE, MODEL_VERS);
     if (sdram.writeConfig((byte *)this, sizeof(Model))) {
-      // Serial.println("Success, GPS Model object stored to SDRAM");
+      logger.log(GPS_SETUP, DEBUG, "Success, GPS Model object stored to SDRAM");
     } else {
-      Serial.println("ERROR! Failed to save GPS Model object to SDRAM");
+      logger.log(GPS_SETUP, ERROR, "Failed to save GPS Model object to SDRAM");
       return 0;   // return failure
     }
-    logger.fencepost("Save model, save breadcrumbs too", __LINE__);   // debug
-    trail.saveGPSBreadcrumbTrail();                                   // while saving gpsmodel, also write breadcrumbs
-    return 1;                                                         // return success
+    trail.saveGPSBreadcrumbTrail();   // while saving gpsmodel, also write breadcrumbs
+    return 1;                         // return success
   }
 
   // ----- load from SDRAM -----
@@ -116,17 +115,17 @@ public:
     int rc = 1;        // assume success
     Model tempModel;   // temp buffer for restoring the "Model" object from RAM file system
 
-    extern Model modelGPS;                                                // debug
-    logger.info(". source: sizeof(tempModel) = %d", sizeof(tempModel));   // debug
-    logger.info(". target: sizeof(modelGPS) = %d", sizeof(modelGPS));     // debug
+    extern Model modelGPS;                                                                // debug
+    logger.log(GPS_SETUP, INFO, ". source: sizeof(tempModel) = %d", sizeof(tempModel));   // debug
+    logger.log(GPS_SETUP, INFO, ". target: sizeof(modelGPS) = %d", sizeof(modelGPS));     // debug
 
     if (sdram.readConfig((byte *)&tempModel, sizeof(Model))) {
       // warning: this can corrupt our object's data if something failed
       // so we blob the bytes to a work area and copy individual values
       copyFrom(tempModel);
-      logger.info("Success, GPS Model restored from SDRAM");
+      logger.log(GPS_SETUP, DEBUG, "Success, GPS Model restored from SDRAM");
     } else {
-      logger.error("Error, failed to restore GPS Model object to SDRAM");
+      logger.log(GPS_SETUP, ERROR, "failed to restore GPS Model object to SDRAM");
       rc = 0;   // return failure
     }
     // note: the caller is responsible for fixups to the model,
@@ -210,10 +209,8 @@ public:
     char newGrid4[5];   // strlen("CN87") = 4
     grid.calcLocator(newGrid4, gLatitude, gLongitude, 4);
     if (strcmp(newGrid4, sPrevGrid4) != 0) {
-      char msg[128];
-      snprintf(msg, sizeof(msg), "Prev grid: %s New grid: %s", sPrevGrid4, sPrevGrid4);
-      logger.warning(msg);
-      strncpy(sPrevGrid4, newGrid4, sizeof(sPrevGrid4));
+      logger.log(GPS_SETUP, WARNING, "Prev grid: %s New grid: %s", sPrevGrid4, newGrid4);
+      strncpy(sPrevGrid4, newGrid4, sizeof(sPrevGrid4));   // save for next grid transition
       return true;
     } else {
       return false;
@@ -226,45 +223,11 @@ public:
     char newGrid6[7];   // strlen("CN87us") = 6
     grid.calcLocator(newGrid6, gLatitude, gLongitude, 6);
     if (strcmp(newGrid6, sPrevGrid6) != 0) {
-      Serial.print("Prev grid: ");
-      Serial.print(sPrevGrid6);
-      Serial.print(" New grid: ");
-      Serial.println(newGrid6);
-      strncpy(sPrevGrid6, newGrid6, sizeof(sPrevGrid6));
+      logger.log(GPS_SETUP, WARNING, "Prev grid: %s New grid: %s", sPrevGrid6, newGrid6);
+      strncpy(sPrevGrid6, newGrid6, sizeof(sPrevGrid6));   // save for next grid transition
       return true;
     } else {
       return false;
-    }
-  }
-
-  bool enteredNewGrid_delete_me() {
-    if (compare4digits) {
-      // returns TRUE if the first FOUR characters of grid name have changed
-      char newGrid4[5];   // strlen("CN87") = 4
-      grid.calcLocator(newGrid4, gLatitude, gLongitude, 4);
-      if (strcmp(newGrid4, sPrevGrid4) != 0) {
-        char msg[128];
-        snprintf(msg, sizeof(msg), "Prev grid: %s New grid: %s", sPrevGrid4, sPrevGrid4);
-        logger.warning(msg);
-        strncpy(sPrevGrid4, newGrid4, sizeof(sPrevGrid4));
-        return true;
-      } else {
-        return false;
-      }
-    } else {
-      // returns TRUE if the first SIX characters of grid name have changed
-      char newGrid6[7];   // strlen("CN87us") = 6
-      grid.calcLocator(newGrid6, gLatitude, gLongitude, 6);
-      if (strcmp(newGrid6, sPrevGrid6) != 0) {
-        Serial.print("Prev grid: ");
-        Serial.print(sPrevGrid6);
-        Serial.print(" New grid: ");
-        Serial.println(newGrid6);
-        strncpy(sPrevGrid6, newGrid6, sizeof(sPrevGrid6));
-        return true;
-      } else {
-        return false;
-      }
     }
   }
 
@@ -275,12 +238,12 @@ public:
     if (gPrevFix && !gHaveGPSfix) {
       lostFix     = true;
       gHaveGPSfix = false;
-      logger.warning("Lost GPS positioning");
+      logger.log(GPS_SETUP, WARNING, "Lost GPS positioning");
       Location loc;
       makeLocation(&loc);
       trail.rememberLOS(loc);
     } else if (!gPrevFix && gHaveGPSfix) {
-      logger.warning("Acquired GPS position lock");
+      logger.log(GPS_SETUP, WARNING, "Acquired GPS position lock");
       Location loc;
       makeLocation(&loc);
       trail.rememberAOS(loc);
@@ -365,8 +328,7 @@ public:
     if (gTimeZone > 12) {
       gTimeZone = -11;
     }
-    Serial.print("Time zone changed to ");
-    Serial.println(gTimeZone);
+    logger.log(GPS_SETUP, INFO, "Time zone changed to %d", gTimeZone);
     // don't save to NVR here, "save()" is slow, to the caller
     // should call model->save() when it's able to spend the time
     // this->save();   // save the new timezone (and model) in non-volatile memory
@@ -376,8 +338,7 @@ public:
     if (gTimeZone < -12) {
       gTimeZone = 11;
     }
-    Serial.print("Time zone changed to ");
-    Serial.println(gTimeZone);
+    logger.log(GPS_SETUP, INFO, "Time zone changed to %d", gTimeZone);
     // don't save to NVR here, "save()" is slow, to the caller
     // should call model->save() when it's able to spend the time
     // this->save();   // save the new timezone (and model) in non-volatile memory
@@ -385,26 +346,28 @@ public:
 
 private:
   void echoGPSinfo() {
-#ifdef ECHO_GPS
-    // send GPS statistics to serial console for desktop debugging
-    char sDate[20];   // strlen("0000-00-00 hh:mm:ss") = 19
+    logger.fencepost("model_gps.h", "getGPS()", __LINE__);  // debug
+    // send GPS statistics from the Adafruit_GPS library (not from our own data in our model)
+    // to serial console for desktop debugging
+    char sDate[21];   // strlen("0000-00-00  hh:mm:ss") = 20
     getCurrentDateTime(sDate);
-    Serial.print("Model: ");
-    Serial.print(sDate);
-    Serial.print("  Fix(");
-    Serial.print((int)GPS.fix);
-    Serial.println(")");
+
+    char msg[64];
+    snprintf(msg, sizeof(msg), "Model: %s  Fix(%d)", sDate, (int)GPS.fix);
+    logger.log(GPS_SETUP, DEBUG, msg);
 
     if (GPS.fix) {
-      //~Serial.print("   Loc("); //~Serial.print(gsLatitude); //~Serial.print(","); //~Serial.print(gsLongitude);
-      //~Serial.print(") Quality("); //~Serial.print((int)GPS.fixquality);
-      //~Serial.print(") Sats("); //~Serial.print((int)GPS.satellites);
-      //~Serial.print(") Speed("); //~Serial.print(GPS.speed); //~Serial.print(" knots");
-      //~Serial.print(") Angle("); //~Serial.print(GPS.angle);
-      //~Serial.print(") Alt("); //~Serial.print(GPS.altitude);
-      //~Serial.println(")");
+      char sLat[12], sLong[12], sSpeed[12], sAngle[12], sAlt[12];
+      floatToCharArray(sLat, sizeof(sLat), gLatitude, 4);
+      floatToCharArray(sLong, sizeof(sLong), gLongitude, 4);
+      floatToCharArray(sSpeed, sizeof(sSpeed), GPS.speed, 1);
+      floatToCharArray(sAngle, sizeof(sAngle), GPS.angle, 0);
+      floatToCharArray(sAlt, sizeof(sAlt), gAltitude, 1);
+
+      snprintf(msg, sizeof(msg), "   Loc(%s,%s) Quality(%d) Sats(%d) Speed(%s knots) Angle(%s) Alt(%d)",
+              sLat, sLong, (int)GPS.fixquality, sSpeed, sAngle, sAlt);
+      logger.log(GPS_SETUP, DEBUG, msg);
     }
-#endif
   }
 };
 // ========== class MockModel ======================

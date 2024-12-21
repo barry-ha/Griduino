@@ -118,10 +118,8 @@ On-board lights:
 #define PIN_SPEAKER DAC0   // uses DAC
 #endif
 
-// ---------- Battery voltage sensor
-#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
-#define BATTERY_ADC A1
-#endif
+// ---------- Coin battery voltage sensor
+#define BATTERY_ADC A2
 
 // ---------- Feather RP2040 onboard led
 #if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)

@@ -64,15 +64,15 @@
 */
 
 #if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
-  #include <Wire.h>
-  #include <Adafruit_BMP280.h>   // Precision barometric and temperature sensor
-  #include <Adafruit_Sensor.h>
+#include <Wire.h>
+#include <Adafruit_BMP280.h>   // Precision barometric and temperature sensor
+#include <Adafruit_Sensor.h>
 #else
-  #include <Adafruit_BMP3XX.h>   // Precision barometric and temperature sensor
+#include <Adafruit_BMP3XX.h>   // Precision barometric and temperature sensor
 #endif
-#include "constants.h"         // Griduino constants, colors, typedefs
-#include "logger.h"            // conditional printing to Serial port
-#include "date_helper.h"       // date/time conversions
+#include "constants.h"     // Griduino constants, colors, typedefs
+#include "logger.h"        // conditional printing to Serial port
+#include "date_helper.h"   // date/time conversions
 
 // ========== extern ===========================================
 extern Logger logger;   // Griduino.ino
@@ -122,8 +122,8 @@ public:
     Wire1.begin();
     bool initialized = baro.begin(0x76, 0x58);   // Griduino v7 pcb, I2C
 #else
-    //ol initialized = baro.begin_SPI(bmp_cs);   // Griduino v4 pcb, SPI
-    bool initialized = baro.begin_I2C();   // Griduino v11 pcb, I2C
+    bool initialized = baro.begin_SPI(bmp_cs);   // Griduino v4 pcb, SPI
+                                                 // bool initialized = baro.begin_I2C();   // Griduino v11 pcb, I2C
 #endif
     if (initialized) {
       //  IIR:
@@ -172,29 +172,29 @@ public:
       //      }
       //
     } else {
-      logger.error("Error, unable to initialize Bosch pressure sensor");
+      logger.log(BARO, ERROR, "unable to initialize Bosch pressure sensor");
 #if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
       uint8_t id = baro.sensorID();
       switch (id) {
       case 0x00:
-        Serial.println("   ID of 0x00 means no response from hardware");
+        logger.log(BARO, ERROR, "ID of 0x00 means no response from pressure sensor hardware");
         break;
       case 0xFF:
-        Serial.println("   ID of 0xFF probably means a bad address, a BMP 180 or BMP 085");
+        logger.log(BARO, ERROR, "ID of 0xFF probably means a bad address, a BMP 180 or BMP 085");
         break;
       case 0x56:
       case 0x57:
       case 0x58:
-        Serial.println("   ID of 0x56-0x58 represents a BMP 280");
+        logger.log(BARO, ERROR, "ID of 0x56-0x58 represents a BMP 280");
         break;
       case 0x60:
-        Serial.println("   ID of 0x60 represents a BME 280");
+        logger.log(BARO, ERROR, "ID of 0x60 represents a BME 280");
         break;
       case 0x61:
-        Serial.println("   ID of 0x61 represents a BME 680");
+        logger.log(BARO, ERROR, "ID of 0x61 represents a BME 680");
         break;
       default:
-        Serial.println("   ID is not recognized");
+        logger.log(BARO, ERROR, "ID is not a recognized pressure sensor");
         break;
       }
 #endif
@@ -229,14 +229,10 @@ public:
   // the schedule is determined by the Controller
   // controller should call this every 15 minutes
   void logPressure(time_t rightnow) {
-    if (logger.print_info) {
-      float pressure = getBaroPressure();     // read
-      rememberPressure(pressure, rightnow);   // push onto stack
-      Serial.print("logPressure( ");          // debug
-      Serial.print(pressure, 1);              // debug
-      Serial.println(" )");                   // debug
-    }
-    saveHistory();   // write stack to NVR
+    float pressure = getBaroPressure();                       // read
+    rememberPressure(pressure, rightnow);                     // push onto stack
+    logger.log(BARO, INFO, "logPressure(%s)", pressure, 1);   // debug
+    saveHistory();                                            // write stack to NVR
   }
 
   // ========== load/save barometer pressure history =============
@@ -245,7 +241,8 @@ public:
   const char PRESSURE_HISTORY_FILE[25]    = CONFIG_FOLDER "/barometr.dat";
   const char PRESSURE_HISTORY_VERSION[15] = "Pressure v02";
   int loadHistory() {
-    return true;   // debug!!
+    logger.log(BARO, ERROR, "model_baro.h: loadHistory() is disabled");
+    return true;   // debug!! todo!!! help!!!!
     SaveRestore history(PRESSURE_HISTORY_FILE, PRESSURE_HISTORY_VERSION);
     BaroReading tempStack[maxReadings] = {};   // array to hold pressure data, fill with zeros
     int result                         = history.readConfig((byte *)&tempStack, sizeof(tempStack));
@@ -258,7 +255,7 @@ public:
         }
       }
 
-      logger.info(". Loaded barometric pressure history file, %d readings", numNonZero);
+      logger.log(BARO, INFO, ". Loaded barometric pressure history file, %d readings", numNonZero);
     }
     dumpPressureHistory();   // debug
     return result;
@@ -267,7 +264,7 @@ public:
   void saveHistory() {
     SaveRestore history(PRESSURE_HISTORY_FILE, PRESSURE_HISTORY_VERSION);
     history.writeConfig((byte *)&pressureStack, sizeof(pressureStack));
-    logger.info("Saved pressure history to non-volatile memory");
+    logger.log(BARO, INFO, "Saved pressure history to non-volatile memory");
   }
 
   void testRememberPressure(float pascals, time_t time) {
@@ -289,22 +286,18 @@ protected:
   }
 
   void dumpPressureHistory() {   // debug
-    // return;                      // debug debug
     //  format the barometric pressure array and write it to the Serial console log
     //  entire subroutine is for debug purposes
-    logger.info("Pressure history stack, non-zero values [line %d]", __LINE__);
-    if (logger.print_info) {
-      for (int ii = 0; ii < maxReadings; ii++) {
-        BaroReading item = pressureStack[ii];
-        if (item.pressure > 0) {
-          Serial.print("Stack[");
-          Serial.print(ii);
-          Serial.print("] = ");
-          Serial.print(item.pressure);
-          Serial.print("  ");
-          char msg[24];
-          Serial.println(date.datetimeToString(msg, sizeof(msg), item.time));   // debug
-        }
+    for (int ii = 0; ii < maxReadings; ii++) {
+      BaroReading item = pressureStack[ii];
+      if (item.pressure > 0) {
+        char sDate[24], sPressure[24], out[128];
+
+        Serial.println(date.datetimeToString(sDate, sizeof(sDate), item.time));
+        floatToCharArray(sPressure, sizeof(sPressure), item.pressure, 4);
+        snprintf(out, sizeof(out), "Stack[%d] = %s  %s", ii, sPressure, sDate);
+
+        logger.log(BARO, DEBUG, out);
       }
     }
     return;

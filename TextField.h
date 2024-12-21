@@ -68,10 +68,10 @@ public:
   bool dirty;       // true=force reprint even if old=new
 
   void dump() {
-    // dump the state of this object to the console
+    // dump the state of this object to the console for debug
     char buf[128];
     snprintf(buf, sizeof(buf), "TextField('%s') x,y(%d,%d)", text, x, y);
-    Serial.print(buf);
+    Serial.print(buf);   // use Serial (not logger) so TextField is more reusable
     snprintf(buf, sizeof(buf), ". Erase x,y,w,h(%d,%d, %d,%d)", xPrev, yPrev, wPrev, hPrev);
     Serial.println(buf);
   }

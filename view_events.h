@@ -221,19 +221,22 @@ protected:
     NUMSATS,
   };
 
+  // ----- static + dynamic screen text
+  // clang-format off
 #define numDateFields 9
   TextField txtDate[numDateFields] = {
-      // text            x,y    color       alignment    size
-      {"line1", -1, 20, cTEXTCOLOR, ALIGNCENTER, eFONTSMALLEST},        // [TITLE1] program title, centered
-      {"line2", -1, 44, cTEXTCOLOR, ALIGNCENTER, eFONTSMALLEST},        // [TITLE2]
-      {"line3", -1, 86, cVALUE, ALIGNCENTER, eFONTSMALL},               // [TITLE3]
-      {"nnn", -1, 152, cVALUE, ALIGNCENTER, eFONTGIANT},                // [COUNTDAYS] counted number of days
-      {"01:02:03", -1, 182, cVALUEFAINT, ALIGNCENTER, eFONTSMALLEST},   // [COUNTTIME] counted number of hms
-      {"MMM dd, yyyy", 66, 226, cFAINT, ALIGNLEFT, eFONTSMALLEST},      // [LOCALDATE] Local date
-      {"hh:mm:ss", 178, 226, cFAINT, ALIGNLEFT, eFONTSMALLEST},         // [LOCALTIME] Local time
-      {"-7h", 8, 226, cFAINT, ALIGNLEFT, eFONTSMALLEST},                // [TIMEZONE]  addHours time zone
-      {"6#", 308, 226, cFAINT, ALIGNRIGHT, eFONTSMALLEST},              // [NUMSATS]   numSats
+      // text          x,y    color       alignment    size
+      {"line1",       -1,  20, cTEXTCOLOR, ALIGNCENTER, eFONTSMALLEST},   // [TITLE1] program title, centered
+      {"line2",       -1,  44, cTEXTCOLOR, ALIGNCENTER, eFONTSMALLEST},   // [TITLE2]
+      {"line3",       -1,  86, cVALUE,     ALIGNCENTER, eFONTSMALL},      // [TITLE3]
+      {"nnn",         -1, 152, cVALUE,     ALIGNCENTER, eFONTGIANT},      // [COUNTDAYS] counted number of days
+      {"01:02:03",    -1, 182, cVALUEFAINT,ALIGNCENTER, eFONTSMALLEST},   // [COUNTTIME] counted number of hms
+      {"MMM dd, yyyy",66, 230, cFAINT,     ALIGNLEFT,   eFONTSMALLEST},   // [LOCALDATE] Local date
+      {"hh:mm:ss",   178, 230, cFAINT,     ALIGNLEFT,   eFONTSMALLEST},   // [LOCALTIME] Local time
+      {"-7h",          8, 230, cFAINT,     ALIGNLEFT,   eFONTSMALLEST},   // [TIMEZONE]  addHours time zone
+      {"6#",         308, 230, cFAINT,     ALIGNRIGHT,  eFONTSMALLEST},   // [NUMSATS]   numSats
   };
+  // clang-format on
 
   enum buttonID {
     eMore,
@@ -254,7 +257,10 @@ protected:
   void nextDateEvent() {
     whichEvent = (whichEvent + 1) % (sizeof(eventList) / sizeof(eventList[0]));
     target     = eventList[whichEvent];
-    // logger.info(". Changed event to #%d, %d", whichEvent, eventList[whichEvent].line3);
+
+    char msg[64];
+    snprintf(msg, sizeof(msg), ". Changed event to #%d, %d", whichEvent, eventList[whichEvent].line3);
+    logger.log(TIME, DEBUG, msg);
   }
 
   // Formatted elapsed time
@@ -280,7 +286,7 @@ void ViewEvents::updateScreen() {
     char msg[128];
     snprintf(msg, sizeof(msg), "%02d:%02d:%02d GMT",
              GPS.hour, GPS.minute, GPS.seconds);
-    logger.info(msg);
+    logger.log(TIME, INFO, msg);
   }
 
   //                       s,m,h, dow, d,m,y
@@ -303,9 +309,9 @@ void ViewEvents::updateScreen() {
   }
 
   int elapsedDays = elapsed / SECS_PER_DAY;
-  // if (GPS.seconds == 0) {   // debug
-  //   logger.info("elapsed time count: ", (int)elapsed);   // typecast to int, required by compiler
-  // }
+  if (GPS.seconds == 0) {                                              // debug
+    logger.log(TIME, DEBUG, "elapsed time count: %d", (int)elapsed);   // typecast to int, required by compiler
+  }
   char sTime[24];   // strlen("01:23:45") = 8
   getTimeElapsed(sTime, sizeof(sTime), elapsed);
 
@@ -390,7 +396,7 @@ void ViewEvents::endScreen() {
 }
 
 bool ViewEvents::onTouch(Point touch) {
-  logger.info("->->-> Touched date screen.");
+  logger.log(CONFIG, INFO, "->->-> Touched date screen.");
 
   bool handled = false;   // assume a touch target was not hit
   for (int ii = 0; ii < nDateButtons; ii++) {
@@ -403,7 +409,7 @@ bool ViewEvents::onTouch(Point touch) {
         handled = true;
         break;
       default:
-        logger.error("Error, unknown function ", item.functionIndex);
+        logger.log(CONFIG, ERROR, "unknown function %d", item.functionIndex);
         break;
       }
       startScreen();

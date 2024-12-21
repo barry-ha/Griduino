@@ -151,22 +151,23 @@ float getTemperature() {
   return tempF;
 }
 
-// ========== splash screen ====================================
-// splash screen layout
-#define yRow1 54           // program title: "Griduino GMT Clock"
-#define yRow2 yRow1 + 28   // program version
-#define yRow3 yRow2 + 48   // author line 1
-#define yRow4 yRow3 + 32   // author line 2
+// ========== text screen layout ===================================
 
+// vertical placement of text rows
+const int yRow1 = 54;           // program title: "Griduino GMT Clock"
+const int yRow2 = yRow1 + 28;   // program version
+const int yRow3 = yRow2 + 48;   // author line 1
+const int yRow4 = yRow3 + 32;
+const int yRow9 = 226;   // GMT date on bottom row, "230" will match other views
+
+// clang-format off
 TextField txtSplash[] = {
-    // clang off
     //     text               x,y       color
     {PROGRAM_NAME, -1, yRow1, cTEXTCOLOR},   // [0] program title, centered
     {PROGRAM_VERSION, -1, yRow2, cLABEL},    // [1] normal size text, centered
     {PROGRAM_LINE1, -1, yRow3, cLABEL},      // [2] credits line 1, centered
     {PROGRAM_LINE2, -1, yRow4, cLABEL},      // [3] credits line 2, centered
-    {"Compiled " PROGRAM_COMPILED,
-     -1, 228, cTEXTCOLOR},   // [4] "Compiled", bottom row
+    {"Compiled " PROGRAM_COMPILED, -1, yRow9, cTEXTCOLOR},   // [4] "Compiled", bottom row
                              // clang on
 };
 const int numSplashFields = sizeof(txtSplash) / sizeof(TextField);
@@ -198,18 +199,18 @@ enum txtIndex {
 };
 
 TextField txtClock[] = {
-  //       text             x,y    color             index
-  {PROGRAM_TITLE,    -1, 14, cTEXTCOLOR},  // [TITLE]     program title, centered
-  {"hh",             12, 90, cVALUE},      // [HOURS]     giant clock hours
-  {":",              94, 90, cVALUE},      // [COLON1]    :
-  {"mm",            120, 90, cVALUE},      // [MINUTES]   giant clock minutes
-  {":",             206, 90, cVALUE},      // [COLON2]    :
-  {"ss",            230, 90, cVALUE},      // [SECONDS]   giant clock seconds
-  {"MMM dd, yyyy",   94,130, cVALUE},      // [GMTDATE]   GMT date
-  {"12.3 F",        132,164, cVALUE},      // [DEGREES]   Temperature
-  {"hh:mm:ss",      118,226, cTEXTCOLOR},  // [LOCALTIME] Local time
-  {"-7h",             8,226, cFAINT},      // [TIMEZONE]  addHours time zone
-  {"6#",            308,226, cFAINT, ALIGNRIGHT},  // [NUMSATS]   numSats
+  //   text           x,y      color             index
+  {PROGRAM_TITLE,    -1, 14,   cTEXTCOLOR},  // [TITLE]     program title, centered
+  {"hh",             12, 90,   cVALUE},      // [HOURS]     giant clock hours
+  {":",              94, 90,   cVALUE},      // [COLON1]    :
+  {"mm",            120, 90,   cVALUE},      // [MINUTES]   giant clock minutes
+  {":",             206, 90,   cVALUE},      // [COLON2]    :
+  {"ss",            230, 90,   cVALUE},      // [SECONDS]   giant clock seconds
+  {"MMM dd, yyyy",   94,130,   cVALUE},      // [GMTDATE]   GMT date
+  {"12.3 F",        132,164,   cVALUE},      // [DEGREES]   Temperature
+  {"hh:mm:ss",      118,yRow9, cTEXTCOLOR},  // [LOCALTIME] Local time
+  {"-7h",             8,yRow9, cFAINT},      // [TIMEZONE]  addHours time zone
+  {"6#",            308,yRow9, cFAINT, ALIGNRIGHT},  // [NUMSATS]   numSats
 };
 const int numClockFields = sizeof(txtClock)/sizeof(TextField);
 

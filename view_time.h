@@ -75,7 +75,12 @@ protected:
   // color scheme: see constants.h
 
   // ========== text screen layout ===================================
-  // these are names for the array indexes, must be named in same order as array below
+
+  // vertical placement of text rows
+  const int yRow9 = 226;   // aligned vertically wqith + and - buttons
+
+  // ----- screen text
+  // names for the array indexes, must be named in same order as array below
   enum txtIndex {
     TITLE = 0,
     HOURS,
@@ -90,21 +95,24 @@ protected:
     NUMSATS,
   };
 
+  // ----- static + dynamic screen text
+  // clang-format off
 #define numClockFields 11
   TextField txtClock[numClockFields] = {
-      // text            x,y    color       align       font
-      {"Griduino GMT", -1, 18, cTITLE, ALIGNCENTER, eFONTSMALLEST},   // [TITLE]   program title, centered
-      {"hh", 12, 94, cVALUE, ALIGNLEFT, eFONTGIANT},                  // [HOURS]     giant clock hours
-      {":", 94, 94, cVALUE, ALIGNLEFT, eFONTGIANT},                   // [COLON1]    :
-      {"mm", 120, 94, cVALUE, ALIGNLEFT, eFONTGIANT},                 // [MINUTES]   giant clock minutes
-      {":", 204, 94, cVALUE, ALIGNLEFT, eFONTGIANT},                  // [COLON2]    :
-      {"ss", 230, 94, cVALUE, ALIGNLEFT, eFONTGIANT},                 // [SECONDS]   giant clock seconds
-      {"MMM dd, yyyy", -1, 140, cVALUE, ALIGNCENTER, eFONTSMALL},     // [GMTDATE]   GMT date
-      {"", -1, 174, cVALUE, ALIGNCENTER, eFONTSMALL},                 // [DEGREES]   Temperature e.g. "12.3 F"
-      {"hh:mm:ss", 118, 226, cTEXTCOLOR, ALIGNLEFT, eFONTSMALL},      // [LOCALTIME] Local time
-      {"-7h", 8, 226, cFAINT, ALIGNLEFT, eFONTSMALLEST},              // [TIMEZONE]  addHours time zone
-      {"6#", 308, 226, cFAINT, ALIGNRIGHT, eFONTSMALLEST},            // [NUMSATS]   numSats
+      // text            x,y      color       align       font
+      {"Griduino GMT", -1,  18,   cTITLE,  ALIGNCENTER, eFONTSMALLEST},   // [TITLE]   program title, centered
+      {"hh",           12,  94,   cVALUE,  ALIGNLEFT,   eFONTGIANT},      // [HOURS]     giant clock hours
+      {":",            94,  94,   cVALUE,  ALIGNLEFT,   eFONTGIANT},      // [COLON1]    :
+      {"mm",          120,  94,   cVALUE,  ALIGNLEFT,   eFONTGIANT},      // [MINUTES]   giant clock minutes
+      {":",           204,  94,   cVALUE,  ALIGNLEFT,   eFONTGIANT},      // [COLON2]    :
+      {"ss",          230,  94,   cVALUE,  ALIGNLEFT,   eFONTGIANT},      // [SECONDS]   giant clock seconds
+      {"MMM dd, yyyy", -1, 140,   cVALUE,  ALIGNCENTER, eFONTSMALL},      // [GMTDATE]   GMT date
+      {"",             -1, 174,   cVALUE,  ALIGNCENTER, eFONTSMALL},      // [DEGREES]   Temperature e.g. "12.3 F"
+      {"hh:mm:ss",    118, yRow9, cTEXTCOLOR,ALIGNLEFT, eFONTSMALL},      // [LOCALTIME] Local time
+      {"-7h",           8, yRow9, cFAINT,  ALIGNLEFT,   eFONTSMALLEST},   // [TIMEZONE]  addHours time zone
+      {"6#",          308, yRow9, cFAINT,  ALIGNRIGHT,  eFONTSMALLEST},   // [NUMSATS]   numSats
   };
+  // clang-format on
 
   enum buttonID {
     etimeZonePlus,
@@ -226,7 +234,7 @@ void ViewTime::endScreen() {
 }
 
 bool ViewTime::onTouch(Point touch) {
-  logger.info("->->-> Touched time screen.");
+  logger.log(CONFIG, INFO, "->->-> Touched time screen.");
 
   bool handled = false;   // assume a touch target was not hit
   for (int ii = 0; ii < nTimeButtons; ii++) {
@@ -242,7 +250,7 @@ bool ViewTime::onTouch(Point touch) {
         model->timeZoneMinus();
         break;
       default:
-        logger.error("Error, unknown function ", item.functionIndex);
+        logger.log(CONFIG, ERROR, "unknown function %d", item.functionIndex);
         break;
       }
       updateScreen();   // show the result

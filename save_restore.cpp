@@ -40,32 +40,19 @@ int openFlash();
 // ========== globals =================================
 #if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
 // Adafruit Feather RP2040, https://www.adafruit.com/product/4884
-Adafruit_FlashTransport_RP2040_CPY flashTransport;   // onboard RAM, compatible with CircuitPy
+Adafruit_FlashTransport_RP2040_CPY flTransport;   // onboard RAM, compatible with CircuitPy
 #else
 // Adafruit Feather M4, https://www.adafruit.com/product/3857
-Adafruit_FlashTransport_QSPI flashTransport;   // Quad SPI 2MB memory chip
+Adafruit_FlashTransport_QSPI flTransport;   // Quad SPI 2MB memory chip
 #endif
-Adafruit_SPIFlash gFlash(&flashTransport);
+Adafruit_SPIFlash gFlash(&flTransport);
 FatFileSystem gFatfs;   // file system object from SdFat
 extern Logger logger;   // Griduino.ino
-
-// ========== debug helper ============================
-static void dumpHex(const char *text, char *buff, int len) {
-  // debug helper to put data on console
-  char out[128];
-  snprintf(out, sizeof(out), ". %s [%d] : '%s' : ", text, len, buff);
-  Serial.print(out);
-  for (int i = 0; i < len; i++) {
-    sprintf(out, "%02x ", buff[i]);
-    Serial.print(out);
-  }
-  Serial.println("");
-}
 
 // ========== delete file =============================
 int SaveRestore::deleteFile(const char *vFilename) {
   int result = 1;   // assume success
-  logger.info("Delete file from SDRAM: ", vFilename);
+  logger.log(FILES, INFO, "Delete file from SDRAM: ", vFilename);
   gFatfs.remove(fqFilename);   // delete file
   return result;
 }
@@ -77,8 +64,7 @@ int SaveRestore::deleteFile(const char *vFilename) {
 int SaveRestore::readConfig(byte *pData, const unsigned int sizeData) {
   // returns 1=success, 0=failure
   int result = 1;   // assume success
-  logger.info("Reading config from SDRAM...");
-  logger.info(". ", fqFilename);
+  logger.log(FILES, INFO, "Reading config: %s", fqFilename);
 
   result = openFlash();   // open file system and report errors
   if (!result) {
@@ -88,56 +74,52 @@ int SaveRestore::readConfig(byte *pData, const unsigned int sizeData) {
   // open config file
   File32 readFile = gFatfs.open(fqFilename, FILE_READ);
   if (!readFile) {
-    logger.error("Error, failed to open config file for reading, ", fqFilename);
+    logger.log(FILES, ERROR, "Failed to open config file for reading, ", fqFilename);
     return 0;
   }
 
   // Echo metadata about the file:
-  logger.info(". Total file size (bytes): %d", readFile.size());
-  // logger.info(". Current position in file: %d", readFile.position());
-  // logger.info(". Available data remaining to read: %d", readFile.available());
+  logger.log(FILES, INFO, ". Total file size (bytes): %d", readFile.size());
+  logger.log(FILES, DEBUG, ". Current position in file: %d", readFile.position());
+  logger.log(FILES, DEBUG, ". Available data remaining to read: %d", readFile.available());
 
   // read first field (filename) from config file...
   char temp[sizeof(fqFilename)];   // buffer size is as large as our largest member variable
   int count = readFile.read(temp, sizeof(fqFilename));
-  // dumpHex("fqFilename", temp, sizeof(fqFilename));   // debug
+  logger.dumpHex(FILES, DEBUG, "fqFilename", temp, sizeof(fqFilename));   // debug
   if (count == -1) {
-    logger.error("Error, failed to read first field, ", fqFilename);
+    logger.log(FILES, ERROR, "failed to read first field, %s", fqFilename);
     return 0;
   }
 
   // verify first field (filename) stored inside file exactly matches expected
   if (strcmp(temp, this->fqFilename) != 0) {
-    logger.error("Error, unexpected filename, ", temp);
+    logger.log(FILES, ERROR, "unexpected filename, %s", temp);
     return 0;
   }
 
   // read second field (version string) from config file...
   count = readFile.read(temp, sizeof(sVersion));
-  // dumpHex("sVersion", temp, sizeof(sVersion));   // debug
+  logger.dumpHex(FILES, DEBUG, "sVersion", temp, sizeof(sVersion));   // debug
   if (count == -1) {
-    logger.error("Error, failed to read version number, ", fqFilename);
+    logger.log(FILES, ERROR, "failed to read version number, %s", fqFilename);
     return 0;
   }
   // verify second field (version string) stored in file exactly matches expected
   if (strcmp(temp, this->sVersion) != 0) {
-    Serial.print("Error, unexpected version, got (");
-    Serial.print(temp);
-    Serial.print(") and expected (");
-    Serial.print(this->sVersion);
-    Serial.println(")");
+    logger.log(FILES, ERROR, "Error, unexpected version, got (%s) and expected(%s)", temp, this->sVersion);
     return 0;
   }
   // data looks good, read third field (setting) and use its value
   count = readFile.read(pData, sizeData);
-  // dumpHex("pData", (char *)pData, sizeData);   // debug
+  logger.dumpHex(FILES, DEBUG, "pData", (char *)pData, sizeData);   // debug
   if (count == -1) {
-    logger.error("Error, failed to read integer value from ", fqFilename);
+    logger.log(FILES, ERROR, "failed to read integer value from %s", fqFilename);
     return 0;
   }
 
-  logger.info(". Data length: %d", sizeData);
-  // logger.info(". Data value: %d", *pData);
+  logger.log(FILES, INFO, ". Data length: %d", sizeData);
+  logger.log(FILES, DEBUG, ". Data value: %d", *pData);
 
   // close files and clean up
   readFile.close();
@@ -154,7 +136,7 @@ int SaveRestore::writeConfig(const byte *pData, const unsigned int sizeData) {
   // initialize configuration file in file system, called by setup() if needed
   // assumes this is Feather M4 Express with 2 MB Quad-SPI flash memory
   // returns 1=success, 0=failure
-  logger.info("Writing config data to flash");
+  logger.log(FILES, INFO, "Writing file: %s", fqFilename);
 
   int result = openFlash();   // open file system and report errors
   if (!result) {
@@ -164,29 +146,28 @@ int SaveRestore::writeConfig(const byte *pData, const unsigned int sizeData) {
   // replace an existing config file
   File32 writeFile = gFatfs.open(fqFilename, O_RDWR | O_CREAT | O_TRUNC);
   if (!writeFile) {
-    logger.error("Error, failed to open config file for writing, ", fqFilename);
+    logger.log(FILES, ERROR, "Failed to open config file for writing, %s", fqFilename);
     return 0;
   }
 
-  logger.info(". fqFilename ", fqFilename);
-  logger.info(". sVersion ", sVersion);
-  logger.info(". Data length %d", sizeData);
+  logger.log(FILES, DEBUG, ". sVersion %s", sVersion);
+  logger.log(FILES, INFO, ". Data length %d", sizeData);
 
   // write config data to file...
   int count;
   count = writeFile.write(fqFilename, sizeof(fqFilename));
   if (count == -1) {
-    logger.error("Error, failed to write filename into ", fqFilename);
+    logger.log(FILES, ERROR, "failed to write filename into %s", fqFilename);
     return 0;
   }
   count = writeFile.write(sVersion, sizeof(sVersion));
   if (count == -1) {
-    logger.error("Error, failed to write version number into ", fqFilename);
+    logger.log(FILES, ERROR, "failed to write version number into %s", fqFilename);
     return 0;
   }
   count = writeFile.write(pData, sizeData);
   if (count == -1) {
-    logger.error("Error, failed to write setting into ", fqFilename);
+    logger.log(FILES, ERROR, "failed to write setting into %s", fqFilename);
     return 0;
   }
 
@@ -202,9 +183,9 @@ int SaveRestore::writeConfig(const byte *pData, const unsigned int sizeData) {
 int SaveRestoreStrings::open(const char *fqFilename, const char *mode) {   // https://cplusplus.com/reference/cstdio/fopen/
   // returns 1=success, 0=failure
   if (*mode == 'w') {
-    logger.info("Writing to file system: ", fqFilename);
+    logger.log(FILES, INFO, "Writing file: %s", fqFilename);
   } else {
-    logger.info("Reading from file system: ", fqFilename);
+    logger.log(FILES, INFO, "Reading file: %s", fqFilename);
   }
 
   int result = openFlash();   // open file system and report errors
@@ -214,30 +195,30 @@ int SaveRestoreStrings::open(const char *fqFilename, const char *mode) {   // ht
   switch (mode[0]) {
   case 'r':
     if (!gFatfs.exists(fqFilename)) {
-      logger.error("File does not exist, ", fqFilename);
+      logger.log(FILES, ERROR, "file does not exist, %s", fqFilename);
       return 0;
     }
 
     handle = gFatfs.open(fqFilename, FILE_READ);
     if (!handle) {
       // failed
-      logger.error("Error, failed to open string file for reading");
+      logger.log(FILES, ERROR, "failed to open string file for reading");
       return 0;
     }
 
     // success
-    logger.info(". Total file size (bytes): %d", handle.size());
+    logger.log(FILES, INFO, ". Total file size (bytes): %d", handle.size());
     break;
   case 'w':
     gFatfs.remove(fqFilename);   // delete previous file (or else it appends data to the end)
     handle = gFatfs.open(fqFilename, FILE_WRITE);
     if (!handle) {
-      logger.error("Error, failed to open string file for writing");
+      logger.log(FILES, ERROR, "failed to open string file for writing, %s", fqFilename);
       return 0;
     }
     break;
   default:
-    logger.error("Error, unknown file mode, ", mode);
+    logger.log(FILES, ERROR, "unknown file mode, %d", mode);
     break;
   }
 
@@ -246,17 +227,14 @@ int SaveRestoreStrings::open(const char *fqFilename, const char *mode) {   // ht
 int SaveRestoreStrings::writeLine(const char *pBuffer) {   // https://cplusplus.com/reference/cstdio/snprintf/
   // we chose to always append EOL to encourage reducing the number of writes
   // QuadSPI ram is slow; you should reduce writes to maximize speed
-  char msg[256];
   int len = strlen(pBuffer);
   if (len > 256) {
-    snprintf(msg, sizeof(msg), "Warning, string length (%d characters) is very long");
-    logger.warning(msg);
+    logger.log(CONFIG, WARNING, "Warning, string length (%d characters) is very long", len);
   }
   int count = handle.print(pBuffer);
   handle.print("\n");   // write eol
   if (count == -1) {
-    snprintf(msg, sizeof(msg), "Error, failed to write line into (%s)", fqFilename);
-    logger.error(msg);
+    logger.log(CONFIG, ERROR, "Error, failed to write line into (%s)", fqFilename);
     return 0;   // failure
   }
   return count;   // success
@@ -279,7 +257,7 @@ int SaveRestoreStrings::readLine(char *pBuffer, int bufflen) {   // https://cplu
 }
 void SaveRestoreStrings::close() {
   // Echo metadata about the file:
-  logger.info(". Total file size (bytes): %d", handle.size());
+  logger.log(FILES, INFO, ". Total file size (bytes): %d", handle.size());
   handle.close();
 }
 
@@ -338,16 +316,16 @@ int SaveRestore::listFiles(const char *dirname) {
   int rc         = 1;   // assume success
   File32 testDir = gFatfs.open(dirname);
   if (!testDir) {
-    logger.error("Error, failed to open directory ", dirname);
+    logger.log(FILES, ERROR, "failed to open directory '%s'", dirname);
     rc = 0;
   }
   if (!testDir.isDirectory()) {
-    logger.error("Error, expected ", dirname, " to be a directory");
+    logger.log(FILES, ERROR, "expected '%s' to be a directory", dirname);
     rc = 0;
   } else {
 
     int count = 1;
-    logger.info("\r\nDirectory of ", dirname);   // announce start of directory listing
+    logger.log(FILES, CONSOLE, "Directory of ", dirname);   // announce start of directory listing
 
     int fileCount = 0;
     int byteCount = 0;
@@ -357,7 +335,7 @@ int SaveRestore::listFiles(const char *dirname) {
       child.getName(filename, sizeof(filename));
 
       if (strlen(filename) == 0) {
-        logger.info("Empty filename, so time to return");   // is this ever triggered?
+        logger.log(FILES, ERROR, "Empty filename, so time to return");   // is this ever triggered?
         rc = 0;
       } else {
 
@@ -375,7 +353,7 @@ int SaveRestore::listFiles(const char *dirname) {
         // increment loop counters
         child = testDir.openNextFile();
         if (++count > 64) {
-          logger.warning("And many more, but I'm stopping here.");
+          logger.log(FILES, WARNING, "And many more, but I'm stopping here.");
           rc = 0;
         }
       }
@@ -383,7 +361,7 @@ int SaveRestore::listFiles(const char *dirname) {
 
     char msg[256];   // report summary for the directory
     snprintf(msg, sizeof(msg), "%12d Files, %d bytes", fileCount, byteCount);
-    logger.info(msg);
+    logger.log(FILES, CONSOLE, msg);
 
     // Now, having listed the FILES, let's loop through again for DIRECTORIES
     testDir = gFatfs.open(dirname);
@@ -393,7 +371,7 @@ int SaveRestore::listFiles(const char *dirname) {
       child.getName(filename, sizeof(filename));
 
       if (strlen(filename) == 0) {
-        logger.info(__LINE__, "Empty filename, so time to return");   // is this ever triggered?
+        logger.log(FILES, ERROR, "Empty filename, so time to return (line %d)", __LINE__);   // is this ever triggered?
         rc = 0;
       } else {
         // Descend into the directory and list its files
@@ -412,14 +390,12 @@ void SaveRestore::showFile(const char *indent, const int count, const char *file
   // Example: "        6240 barometr.dat"
   //          "1...5....0.. filename.ext"
   char msg[256];
-  snprintf(msg, sizeof(msg), "%12d %s", filesize, filename);
-  logger.info(msg);
+  snprintf(msg, sizeof(msg), "%10d %s", filesize, filename);
+  logger.log(FILES, CONSOLE, msg);
 }
 void SaveRestore::showDirectory(const char *dirname) {
   // Example:  "1...5....0.. Griduino  <dir>"
-  Serial.print("             ");
-  Serial.print(dirname);
-  Serial.println("  <dir>");
+  logger.log(FILES, CONSOLE, "             %s  <dir>", dirname);
 
   /* --- this code hangs ---
   char msg[256];
@@ -427,28 +403,28 @@ void SaveRestore::showDirectory(const char *dirname) {
   int w = strlen(dirname);
   int numBlanks = field - w;
   for (int ii=0; ii<numBlanks; ii++) {
-    Serial.print(" ");
+    logger.print(" ");
   }
   snprintf(msg, sizeof(msg),
            "\r\n%sDelectory of %s  <dir>", dirname);
-  logger.info(msg);
+  logger.log(FILES, INFO, msg);
   --- */
 }
 int SaveRestore::typeFile() {   // Echo file contents to console
   int rc   = 1;                 // assume success
   File32 f = gFatfs.open(fqFilename);
   if (!f) {
-    logger.error("Error, failed to open file ", fqFilename);
+    logger.log(FILES, ERROR, "failed to open file '%s'", fqFilename);
     rc = 0;
   } else if (!f.isFile()) {
-    logger.error("Error, ", fqFilename, " is not a file");
+    logger.log(FILES, ERROR, "'%s' is not a file", fqFilename);
     rc = 0;
   } else {
 
     char buffer[128];
     int count = f.fgets(buffer, sizeof(buffer));
     while (count > 0) {
-      Serial.print(buffer);   // print() not println(), since text files include their own CRLF
+      logger.print(buffer);   // print() not println(), since text files include their own CRLF
       count = f.fgets(buffer, sizeof(buffer));
     }
   }
@@ -460,16 +436,18 @@ int SaveRestore::openFlash() {
 
   // Initialize flash library and check its chip ID.
   if (!gFlash.begin()) {
-    logger.error("Error, unable to begin using Flash onboard memory");
+    logger.log(FILES, ERROR, "Error, unable to begin using Flash onboard memory");
     return 0;
   }
-  // Serial.print(". Flash chip JEDEC ID: 0x"); Serial.println(gFlash.getJEDECID(), HEX);
+  uint32_t jedec_id = gFlash.getJEDECID();
+  logger.log(FILES, DEBUG, ". Flash chip JEDEC ID: 0x%X ", jedec_id);
+  logger.log(FILES, DEBUG, ". Flash size (usable): %d KB", gFlash.size() / 1024);
 
   // First call begin to mount the filesystem.  Check that it returns true
   // to make sure the filesystem was mounted.
   if (!gFatfs.begin(&gFlash)) {
-    logger.error("Error, failed to mount filesystem.");
-    logger.error("Was the flash chip formatted with File > Examples > Adafruit SPIFlash > SdFat_format?");
+    logger.log(FILES, ERROR, "Error, failed to mount filesystem.");
+    logger.log(FILES, ERROR, "Was the flash chip formatted with File > Examples > Adafruit SPIFlash > SdFat_format?");
     return 0;
   }
 
@@ -478,14 +456,14 @@ int SaveRestore::openFlash() {
   // Note you should _not_ add a trailing slash (like '/test/') to directory names.
   // You can use the exists() function to check for the existence of a file.
   if (!gFatfs.exists(CONFIG_FOLDER)) {
-    logger.info(". Configuration directory not found, creating...");
+    logger.log(FILES, WARNING, ". Configuration directory not found, creating...");
     gFatfs.mkdir(CONFIG_FOLDER);   // Use mkdir to create directory (note you should _not_ have a trailing slash)
 
     if (!gFatfs.exists(CONFIG_FOLDER)) {
-      logger.error("Error, failed to create directory ", CONFIG_FOLDER);
+      logger.log(FILES, ERROR, "Error, failed to create directory '%s'", CONFIG_FOLDER);
       return 0;
     } else {
-      logger.info(". Created directory ", CONFIG_FOLDER);
+      logger.log(FILES, INFO, ". Created directory " CONFIG_FOLDER);
     }
   }
   return 1;   // indicate success

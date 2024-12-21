@@ -29,8 +29,8 @@
 #include "morse_dac.h"   // Morse sending class
 
 #if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
-  // todo - for now, RP2040 has no DAC, no audio, no speech
-#else 
+// todo - for now, RP2040 has no DAC, no audio, no speech
+#else
 // ========== extern ===========================================
 extern Logger logger;   // Griduino.ino
 
@@ -239,9 +239,9 @@ char getPattern(char c) {
     }
   }
   // character not found in morse code table - should not happen
-  Serial.print("!!! Character '");
-  Serial.print(c);
-  Serial.println("' not found in morsetable[]");
+  char cc[2];
+  snprintf(cc, sizeof(cc), "%c", c);
+  logger.log(AUDIO, ERROR, "!!! character '%s' not found in morsetable[]", cc);
   return 0b1001100;   // = "?"
 }
 
@@ -267,15 +267,10 @@ void DACMorseSender::setMessage(const String newMessage) {
 }
 
 void DACMorseSender::sendBlocking() {
-  if (logger.print_info) {
-    Serial.print("Sending morse ");
-    Serial.print(wpm, 1);
-    Serial.print(" wpm: ");
-    Serial.println(message);
-  }
+  logger.logFloat(AUDIO, INFO, "Sending morse %s wpm", wpm, 1);
   if (dacSampleTime < 1) {
     // note "delayMicroseconds()" only works reliably down to 3 usec
-    logger.error("!!! DAC dacSampleTime < 1 usec. Did you call setup()?");
+    logger.log(AUDIO, ERROR, "DAC dacSampleTime < 1 usec. Did you call setup()?");
   }
 
   for (int ii = 0; ii < message.length(); ii++) {
@@ -297,45 +292,23 @@ void DACMorseSender::dump() {
 void DACMorseSender::unit_test() {
   // unit test routine (todo - not currently called from anywhere, 2022-08)
   char msg[256];
-  logger.info("Begin DAC Morse settings:");
-  snprintf(msg, 256, ". DAC sizeWavetable(%d)", sizeWavetable);
-  Serial.println(msg);
-  snprintf(msg, 256, ". DAC dacPin(%d)", dacPin);
-  Serial.println(msg);
-  snprintf(msg, 256, ". DAC dacAmplitude(%d)", dacAmplitude);
-  Serial.println(msg);
-  snprintf(msg, 256, ". DAC dacOffset(%d)", dacOffset);
-  Serial.println(msg);
-  char sFloat[13];
-  dtostrf(fFrequency, sizeof(sFloat), 1, sFloat);
-  snprintf(msg, 256, ". DAC fFrequency(%s Hz)", sFloat);
-  Serial.println(msg);
-  snprintf(msg, 256, ". DAC sizeWavetable(%d samples)", sizeWavetable);
-  Serial.println(msg);
-  dtostrf(dacSampleTime, 12, 1, sFloat);
-  snprintf(msg, 256, ". DAC dacSampleTime(%s usec)", sFloat);
-  Serial.println(msg);
-  dtostrf(wpm, 15, 1, sFloat);
-  snprintf(msg, 256, ". Morse WPM(%s)", sFloat);
-  Serial.println(msg);
-  dtostrf(fDitDuration, 12, 5, sFloat);
-  snprintf(msg, 256, ". Morse fDitDuration(%s sec)", sFloat);
-  Serial.println(msg);
-  snprintf(msg, 256, ". Morse iDitDuration(%d msec)", iDitDuration);
-  Serial.println(msg);
-  dtostrf(letterSpace, 12, 5, sFloat);
-  snprintf(msg, 256, ". Morse letterSpace(%s sec)", sFloat);
-  Serial.println(msg);
-  dtostrf(wordSpace, 12, 3, sFloat);
-  snprintf(msg, 256, ". Morse wordSpace float(%s sec)", sFloat);
-  Serial.println(msg);
+  logger.log(AUDIO, INFO, "Begin DAC Morse settings:");
+  logger.log(AUDIO, INFO, ". DAC sizeWavetable(%d)", sizeWavetable);
+  logger.log(AUDIO, INFO, ". DAC dacPin(%d)", dacPin);
+  logger.log(AUDIO, INFO, ". DAC dacAmplitude(%d)", dacAmplitude);
+  logger.log(AUDIO, INFO, ". DAC dacOffset(%d)", dacOffset);
+  logger.log(AUDIO, INFO, ". DAC fFrequency(%s Hz)", fFrequency, 1);
+  logger.log(AUDIO, INFO, ". DAC sizeWavetable(%d samples)", sizeWavetable);
+  logger.log(AUDIO, INFO, ". DAC dacSampleTime(%s usec)", dacSampleTime, 1);
+  logger.log(AUDIO, INFO, ". Morse WPM(%s)", wpm, 1);
+  logger.log(AUDIO, INFO, ". Morse fDitDuration(%s sec)", fDitDuration, 5);
+  logger.log(AUDIO, INFO, ". Morse iDitDuration(%d msec)", iDitDuration);
+  logger.log(AUDIO, INFO, ". Morse letterSpace(%s sec)", letterSpace, 5);
+  logger.log(AUDIO, INFO, ". Morse wordSpace float(%s sec)", wordSpace, 3);
   int msec = (int)1000.0 * wordSpace;
-  snprintf(msg, 256, ". Morse wordSpace int (%d msec)", msec);
-  Serial.println(msg);
-  snprintf(msg, 256, ". Morse cyclesPerDit(%d)", cyclesPerDit);
-  Serial.println(msg);
-  snprintf(msg, 256, ". Morse cyclesPerDah(%d)", cyclesPerDah);
-  Serial.println(msg);
-  Serial.println("End settings.");
+  logger.log(AUDIO, INFO, ". Morse wordSpace int (%d msec)", msec);
+  logger.log(AUDIO, INFO, ". Morse cyclesPerDit(%d)", cyclesPerDit);
+  logger.log(AUDIO, INFO, ". Morse cyclesPerDah(%d)", cyclesPerDah);
+  logger.log(AUDIO, INFO, "End settings.");
 }
-#endif // ARDUINO_ADAFRUIT_FEATHER_RP2040
+#endif   // ARDUINO_ADAFRUIT_FEATHER_RP2040

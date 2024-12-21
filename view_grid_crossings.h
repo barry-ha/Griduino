@@ -43,7 +43,7 @@ extern Adafruit_ILI9341 tft;             // Griduino.ino
 extern Breadcrumbs trail;                // model of breadcrumb trail
 extern Model *model;                     // "model" portion of model-view-controller
 
-void floatToCharArray(char* result, int maxlen, double fValue, int decimalPlaces);  // Griduino.ino
+void floatToCharArray(char *result, int maxlen, double fValue, int decimalPlaces);   // Griduino.ino
 
 // ========== class ViewGridCrossing ===========================
 class ViewGridCrossings : public View {
@@ -82,7 +82,7 @@ public:
 
     // char currentGrid4[5];
     // grid.calcLocator(currentGrid4, item.loc.lat, item.loc.lng, 4);
-    //  logger.info("Current grid = ", currentGrid4);   // debug
+    //  logger.log(INFO, "Current grid = ", currentGrid4);   // debug
 
     extractGridCrossings(timeInGrid);   // read GPS history array
     showGridCrossings(timeInGrid);      // show result on screen
@@ -181,7 +181,7 @@ protected:
   const int yRow6   = yRow5 + space;
   const int yRow7   = yRow6 + space;
   const int yRow8   = yRow7 + space;
-  const int yRowBot = 226;   // GMT date on bottom row, "y=226" will match other views
+  const int yRowBot = 230;   // GMT date on bottom row, "y=230" will match other views
 
   const int xGrid      = 6;
   const int xEnterCL   = 158;   // center line for "enter grid"
@@ -280,7 +280,6 @@ protected:
       timeInGrid[jj].exitTimestamp  = (time_t)0;
       timeInGrid[jj].isSet          = false;
     }
-    // Serial.print("At entry: "); dumpCrossingInfo(timeInGrid, 0);   // debug
 
     // walk the entire GPS breadcrumb array
     Location *item = trail.begin();
@@ -326,7 +325,7 @@ protected:
              timeInGrid->enterTimestamp,                                  // enter
              timeInGrid->exitTimestamp,                                   // exit
              (timeInGrid->exitTimestamp - timeInGrid->enterTimestamp));   // elapsed seconds
-    Serial.print(dump);                                                   // debug
+    logger.log(GPS_SETUP, DEBUG, dump);                                   // debug
     if (timeInGrid->isSet) {
       Serial.println(", valid");
     } else {
@@ -368,7 +367,7 @@ protected:
 
       char msg[24];
       date.datetimeToString(msg, sizeof(msg), enterTime, " ?");
-      // logger.error("Internal Error, entered grid before 2020: ", msg);
+      // logger.log(GPS_CONFIG, ERROR, "entered grid before 2020: ", msg);
     }
 
     // if the "enter time" is after now() then we don't want to show negative elapsed time
@@ -378,7 +377,7 @@ protected:
 
       char msg[24];
       date.datetimeToString(msg, sizeof(msg), enterTime, suffix);
-      logger.error("Internal Error, entered grid more than fifty years after 2022: ", msg);
+      logger.log(GPS_SETUP, ERROR, "Internal Error, entered grid more than fifty years after 2022: %s", msg);
     }
 
     // [GRID]
