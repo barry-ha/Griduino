@@ -10,7 +10,7 @@
             to nearby squares. This is intended for ham radio rovers.
 
             +-------------------------------------------+
-            |    -124        CN88  30.1 mi     -122     |...gTopRowY
+            | *  -124        CN88  30.1 mi     -122  >  |...gTopRowY
             |   48 +-----------------------------+......|...gMarginY
             |      |                          *  |      |
             | CN77 |         CN87                | CN97 |...gMiddleRowY
@@ -165,14 +165,17 @@ void drawNumSatellites() {
 }
 
 void drawCoinBatteryVoltage() {
-  setFontSize(0);
-  char sVoltage[12];
-  float coinVoltage = gpsBattery.readCoinBatteryVoltage();
-  floatToCharArray(sVoltage, sizeof(sVoltage), coinVoltage, 2);
-  strcat(sVoltage, "v");
+  // Show battery voltage only on Griduino PCB v7+
+  if (gpsBattery.canReadBattery) {
 
-  // Show battery voltage only on Griduino PCB v7+ (todo)
-  txtGrid[COINBATT].print(sVoltage);
+    setFontSize(0);
+    char sVoltage[12];
+    float coinVoltage = gpsBattery.readCoinBatteryVoltage();
+    floatToCharArray(sVoltage, sizeof(sVoltage), coinVoltage, 2);
+    strcat(sVoltage, "v");
+
+    txtGrid[COINBATT].print(sVoltage);
+  }
 }
 
 void drawAltitude() {

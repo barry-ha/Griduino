@@ -98,10 +98,12 @@ protected:
     tft->drawBitmap(05, 05, iconGear20, 20, 20, cFAINT);         // "settings" upper left
     tft->drawBitmap(300, 5, iconRightArrow18, 14, 18, cFAINT);   // "next screen" upper right
 
-    float volts = gpsBattery.readCoinBatteryVoltage();
-    if (volts < GOOD_BATTERY_MINIMUM) {
-      int iconColor = gpsBattery.getBatteryColor(volts);
-      tft->drawBitmap(36, 06, iconLowBattery, 14, 20, iconColor);   // "low battery" warning
+    if (gpsBattery.canReadBattery) {
+      float volts = gpsBattery.readCoinBatteryVoltage();
+      if (volts < GOOD_BATTERY_MINIMUM) {
+        int iconColor = gpsBattery.getBatteryColor(volts);
+        tft->drawBitmap(36, 06, iconLowBattery, 14, 20, iconColor);   // "low battery" warning
+      }
     }
   }
 

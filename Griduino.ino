@@ -851,6 +851,9 @@ void setup() {
     delay(5000);
   }
 
+  // ----- init ADC to read GPS coin battery
+  gpsBattery.setup();
+
   // ----- all done with setup, show opening view screen
   // at this point, we finished showing the splash screen
   // next up is the Help screen which is already in progress
@@ -1072,7 +1075,7 @@ void loop() {
   }
 
   // periodically log the coin battery's voltage 
-  // todo: sensor exists only on PCB v11+
+  // todo: sensor exists only on PCB v7+
   if (batteryTimer > LOG_COIN_BATTERY_INTERVAL) {
     batteryTimer = 0;
 

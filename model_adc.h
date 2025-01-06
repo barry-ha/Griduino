@@ -24,8 +24,12 @@ private:
 public:
   // Griduino v7 uses Analog input pin A1 to measure 3v coin battery
   BatteryVoltage(int inputPin = A1) {}
+  bool canReadBattery = false;
 
   void setup() {
+    // TODO: figure out if this hardware can measure battery voltage
+    // (PCB v4 cannot read coin battery, v7+ can measure it)
+    canReadBattery = true;   // TODO
   }
 
   uint16_t getBatteryColor(float v) {
