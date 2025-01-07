@@ -852,7 +852,7 @@ void setup() {
   }
 
   // ----- init ADC to read GPS coin battery
-  gpsBattery.setup();
+  gpsBattery.begin();
 
   // ----- all done with setup, show opening view screen
   // at this point, we finished showing the splash screen

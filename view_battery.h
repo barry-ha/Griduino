@@ -41,6 +41,8 @@
 extern Logger logger;                                                                // Griduino.ino
 void floatToCharArray(char *result, int maxlen, double fValue, int decimalPlaces);   // Griduino.ino
 extern BatteryVoltage gpsBattery;                                                    // model_adc.h
+extern void selectNewView(int cmd);                                                  // Griduino.ino
+extern int goto_next_view;                                                           // Griduino.ino
 
 // ========== class ViewBattery =================================
 class ViewBattery : public View {
@@ -157,6 +159,11 @@ void ViewBattery::updateScreen() {
 }   // end updateScreen
 
 void ViewBattery::startScreen() {
+  if (!gpsBattery.canReadBattery) {   // if we CANNOT read the battery
+    selectNewView(goto_next_view);    // advance to next normal user view
+    return;
+  }
+
   // called once each time this view becomes active
   this->clearScreen(this->background);                  // clear screen
   txtValues[0].setBackground(this->background);         // set background for all TextFields in this view
