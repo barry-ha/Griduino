@@ -58,6 +58,8 @@ We temporarily install CircuitPython, which prepares the flash memory file syste
 
 Optional: Griduino can use speech to announce grid lines. To do so, you can install audio recordings of the letters and numbers. These are .WAV files provided on GitHub in the `audio` folder.
 
+If you don't need spoken-word announcements, skip to "Re-install Griduino Program" below.
+
 You only need to install audio files one time.
 
 The idea here is to use the CircuitPython installation (above) which allows the Flash memory to appear as an external USB drive. Then we can copy the "audio" folder to Flash. If, instead, the Griduino software is running then we cannot access its file system from the computer. The first time CircuitPython is installed, it automatically formats Flash memory in a way that remains compatible thereafter.
@@ -101,6 +103,7 @@ You can re-install the Griduino software you saved earlier, or you may download 
 
 1. **Test Griduino's audio playback**<br/>
    - If you installed audio files: Start the Griduino program
+   - Plug a speaker into the speaker jack (or connect to the internal terminal strip).
    - Press the "gear" icon until you see the **Audio Type** screen.<br/>Select **Spoken Word**.<br/>It should immediately announce your grid square.<br/>If it beeps, then Griduino did not find the audio files.
    - Press the "gear" icon until you see the **Speaker Volume** screen.<br/>Press the up/down buttons to adjust a comfortable volume.<br/>It should play an audio sample on each press.
    - To troubleshoot errors, open the **Arduino IDE** and click **Tools** > **Serial Monitor** to read error messages.
@@ -114,7 +117,7 @@ The files are stored in Flash memory in a section of onboard memory. To see the 
 * **Terminal window:** Open a terminal window and send the command "list files", or
 * **CircuitPy:** Reload Griduino with the CircuitPy program and use Windows File Explorer
 
-The files you can expect to see are:
+Some of the files you can expect to see are:
 
 * Directory of audio
    * `19004 0.wav`
