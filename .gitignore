@@ -20,7 +20,7 @@ orders/
 work_in_progress/
 
 # Visual Studio code files
-*.json
+*.theia/*
 .vscode/*
 .vscode/*.json
 .vscode/c_cpp_properties.json
