@@ -96,8 +96,8 @@ const int numCmds = sizeof(cmdList) / sizeof(cmdList[0]);
 
 // ----- functions to implement commands
 void help() {
-  logger.log(COMMAND, CONSOLE, "help");
-  logger.log(COMMAND, CONSOLE, "Available commands are:\n");
+  logger.println("Griduino " PROGRAM_VERSION ", compiled " PROGRAM_COMPILED);
+  logger.println("\nAvailable commands are:");
   for (int ii = 0; ii < numCmds; ii++) {
     if (cmdList[ii].crlf) {
       logger.println();
