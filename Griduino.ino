@@ -717,19 +717,21 @@ void setup() {
   delay(50);
   */
 
-  /* ***** 576000 is for Adafruit Ultimate GPS only 
+  /* ***** 576000 is for Adafruit Ultimate GPS only */
   logger.log(GPS_SETUP, INFO, "Set GPS baud rate to 57600: ");
   logger.log(GPS_SETUP, INFO, PMTK_SET_BAUD_57600);
   GPS.sendCommand(PMTK_SET_BAUD_57600);
   delay(50);
   GPS.begin(57600);
   delay(50);
-  ***** */
+  /* ***** */
 
+  /* *****
   // init Quectel L86 chip to improve USA satellite acquisition
   logger.log(GPS_SETUP, INFO, "$PMTK353,1,0,0,0,0*2A");
   GPS.sendCommand("$PMTK353,1,0,0,0,0*2A");   // search American GPS satellites only (not Russian GLONASS satellites)
   delay(50);
+  ***** */
 
   logger.log(GPS_SETUP, INFO, "Turn on RMC (recommended minimum) and GGA (fix data) including altitude: ");
   logger.log(GPS_SETUP, INFO, PMTK_SET_NMEA_OUTPUT_RMCGGA);
