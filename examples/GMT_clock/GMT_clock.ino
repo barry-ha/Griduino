@@ -353,8 +353,8 @@ void clearScreen() {
 
 // ----- console Serial port helper
 void waitForSerial(int howLong) {
-  // Adafruit Feather M4 Express takes awhile to restore its USB connx to the PC
-  // and the operator takes awhile to restart the console (Tools > Serial Monitor)
+  // Adafruit Feather M4 Express takes awhile to restore its USB connection to the PC
+  // and the operator takes awhile to restart the IDE console (Tools > Serial Monitor)
   // so give them a few seconds for this to settle before sending messages to IDE
   unsigned long targetTime = millis() + howLong * 1000;
   while (millis() < targetTime) {
@@ -421,46 +421,60 @@ void setup() {
 
   // ----- init TFT backlight
   pinMode(TFT_BL, OUTPUT);
-  analogWrite(TFT_BL, 255);   // start at full brightness
+  analogWrite(TFT_BL, 255);   // set backlight to full brightness
 
   // ----- init TFT display
   tft.begin();                  // initialize TFT display
   tft.setRotation(LANDSCAPE);   // 1=landscape (default is 0=portrait)
-  clearScreen();                // note that "begin()" does not clear screen
+  clearScreen();                // note that "begin()" did not clear screen
 
   // ----- init serial monitor (do not "Serial.print" before this, it won't show up in console)
   Serial.begin(115200);   // init for debugging in the Arduino IDE
-  waitForSerial(howLongToWait);
+  waitForSerial(howLongToWait);       // display very first screen
+                                      // AND wait for developer to connect debugging console
 
   // now that Serial is ready and connected (or we gave up)...
-  Serial.println(PROGRAM_NAME " " PROGRAM_VERSION);   // Report our program name to console
+  Serial.println(PROGRAM_TITLE " " PROGRAM_VERSION " " HARDWARE_VERSION);  // Report our program name to console
   Serial.println("Compiled " PROGRAM_COMPILED);       // Report our compiled date
   Serial.println(__FILE__);                           // Report our source code file name
 
   // ----- init GPS
-  GPS.begin(9600);                        // 9600 NMEA is the default baud rate for Adafruit MTK GPS's
-  delay(50);                              // is delay really needed?
-  GPS.sendCommand(PMTK_SET_BAUD_57600);   // set baud rate to 57600
+  GPS.begin(9600);   // 9600 NMEA is the default baud rate for Adafruit MTK GPS's
+  delay(50);         // is delay really needed?
+
+  // ***** 576000 is for Adafruit Ultimate GPS only
+  Serial.println("Set GPS baud rate to 57600: ");
+  Serial.println(PMTK_SET_BAUD_57600);
+  GPS.sendCommand(PMTK_SET_BAUD_57600);
   delay(50);
   GPS.begin(57600);
-  GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);   // turn on RMC (recommended minimum) and GGA (fix data) including altitude
+  Serial.println("Turn on RMC (recommended minimum) and GGA (fix data) including altitude: ");
+  Serial.println(PMTK_SET_NMEA_OUTPUT_RMCGGA);
+  GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
+  delay(50);
 
-  GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);   // 1 Hz update rate
-  // GPS.sendCommand(PMTK_SET_NMEA_UPDATE_200_MILLIHERTZ); // Once every 5 seconds update
+  GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);   // 1 Hz
+  // GPS.sendCommand(PMTK_SET_NMEA_UPDATE_200_MILLIHERTZ); // Every 5 seconds
+  delay(50);
 
   // ----- query GPS
-  Serial.print("Sending command to query GPS Firmware version ");
+  Serial.println("Query GPS Firmware version: ");
   Serial.println(PMTK_Q_RELEASE);    // Echo query to console
   GPS.sendCommand(PMTK_Q_RELEASE);   // Send query to GPS unit
                                      // expected reply: $PMTK705,AXN_2.10...
+  delay(50);
+
+  // ----- init onboard LED
+  pinMode(RED_LED, OUTPUT);           // diagnostics RED LED
 
   // ----- announce ourselves
   startSplashScreen();
 
-  delay(4000);   // milliseconds
+  delay(6000);   // milliseconds
 
-  // ----- init barometer/thermometer
+  // ----- init BMP388 or BMP390 barometer
   if (!baro.begin_SPI(BMP_CS)) {
+    // failed to initialize hardware
     Serial.println("Error, unable to initialize BMP388, check your wiring");
 
 #define RETRYLIMIT 10
@@ -510,6 +524,8 @@ void setup() {
 // "millis()" is number of milliseconds since the Arduino began running the current program.
 // This number will overflow after about 50 days.
 uint32_t prevTimeGPS             = millis();
+
+// GPS_PROCESS_INTERVAL is how frequently to update the model from GPS data.
 const int GPS_PROCESS_INTERVAL   = 1000;   // milliseconds between updating the model's GPS data
 uint32_t prevTimeTouch           = millis();
 const int TOUCH_PROCESS_INTERVAL = 5;   // milliseconds between polling for touches
@@ -524,8 +540,8 @@ void loop() {
     prevTimeTouch = millis();
   }
 
-  GPS.read();   // if you can, read the GPS serial port every millisecond in an interrupt
-                // this sketch reads the serial port continuously during idle time
+  GPS.read();   // if you can, read the GPS serial port every millisecond
+                // this example sketch reads the serial port continuously during idle time
 
   if (GPS.newNMEAreceived()) {
     // sentence received -- verify checksum, parse it
