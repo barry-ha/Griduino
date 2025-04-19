@@ -8,7 +8,7 @@
             "intelliSenseMode": "windows-msvc-x64",
             "includePath": [
                 "${workspaceFolder}/**",
-                "${workspaceFolder}/Griduino/**"
+                "${workspaceFolder}/Griduino/**",
                 "C:/Users/barry/Documents/Arduino/libraries/Adafruit_GFX_library",
                 "C:/Users/barry/Documents/Arduino/libraries/Adafruit_GPS_library/**",
                 "C:/Users/barry/Documents/Arduino/libraries/Adafruit_ILI9341",
