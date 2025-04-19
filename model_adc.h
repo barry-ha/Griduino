@@ -14,21 +14,32 @@
 
 */
 
+// ========== extern ===========================================
+extern Logger logger;   // Griduino.ino
+
 // ========== class BatteryVoltage ==================================
 class BatteryVoltage {
 private:
-  int inputPin;
-  int coinBattery;                               // measured coin battery ADC sample (0..1024)
-  const float voltsPerSample = (3.3 / 1023.0);   // PCB v6+ circuit's reference voltage is Vcc = 3.3 volts
+  const int inputPin         = A2;
+  const float analogRef      = 3.3;      // ADC reference voltage = Vcc = 3.3 volts
+  const float analogBits     = 1024.0;   // ADC resolution is 10 bits = 2^10 = 1024
+  const float voltsPerSample = (analogRef / analogBits);
 
 public:
-  // Griduino v7 uses Analog input pin A1 to measure 3v coin battery
-  BatteryVoltage(int inputPin = A1) {}
-  bool canReadBattery;
+  // Griduino v7 uses Analog input pin As to measure 3v coin battery
+  BatteryVoltage() {}   // ctor
+  bool canReadBattery = false;
 
   void begin() {
-    // TODO: figure out if this hardware can measure battery voltage
-    // (PCB v4 cannot read coin battery, v7+ can measure it)
+    // figure out if this hardware can measure battery voltage
+    // (PCB v4 returns 0.0v, PCB v7+ returns 1.0-3.3v)
+    float coin_voltage = readCoinBatteryVoltage();
+    if (coin_voltage > 0.1) {
+      canReadBattery = true;   // PCB v7+
+    } else {
+      canReadBattery = false;   // PCB 4
+    }
+    logger.logFloat(BATTERY, INFO, "Coin battery = %s volts", coin_voltage, 3);
   }
 
   uint16_t getBatteryColor(float v) {
@@ -42,14 +53,13 @@ public:
   }
 
   float readCoinBatteryVoltage() {
-    const float analogRef     = 3.3;    // analog reference voltage
-    const uint16_t analogBits = 1024;   // ADC resolution is 10 bits = 2^10 = 1024
 
     int coin_adc       = analogRead(BATTERY_ADC);
-    float coin_voltage = (float)coin_adc * analogRef / analogBits;
+    float coin_voltage = (float)coin_adc * voltsPerSample;
+    logger.log(BATTERY, DEBUG, "Coin battery ADC sample = %d", coin_adc);
+    return coin_voltage;   // production release
     // return GOOD_BATTERY_MINIMUM - 0.1;     // debug - show yellow icon
     // return WARNING_BATTERY_MINIMUM - 0.1;   // debug - show red icon
-    return coin_voltage;   // production release
   }
 
 };   // end class BatteryVoltage
