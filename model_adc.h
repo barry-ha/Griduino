@@ -13,9 +13,11 @@
             PCB v4 has no such sensor.
 
 */
+#include "model_crypto.h"
 
 // ========== extern ===========================================
-extern Logger logger;   // Griduino.ino
+extern CryptoAuthentication pcb;   // Griduino.ino / model_crypto.h
+extern Logger logger;              // Griduino.ino
 
 // ========== class BatteryVoltage ==================================
 class BatteryVoltage {
@@ -28,18 +30,14 @@ private:
 public:
   // Griduino v7 uses Analog input pin As to measure 3v coin battery
   BatteryVoltage() {}   // ctor
-  bool canReadBattery = false;
 
   void begin() {
     // figure out if this hardware can measure battery voltage
     // (PCB v4 returns 0.0v, PCB v7+ returns 1.0-3.3v)
-    float coin_voltage = readCoinBatteryVoltage();
-    if (coin_voltage > 0.1) {
-      canReadBattery = true;   // PCB v7+
-    } else {
-      canReadBattery = false;   // PCB 4
+    if (pcb.canReadBattery) {
+      float coin_voltage = readCoinBatteryVoltage();
+      logger.logFloat(BATTERY, INFO, "Coin battery = %s volts", coin_voltage, 3);
     }
-    logger.logFloat(BATTERY, INFO, "Coin battery = %s volts", coin_voltage, 3);
   }
 
   uint16_t getBatteryColor(float v) {

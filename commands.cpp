@@ -16,6 +16,7 @@
 #include <elapsedMillis.h>       // Scheduling intervals in main loop
 #include "logger.h"              // conditional printing to Serial port
 #include "model_breadcrumbs.h"   // breadcrumb trail
+#include "model_crypto.h"        // sha204 protected storage
 #include "model_gps.h"           // Model of a GPS for model-view-controller
 #include "model_baro.h"          // Model of a barometer that stores 3-day history
 #include "view.h"                // View base class, public interface

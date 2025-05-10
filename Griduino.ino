@@ -288,6 +288,12 @@ int fGetDataSource() {
 bool waitingForRTC = true;   // true=waiting for GPS hardware to give us the first valid date/time
 
 //==============================================================
+//    Serial Number model
+//==============================================================
+#include "model_crypto.h"
+CryptoAuthentication pcb;
+
+//==============================================================
 //    Breadcrumb Trail model
 //==============================================================
 #include "model_breadcrumbs.h"
@@ -697,6 +703,10 @@ void setup() {
   logger.log(CONFIG, INFO, PROGRAM_TITLE " " PROGRAM_VERSION " " HARDWARE_VERSION);  // Report our program name to console
   logger.log(CONFIG, INFO, "Compiled " PROGRAM_COMPILED);       // Report our compiled date
   logger.log(CONFIG, INFO, __FILE__);                           // Report our source code file name
+
+  // ----- read ATSHA204 chip to get serial number, PCB revision, coin battery sensor
+  logger.log(CONFIG, INFO, "Initialize Atmel CryptoAuthentication ATSHA204A chip...");
+  pcb.begin();
 
   // ----- init NMEA broadcasting on/off
   logger.log(CONFIG, INFO, "Starting cfgNMEA.loadConfig()...");

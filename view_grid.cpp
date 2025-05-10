@@ -166,7 +166,7 @@ void drawNumSatellites() {
 
 void drawCoinBatteryVoltage() {
   // Show battery voltage only on Griduino PCB v7+
-  if (gpsBattery.canReadBattery) {
+  if (pcb.canReadBattery) {
 
     setFontSize(0);
     char sVoltage[12];

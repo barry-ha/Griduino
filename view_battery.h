@@ -159,8 +159,8 @@ void ViewBattery::updateScreen() {
 }   // end updateScreen
 
 void ViewBattery::startScreen() {
-  if (!gpsBattery.canReadBattery) {   // if we CANNOT read the battery
-    selectNewView(goto_next_view);    // advance to next normal user view
+  if (!pcb.canReadBattery) {         // if we CANNOT read the battery
+    selectNewView(goto_next_view);   // advance to next normal user view
     return;
   }
 

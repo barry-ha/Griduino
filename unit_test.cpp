@@ -13,6 +13,7 @@
 #include "save_restore.h"        // Configuration data in nonvolatile RAM
 #include "logger.h"              // conditional printing to Serial port
 #include "model_breadcrumbs.h"   // breadcrumb trail
+#include "model_crypto.h"        // sha204 protected storage
 #include "model_gps.h"           // Class Model (for model-view-controller)
 #include "TextField.h"           // Optimize TFT display text for proportional fonts
 #include "view.h"                // Base class for all views
