@@ -97,7 +97,7 @@ public:
   BarometerModel() : baro(&Wire1) {}
 #else
   // BMP388 and BMP390 Constructor
-  Adafruit_BMP3XX baro;   // has-a hardware-managing class object, use SPI interface
+  Adafruit_BMP3XX baro;   // has-a hardware-managing class object, use SPI or I2C interface
   BarometerModel(int vChipSelect = BMP_CS) {
     bmp_cs = vChipSelect;
   }
@@ -115,16 +115,26 @@ public:
   //  use difference between altimeter setting and station pressure: https://www.weather.gov/epz/wxcalc_altimetersetting
   float elevCorr = 0;   // todo: unused for now, review and change if needed
 
-  // init BMP388 or BMP390 barometer
+  // ----- init BMP380, BMP388 or BMP390 barometer
   int begin(void) {
     int rc = 1;   // assume success
-#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
-    Wire1.begin();
-    bool initialized = baro.begin(0x76, 0x58);   // Griduino v7 pcb, I2C
-#else
+
     bool initialized = baro.begin_SPI(bmp_cs);   // Griduino v4 pcb, SPI
-                                                 // bool initialized = baro.begin_I2C();   // Griduino v11 pcb, I2C
-#endif
+    if (initialized) {
+      // success - SPI
+      logger.log(BARO, INFO, "successfully initialized barometric sensor with SPI");
+
+    } else {
+      initialized = baro.begin_I2C(BMP3XX_DEFAULT_ADDRESS, &Wire);   // Griduino v7+ pcb, I2C
+      if (initialized) {
+        // success - I2C
+        logger.log(BARO, INFO, "successfully initialized barometric sensor with I2C");
+      } else {
+        // failed
+        logger.log(BARO, ERROR, "unable to initialize Bosch pressure sensor");
+      }
+    }
+
     if (initialized) {
       //  IIR:
       //       An "infinite impulse response" filter intended to remove short-term
@@ -166,38 +176,35 @@ public:
 
       // Get and discard the first data point
       // Repeated because first reading is always bad, until iir oversampling buffers are populated
-      //     for (int ii = 0; ii < 4; ii++) {
-      //       baro->performReading();   // read hardware
-      //        delay(50);
-      //      }
-      //
+      for (int ii = 0; ii < 4; ii++) {
+        baro.performReading();   // read hardware
+        delay(25);
+      }
+
     } else {
-      logger.log(BARO, ERROR, "unable to initialize Bosch pressure sensor");
-#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
-      uint8_t id = baro.sensorID();
+      uint8_t id = baro.chipID();
       switch (id) {
       case 0x00:
-        logger.log(BARO, ERROR, "ID of 0x00 means no response from pressure sensor hardware");
+        logger.log(BARO, ERROR, "ID = 0x00 = no response from pressure sensor hardware");
         break;
       case 0xFF:
-        logger.log(BARO, ERROR, "ID of 0xFF probably means a bad address, a BMP 180 or BMP 085");
+        logger.log(BARO, ERROR, "ID = 0xFF = a bad address, a BMP 180 or BMP 085");
         break;
       case 0x56:
       case 0x57:
       case 0x58:
-        logger.log(BARO, ERROR, "ID of 0x56-0x58 represents a BMP 280");
+        logger.log(BARO, ERROR, "ID = 0x56-0x58 = a BMP 280");
         break;
       case 0x60:
-        logger.log(BARO, ERROR, "ID of 0x60 represents a BME 280");
+        logger.log(BARO, ERROR, "ID = 0x60 = a BME 280");
         break;
       case 0x61:
-        logger.log(BARO, ERROR, "ID of 0x61 represents a BME 680");
+        logger.log(BARO, ERROR, "ID = 0x61 = a BME 680");
         break;
       default:
-        logger.log(BARO, ERROR, "ID is not a recognized pressure sensor");
+        logger.log(BARO, ERROR, "ID = %d = not a recognized pressure sensor", id);
         break;
       }
-#endif
       rc = 0;   // return failure
     }
     return rc;
