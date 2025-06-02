@@ -705,12 +705,13 @@ void setup() {
   logger.log(CONFIG, INFO, __FILE__);                           // Report our source code file name
 
   // ----- read ATSHA204 chip to get serial number, PCB revision, coin battery sensor
-  logger.log(CONFIG, INFO, "Initialize Atmel CryptoAuthentication ATSHA204A chip...");
   pcb.begin();
 
   // ----- init NMEA broadcasting on/off
-  logger.log(CONFIG, INFO, "Starting cfgNMEA.loadConfig()...");
-  cfgNMEA.loadConfig();
+  cfgNMEA.begin();
+  
+  // ----- init ADC to read GPS coin battery
+  gpsBattery.begin();
 
   // ----- init GPS
   GPS.begin(9600);   // 9600 NMEA is the default baud rate for Adafruit MTK GPS's
@@ -845,7 +846,7 @@ void setup() {
   if (baroModel.loadHistory()) {
     logger.log(CONFIG, INFO, "Successfully restored barometric pressure log");
   } else {
-    logger.log(CONFIG, WARNING, "Failed to load barometric pressure log, re-initializing file");
+    logger.log(CONFIG, ERROR, "Failed to load barometric pressure log, re-initializing file");
     baroModel.saveHistory();
   }
 
@@ -854,6 +855,7 @@ void setup() {
     // success
   } else {
     // failed to initialize hardware
+    // the baro "model" is designed to be unaware of other hardware (like the display)
     tft.fillScreen(cBACKGROUND);
     tft.setCursor(0, 48);
     tft.setTextColor(cWARN);
@@ -862,9 +864,6 @@ void setup() {
     logger.log(BARO, ERROR, "Unable to init barometric sensor");
     delay(5000);
   }
-
-  // ----- init ADC to read GPS coin battery
-  gpsBattery.begin();
 
   // ----- all done with setup, show opening view screen
   // at this point, we finished showing the splash screen

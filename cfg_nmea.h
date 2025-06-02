@@ -46,6 +46,10 @@ public:
     background     = cBACKGROUND;   // every view can have its own background color
     selectedOption = SILENT;        // SEND_NMEA;     // power-on default [NMEA]: assume a program like NMEATime2 is listening
   }
+  void begin() {
+    logger.log(CONFIG, INFO, "Starting cfgNMEA.loadConfig()...");
+    this->loadConfig();
+  }
   void updateScreen();
   void startScreen();
   void endScreen();

@@ -1,6 +1,6 @@
 #pragma once   // Please format this file with clang before check-in to GitHub
 /*
-  File:     morse_crypto.h
+  File:     moodel_crypto.h
 
   Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
   Hardware: John Vanderbeck, KM7O, Seattle, WA
@@ -41,6 +41,7 @@ public:
   int pcbRevision = 0;   // todo
 
   void begin() {
+    logger.log(CONFIG, INFO, "Initialize Atmel CryptoAuthentication ATSHA204A chip...");
 
     // Remember to set BUFFER_LENGTH to at 64 in Wire.h
     Wire.begin();

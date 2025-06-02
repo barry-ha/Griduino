@@ -7,7 +7,7 @@
 
          The interface to this class provides:
          1. Constructor                               BarometerModel baroModel();
-         2. Init hardware                             begin();
+         2. Init ourself and our hardware             begin();
          3. Read barometer for ongoing display        baro.getBaroPressure();
          4. Read-and-save barometer for data logger   baro.logPressure( rightnow );
          5. Load history from NVR                     baro.loadHistory();
