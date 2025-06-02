@@ -118,6 +118,11 @@ const float BAD_BATTERY_MAXIMUM     = (2.00);   // red, if below this voltage
 #define cWARN          0xF844           // brighter than ILI9341_RED but not pink
 #define cTOUCHTARGET   ILI9341_RED      // outline touch-sensitive areas
 
+#define cCOMPASSPOINTER ILI9341_YELLOW   // TFT_Compass.h
+#define cCOMPASSCIRCLE  ILI9341_GREEN    //
+#define cCOMPASSPIVOT   ILI9341_RED      //
+#define cCOMPASSLETTERS ILI9341_RED      //
+
 // plot vehicle and breadcrumb trail
 #define cBREADCRUMB ILI9341_CYAN   //
 #define cVEHICLE    0xef7d         // light gray (white is too bright)
