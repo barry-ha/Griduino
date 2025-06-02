@@ -3,26 +3,23 @@
   Blink
   Turns on an LED on for one second, then off for one second, repeatedly.
 
+  LED_BUILTIN is set to the correct LED pin independent of which board is used.
+
   This example code is in the public domain.
- */
 
-// Pin 13 has an LED connected on most Arduino boards.
-// Pin 11 has the LED on Teensy 2.0
-// Pin 6  has the LED on Teensy++ 2.0
-// Pin 13 has the LED on Teensy 3.0
-// give it a name:
-int led = 13;
+  https://www.arduino.cc/en/Tutorial/BuiltInExamples/Blink
+*/
 
-// the setup routine runs once when you press reset:
+// the setup function runs once when you press reset or power the board
 void setup() {
-  // initialize the digital pin as an output.
-  pinMode(led, OUTPUT);
+  // initialize digital pin LED_BUILTIN as an output.
+  pinMode(LED_BUILTIN, OUTPUT);
 }
 
-// the loop routine runs over and over again forever:
+// the loop function runs over and over again forever
 void loop() {
-  digitalWrite(led, HIGH);   // turn the LED on (HIGH is the voltage level)
-  delay(1000);               // wait for a second
-  digitalWrite(led, LOW);    // turn the LED off by making the voltage LOW
-  delay(1000);               // wait for a second
+  digitalWrite(LED_BUILTIN, HIGH);   // turn the LED on (HIGH is the voltage level)
+  delay(1000);                       // wait for a second
+  digitalWrite(LED_BUILTIN, LOW);    // turn the LED off by making the voltage LOW
+  delay(1000);                       // wait for a second
 }

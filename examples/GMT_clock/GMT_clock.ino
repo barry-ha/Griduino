@@ -429,14 +429,14 @@ void setup() {
   clearScreen();                // note that "begin()" did not clear screen
 
   // ----- init serial monitor (do not "Serial.print" before this, it won't show up in console)
-  Serial.begin(115200);   // init for debugging in the Arduino IDE
-  waitForSerial(howLongToWait);       // display very first screen
-                                      // AND wait for developer to connect debugging console
+  Serial.begin(115200);           // init for debugging in the Arduino IDE
+  waitForSerial(howLongToWait);   // display very first screen
+                                  // AND wait for developer to connect debugging console
 
   // now that Serial is ready and connected (or we gave up)...
-  Serial.println(PROGRAM_TITLE " " PROGRAM_VERSION " " HARDWARE_VERSION);  // Report our program name to console
-  Serial.println("Compiled " PROGRAM_COMPILED);       // Report our compiled date
-  Serial.println(__FILE__);                           // Report our source code file name
+  Serial.println(PROGRAM_TITLE " " PROGRAM_VERSION " " HARDWARE_VERSION);   // Report our program name to console
+  Serial.println("Compiled " PROGRAM_COMPILED);                             // Report our compiled date
+  Serial.println(__FILE__);                                                 // Report our source code file name
 
   // ----- init GPS
   GPS.begin(9600);   // 9600 NMEA is the default baud rate for Adafruit MTK GPS's
@@ -465,7 +465,7 @@ void setup() {
   delay(50);
 
   // ----- init onboard LED
-  pinMode(RED_LED, OUTPUT);           // diagnostics RED LED
+  pinMode(RED_LED, OUTPUT);   // diagnostics RED LED
 
   // ----- announce ourselves
   startSplashScreen();
@@ -523,7 +523,7 @@ void setup() {
 //=========== main work loop ===================================
 // "millis()" is number of milliseconds since the Arduino began running the current program.
 // This number will overflow after about 50 days.
-uint32_t prevTimeGPS             = millis();
+uint32_t prevTimeGPS = millis();
 
 // GPS_PROCESS_INTERVAL is how frequently to update the model from GPS data.
 const int GPS_PROCESS_INTERVAL   = 1000;   // milliseconds between updating the model's GPS data
