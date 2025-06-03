@@ -2,16 +2,18 @@
 //------------------------------------------------------------------------------
 //  File name: TFT_Compass.h
 //
-//  Description: A class that draws a directional arrow on 320x240 TFT display
+//  Description: A class that draws a directional arrow and vehicle speed on 320x240 TFT display
 //
 //  Version history:
 //            2025-06-01 created
 //
 // Example Usage:
 //      Declare             TFT_Compass compass(tft);
-//      Draw compass rose   compass.rose();
+//      Draw compass rose   compass.rose(center, radius);
 //      Draw pointer        compass.draw(angle in degrees);
 //      Force redraw        compass.dirty();
+//      Draw speedometer    compass.drawSpeedometer(mph, coord);
+//      Erase speedometer   compass.eraseSpeedometer(newAngle, oldAngle);
 //
 //  Notes:
 //      1. Optimized pointer will not redraw given the same angle
@@ -30,24 +32,26 @@ public:
   int oldDegrees = 0;       // previous compass pointer angle
   Point old0, old1, old2;   // cached corners of triangle pointer
   bool dirty = true;        // true=force redraw even if old=new
-  Adafruit_ILI9341 *tft;    // an instance of the TFT Display
 
   // screen coordinates
-  const Point center     = {320 / 2, 240 / 2};   // center point of triangle (and screen)
-  const int radiusCircle = 90;                   // outer edge of compass
-  const int base         = 28;                   // base width of triangle
-  const int height       = 58;                   // height of triangle
+  const Point center;       // screen coord of center of compass
+  const int radiusCircle;   //
+  const int base   = 26;    // base width of triangle
+  const int height = 56;    // height of triangle
+  const Point upperSpeedometer;
+  const Point lowerSpeedometer;
 
-  const Point p0 = {center.x - base / 2, center.y};   // starting corners of triangular pointer
-  const Point p1 = {center.x + base / 2, center.y};
-  const Point p2 = {center.x + 0, center.y - height};
+  Point p0, p1, p2;        // starting corners of triangular pointer
+  Adafruit_ILI9341 *tft;   // an instance of the TFT Display
 
-  // ctor
-  TFT_Compass(Adafruit_ILI9341 *vtft)
-      : tft(vtft) {
+  TFT_Compass(Adafruit_ILI9341 *vtft, Point vcenter, int vradius, Point vupper, Point vlower)   // ctor
+      : tft(vtft), center(vcenter), radiusCircle(vradius), upperSpeedometer(vupper), lowerSpeedometer(vlower) {
+    p0 = {center.x - base / 2, center.y};   // starting corners of triangular pointer
+    p1 = {center.x + base / 2, center.y};
+    p2 = {center.x + 0, center.y - height};
   }
 
-  void rose() {
+  void rose(Point center, int radiusCircle) {
     // ----- draw compass rose
     tft->drawCircle(center.x, center.y, radiusCircle, cCOMPASSCIRCLE);
 
@@ -79,7 +83,7 @@ public:
     return result;
   }
 
-  //=========== main work routine ===================================
+  //=========== main work routines ===================================
   void draw(int degrees) {
     if (degrees != oldDegrees || dirty) {
       float angle = 2.0 * PI * degrees / 360.0;
@@ -101,4 +105,46 @@ public:
       tft->fillCircle(center.x, center.y, 4, cCOMPASSPIVOT);
     }
   }
+
+  void drawSpeedometer(int speed, int angle) {
+    // speed = mph, 0..99
+    // angle = direction of travel, degrees 0..359
+    Point speedLoc = (90 <= angle && angle < 270) ? upperSpeedometer : lowerSpeedometer;
+
+    int spd = constrain(speed, 0, 99);
+    tft->setCursor(speedLoc.x, speedLoc.y);
+    tft->setTextColor(cCOMPASSLETTERS, cBACKGROUND);
+    tft->setTextSize(3);
+    char buf[8];
+    snprintf(buf, sizeof(buf), "%2d mph", spd);   // pad leading blank
+    tft->print(buf);
+  }
+
+  void eraseSpeedometer(int newAngle, int oldAngle) {
+    // "if pointer is DOWN and was previously UP, then erase lower speedometer"
+    // "if pointer is UP and was previously DOWN, then erase upper speedometer"
+    //
+    // newAngle = current direction of travel, degrees 0..359
+    // oldAngle = previous direction of travel, degrees 0..359
+    int16_t x1, y1;
+    uint16_t w, h;
+
+    // ----- erasing
+    if (90 <= newAngle && newAngle < 270) {
+      // pointer is pointing down
+      if (oldAngle <= 90 || oldAngle >= 270) {
+        // but previously was pointing up... erase lower speedometer
+        tft->getTextBounds("99 mph", lowerSpeedometer.x, lowerSpeedometer.y, &x1, &y1, &w, &h);
+        tft->fillRect(x1, y1, w, h, cBACKGROUND);
+      }
+    } else {
+      // pointer is pointing up
+      if (oldAngle >= 90 && oldAngle <= 270) {
+        // but previously was pointing down... erase upper speedometer
+        tft->getTextBounds("99 mph", upperSpeedometer.x, upperSpeedometer.y, &x1, &y1, &w, &h);
+        tft->fillRect(x1, y1, w, h, cBACKGROUND);
+      }
+    }
+  }
+
 };   // end class TFT_Compass

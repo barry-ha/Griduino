@@ -90,7 +90,7 @@ const int OFF       = 0;     // = turned off
 
 // ------- Coin Battery good/bad thresholds ---------
 const float GOOD_BATTERY_MINIMUM    = (2.25);   // green, if above this voltage
-const float WARNING_BATTERY_MINIMUM = (2.00);   // yellow, if above this voltage
+const float WARNING_BATTERY_MINIMUM = (2.10);   // yellow, if above this voltage
 const float BAD_BATTERY_MAXIMUM     = (2.00);   // red, if below this voltage
 
 // ----- Griduino color scheme
@@ -113,15 +113,14 @@ const float BAD_BATTERY_MAXIMUM     = (2.00);   // red, if below this voltage
 #define cFAINTER       0x04B2           // rgb(0,128,128) = hsl(180,100,29%) = blue, between CYAN and DARKCYAN
 #define cBOXDEGREES    0x0410           // rgb(0,128,128) = hsl(180,100,25%) = blue, between CYAN and DARKCYAN
 #define cBUTTONLABEL   ILI9341_YELLOW   //
-#define cCOMPASS       ILI9341_BLUE     // a little darker than cBUTTONOUTLINE
 #define cSTATUS        0xFC10           // 255, 128, 128 = lavender
 #define cWARN          0xF844           // brighter than ILI9341_RED but not pink
 #define cTOUCHTARGET   ILI9341_RED      // outline touch-sensitive areas
 
-#define cCOMPASSPOINTER ILI9341_YELLOW   // TFT_Compass.h
-#define cCOMPASSCIRCLE  ILI9341_GREEN    //
-#define cCOMPASSPIVOT   ILI9341_RED      //
-#define cCOMPASSLETTERS ILI9341_RED      //
+#define cCOMPASSPOINTER ILI9341_YELLOW  // TFT_Compass.h
+#define cCOMPASSCIRCLE  ILI9341_GREEN   //
+#define cCOMPASSPIVOT   ILI9341_RED     //
+#define cCOMPASSLETTERS ILI9341_RED     //
 
 // plot vehicle and breadcrumb trail
 #define cBREADCRUMB ILI9341_CYAN   //
