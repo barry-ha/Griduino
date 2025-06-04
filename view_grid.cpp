@@ -81,10 +81,10 @@ TextField txtGrid[] = {
   TextField("123'",   62,196,  cSTATUS, ALIGNRIGHT),  // ALTITUDE: just above bottom row
   TextField("99#",   313,221,  cSTATUS, ALIGNRIGHT),  // NUMSAT: lower right corner
   TextField("75F",   313,196,  cSTATUS, ALIGNRIGHT),  // TEMPERATURE
-  TextField( "N",    156, 47,  cCOMPASS ),      // N_COMPASS: centered left-right
-  TextField( "S",    156,181,  cCOMPASS ),      // S_COMPASS
-  TextField( "E",    232,114,  cCOMPASS ),      // E_COMPASS: centered top-bottom
-  TextField( "W",     73,114,  cCOMPASS ),      // W_COMPASS
+  TextField( "N",    156, 47,  cCOMPASSLETTERS ),      // N_COMPASS: centered left-right
+  TextField( "S",    156,181,  cCOMPASSLETTERS ),      // S_COMPASS
+  TextField( "E",    232,114,  cCOMPASSLETTERS ),      // E_COMPASS: centered top-bottom
+  TextField( "W",     73,114,  cCOMPASSLETTERS ),      // W_COMPASS
   TextField("17.1",  180, 20,  cDISTANCE),      // N_DISTANCE
   TextField("52.0",  180,207,  cDISTANCE),      // S_DISTANCE
   TextField("13.2",  256,130,  cDISTANCE),      // E_DISTANCE

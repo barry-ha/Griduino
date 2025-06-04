@@ -1,13 +1,13 @@
 #pragma once   // Please format this file with clang before check-in to GitHub
 
 // ------- Identity for splash screen and console --------
-#define PROGRAM_TITLE "Griduino"
+#define PROGRAM_TITLE "GMT Clock"
 #if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
 #define PROGRAM_VERSION "v1.14"
 #else
-#define PROGRAM_VERSION "v1.14.5"
+#define PROGRAM_VERSION "v1.14.6"
 #endif
-#define HARDWARE_VERSION "Rev 4"   // Rev 4 | Rev 7 | Rev 12
+#define HARDWARE_VERSION "Rev 4"   // Rev 4 | Rev 7 | Rev 12 | Rev 14
 #define PROGRAM_LINE1    "Barry K7BWH"
 #define PROGRAM_LINE2    "John KM7O"
 #define PROGRAM_VERDATE  PROGRAM_VERSION ", compiled " __DATE__
@@ -90,7 +90,7 @@ const int OFF       = 0;     // = turned off
 
 // ------- Coin Battery good/bad thresholds ---------
 const float GOOD_BATTERY_MINIMUM    = (2.25);   // green, if above this voltage
-const float WARNING_BATTERY_MINIMUM = (2.00);   // yellow, if above this voltage
+const float WARNING_BATTERY_MINIMUM = (2.10);   // yellow, if above this voltage
 const float BAD_BATTERY_MAXIMUM     = (2.00);   // red, if below this voltage
 
 // ----- Griduino color scheme
@@ -113,10 +113,14 @@ const float BAD_BATTERY_MAXIMUM     = (2.00);   // red, if below this voltage
 #define cFAINTER       0x04B2           // rgb(0,128,128) = hsl(180,100,29%) = blue, between CYAN and DARKCYAN
 #define cBOXDEGREES    0x0410           // rgb(0,128,128) = hsl(180,100,25%) = blue, between CYAN and DARKCYAN
 #define cBUTTONLABEL   ILI9341_YELLOW   //
-#define cCOMPASS       ILI9341_BLUE     // a little darker than cBUTTONOUTLINE
 #define cSTATUS        0xFC10           // 255, 128, 128 = lavender
 #define cWARN          0xF844           // brighter than ILI9341_RED but not pink
 #define cTOUCHTARGET   ILI9341_RED      // outline touch-sensitive areas
+
+#define cCOMPASSPOINTER ILI9341_YELLOW  // TFT_Compass.h
+#define cCOMPASSCIRCLE  ILI9341_GREEN   //
+#define cCOMPASSPIVOT   ILI9341_RED     //
+#define cCOMPASSLETTERS ILI9341_BLUE    //
 
 // plot vehicle and breadcrumb trail
 #define cBREADCRUMB ILI9341_CYAN   //

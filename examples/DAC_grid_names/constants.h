@@ -1,16 +1,24 @@
 #pragma once   // Please format this file with clang before check-in to GitHub
 
 // ------- Identity for splash screen and console --------
-#define PROGRAM_TITLE    "Griduino"
-#define PROGRAM_VERSION  "v1.14"
+#define PROGRAM_TITLE    "DAC Grid Names"
+#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
+#define PROGRAM_VERSION "v1.14"
+#else
+#define PROGRAM_VERSION "v1.14.6"
+#endif
+#define HARDWARE_VERSION "Rev 4"   // Rev 4 | Rev 7 | Rev 12 | Rev 14
 #define PROGRAM_LINE1    "Barry K7BWH"
 #define PROGRAM_LINE2    "John KM7O"
+#define PROGRAM_VERDATE  PROGRAM_VERSION ", compiled " __DATE__
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
+#define PROGRAM_FILE     __FILE__
+#define PROGRAM_GITHUB   "https://github.com/barry-ha/Griduino"
 
 // ------- Select testing features ---------
-// #define ECHO_GPS                    // use this to see GPS detailed info on IDE console for debug
+// #define SCOPE_OUTPUT  A0            // use this for performance measurements with oscilloscope
 // #define SHOW_SCREEN_BORDER          // use this to outline the screen's displayable area
-// #define SHOW_SCREEN_CENTERLINE      // use this visual aid to help layout the screen
+// #define SHOW_IGNORED_PRESSURE       // use this to see barometric pressure readings that are out of range and therefore ignored
 
 // ------- TFT screen definitions ---------
 #define gScreenWidth  320   // screen pixels wide
@@ -25,15 +33,25 @@
 const float gridWidthDegrees  = 2.0;   // horiz E-W size of one grid square, degrees
 const float gridHeightDegrees = 1.0;   // vert N-S size of one grid square, degrees
 
-#define feetPerMeters 3.28084                 // altitude conversion
-#define mphPerKnots   1.15078                 // speed conversion
+const double minLong = gridWidthDegrees / gBoxWidth;     // longitude degrees from one pixel to the next (minimum visible movement)
+const double minLat  = gridHeightDegrees / gBoxHeight;   // latitude degrees from one pixel to the next
+
+#define feetPerMeters         (3.28084)       // altitude conversion
+#define mphPerKnots           (1.15078)       // speed conversion
+#define mphPerMetersPerSecond (0.44704)       // speed conversion
 const double degreesPerRadian = 57.2957795;   // conversion factor = (360 degrees)/(2 pi radians)
 
+#define SECS_PER_1MIN  ((time_t)(60UL))
 #define SECS_PER_5MIN  ((time_t)(300UL))
+#define SECS_PER_10MIN ((time_t)(600UL))
 #define SECS_PER_15MIN ((time_t)(900UL))
 
 #define DEFAULT_SEALEVEL_PASCALS (101740.0)
 #define DEFAULT_SEALEVEL_HPA     (1017.40)
+
+#define FIRST_RELEASE_YEAR  (2019)   // this date can help filter out bogus GPS timestamps
+#define FIRST_RELEASE_MONTH (12)
+#define FIRST_RELEASE_DAY   (19)
 
 // ----- load/save configuration using SDRAM
 // #define EXTERNAL_FLASH_USE_QSPI     // 2020-02-11 added by BarryH, since it seems to be missing from
@@ -41,9 +59,11 @@ const double degreesPerRadian = 57.2957795;   // conversion factor = (360 degree
 #define CONFIG_FOLDER "/Griduino"
 
 // ----- alias names for SCREEN_ROTATION
-enum {
-  LANDSCAPE         = 1,   // 1=landscape
-  FLIPPED_LANDSCAPE = 3,   // 3=landscape 180-degrees
+enum Rotation {
+  PORTRAIT          = 0,   //   0 degrees = portrait
+  LANDSCAPE         = 1,   //  90 degrees = landscape
+  FLIPPED_PORTRAIT  = 2,   // 180 degrees = portrait flipped 180-degrees
+  FLIPPED_LANDSCAPE = 3,   // 270 degrees = landscape flipped 180-degrees
 };
 
 // ----- alias names for fGetDataSource()
@@ -68,6 +88,11 @@ const int BRIGHT    = 32;    // = tolerably bright indoors
 const int HALFBR    = 20;    // = half of tolerably bright
 const int OFF       = 0;     // = turned off
 
+// ------- Coin Battery good/bad thresholds ---------
+const float GOOD_BATTERY_MINIMUM    = (2.25);   // green, if above this voltage
+const float WARNING_BATTERY_MINIMUM = (2.10);   // yellow, if above this voltage
+const float BAD_BATTERY_MAXIMUM     = (2.00);   // red, if below this voltage
+
 // ----- Griduino color scheme
 // RGB 565 true color: https://chrishewett.com/blog/true-rgb565-colour-picker/
 #define BACKGROUND     0x00A            // a little darker than ILI9341_NAVY
@@ -81,17 +106,25 @@ const int OFF       = 0;     // = turned off
 #define cHIGHLIGHT     ILI9341_WHITE    //
 #define cBUTTONFILL    ILI9341_NAVY     //
 #define cBUTTONOUTLINE 0x0514           // was ILI9341_CYAN
-#define cBREADCRUMB    ILI9341_CYAN     //
 #define cTITLE         ILI9341_GREEN    //
-#define cTEXTCOLOR     ILI9341_CYAN     // 0, 255, 255
+#define cTEXTCOLOR     0x67FF           // rgb(102,255,255) = hsl(180,100,70%)
+#define cCYAN          ILI9341_CYAN     // rgb(0,255,255) = hsl(180,100,50%)
 #define cFAINT         0x0555           // rgb(0,168,168) = hsl(180,100,33%) = blue, between CYAN and DARKCYAN
 #define cFAINTER       0x04B2           // rgb(0,128,128) = hsl(180,100,29%) = blue, between CYAN and DARKCYAN
 #define cBOXDEGREES    0x0410           // rgb(0,128,128) = hsl(180,100,25%) = blue, between CYAN and DARKCYAN
 #define cBUTTONLABEL   ILI9341_YELLOW   //
-#define cCOMPASS       ILI9341_BLUE     // a little darker than cBUTTONOUTLINE
 #define cSTATUS        0xFC10           // 255, 128, 128 = lavender
 #define cWARN          0xF844           // brighter than ILI9341_RED but not pink
 #define cTOUCHTARGET   ILI9341_RED      // outline touch-sensitive areas
+
+#define cCOMPASSPOINTER ILI9341_YELLOW  // TFT_Compass.h
+#define cCOMPASSCIRCLE  ILI9341_GREEN   //
+#define cCOMPASSPIVOT   ILI9341_RED     //
+#define cCOMPASSLETTERS ILI9341_BLUE    //
+
+// plot vehicle and breadcrumb trail
+#define cBREADCRUMB ILI9341_CYAN   //
+#define cVEHICLE    0xef7d         // light gray (white is too bright)
 
 // barometric pressure graph
 #define cSCALECOLOR ILI9341_DARKGREEN   // pressure graph, I tried yellow but it's too bright
@@ -111,6 +144,7 @@ public:
   double lat, lng;
 };
 
+#include <TimeLib.h>   // time_t=seconds since Jan 1, 1970, https://github.com/PaulStoffregen/Time
 class BaroReading {
 public:
   float pressure;   // in millibars, from BMP388 sensor
@@ -133,6 +167,10 @@ struct Rect {
       return false;
     }
   }
+};
+
+struct Route {   // screen coordinates
+  uint16_t x, y;
 };
 
 struct Label {
@@ -176,24 +214,110 @@ struct FunctionButton {
   int functionIndex;   // button identifier
 };
 
-struct LetterInfo {
-  // LetterInfo describes everything about a single sampled sound stored in memory
-  const char letter;      // key, e.g. 'c'
-  const float *pTable;    // ptr to array of float,               e.g. 'c_barry_16'
-  const int bitrate;      // bitrate,                             e.g. '16000'
-  const int totalBytes;   // number of bytes in this wave table,  e.g. 'sizeof(c_barry_16)'
-  const int numSamples;   // number of samples in this wave file, e.g. 'sizeof(c_barry_16)/sizeof(c_barry_16[0])'
-};
+// Breadcrumb record types
+#define rGPS                 "GPS"
+#define rPOWERUP             "PUP"
+#define rPOWERDOWN           "PDN"
+#define rFIRSTVALIDTIME      "TIM"
+#define rLOSSOFSIGNAL        "LOS"
+#define rACQUISITIONOFSIGNAL "AOS"
+#define rCOINBATTERYVOLTAGE  "BAT"
+#define rRESET               "\0\0\0"
+#define rVALIDATE            rGPS rPOWERUP rPOWERDOWN rFIRSTVALIDTIME rLOSSOFSIGNAL rACQUISITIONOFSIGNAL rCOINBATTERYVOLTAGE
 
+// Breadcrumb data definition for circular buffer
 class Location {
 public:
-  PointGPS loc;     // has-a lat/long, degrees
-  int hh, mm, ss;   // has-a GMT time
+  char recordType[4];      // GPS, power-up, first valid time, etc
+  PointGPS loc;            // has-a lat/long, degrees
+  time_t timestamp;        // has-a GMT time
+  uint8_t numSatellites;   // number of satellites in use (not the same as in view)
+  float speed;             // current speed over ground in MPH (or coin battery voltage)
+  float direction;         // direction of travel, degrees from true north
+  float altitude;          // altitude, meters above MSL
+public:
   void reset() {
+    recordType[0] = 0;
     loc.lat = loc.lng = 0.0;
-    hh = mm = ss = 0;
+    timestamp         = 0;
+    numSatellites     = 0;
+    speed             = 0.0;
+    direction = altitude = 0.0;
   }
-  bool isEmpty() {
-    return (loc.lat == 0.0 && loc.lng == 0.0);
+  bool isEmpty() const {
+    // we take advantage of the fact that all unused records
+    // will have reset their recordType field to zeroes, ie, rRESET
+    return (strlen(recordType) == 0);
+  }
+
+  static bool isValidRecordType(const char *rec) {
+    // check for "should not happen" situations
+    if (strstr(rVALIDATE, rec)) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  bool isGPS() const {
+    return (strncmp(recordType, rGPS, sizeof(recordType)) == 0);
+  }
+
+  bool isPUP() const {
+    return (strncmp(recordType, rPOWERUP, sizeof(recordType)) == 0);
+  }
+
+  bool isFirstValidTime() const {
+    return (strncmp(recordType, rFIRSTVALIDTIME, sizeof(recordType)) == 0);
+  }
+
+  bool isLossOfSignal() const {
+    return (strncmp(recordType, rLOSSOFSIGNAL, sizeof(recordType)) == 0);
+  }
+
+  bool isAcquisitionOfSignal() const {
+    return (strncmp(recordType, rACQUISITIONOFSIGNAL, sizeof(recordType)) == 0);
+  }
+
+  bool isCoinBatteryVoltage() const {
+    return (strncmp(recordType, rCOINBATTERYVOLTAGE, sizeof(recordType)) == 0);
+  }
+
+  // print ourself - a sanity check
+  void printLocation(const char *comment = NULL) {   // debug
+    // note: must use Serial.print (not logger) because the logger.h cannot be included at this level
+    Serial.println(". Rec, ___Date___ __Time__, (__Lat__, __Long__), Alt, Spd, Dir, Sats");
+
+    char out[128];
+    snprintf(out, sizeof(out), ". %s , ", recordType);
+    Serial.print(out);
+
+    // timestamp
+    TimeElements time;   // https://github.com/PaulStoffregen/Time
+    breakTime(timestamp, time);
+    snprintf(out, sizeof(out), "%02d-%02d-%02d %02d:%02d:%02d, ",
+             time.Year + 1970, time.Month, time.Day, time.Hour, time.Minute, time.Second);
+    Serial.print(out);
+
+    // lat/long
+    Serial.print("(");
+    Serial.print(loc.lat, 4);
+    Serial.print(", ");
+    Serial.print(loc.lng, 4);
+    Serial.print("), ");
+
+    // alt, speed dir sats
+    Serial.print(altitude, 1);   // meters
+    Serial.print(", ");
+    Serial.print(speed, 1);   // mph
+    Serial.print(", ");
+    Serial.print(direction, 1);   // degrees
+    Serial.print(", ");
+    Serial.print(numSatellites);
+    Serial.println();
+
+    if (comment) {
+      Serial.println(comment);
+    }
   }
 };

@@ -2,17 +2,22 @@
 
 // ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE    "Screen Color Playground"
+#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
 #define PROGRAM_VERSION "v1.14"
+#else
+#define PROGRAM_VERSION "v1.14.6"
+#endif
+#define HARDWARE_VERSION "Rev 4"   // Rev 4 | Rev 7 | Rev 12 | Rev 14
 #define PROGRAM_LINE1    "Barry K7BWH"
 #define PROGRAM_LINE2    "John KM7O"
+#define PROGRAM_VERDATE  PROGRAM_VERSION ", compiled " __DATE__
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
 #define PROGRAM_FILE     __FILE__
+#define PROGRAM_GITHUB   "https://github.com/barry-ha/Griduino"
 
 // ------- Select testing features ---------
 // #define SCOPE_OUTPUT  A0            // use this for performance measurements with oscilloscope
-// #define ECHO_GPS                    // use this to see GPS detailed info on IDE console for debug
 // #define SHOW_SCREEN_BORDER          // use this to outline the screen's displayable area
-// #define SHOW_SCREEN_CENTERLINE      // use this visual aid to help layout the screen
 // #define SHOW_IGNORED_PRESSURE       // use this to see barometric pressure readings that are out of range and therefore ignored
 
 // ------- TFT screen definitions ---------
@@ -83,6 +88,11 @@ const int BRIGHT    = 32;    // = tolerably bright indoors
 const int HALFBR    = 20;    // = half of tolerably bright
 const int OFF       = 0;     // = turned off
 
+// ------- Coin Battery good/bad thresholds ---------
+const float GOOD_BATTERY_MINIMUM    = (2.25);   // green, if above this voltage
+const float WARNING_BATTERY_MINIMUM = (2.10);   // yellow, if above this voltage
+const float BAD_BATTERY_MAXIMUM     = (2.00);   // red, if below this voltage
+
 // ----- Griduino color scheme
 // RGB 565 true color: https://chrishewett.com/blog/true-rgb565-colour-picker/
 #define BACKGROUND     0x00A            // a little darker than ILI9341_NAVY
@@ -103,10 +113,14 @@ const int OFF       = 0;     // = turned off
 #define cFAINTER       0x04B2           // rgb(0,128,128) = hsl(180,100,29%) = blue, between CYAN and DARKCYAN
 #define cBOXDEGREES    0x0410           // rgb(0,128,128) = hsl(180,100,25%) = blue, between CYAN and DARKCYAN
 #define cBUTTONLABEL   ILI9341_YELLOW   //
-#define cCOMPASS       ILI9341_BLUE     // a little darker than cBUTTONOUTLINE
 #define cSTATUS        0xFC10           // 255, 128, 128 = lavender
 #define cWARN          0xF844           // brighter than ILI9341_RED but not pink
 #define cTOUCHTARGET   ILI9341_RED      // outline touch-sensitive areas
+
+#define cCOMPASSPOINTER ILI9341_YELLOW  // TFT_Compass.h
+#define cCOMPASSCIRCLE  ILI9341_GREEN   //
+#define cCOMPASSPIVOT   ILI9341_RED     //
+#define cCOMPASSLETTERS ILI9341_BLUE    //
 
 // plot vehicle and breadcrumb trail
 #define cBREADCRUMB ILI9341_CYAN   //
@@ -207,8 +221,9 @@ struct FunctionButton {
 #define rFIRSTVALIDTIME      "TIM"
 #define rLOSSOFSIGNAL        "LOS"
 #define rACQUISITIONOFSIGNAL "AOS"
+#define rCOINBATTERYVOLTAGE  "BAT"
 #define rRESET               "\0\0\0"
-#define rVALIDATE            rGPS rPOWERUP rPOWERDOWN rFIRSTVALIDTIME rLOSSOFSIGNAL rACQUISITIONOFSIGNAL
+#define rVALIDATE            rGPS rPOWERUP rPOWERDOWN rFIRSTVALIDTIME rLOSSOFSIGNAL rACQUISITIONOFSIGNAL rCOINBATTERYVOLTAGE
 
 // Breadcrumb data definition for circular buffer
 class Location {
@@ -217,7 +232,7 @@ public:
   PointGPS loc;            // has-a lat/long, degrees
   time_t timestamp;        // has-a GMT time
   uint8_t numSatellites;   // number of satellites in use (not the same as in view)
-  float speed;             // current speed over ground in MPH
+  float speed;             // current speed over ground in MPH (or coin battery voltage)
   float direction;         // direction of travel, degrees from true north
   float altitude;          // altitude, meters above MSL
 public:
@@ -264,14 +279,18 @@ public:
     return (strncmp(recordType, rACQUISITIONOFSIGNAL, sizeof(recordType)) == 0);
   }
 
+  bool isCoinBatteryVoltage() const {
+    return (strncmp(recordType, rCOINBATTERYVOLTAGE, sizeof(recordType)) == 0);
+  }
+
   // print ourself - a sanity check
   void printLocation(const char *comment = NULL) {   // debug
+    // note: must use Serial.print (not logger) because the logger.h cannot be included at this level
     Serial.println(". Rec, ___Date___ __Time__, (__Lat__, __Long__), Alt, Spd, Dir, Sats");
 
     char out[128];
-    Serial.print(". ");
-    Serial.print(recordType);
-    Serial.print(", ");
+    snprintf(out, sizeof(out), ". %s , ", recordType);
+    Serial.print(out);
 
     // timestamp
     TimeElements time;   // https://github.com/PaulStoffregen/Time

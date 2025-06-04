@@ -1,7 +1,7 @@
 #pragma once   // Please format this file with clang before check-in to GitHub
 
 // ------- Identity for splash screen and console --------
-#define PROGRAM_TITLE "Griduino"
+#define PROGRAM_TITLE "TFT Triangles Demo"
 #if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
 #define PROGRAM_VERSION "v1.14"
 #else
@@ -120,7 +120,7 @@ const float BAD_BATTERY_MAXIMUM     = (2.00);   // red, if below this voltage
 #define cCOMPASSPOINTER ILI9341_YELLOW  // TFT_Compass.h
 #define cCOMPASSCIRCLE  ILI9341_GREEN   //
 #define cCOMPASSPIVOT   ILI9341_RED     //
-#define cCOMPASSLETTERS ILI9341_RED     //
+#define cCOMPASSLETTERS ILI9341_BLUE    //
 
 // plot vehicle and breadcrumb trail
 #define cBREADCRUMB ILI9341_CYAN   //
