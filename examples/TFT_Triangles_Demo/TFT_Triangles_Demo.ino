@@ -27,15 +27,14 @@ Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 
 // ========== text screen layout ===================================
 
-// clang-format off
-TextField txtUpperSpeedo = {55, -1, 106 - 22, cSPEEDOMETER, ALIGNCENTER, eFONTBIG};   // MPH message above compass pointer
-TextField txtLowerSpeedo = {45, -1, 106 + 78, cSPEEDOMETER, ALIGNCENTER, eFONTBIG};   // MPH message below compass pointer
-// clang-format on
+const int gMarginX = 70;   // define space for grid outline on screen
+const int gMarginY = 26;   // and position text relative to this outline
+TextField txtSpeedo = {55, gMarginX+2, gMarginY+40, cSPEEDOMETER, ALIGNLEFT, eFONTBIG};
 
 // create an instance of the Compass display
 const Point center     = {320 / 2, 240 / 2};   // center point of compass (and triangle and screen)
 const int radiusCircle = 90;                   // outer edge of compass rose circle
-TFT_Compass compass(&tft, center, radiusCircle, &txtUpperSpeedo, &txtLowerSpeedo);
+TFT_Compass compass(&tft, center, radiusCircle, &txtSpeedo);
 
 // ------------ definitions
 const int howLongToWait = 6;   // max number of seconds at startup waiting for Serial port to console
@@ -62,8 +61,6 @@ void clearScreen(uint16_t color) {
   tft.fillScreen(color);
 }
 
-const int gMarginX = 70;   // define space for grid outline on screen
-const int gMarginY = 26;   // and position text relative to this outline
 void drawGridOutline() {
   tft.drawRect(gMarginX, gMarginY, gBoxWidth, gBoxHeight, ILI9341_CYAN);
 }
@@ -102,10 +99,8 @@ void setup() {
   digitalWrite(PIN_LED, LOW);   // turn off little red LED
   Serial.println("NeoPixel initialized and turned off");
 
-  txtUpperSpeedo.setBackground(cBACKGROUND);
-  txtLowerSpeedo.setBackground(cBACKGROUND);
-
   drawGridOutline();
+  txtSpeedo.setBackground(cBACKGROUND);
   compass.drawRose(center, radiusCircle);
 }
 
@@ -115,7 +110,6 @@ void loop() {
   compass.drawPointer(newAngle);   // compass pointer
 
   // ----- update speedometer
-  compass.eraseSpeedometer(newAngle, oldAngle);   // temp - refactor
   compass.drawSpeedometer(newSpeed, newAngle);    // speedometer
 
   // increment loop variables

@@ -13,7 +13,6 @@
 //      Draw pointer        compass.draw(angle in degrees);
 //      Force redraw        compass.dirty();
 //      Draw speedometer    compass.drawSpeedometer(mph, coord);
-//      Erase speedometer   compass.eraseSpeedometer(newAngle, oldAngle);
 //
 //  Notes:
 //      1. Optimized pointer will not redraw given the same angle
@@ -39,14 +38,13 @@ public:
   const int radiusCircle = 64;       //
   const int base         = 24;       // base width of triangle
   const int height       = 56;       // height of triangle
-  TextField *upperSpeedometer;
-  TextField *lowerSpeedometer;
+  TextField *speedometer;
 
   Point p0, p1, p2;        // starting corners of triangular pointer
   Adafruit_ILI9341 *tft;   // an instance of the TFT Display
 
-  TFT_Compass(Adafruit_ILI9341 *vtft, Point vcenter, int vradius, TextField *vupper, TextField *vlower)   // ctor
-      : tft(vtft), center(vcenter), radiusCircle(vradius), upperSpeedometer(vupper), lowerSpeedometer(vlower) {
+  TFT_Compass(Adafruit_ILI9341 *vtft, Point vcenter, int vradius, TextField *vspeedo)   // ctor
+      : tft(vtft), center(vcenter), radiusCircle(vradius), speedometer(vspeedo) {
     p0 = {center.x - base / 2, center.y};   // starting corners of triangular pointer
     p1 = {center.x + base / 2, center.y};
     p2 = {center.x + 0, center.y - height};
@@ -110,33 +108,9 @@ public:
   }
 
   void drawSpeedometer(int speed, int angle) {
-    // speed = mph, 0..99
-    // angle = direction of travel, degrees 0..359
-    TextField *speedText = (90 <= angle && angle < 270) ? upperSpeedometer : lowerSpeedometer;
-    speedText->print(speed);
-  }
-
-  void eraseSpeedometer(int newAngle, int oldAngle) {
-    // "if pointer is DOWN and was previously UP, then erase lower speedometer"
-    // "if pointer is UP and was previously DOWN, then erase upper speedometer"
-    //
-    // newAngle = current direction of travel, degrees 0..359
-    // oldAngle = previous direction of travel, degrees 0..359
-
-    // ----- erasing
-    if (90 <= newAngle && newAngle < 270) {
-      // pointer is pointing down
-      if (oldAngle <= 90 || oldAngle >= 270) {
-        // but previously was pointing up... blank out lower speedometer
-        lowerSpeedometer->erase();
-      }
-    } else {
-      // pointer is pointing up
-      if (oldAngle >= 90 && oldAngle <= 270) {
-        // but previously was pointing down... blank out upper speedometer
-        upperSpeedometer->erase();
-      }
-    }
+    // speed = mph or kph, 0..999
+    // angle = direction of travel, degrees 0..359 (unused)
+    speedometer->print(speed);
   }
 
 };   // end class TFT_Compass
