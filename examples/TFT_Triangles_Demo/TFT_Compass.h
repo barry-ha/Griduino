@@ -20,12 +20,13 @@
 //      2. Smallest angle change is 2 degrees
 //      3. Pointer may flicker if called faster than 10 Hz
 //      4. Origin is upper left corner
-//      5. Uses 'const int' for performance
+//      5. Uses 'const int' whenever possible for performance
 //------------------------------------------------------------------------------
 
 #include <Adafruit_ILI9341.h>   // TFT color display library
 #include "hardware.h"           // Griduino pin definitions
 #include "constants.h"          // Griduino constants, colors, typedefs
+#include "TextField.h"          // Optimize TFT display text for proportional fonts
 
 class TFT_Compass {
 public:
@@ -34,36 +35,38 @@ public:
   bool dirty = true;        // true=force redraw even if old=new
 
   // screen coordinates
-  const Point center;       // screen coord of center of compass
-  const int radiusCircle;   //
-  const int base   = 26;    // base width of triangle
-  const int height = 56;    // height of triangle
-  const Point upperSpeedometer;
-  const Point lowerSpeedometer;
+  const Point center     = {0, 0};   // screen coord of center of compass
+  const int radiusCircle = 64;       //
+  const int base         = 24;       // base width of triangle
+  const int height       = 56;       // height of triangle
+  TextField *upperSpeedometer;
+  TextField *lowerSpeedometer;
 
   Point p0, p1, p2;        // starting corners of triangular pointer
   Adafruit_ILI9341 *tft;   // an instance of the TFT Display
 
-  TFT_Compass(Adafruit_ILI9341 *vtft, Point vcenter, int vradius, Point vupper, Point vlower)   // ctor
+  TFT_Compass(Adafruit_ILI9341 *vtft, Point vcenter, int vradius, TextField *vupper, TextField *vlower)   // ctor
       : tft(vtft), center(vcenter), radiusCircle(vradius), upperSpeedometer(vupper), lowerSpeedometer(vlower) {
     p0 = {center.x - base / 2, center.y};   // starting corners of triangular pointer
     p1 = {center.x + base / 2, center.y};
     p2 = {center.x + 0, center.y - height};
   }
 
-  void rose(Point center, int radiusCircle) {
+  void drawRose(Point center, int radiusCircle) {
     // ----- draw compass rose
     tft->drawCircle(center.x, center.y, radiusCircle, cCOMPASSCIRCLE);
+  }
 
-    int size = 3;   // size multiplier for single letter compass points
+  void drawCompassPoints() {
+    int size = 2;   // size multiplier for single letter compass points
     // adjust letter placement to center it on the circle
     // 'drawChar' coords are the top left of a letter, so subtract half the text width (tw)
     int tw = (size * 7) / 2;
 
-    tft->drawChar(center.x - tw, center.y - radiusCircle - tw, 'N', cCOMPASSLETTERS, cBACKGROUND, 3);
-    tft->drawChar(center.x - tw, center.y + radiusCircle - tw, 'S', cCOMPASSLETTERS, cBACKGROUND, 3);
-    tft->drawChar(center.x + radiusCircle - tw, center.y - tw, 'E', cCOMPASSLETTERS, cBACKGROUND, 3);
-    tft->drawChar(center.x - radiusCircle - tw, center.y - tw, 'W', cCOMPASSLETTERS, cBACKGROUND, 3);
+    tft->drawChar(center.x - tw, center.y - radiusCircle - tw, 'N', cCOMPASSLETTERS, cBACKGROUND, size);
+    tft->drawChar(center.x - tw, center.y + radiusCircle - tw, 'S', cCOMPASSLETTERS, cBACKGROUND, size);
+    tft->drawChar(center.x + radiusCircle - tw, center.y - tw, 'E', cCOMPASSLETTERS, cBACKGROUND, size);
+    tft->drawChar(center.x - radiusCircle - tw, center.y - tw, 'W', cCOMPASSLETTERS, cBACKGROUND, size);
   }
 
   // helper
@@ -84,7 +87,7 @@ public:
   }
 
   //=========== main work routines ===================================
-  void draw(int degrees) {
+  void drawPointer(int degrees) {
     if (degrees != oldDegrees || dirty) {
       float angle = 2.0 * PI * degrees / 360.0;
 
@@ -109,15 +112,8 @@ public:
   void drawSpeedometer(int speed, int angle) {
     // speed = mph, 0..99
     // angle = direction of travel, degrees 0..359
-    Point speedLoc = (90 <= angle && angle < 270) ? upperSpeedometer : lowerSpeedometer;
-
-    int spd = constrain(speed, 0, 99);
-    tft->setCursor(speedLoc.x, speedLoc.y);
-    tft->setTextColor(cCOMPASSLETTERS, cBACKGROUND);
-    tft->setTextSize(3);
-    char buf[8];
-    snprintf(buf, sizeof(buf), "%2d mph", spd);   // pad leading blank
-    tft->print(buf);
+    TextField *speedText = (90 <= angle && angle < 270) ? upperSpeedometer : lowerSpeedometer;
+    speedText->print(speed);
   }
 
   void eraseSpeedometer(int newAngle, int oldAngle) {
@@ -126,23 +122,19 @@ public:
     //
     // newAngle = current direction of travel, degrees 0..359
     // oldAngle = previous direction of travel, degrees 0..359
-    int16_t x1, y1;
-    uint16_t w, h;
 
     // ----- erasing
     if (90 <= newAngle && newAngle < 270) {
       // pointer is pointing down
       if (oldAngle <= 90 || oldAngle >= 270) {
-        // but previously was pointing up... erase lower speedometer
-        tft->getTextBounds("99 mph", lowerSpeedometer.x, lowerSpeedometer.y, &x1, &y1, &w, &h);
-        tft->fillRect(x1, y1, w, h, cBACKGROUND);
+        // but previously was pointing up... blank out lower speedometer
+        lowerSpeedometer->erase();
       }
     } else {
       // pointer is pointing up
       if (oldAngle >= 90 && oldAngle <= 270) {
-        // but previously was pointing down... erase upper speedometer
-        tft->getTextBounds("99 mph", upperSpeedometer.x, upperSpeedometer.y, &x1, &y1, &w, &h);
-        tft->fillRect(x1, y1, w, h, cBACKGROUND);
+        // but previously was pointing down... blank out upper speedometer
+        upperSpeedometer->erase();
       }
     }
   }

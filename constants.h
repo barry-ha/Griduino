@@ -120,7 +120,8 @@ const float BAD_BATTERY_MAXIMUM     = (2.00);   // red, if below this voltage
 #define cCOMPASSPOINTER ILI9341_YELLOW  // TFT_Compass.h
 #define cCOMPASSCIRCLE  ILI9341_GREEN   //
 #define cCOMPASSPIVOT   ILI9341_RED     //
-#define cCOMPASSLETTERS ILI9341_BLUE    //
+#define cCOMPASSLETTERS ILI9341_RED     //
+#define cSPEEDOMETER    ILI9341_YELLOW  //
 
 // plot vehicle and breadcrumb trail
 #define cBREADCRUMB ILI9341_CYAN   //
