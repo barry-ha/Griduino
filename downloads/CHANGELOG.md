@@ -12,13 +12,17 @@ The changelog format is based on [Keep a Changelog](https://keepachangelog.com/e
 
 Version 1.14.6 is a prototype of a speed+compass display. This is an intermediate checkpoint. Some functions are temporarily disabled and so is not intended for public installs.
 
-New: main grid display shows vehicle speed in upper left and a large bright pointer of direction, replacing the large 6-digit grid letters. ![](img/compass-img6840.jpg)
+New: main grid display shows vehicle speed in upper left and a large bright pointer of direction, replacing the large 6-digit grid letters. 
+
+![](img/compass-img6840.jpg)
 
 New: Griduino runs correctly on both PCB v4 and PCB v14 hardware
 
 New: auto detect barometric sensor SPI or I2C
 
-New: TFT_Triangle_Demo.ino sketch shows the simplest possible "speed+compass" for performance testing ![](img/tft-triangle-demo-img6841.jpg)
+New: TFT_Triangle_Demo.ino sketch shows the simplest possible "speed+compass" for performance testing 
+
+![](img/tft-triangle-demo-img6841.jpg)
 
 Fixed: coin battery voltage is only shown on PCB hardware that has a voltage sensor (PCB v12 and later)
 
