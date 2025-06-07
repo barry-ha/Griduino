@@ -94,6 +94,7 @@
 #include "hardware.h"                 // Griduino pin definitions
 #include "logger.h"                   // conditional printing to Serial port
 #include "grid_helper.h"              // lat/long conversion routines
+#include "TFT_Compass.h"              // Compass and speedometer
 
 #include "view.h"                     // Griduino screens base class, followed by derived classes in alphabetical order
 #include "view_altimeter.h"           // altimeter
@@ -672,7 +673,7 @@ void setup() {
   // ----- init TFT display
   tft.begin();                        // initialize TFT display
   tft.setRotation(LANDSCAPE);         // 1=landscape (default is 0=portrait)
-  tft.fillScreen(ILI9341_BLACK);      // note that "begin()" did not clear screen
+  tft.fillScreen(ILI9341_BLACK);      // note that "tft.begin()" does not clear screen
 
   // ----- init screen orientation
   cfgRotation.loadConfig();           // restore previous screen orientation

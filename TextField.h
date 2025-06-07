@@ -68,11 +68,11 @@ public:
   bool dirty;       // true=force reprint even if old=new
 
   void dump() {
-    // dump the state of this object to the console for debug
+    // dump the state of this object to the console
     char buf[128];
     snprintf(buf, sizeof(buf), "TextField('%s') x,y(%d,%d)", text, x, y);
     Serial.print(buf);   // use Serial (not logger) so TextField is more reusable
-    snprintf(buf, sizeof(buf), ". Erase x,y,w,h(%d,%d, %d,%d)", xPrev, yPrev, wPrev, hPrev);
+    snprintf(buf, sizeof(buf), ". Region x,y,w,h(%d,%d, %d,%d)", xPrev, yPrev, wPrev, hPrev);
     Serial.println(buf);
   }
   // ctor - text field where contents will come later
@@ -95,9 +95,9 @@ public:
     vstr.toCharArray(temp, sizeof(temp));
     init(temp, vxx, vyy, vcc, valign, vsize);
   }
-  // common ctor for all data field types
+  // common ctor helper for all data field types
   void init(const char vtxt[26], int vxx, int vyy, uint16_t vcc, int valign, int vsize) {
-    strncpy(textPrev, vtxt, sizeof(textPrev) - 1);
+    strncpy(textPrev, vtxt, sizeof(textPrev) - 1);   // save new text in both "previous" and "current" strings
     strncpy(text, vtxt, sizeof(text) - 1);
     x        = vxx;
     y        = vyy;
@@ -137,6 +137,10 @@ public:
   void print(const float f, const int digits) {   // float
     String sFloat = String(f, digits);
     print(sFloat);
+  }
+  void erase() {
+    text[0] = 0;
+    eraseOld();
   }
   static void setTextDirty(TextField *pTable, int count) {
     // Mark all text fields "dirty" to force reprinting them at next usage

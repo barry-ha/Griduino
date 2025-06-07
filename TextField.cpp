@@ -7,12 +7,11 @@
 
 */
 
-#include <Arduino.h>   // for "strncpy" and others
-// #include "Adafruit_GFX.h"      // Core graphics display library
+#include <Arduino.h>            // for "strncpy" and others
 #include "Adafruit_ILI9341.h"   // TFT color display library
 #include "constants.h"          // Griduino constants, colors and typedefs
-#include "logger.h"             // conditional printing to Serial port
 #include "TextField.h"          // Optimize TFT display text for proportional fonts
+#include "logger.h"             // conditional printing to Serial port
 
 // ========== extern ===========================================
 extern Logger logger;                // Griduino.ino
@@ -24,8 +23,9 @@ uint16_t TextField::cBackground;   // background color
 // ========== TextField ===============================
 void TextField::eraseOld() {
   // we remember the area to erase from the previous print()
+  // dump();                                                                 // debug
+  // tft.drawRect(xPrev - 2, yPrev - 2, wPrev + 4, hPrev + 4, ILI9341_RED);  // debug
   tft.fillRect(xPrev, yPrev, wPrev, hPrev, cBackground);   // erase the requested width of old text
-  // tft.drawRect(xPrev-2, yPrev-2, wPrev+4, hPrev+4, ILI9341_RED); // debug: show what area was erased
 }
 void TextField::printNew(const char *pText) {
   int16_t x1, y1;
@@ -44,6 +44,7 @@ void TextField::printNew(const char *pText) {
     tft.getTextBounds(pText, 0, y, &x1, &y1, &w, &h);
     leftedge = x - w;   // move text origin by width of text
   }
+
   tft.setCursor(leftedge, y);
   tft.setTextColor(color);
   tft.print(pText);
@@ -60,7 +61,7 @@ void TextButton::print() {   // override base class: buttons draw their own outl
                     buttonArea.size.x, buttonArea.size.y,
                     radius, cBUTTONOUTLINE);
 
-  // center text horizontally and vertically withing visible button boundary
+  // center text horizontally and vertically within visible button boundary
   int16_t x1, y1;
   uint16_t w1, h1;
   tft.getTextBounds(text, buttonArea.ul.x, buttonArea.ul.y, &x1, &y1, &w1, &h1);
