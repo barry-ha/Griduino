@@ -11,8 +11,10 @@
 #include "Adafruit_ILI9341.h"   // TFT color display library
 #include "constants.h"          // Griduino constants, colors and typedefs
 #include "TextField.h"          // Optimize TFT display text for proportional fonts
+// #include "logger.h"             // conditional printing to Serial port
 
 // ========== extern ===========================================
+// extern Logger logger;                // Griduino.ino
 extern Adafruit_ILI9341 tft;         // Griduino.ino  TODO: eliminate this global
 extern void setFontSize(int font);   // Griduino.ino  TODO: eliminate this extern
 
@@ -70,10 +72,13 @@ void TextButton::print() {   // override base class: buttons draw their own outl
   x = leftEdge;
   y = topEdge;
 
+  // logger.log(SCREEN, DEBUG, "Placement of text: %s", this->text);
+
   char temp[255];
   snprintf(temp, sizeof(temp),
            ". button outline (%d,%d,%d,%d), text posn(%d,%d)",
            buttonArea.ul.x, buttonArea.ul.y, buttonArea.size.x, buttonArea.size.y, leftEdge, topEdge);
+  // logger.log(SCREEN, DEBUG, temp);
 
   // base class will draw text
   TextField::print(text);

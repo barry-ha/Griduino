@@ -163,13 +163,13 @@ const int yRow9 = 226;   // GMT date on bottom row, "230" will match other views
 // clang-format off
 TextField txtSplash[] = {
     //     text               x,y       color
-    {PROGRAM_NAME, -1, yRow1, cTEXTCOLOR},   // [0] program title, centered
-    {PROGRAM_VERSION, -1, yRow2, cLABEL},    // [1] normal size text, centered
-    {PROGRAM_LINE1, -1, yRow3, cLABEL},      // [2] credits line 1, centered
-    {PROGRAM_LINE2, -1, yRow4, cLABEL},      // [3] credits line 2, centered
+    {PROGRAM_NAME,    -1, yRow1, cTEXTCOLOR},   // [0] program title, centered
+    {PROGRAM_VERSION, -1, yRow2, cLABEL},       // [1] normal size text, centered
+    {PROGRAM_LINE1,   -1, yRow3, cLABEL},       // [2] credits line 1, centered
+    {PROGRAM_LINE2,   -1, yRow4, cLABEL},       // [3] credits line 2, centered
     {"Compiled " PROGRAM_COMPILED, -1, yRow9, cTEXTCOLOR},   // [4] "Compiled", bottom row
-                             // clang on
 };
+// clang-format on
 const int numSplashFields = sizeof(txtSplash) / sizeof(TextField);
 
 void startSplashScreen() {
