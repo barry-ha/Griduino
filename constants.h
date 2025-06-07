@@ -22,8 +22,8 @@
 
 // ------- TFT screen definitions ---------
 #define gScreenWidth  320   // screen pixels wide
-#define gScreenHeight 240   // screen pixels high                                                        \
-                            // we use #define here instead of reading it from "tft.width()" because this \
+#define gScreenHeight 240   // screen pixels high
+                            // we use #define here instead of reading it from "tft.width()" because this
                             // screen layout is specifically designed for landscape orientation on 3.2" ILI9341
 
 #define gBoxWidth  180   // grid square width as shown on display, pixels
@@ -117,11 +117,11 @@ const float BAD_BATTERY_MAXIMUM     = (2.00);   // red, if below this voltage
 #define cWARN          0xF844           // brighter than ILI9341_RED but not pink
 #define cTOUCHTARGET   ILI9341_RED      // outline touch-sensitive areas
 
-#define cCOMPASSPOINTER ILI9341_YELLOW  // TFT_Compass.h
-#define cCOMPASSCIRCLE  ILI9341_GREEN   //
-#define cCOMPASSPIVOT   ILI9341_RED     //
-#define cCOMPASSLETTERS ILI9341_RED     //
-#define cSPEEDOMETER    ILI9341_YELLOW  //
+#define cCOMPASSPOINTER ILI9341_YELLOW   // TFT_Compass.h
+#define cCOMPASSCIRCLE  ILI9341_GREEN    //
+#define cCOMPASSPIVOT   ILI9341_RED      //
+#define cCOMPASSLETTERS ILI9341_RED      //
+#define cSPEEDOMETER    ILI9341_YELLOW   //
 
 // plot vehicle and breadcrumb trail
 #define cBREADCRUMB ILI9341_CYAN   //

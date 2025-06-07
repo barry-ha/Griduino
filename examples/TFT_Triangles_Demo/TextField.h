@@ -71,7 +71,7 @@ public:
     // dump the state of this object to the console
     char buf[128];
     snprintf(buf, sizeof(buf), "TextField('%s') x,y(%d,%d)", text, x, y);
-    Serial.print(buf);
+    Serial.print(buf);   // use Serial (not logger) so TextField is more reusable
     snprintf(buf, sizeof(buf), ". Region x,y,w,h(%d,%d, %d,%d)", xPrev, yPrev, wPrev, hPrev);
     Serial.println(buf);
   }
@@ -97,8 +97,8 @@ public:
   }
   // common ctor helper for all data field types
   void init(const char vtxt[26], int vxx, int vyy, uint16_t vcc, int valign, int vsize) {
-    strncpy(textPrev, vtxt, sizeof(textPrev) - 1);   // put new text into "previous" string
-    strncpy(text, vtxt, sizeof(text) - 1);           // put new text into "current" string
+    strncpy(textPrev, vtxt, sizeof(textPrev) - 1);   // save new text in both "previous" and "current" strings
+    strncpy(text, vtxt, sizeof(text) - 1);
     x        = vxx;
     y        = vyy;
     color    = vcc;

@@ -34,6 +34,7 @@
 #include "model_baro.h"          // Model of a barometer that measures temperature
 #include "model_adc.h"           // Model of analog-digital converter
 #include "TextField.h"           // Optimize TFT display text for proportional fonts
+#include "TFT_Compass.h"         // Compass and speedometer
 #include "view.h"                // Base class for all views
 
 // ========== extern ===========================================
@@ -69,34 +70,36 @@ enum txtIndex {
   N_DISTANCE, S_DISTANCE, E_DISTANCE, W_DISTANCE,
   N_GRIDNAME, S_GRIDNAME, E_GRIDNAME, W_GRIDNAME,
   N_BOX_LAT,  S_BOX_LAT,  E_BOX_LONG, W_BOX_LONG,
+  SPEEDOMETER,
 };
 
     // ----- dynamic screen text
 TextField txtGrid[] = {
   //         text      x,y     color
-  TextField("CN77",  101,101,  cGRIDNAME),      // GRID4: center of screen
-  TextField("tt",    138,141,  cGRIDNAME),      // GRID6: center of screen
-  TextField("47.1234,-123.4567", 4,223, cSTATUS), // LATLONG: left-adj on bottom row
+  TextField("CN77",  101,101,  cGRIDNAME),            // GRID4: center of screen
+  TextField("tt",    138,141,  cGRIDNAME),            // GRID6: center of screen
+  TextField("47.1234,-123.4567", 4,223, cSTATUS),     // LATLONG: left-adj on bottom row
   TextField("1.23v", 316,171,  cSTATUS, ALIGNRIGHT),  // COINBATT: just above altitude
   TextField("123'",   62,196,  cSTATUS, ALIGNRIGHT),  // ALTITUDE: just above bottom row
   TextField("99#",   313,221,  cSTATUS, ALIGNRIGHT),  // NUMSAT: lower right corner
   TextField("75F",   313,196,  cSTATUS, ALIGNRIGHT),  // TEMPERATURE
-  TextField( "N",    156, 47,  cCOMPASSLETTERS ),      // N_COMPASS: centered left-right
-  TextField( "S",    156,181,  cCOMPASSLETTERS ),      // S_COMPASS
-  TextField( "E",    232,114,  cCOMPASSLETTERS ),      // E_COMPASS: centered top-bottom
-  TextField( "W",     73,114,  cCOMPASSLETTERS ),      // W_COMPASS
-  TextField("17.1",  180, 20,  cDISTANCE),      // N_DISTANCE
-  TextField("52.0",  180,207,  cDISTANCE),      // S_DISTANCE
-  TextField("13.2",  256,130,  cDISTANCE),      // E_DISTANCE
-  TextField("79.7",    0,130,  cDISTANCE),      // W_DISTANCE
-  TextField("CN88",  102, 20,  cGRIDNAME),      // N_GRIDNAME
-  TextField("CN86",  102,207,  cGRIDNAME),      // S_GRIDNAME
-  TextField("CN97",  256,102,  cGRIDNAME),      // E_GRIDNAME
-  TextField("CN77",    0,102,  cGRIDNAME),      // W_GRIDNAME
+  TextField( "N",    156, 47,  cCOMPASSLETTERS ),     // N_COMPASS: centered left-right
+  TextField( "S",    156,181,  cCOMPASSLETTERS ),     // S_COMPASS
+  TextField( "E",    232,114,  cCOMPASSLETTERS ),     // E_COMPASS: centered top-bottom
+  TextField( "W",     73,114,  cCOMPASSLETTERS ),     // W_COMPASS
+  TextField("17.1",  180, 20,  cDISTANCE),            // N_DISTANCE
+  TextField("52.0",  180,207,  cDISTANCE),            // S_DISTANCE
+  TextField("13.2",  256,130,  cDISTANCE),            // E_DISTANCE
+  TextField("79.7",    0,130,  cDISTANCE),            // W_DISTANCE
+  TextField("CN88",  102, 20,  cGRIDNAME),            // N_GRIDNAME
+  TextField("CN86",  102,207,  cGRIDNAME),            // S_GRIDNAME
+  TextField("CN97",  256,102,  cGRIDNAME),            // E_GRIDNAME
+  TextField("CN77",    0,102,  cGRIDNAME),            // W_GRIDNAME
   TextField("48",     56, 44,  cBOXDEGREES, ALIGNRIGHT),  // N_BOX_LAT
   TextField("47",     56,190,  cBOXDEGREES, ALIGNRIGHT),  // S_BOX_LAT
   TextField("122",   243, 20,  cBOXDEGREES),              // E_BOX_LONG
   TextField("124",    72, 20,  cBOXDEGREES, ALIGNRIGHT),  // W_BOX_LONG
+  TextField(55, gMarginX+2, gMarginY+40, cSPEEDOMETER, ALIGNLEFT, eFONTBIG), // SPEEDOMETER
 };
 const int numTextGrid = sizeof(txtGrid)/sizeof(TextField);
 // clang-format on
@@ -384,11 +387,11 @@ void plotCurrentPosition(const PointGPS loc, const PointGPS origin) {
 
     if (loc.lat != 0.0) {   // ignore uninitialized lat/long
 
-      float degreesX = loc.lng - origin.lng;   // longitude: distance from left edge of grid (degrees)
-      float degreesY = loc.lat - origin.lat;   // latitude: distance from bottom edge of grid
+      //float degreesX = loc.lng - origin.lng;   // longitude: distance from left edge of grid (degrees) (unused)
+      //float degreesY = loc.lat - origin.lat;   // latitude: distance from bottom edge of grid (unused)
 
-      float fracGridX = degreesX / gridWidthDegrees;    // E-W position as fraction of grid width, 0-1
-      float fracGridY = degreesY / gridHeightDegrees;   // N-S position as fraction of grid height, 0-1
+      //float fracGridX = degreesX / gridWidthDegrees;    // E-W position as fraction of grid width, 0-1 (unused)
+      //float fracGridY = degreesY / gridHeightDegrees;   // N-S position as fraction of grid height, 0-1 (unused)
 
       // our drawing canvas is the entire screen
       Point result;
@@ -409,7 +412,7 @@ void plotCurrentPosition(const PointGPS loc, const PointGPS origin) {
                                   sLat, sLng, sOriginLat, sOriginLng, result.x, result.y);
       logger.log(BARO, DEBUG, msg);
       // ----- end debug messages
-      /* ... */
+      ... */
 
       if ((result.x != prevVehicle.x) || (result.y != prevVehicle.y)) {
         plotVehicle(prevVehicle, ILI9341_BLACK);   // erase old vehicle
@@ -445,6 +448,12 @@ void plotCurrentPosition(const PointGPS loc, const PointGPS origin) {
   }
 }
 
+// ========== Compass and speedometer
+const Point center           = {gMarginX + gBoxWidth / 2, gMarginY + gBoxHeight / 2};   // center point of compass (and triangle and screen)
+const int radiusCircle       = gBoxHeight / 2 - 2;                                      // 78 = outer edge of compass rose circle
+//TextField txtSpeedo = {55, gMarginX+2, gMarginY+40, cSPEEDOMETER, ALIGNLEFT, eFONTBIG} ???;
+TFT_Compass compass(&tft, center, radiusCircle, &txtGrid[SPEEDOMETER]);
+
 // ========== class ViewGrid
 void ViewGrid::updateScreen() {
   // called on every pass through main()
@@ -461,7 +470,16 @@ void ViewGrid::updateScreen() {
 
   char grid6[7];
   grid.calcLocator(grid6, model->gLatitude, model->gLongitude, 6);
-  drawGridName(grid6);                                   // huge letters centered on screen
+
+  // ----- begin testing new compass
+  // drawGridName(grid6);                                   // huge letters centered on screen
+  // ----- update compass pointer
+  compass.drawPointer(model->gSpeed, model->gAngle);   // compass pointer
+
+  // ----- update speedometer
+  compass.drawSpeedometer(model->gSpeed, model->gAngle);   // speedometer
+  // ----- end testing new compass
+
   drawAltitude();                                        // height above sea level
   drawCoinBatteryVoltage();                              // coin battery voltage
   drawNumSatellites();                                   // number of satellites
@@ -483,6 +501,9 @@ void ViewGrid::startScreen() {
   // called once each time this view becomes active
   this->clearScreen(this->background);          // clear screen
   txtGrid[0].setBackground(this->background);   // set background for all TextFields in this view
+    // ----- begin testing new compass
+  compass.setBackground(this->background);  // set background of compass pointer to match
+    // ----- end testing new compass
   TextField::setTextDirty(txtGrid, numTextGrid);
 
   double lngMiles = grid.calcDistanceLong(model->gLatitude, 0.0, minLong, false);
@@ -505,6 +526,9 @@ void ViewGrid::startScreen() {
     carHistory[ii].x = carHistory[ii].y = -1;
   }
   prevVehicle = {0, 0};
+
+  // compass.drawRose(center, radiusCircle);  // debug - only useful for initial layout and testing
+  // compass.drawCompassPoints();             // debug - please use '::drawCompassPoints()' instead
 
   PointGPS gridOrigin{grid.nextGridLineSouth(model->gLatitude), grid.nextGridLineWest(model->gLongitude)};
   plotRoute(&trail, gridOrigin);                              // restore the visible route track on top of everything else already drawn

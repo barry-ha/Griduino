@@ -22,13 +22,22 @@
 // ---------- Hardware Wiring ----------
 // Same as Griduino platform - see hardware.h
 
-// create an instance of the TFT Display
+
+// ---------- TFT display
 Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 
-// ========== text screen layout ===================================
+// ========== helpers ==========================================
 
 const int gMarginX = 70;   // define space for grid outline on screen
 const int gMarginY = 26;   // and position text relative to this outline
+
+void drawGridOutline() {
+  tft.drawRect(gMarginX, gMarginY, gBoxWidth, gBoxHeight, ILI9341_CYAN);
+}
+
+// ========== text screen layout ===================================
+
+    // ----- dynamic screen text
 TextField txtSpeedo = {55, gMarginX+2, gMarginY+40, cSPEEDOMETER, ALIGNLEFT, eFONTBIG};
 
 // create an instance of the Compass display
@@ -41,8 +50,8 @@ const int howLongToWait = 6;   // max number of seconds at startup waiting for S
 
 // ----- console Serial port helper
 void waitForSerial(int howLong) {
-  // Adafruit Feather M4 Express takes awhile to restore its USB connx to the PC
-  // and the operator takes awhile to restart the console (Tools > Serial Monitor)
+  // Adafruit Feather M4 Express takes awhile to restore its USB connection to the PC
+  // and the operator takes awhile to restart the IDE console (Tools > Serial Monitor)
   // so give them a few seconds for this to settle before sending messages to IDE
   unsigned long targetTime = millis() + howLong * 1000;
 
@@ -59,10 +68,6 @@ void waitForSerial(int howLong) {
 
 void clearScreen(uint16_t color) {
   tft.fillScreen(color);
-}
-
-void drawGridOutline() {
-  tft.drawRect(gMarginX, gMarginY, gBoxWidth, gBoxHeight, ILI9341_CYAN);
 }
 
 int newAngle = 0;   // degrees, 0=North
@@ -85,7 +90,7 @@ void setup() {
   tft.setRotation(LANDSCAPE);   // 1=landscape (default is 0=portrait)
   clearScreen(cBACKGROUND);     // note that "tft.begin()" does not clear screen
 
-  // ----- init serial monitor (do not "Serial.print" before this, it won't show up in console)
+  // ----- init serial monitor (do not "Serial.print" or "logger.log" before this, it won't show up in console)
   Serial.begin(115200);   // init for debugging in the Arduino IDE
   waitForSerial(howLongToWait);
 
@@ -99,15 +104,16 @@ void setup() {
   digitalWrite(PIN_LED, LOW);   // turn off little red LED
   Serial.println("NeoPixel initialized and turned off");
 
-  drawGridOutline();
+  drawGridOutline();           // box outline around grid
   txtSpeedo.setBackground(cBACKGROUND);
+  compass.setBackground(cBACKGROUND);
   compass.drawRose(center, radiusCircle);
 }
 
 //=========== main work loop ===================================
 void loop() {
   // ----- update compass pointer
-  compass.drawPointer(newAngle);   // compass pointer
+  compass.drawPointer(newSpeed, newAngle);   // compass pointer
 
   // ----- update speedometer
   compass.drawSpeedometer(newSpeed, newAngle);    // speedometer
