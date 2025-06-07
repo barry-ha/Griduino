@@ -27,7 +27,7 @@ public:
     // Input: char result[7];
     int o1, o2, o3, o4;   // l_o_ngitude
     int a1, a2, a3, a4;   // l_a_titude
-    double remainder;
+    //double remainder;   // (unused)
 
     // longitude
     double r = (lon + 180.0) / 20.0 + 1e-7;

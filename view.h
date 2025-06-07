@@ -137,7 +137,6 @@ protected:
     int y0 = 28;              // top bounding box
     int w  = 320 - x0 - x0;   // width of bounding box
     int h  = 10;              // height bounding box
-    int c  = cBUTTONOUTLINE;
 
     int wi = w / numScreens;   // width of each item
     for (int ii = 0; ii < numScreens; ii++) {

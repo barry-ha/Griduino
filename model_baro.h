@@ -154,6 +154,7 @@ public:
       baro->setIIRFilterCoeff(BMP3_IIR_FILTER_COEFF_7);   // was 3, too busy
       baro->setOutputDataRate(BMP3_ODR_50_HZ);
       // logger.fencepost("model_baro.h", __LINE__);
+        *****/
 
       /*****
         // ----- Settings from Adafruit example

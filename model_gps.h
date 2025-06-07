@@ -270,8 +270,8 @@ public:
     // Note that GPS can have a valid date without it knowing its lat/long, and so
     // we can't rely on gHaveGPSfix to know if the date is correct or not,
     // so we deduce whether we have valid date from the y/m/d values.
-    char sDay[3];    // "12"
-    char sYear[5];   // "2020"
+    // char sDay[3];    // "12" (unused)
+    // char sYear[5];   // "2020" (unused)
     char aMonth[][4] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "err"};
 
     uint8_t yy = GPS.year;
@@ -364,8 +364,8 @@ private:
       floatToCharArray(sAngle, sizeof(sAngle), GPS.angle, 0);
       floatToCharArray(sAlt, sizeof(sAlt), gAltitude, 1);
 
-      snprintf(msg, sizeof(msg), "   Loc(%s,%s) Quality(%d) Sats(%d) Speed(%s knots) Angle(%s) Alt(%d)",
-              sLat, sLong, (int)GPS.fixquality, sSpeed, sAngle, sAlt);
+      snprintf(msg, sizeof(msg), "   Loc(%s,%s) Quality(%d) Sats(%d) Speed(%s knots) Angle(%s) Alt(%s)",
+              sLat, sLong, (int)GPS.fixquality, gSatellites, sSpeed, sAngle, sAlt);
       logger.log(GPS_SETUP, DEBUG, msg);
     }
   }

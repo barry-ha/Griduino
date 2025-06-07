@@ -311,7 +311,7 @@ protected:
     dumpCrossingInfo(&timeInGrid[2], 2);   // debug
     dumpCrossingInfo(&timeInGrid[3], 3);   // debug
     dumpCrossingInfo(&timeInGrid[4], 4);   // debug
-    /* ... */
+    ... */
   }
 
   // debug helper to show internal status of Grid Crossing
