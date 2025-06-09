@@ -267,7 +267,7 @@ protected:
     //
     // loop through ALL entries in the GPS history array
     // assume the entries are in reverse chronological order, most recent first (todo!!!)
-    int maxResults  = 5;   // number of rows displayed on screen
+    // int maxResults  = 5;   // number of rows displayed on screen (unused)
     int resultIndex = 0;   //
 
     char currentGrid4[5] = "none";   // start by comparing to non-grid string

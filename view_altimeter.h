@@ -256,9 +256,8 @@ void ViewAltimeter::updateScreen() {
   showTimeOfDay();
 
   // read altitude from barometer and GPS, and display everything
-  float pascals = baroModel.getBaroPressure();   // get pressure, causing BMP3XX to take a fresh reading from sensor
-
-  char msg[16];   // strlen("12,345.6 meters") = 15
+  // float pascals = baroModel.getBaroPressure();   (unused) // get pressure, causing BMP3XX to take a fresh reading from sensor
+  // char msg[16];   // strlen("12,345.6 meters") = 15 (unused)
 
   float altMeters = baroModel.getAltitude(sealevelPa);
   float altFeet   = altMeters * feetPerMeters;
@@ -425,5 +424,5 @@ void ViewAltimeter::loadConfig() {
 // ----- save to SDRAM -----
 void ViewAltimeter::saveConfig() {
   SaveRestore config(ALTIMETER_CONFIG_FILE, CONFIG_ALTIMETER_VERSION);
-  int rc = config.writeConfig((byte *)&sealevelPa, sizeof(sealevelPa));
+  config.writeConfig((byte *)&sealevelPa, sizeof(sealevelPa));
 }

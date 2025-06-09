@@ -209,12 +209,12 @@ int Breadcrumbs::restoreGPSBreadcrumbTrail() {   // returns 1=success, 0=failure
   const char comma[]          = ",";      // exclude "-" for -123.456
   int count;
   bool done = false;
-  while (count = config.readLine(csv_line, sizeof(csv_line)) && !done) {
+  while ((count = config.readLine(csv_line, sizeof(csv_line))) && !done) {
     // save line for possible console messages because 'strtok' will modify buffer
     strncpy(original_line, csv_line, sizeof(original_line));
 
     // process line according to # bytes read
-    char msg[256];
+    char msg[300];
     if (count == 0) {
       logger.log(FILES, INFO, ". EOF");
       done = true;
@@ -402,7 +402,7 @@ void Breadcrumbs::dumpHistoryKML() {
           // this is first valid GPS event, so drop a KML pushpin at start of data
           // todo: look for "power up" events and drop another KML pushpin for each segment
           char pushpinDate[12];   // strlen("12/24/2023") = 10
-          TimeElements time;      // https://github.com/PaulStoffregen/Time
+          // TimeElements time;      // https://github.com/PaulStoffregen/Time (unused)
 
           //         time_t time  -> tmElements_t
           // breakTime(item->timestamp, time);

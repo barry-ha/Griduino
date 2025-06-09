@@ -138,7 +138,7 @@ int testTimeDiff(const char *sExpected, time_t time1, time_t time2) {
   snprintf(msg, sizeof(msg), "Time difference: from %d to %d is %d sec / %d min / %d hr / %d days, expected '%s', actual '%s'",
            time1, time2, nSeconds, nMinutes, nHours, nDays, sExpected, sActual);
   logger.print(msg);
-  /* ... */
+    ... */
 
   if (strncmp(sExpected, sActual, sizeof(sActual)) == 0) {
     logger.println();   // success
@@ -211,9 +211,9 @@ int testNextGridLineEast(float fExpected, double fLongitude) {
   Serial.print(", result = ");                    //~Serial.print(result);
   // clang-format on
   if (result == fExpected) {
-    ~Serial.println("");
+    Serial.println("");
   } else {
-    ~Serial.println(" <-- Unequal");
+    Serial.println(" <-- Unequal");
     r++;
   }
   return r;
@@ -502,8 +502,8 @@ int verifyBreadCrumbs() {
 
   delay(3000);   // time for serial monitor to connect, and human to look at TFT display
 
-  float xPixelsPerDegree = gBoxWidth / gridWidthDegrees;     // grid square = 2.0 degrees wide E-W
-  float yPixelsPerDegree = gBoxHeight / gridHeightDegrees;   // grid square = 1.0 degrees high N-S
+  // float xPixelsPerDegree = gBoxWidth / gridWidthDegrees;     // grid square = 2.0 degrees wide E-W (unused)
+  // float yPixelsPerDegree = gBoxHeight / gridHeightDegrees;   // grid square = 1.0 degrees high N-S (unused)
 
   // ----- plot each corner, starting upper left, moving clockwise
   model->gLatitude  = 48.0 - 0.1;   // upper left
@@ -577,9 +577,9 @@ void generateSineWave(int numCrumbs) {
   double stepSize        = (125.3 - 123.7) / steps;   // degrees longitude to move each loop
   double amplitude       = 0.65;                      // degrees latitude, maximum sine wave
   const uint8_t nSats    = 5;
-  const float fSpeed     = 10.0;
-  const float fDirection = 11.0;
-  const float fAltitude  = 12.0;
+  // const float fSpeed     = 10.0;   // (unused)
+  // const float fDirection = 11.0;   // (unused)
+  // const float fAltitude  = 12.0;   // (unused)
 
   for (int ii = 0; ii < steps; ii++) {
     float longitude = startLong + (ii * stepSize);

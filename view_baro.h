@@ -484,7 +484,7 @@ protected:
         }
 
         tft->drawPixel(x1, y1, cGRAPHCOLOR);
-        int approxPa = (int)baroModel.pressureStack[ii].pressure;
+        // int approxPa = (int)baroModel.pressureStack[ii].pressure; (unused)
         // snprintf(msg, sizeof(msg), "%d. Plot %d at pixel (%d,%d)", ii, approxPa, x1,y1);
         // Serial.println(msg);          // debug
       }
