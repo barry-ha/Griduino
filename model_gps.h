@@ -255,11 +255,11 @@ public:
   //=========== time helpers =================================
   // Formatted GMT time
   void getTime(char *result) {
-    // result = char[10] = string buffer to modify
-    int hh = GPS.hour;
-    int mm = GPS.minute;
-    int ss = GPS.seconds;
-    snprintf(result, 10, "%02d:%02d:%02d",
+    // result = char[12] = string buffer to modify
+    uint hh = GPS.hour;
+    uint mm = GPS.minute;
+    uint ss = GPS.seconds;
+    snprintf(result, 12, "%02d:%02d:%02d",
              hh, mm, ss);
   }
 
@@ -290,7 +290,7 @@ public:
 
   // Provide formatted GMT date/time "2019-12-31  10:11:12"
   void getCurrentDateTime(char *result) {
-    // input: result = char[25] = string buffer to modify
+    // input: result = char[26] = string buffer to modify
     int yy = GPS.year;
     if (yy >= 19) {
       // if GPS reports a date before 19, then it's bogus
@@ -302,7 +302,7 @@ public:
     int hh = GPS.hour;
     int mm = GPS.minute;
     int ss = GPS.seconds;
-    snprintf(result, 25, "%04d-%02d-%02d  %02d:%02d:%02d",
+    snprintf(result, 26, "%04d-%02d-%02d  %02d:%02d:%02d",
              yy, mo, dd, hh, mm, ss);
   }
 
@@ -349,10 +349,10 @@ private:
     logger.fencepost("model_gps.h", "getGPS()", __LINE__);  // debug
     // send GPS statistics from the Adafruit_GPS library (not from our own data in our model)
     // to serial console for desktop debugging
-    char sDate[21];   // strlen("0000-00-00  hh:mm:ss") = 20
+    char sDate[26];   // strlen("0000-00-00  hh:mm:ss") = 20
     getCurrentDateTime(sDate);
 
-    char msg[64];
+    char msg[128];
     snprintf(msg, sizeof(msg), "Model: %s  Fix(%d)", sDate, (int)GPS.fix);
     logger.log(GPS_SETUP, DEBUG, msg);
 

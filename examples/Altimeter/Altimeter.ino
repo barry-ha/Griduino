@@ -320,7 +320,7 @@ void getCurrentDateTime(char *result) {
 }
 void echoGPSinfo() {
   // send GPS statistics to serial console for desktop debugging
-  char sDate[20];   // strlen("0000-00-00 hh:mm:ss") = 19
+  char sDate[26];   // strlen("0000-00-00 hh:mm:ss") = 19
   getCurrentDateTime(sDate);
   Serial.print("GPS: ");
   Serial.print(sDate);

@@ -120,7 +120,7 @@ enum buttonID {
     model->factoryReset();   // do the thing
   }
   void drawNumSatellites() {
-    char sTemp[4];   // strlen("12#") = 3
+    char sTemp[8];   // strlen("12#") = 3
     snprintf(sTemp, sizeof(sTemp), "%d#", model->gSatellites);
     txtStatic[NUMSATS].print(sTemp);   // number of satellites
   }

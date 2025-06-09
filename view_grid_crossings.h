@@ -89,7 +89,7 @@ public:
 
     // ----- GMT date & time
     char sDate[15];   // strlen("Aug 26, 2022") = 13
-    char sTime[10];   // strlen("19:54:14") = 8
+    char sTime[12];   // strlen("19:54:14") = 8
     model->getDate(sDate, sizeof(sDate));
     model->getTime(sTime);
     txtFields[GMT_DATE].print(sDate);

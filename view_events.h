@@ -335,7 +335,7 @@ void ViewEvents::updateScreen() {
   txtDate[LOCALTIME].print(sTime);
 
   // Satellite Count
-  char sBirds[4];   // strlen("5#") = 2
+  char sBirds[8];   // strlen("5#") = 2
   snprintf(sBirds, sizeof(sBirds), "%d#", model->gSatellites);
   // change colors by number of birds
   txtDate[NUMSATS].color = (model->gSatellites < 1) ? cWARN : cFAINT;

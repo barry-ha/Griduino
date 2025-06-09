@@ -171,7 +171,7 @@ void ViewStatus::updateScreen() {
 
   // ----- GMT date & time
   char sDate[15];   // strlen("Jan 12, 2020") = 13
-  char sTime[10];   // strlen("19:54:14") = 8
+  char sTime[12];   // strlen("19:54:14") = 8
   model->getDate(sDate, sizeof(sDate));
   model->getTime(sTime);
   txtValues[GMT_DATE].print(sDate);
