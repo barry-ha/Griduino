@@ -93,9 +93,9 @@ extern Dates date;      // date_helper.h
 class Breadcrumbs {
 public:
   // Class member variables
-  const int totalSize  = sizeof(history);          // bytes
-  const int recordSize = sizeof(Location);         // bytes
-  const int capacity   = totalSize / recordSize;   // max number of records
+  const uint totalSize  = sizeof(history);          // bytes
+  const uint recordSize = sizeof(Location);         // bytes
+  const uint capacity   = totalSize / recordSize;   // max number of records
   int saveInterval     = 2;
 
 private:

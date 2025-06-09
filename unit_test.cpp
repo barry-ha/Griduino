@@ -77,7 +77,7 @@ int verifyNMEAtime() {
   //                       s, m, h, dow, d, m, y
   const TimeElements day_1{0, 0, 0, 1, 1, 1, (2000 - 1970)};   // Jan 1, 2000 is the first day of NMEA time
   const time_t t0  = makeTime(day_1);                          // seconds offset from 1-1-1970 to 1-1-2000
-  const time_t y2k = SECS_YR_2000;                             // t0 = y2k = the time (seconds) at the start of y2k
+  // const time_t y2k = SECS_YR_2000;   // (unused)            // t0 = y2k = the time (seconds) at the start of y2k
 
   const TimeElements test7{0, 0, 0, 1, 1, 1, (2001 - 1970)};   // Jan 1, 2001
   const time_t time_2001_1_1 = makeTime(test7);

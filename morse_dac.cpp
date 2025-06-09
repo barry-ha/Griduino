@@ -124,7 +124,7 @@ struct t_mtab morsetable[] = {
 // todo:  replace this "dtostrf" with "floatToCharArray" in Griduino.ino
 char *dtostrf(double val, signed char width, unsigned char prec, char *sout) {
   uint32_t iPart = (uint32_t)val;
-  sprintf(sout, "%d", iPart);
+  sprintf(sout, "%ld", iPart);
   if (prec > 0) {
     uint8_t pos    = strlen(sout);
     sout[pos++]    = '.';
@@ -233,7 +233,7 @@ void DACMorseSender::send_word_space() {
 }
 
 char getPattern(char c) {
-  for (int ii = 0; ii < N_MORSE; ii++) {
+  for (unsigned int ii = 0; ii < N_MORSE; ii++) {
     if (morsetable[ii].c == c) {
       return morsetable[ii].pat;
     }
@@ -273,7 +273,7 @@ void DACMorseSender::sendBlocking() {
     logger.log(AUDIO, ERROR, "DAC dacSampleTime < 1 usec. Did you call setup()?");
   }
 
-  for (int ii = 0; ii < message.length(); ii++) {
+  for (unsigned int ii = 0; ii < message.length(); ii++) {
     send(message.charAt(ii));
   }
   send_word_space();
@@ -281,8 +281,6 @@ void DACMorseSender::sendBlocking() {
 
 void DACMorseSender::dump() {
   // dump our guts to the IDE console for debugging
-  char msg[256];
-  char sFloat[16];
   if (dacSampleTime < 1) {
     // note "delayMicroseconds()" only works reliably down to 3 usec
     Serial.println("!!! DAC dacSampleTime < 1 usec. Did you call setup()?");
@@ -291,7 +289,6 @@ void DACMorseSender::dump() {
 
 void DACMorseSender::unit_test() {
   // unit test routine (todo - not currently called from anywhere, 2022-08)
-  char msg[256];
   logger.log(AUDIO, INFO, "Begin DAC Morse settings:");
   logger.log(AUDIO, INFO, ". DAC sizeWavetable(%d)", sizeWavetable);
   logger.log(AUDIO, INFO, ". DAC dacPin(%d)", dacPin);

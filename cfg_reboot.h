@@ -125,7 +125,7 @@ enum buttonID {
     this->clearScreen(this->background);   // clear screen and post message
 
     const int left = 28;   // x: left text edge
-    const int top  = 40;   // y: top text row
+    // const int top  = 40;   // y: top text row (unused)
     setFontSize(eFONTSMALLEST);
     tft->setTextColor(cHIGHLIGHT);
     tft->setCursor(100, yRow1);

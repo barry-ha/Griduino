@@ -318,8 +318,8 @@ protected:
   void dumpCrossingInfo(const CrossingInfo *timeInGrid, int index) {
     return;   // do nothing
 
-    char dump[128];                                                                // debug
-    snprintf(dump, sizeof(dump), "timeInGrid[%d] = '%s', %lu, %lu, %lu seconds",   // "%lu" is unsigned long
+    char dump[128];                                                                 // debug
+    snprintf(dump, sizeof(dump), "timeInGrid[%d] = '%s', %llu, %llu, %llu seconds",   // "%lld" is unsigned long int
              index,
              timeInGrid->grid4,
              timeInGrid->enterTimestamp,                                  // enter

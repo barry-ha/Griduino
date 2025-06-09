@@ -150,7 +150,7 @@ int Breadcrumbs::saveGPSBreadcrumbTrail() {   // returns 1=success, 0=failure
     floatToCharArray(sLat, sizeof(sLat), loc->loc.lat, 5);
     floatToCharArray(sLng, sizeof(sLng), loc->loc.lng, 5);
 
-    char sAlt[12], sSpeed[12], sAngle[12], sSats[6];
+    char sAlt[12], sSpeed[12], sAngle[12];
     floatToCharArray(sAlt, sizeof(sAlt), loc->altitude, 1);
     floatToCharArray(sSpeed, sizeof(sSpeed), loc->speed, 1);
     floatToCharArray(sAngle, sizeof(sAngle), loc->direction, 1);

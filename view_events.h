@@ -259,7 +259,7 @@ protected:
     target     = eventList[whichEvent];
 
     char msg[64];
-    snprintf(msg, sizeof(msg), ". Changed event to #%d, %d", whichEvent, eventList[whichEvent].line3);
+    snprintf(msg, sizeof(msg), ". Changed event to #%d, %s", whichEvent, eventList[whichEvent].line3);
     logger.log(TIME, DEBUG, msg);
   }
 
@@ -269,7 +269,7 @@ protected:
     // @param result = char[10] = string buffer to modify
     // @param len = string buffer length
 
-    int dd = elapsedDays(elapsed);
+    // int dd = elapsedDays(elapsed);   // (unused)
     int hh = numberOfHours(elapsed);
     int mm = numberOfMinutes(elapsed);
     int ss = numberOfSeconds(elapsed);
@@ -296,7 +296,7 @@ void ViewEvents::updateScreen() {
   TimeElements todaysDate{GPS.seconds, GPS.minute, GPS.hour,
                           1, GPS.day, GPS.month, (byte)(2000 - 1970 + GPS.year)};   // GMT current date/time
 
-  time_t adjustment = model->gTimeZone * SECS_PER_HOUR;
+  // time_t adjustment = model->gTimeZone * SECS_PER_HOUR;   // (unused)
 
   time_t date1local = makeTime(target.eventGMT);
   time_t date2local = makeTime(todaysDate);

@@ -267,5 +267,5 @@ void ViewCfgAudioType::loadConfig() {
 // ----- save to SDRAM -----
 void ViewCfgAudioType::saveConfig() {
   SaveRestore config(AUDIO_CONFIG_FILE, AUDIO_CONFIG_VERSION);
-  int rc = config.writeConfig((byte *)&selectedAudio, sizeof(selectedAudio));
+  config.writeConfig((byte *)&selectedAudio, sizeof(selectedAudio));
 }

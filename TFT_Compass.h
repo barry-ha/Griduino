@@ -29,6 +29,7 @@
 
 class TFT_Compass {
 public:
+  Adafruit_ILI9341 *tft;   // an instance of the TFT Display
   int oldDegrees = 0;       // previous compass pointer angle
   Point old0, old1, old2;   // cached corners of triangle pointer
   bool dirty = true;        // true=force redraw even if old=new
@@ -43,7 +44,6 @@ public:
   TextField *speedometer;
 
   Point p0, p1, p2;        // starting corners of triangular pointer
-  Adafruit_ILI9341 *tft;   // an instance of the TFT Display
 
   TFT_Compass(Adafruit_ILI9341 *vtft, Point vcenter, int vradius, TextField *vspeedo)   // ctor
       : tft(vtft), center(vcenter), radiusCircle(vradius), speedometer(vspeedo) {
