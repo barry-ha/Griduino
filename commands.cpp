@@ -34,7 +34,7 @@ extern View *pView;                   // Griduino.ino
 void help(), version();
 void dump_kml(), dump_gps_history(), erase_gps_history(), list_files(), type_gpshistory();
 void start_nmea(), stop_nmea(), start_gmt(), stop_gmt();
-void show_help(), show_screen1(), show_splash(), show_crossings(), show_events(), show_reformat();
+void show_help(), show_screen1(), show_splash(), show_crossings(), show_events(), show_reformat(), show_compass();
 void show_touch(), hide_touch();
 void show_centerline(), hide_centerline();
 void run_unittest();
@@ -76,6 +76,7 @@ Command cmdList[] = {
     {0, "show crossings", show_crossings},
     {0, "show events", show_events},
     {0, "show reformat", show_reformat},
+    {0, "show compass", show_compass},
 
     {Newline, "dir", list_files},
     {0, "list files", list_files},
@@ -212,6 +213,12 @@ void show_reformat() {
   logger.log(COMMAND, CONSOLE, "show reformat flash memory screen");
   extern /*const*/ int reformat_view;   // see Griduino.com
   selectNewView(reformat_view);
+}
+
+void show_compass() {
+  logger.log(COMMAND, CONSOLE, "show compass");
+  extern /*const*/ int compass_view;   // see Griduino.com
+  selectNewView(compass_view);
 }
 
 void show_touch() {
