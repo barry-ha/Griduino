@@ -17,6 +17,7 @@
 #include "model_gps.h"           // Class Model (for model-view-controller)
 #include "TextField.h"           // Optimize TFT display text for proportional fonts
 #include "view.h"                // Base class for all views
+#include "view_grid.h"           // primary grid displays of position or speed+compass
 #include "grid_helper.h"         // lat/long conversion routines
 #include "date_helper.h"         // date/time conversions
 
@@ -28,7 +29,7 @@ extern void clearScreen();           // Griduino.ino
 extern Adafruit_ILI9341 tft;             // Griduino.ino
 extern DACMorseSender dacMorse;          // Morse code
 extern Model *model;                     // "model" portion of model-view-controller
-extern ViewGrid gridView;                // Griduino.ino
+extern ViewGridMain gridView;            // view_grid.h
 extern Logger logger;                    // Griduino.ino
 extern Breadcrumbs trail;                // model of breadcrumb trail
 extern void showDefaultTouchTargets();   // Griduino.ino
@@ -76,7 +77,7 @@ int verifyNMEAtime() {
 
   //                       s, m, h, dow, d, m, y
   const TimeElements day_1{0, 0, 0, 1, 1, 1, (2000 - 1970)};   // Jan 1, 2000 is the first day of NMEA time
-  const time_t t0  = makeTime(day_1);                          // seconds offset from 1-1-1970 to 1-1-2000
+  const time_t t0 = makeTime(day_1);                           // seconds offset from 1-1-1970 to 1-1-2000
   // const time_t y2k = SECS_YR_2000;   // (unused)            // t0 = y2k = the time (seconds) at the start of y2k
 
   const TimeElements test7{0, 0, 0, 1, 1, 1, (2001 - 1970)};   // Jan 1, 2001
@@ -573,10 +574,10 @@ void generateSineWave(int numCrumbs) {
   double startLong = -124.0 - 0.6;
   // don't use "steps = trail.capacity" because remember() will write each one to SdFat,
   // filling the console log and taking a very long time
-  int steps              = numCrumbs;                 // number of loops, pref prime number
-  double stepSize        = (125.3 - 123.7) / steps;   // degrees longitude to move each loop
-  double amplitude       = 0.65;                      // degrees latitude, maximum sine wave
-  const uint8_t nSats    = 5;
+  int steps           = numCrumbs;                 // number of loops, pref prime number
+  double stepSize     = (125.3 - 123.7) / steps;   // degrees longitude to move each loop
+  double amplitude    = 0.65;                      // degrees latitude, maximum sine wave
+  const uint8_t nSats = 5;
   // const float fSpeed     = 10.0;   // (unused)
   // const float fDirection = 11.0;   // (unused)
   // const float fAltitude  = 12.0;   // (unused)

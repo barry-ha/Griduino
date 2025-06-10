@@ -94,13 +94,13 @@
 #include "hardware.h"                 // Griduino pin definitions
 #include "logger.h"                   // conditional printing to Serial port
 #include "grid_helper.h"              // lat/long conversion routines
-#include "TFT_Compass.h"              // Compass and speedometer
 
 #include "view.h"                     // Griduino screens base class, followed by derived classes in alphabetical order
 #include "view_altimeter.h"           // altimeter
 #include "view_battery.h"             // coin battery
 #include "view_baro.h"                // barometric pressure graph
 #include "view_events.h"              // counting days to/from calendar events
+#include "view_grid.h"                // primary grid displays of position or speed+compass
 #include "view_grid_crossings.h"      // list of time spent in each grid
 #include "view_help.h"                // help screen
 #include "view_sat_count.h"           // show number of satellites acquired
@@ -133,7 +133,6 @@
 //extern bool newScreenTap(Point* pPoint);       // Touch.cpp
 //extern uint16_t myPressure(void);              // Touch.cpp
 //void initTouchScreen(void);                    // Touch.cpp
-//extern void setFontSize(int font);           // TextField.cpp
 void processCommand(char *cmd);                // commands.cpp
 
 // ---------- TFT display
@@ -349,24 +348,26 @@ enum VIEW_INDEX {
   CFG_ROTATION,          // 10 screen rotation
   CFG_UNITS,             // 11 english/metric
   EVENTS_VIEW,           // 12 Groundhog Day, Halloween, or other day-counting screen
-  GRID_VIEW,             // 13 <-- this is the primary navigation view
+  COMPASS_VIEW,          // 13 speedo + compass
   GRID_CROSSINGS_VIEW,   // 14 log of time in each grid
-  HELP_VIEW,             // 15 hints at startup
-  SAT_COUNT_VIEW,        // 16 number of satellites acquired
-  SCREEN1_VIEW,          // 17 first bootup screen
-  SPLASH_VIEW,           // 18 startup
-  STATUS_VIEW,           // 19 size and scale of this grid
-  TEN_MILE_ALERT_VIEW,   // 20 microwave rover view
-  TIME_VIEW,             // 21
-  CFG_VOLUME,            // 22
-  GOTO_SETTINGS,         // 23 command the state machine to show control panel
-  GOTO_NEXT_VIEW,        // 24 command the state machine to show next screen
-  MAX_VIEWS,             // 25 sentinel at end of list
+  GRID_VIEW,             // 15 <-- this is the primary navigation view
+  HELP_VIEW,             // 16 hints at startup
+  SAT_COUNT_VIEW,        // 17 number of satellites acquired
+  SCREEN1_VIEW,          // 18 first bootup screen
+  SPLASH_VIEW,           // 19 startup
+  STATUS_VIEW,           // 20 size and scale of this grid
+  TEN_MILE_ALERT_VIEW,   // 21 microwave rover view
+  TIME_VIEW,             // 22
+  CFG_VOLUME,            // 23
+  GOTO_SETTINGS,         // 24 command the state machine to show control panel
+  GOTO_NEXT_VIEW,        // 25 command the state machine to show next screen
+  MAX_VIEWS,             // 26 sentinel at end of list
 };
 /*const*/ int help_view      = HELP_VIEW;
 /*const*/ int sat_count_view = SAT_COUNT_VIEW;
 /*const*/ int splash_view    = SPLASH_VIEW;
 /*const*/ int screen1_view   = SCREEN1_VIEW;
+/*const*/ int compass_view   = COMPASS_VIEW;
 /*const*/ int grid_view      = GRID_VIEW;
 /*const*/ int grid_crossings_view = GRID_CROSSINGS_VIEW;
 /*const*/ int events_view    = EVENTS_VIEW;
@@ -391,8 +392,9 @@ ViewCfgReformat   cfgReformat(&tft, CFG_REFORMAT);
 ViewCfgRotation   cfgRotation(&tft, CFG_ROTATION);
 ViewCfgUnits      cfgUnits(&tft, CFG_UNITS);
 ViewEvents        eventsView(&tft, EVENTS_VIEW);
-ViewGrid          gridView(&tft, GRID_VIEW);
+ViewGridCompass   compassView(&tft, COMPASS_VIEW);
 ViewGridCrossings gridCrossingsView(&tft, GRID_CROSSINGS_VIEW);
+ViewGridMain      gridView(&tft, GRID_VIEW);            // <-- this is the primary navigation view
 ViewHelp          helpView(&tft, HELP_VIEW);
 ViewSatCount      satCountView(&tft, SAT_COUNT_VIEW);
 ViewScreen1       screen1View(&tft, SCREEN1_VIEW);
@@ -421,8 +423,9 @@ void selectNewView(int cmd) {
       &cfgRotation,         // [CFG_ROTATION]
       &cfgUnits,            // [CFG_UNITS]
       &eventsView,          // [EVENTS_VIEW]
-      &gridView,            // [GRID_VIEW]
+      &compassView,         // [COMPASS_VIEW]
       &gridCrossingsView,   // [GRID_CROSSINGS_VIEW]
+      &gridView,            // [GRID_VIEW]
       &helpView,            // [HELP_VIEW]
       &satCountView,        // [SAT_COUNT_VIEW]
       &screen1View,         // [SCREEN1_VIEW]
@@ -441,7 +444,8 @@ void selectNewView(int cmd) {
     switch (currentView) {
       case SCREEN1_VIEW:   nextView = HELP_VIEW; break;   // skip SPLASH_VIEW (simplify startup, now that animated logo shows version number)
       case SPLASH_VIEW:    nextView = GRID_VIEW; break;
-      case GRID_VIEW:      nextView = TIME_VIEW; break;
+      case GRID_VIEW:      nextView = COMPASS_VIEW; break;
+      case COMPASS_VIEW:   nextView = TIME_VIEW; break;
       case GRID_CROSSINGS_VIEW: nextView= GRID_VIEW; break;   // skip GRID_CROSSINGS_VIEW (not ready for prime time)
       case TIME_VIEW:      nextView = SAT_COUNT_VIEW; break;
       case SAT_COUNT_VIEW: nextView = BARO_VIEW; break;
@@ -479,6 +483,7 @@ void selectNewView(int cmd) {
     // a specific view was requested, such as HELP_VIEW via a USB command
     nextView = cmd;
   } else {
+    nextView = GRID_VIEW;   // default to main screen for errors
     logger.log(CONFIG, ERROR, "Requested view is out of range: %d where maximum is %d", cmd, MAX_VIEWS);
   }
   // clang-format on
@@ -570,7 +575,7 @@ void announceGrid(const String gridName, int length) {
       sendMorseGrid6( grid );
       break;
     case ViewCfgAudioType::SPEECH:
-      for (int ii=0; ii<strlen(grid); ii++) {
+      for (uint ii=0; ii<strlen(grid); ii++) {
 
         char myfile[32];
         char letter = tolower( grid[ii] );
@@ -634,7 +639,7 @@ void sayGrid(const char *name) {
   // todo - for now, RP2040 has no DAC, no audio, no speech
   logger.log(AUDIO, ERROR, "Unsupported audio in line ", __LINE__ );
 #else
-  for (int ii = 0; ii < strlen(name); ii++) {
+  for (uint ii = 0; ii < strlen(name); ii++) {
     logger.fencepost("Griduino.ino", __LINE__);   // debug
 
     // example: choose the filename to play
@@ -651,7 +656,7 @@ void sayGrid(const char *name) {
     bool rc = dacSpeech.play(myfile);
     if (!rc) {
       char out[128];
-      snprintf(out, sizeof(out), "sayGrid(%s) failed", letter);
+      snprintf(out, sizeof(out), "sayGrid(%c) failed", letter);
       logger.log(AUDIO, ERROR, out);
     }
   }
