@@ -5,7 +5,7 @@
 #if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
 #define PROGRAM_VERSION "v1.14"
 #else
-#define PROGRAM_VERSION "v1.14.6"
+#define PROGRAM_VERSION "v1.14.7"
 #endif
 #define HARDWARE_VERSION "Rev 4"   // Rev 4 | Rev 7 | Rev 12 | Rev 14
 #define PROGRAM_LINE1    "Barry K7BWH"
@@ -28,6 +28,8 @@
 
 #define gBoxWidth  180   // grid square width as shown on display, pixels
 #define gBoxHeight 160   // grid square height as shown on display, pixels
+#define gMarginX   70    // define space for grid outline on screen
+#define gMarginY   26    // and position text relative to this outline
 
 // ------- Physical constants ---------
 const float gridWidthDegrees  = 2.0;   // horiz E-W size of one grid square, degrees
