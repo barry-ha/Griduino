@@ -8,9 +8,7 @@
 #include "TextField.h"          // Optimize TFT display text for proportional fonts
 
 // ========== extern ==================================
-extern Adafruit_ILI9341 tft;   // Griduino.ino  TODO: eliminate this global
-// extern void setFontSize(int font);   // Griduino.ino  TODO: eliminate this extern
-
+extern Adafruit_ILI9341 tft;       // Griduino.ino  TODO: eliminate this global
 uint16_t TextField::cBackground;   // background color
 
 // ========== TextField ===============================
