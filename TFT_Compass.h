@@ -92,7 +92,7 @@ public:
   //=========== main work routines ===================================
   void drawPointer(int speed, int degrees) {
     if (degrees != oldDegrees || dirty) {
-      float angle = 2.0 * PI * degrees / 360.0;
+      float angle = degrees / degreesPerRadian;
 
       // rotate triangle (three points) around the center of the compass
       Point new0 = rotate(p0, center, angle);
