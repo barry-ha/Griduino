@@ -720,6 +720,7 @@ void setup() {
   gpsBattery.begin();
 
   // ----- init GPS
+  // todo: refactor GPS.begin() into new "model.begin()"
   GPS.begin(9600);   // 9600 NMEA is the default baud rate for Adafruit MTK GPS's
   delay(50);         // is delay really needed?
 
@@ -881,7 +882,7 @@ void setup() {
 // "millis()" is number of milliseconds since the Arduino began running the current program.
 // This number will overflow after about 50 days.
 //uint32_t prevTimeGPS = millis();
-elapsedSeconds saveGpsTimer;          // timer to process and save the current GPS location
+elapsedMillis saveGpsTimer;           // timer to process GPS location (and optionally save breadcrumb)
 elapsedSeconds autoLogTimer;          // timer to save GPS trail periodically no matter what
 elapsedSeconds batteryTimer;          // timer to log the coin battery voltage
 uint32_t prevTimeBaro = millis();
@@ -900,7 +901,7 @@ time_t nextSavePressure = 0;          // timer to log pressure reading (15 min)
 // an almost-unnoticeable flicker and an almost-unnoticeable difference from WWV.
 // Also, 47 msec is relatively prime compared to 200 msec (5 Hz) updates sent from
 // the GPS hardware. Todo - fix the colon's flicker then reduce this interval to 10 msec.
-const int GPS_PROCESS_INTERVAL =  13;   // seconds between updating the model's GPS data
+const int GPS_PROCESS_INTERVAL =  1250;     // millisec between updating the model's GPS data
 const int CLOCK_DISPLAY_INTERVAL = 1000;   // refresh clock display every 1 second (1,000 msec)
 const uint32_t GPS_AUTOSAVE_INTERVAL = SECS_PER_10MIN; // seconds between saving breadcrumb trail to file
 //const int BAROMETRIC_PROCESS_INTERVAL = 15*60*1000;  // fifteen minutes in milliseconds
