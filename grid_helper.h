@@ -15,6 +15,7 @@
 
 #include "constants.h"   // Griduino constants and colors
 #include "logger.h"      // conditional printing to Serial port
+#include <cstdlib>
 
 // ========== class Grids =========================================
 class Grids {
@@ -27,7 +28,7 @@ public:
     // Input: char result[7];
     int o1, o2, o3, o4;   // l_o_ngitude
     int a1, a2, a3, a4;   // l_a_titude
-    //double remainder;   // (unused)
+    // double remainder;   // (unused)
 
     // longitude
     double r = (lon + 180.0) / 20.0 + 1e-7;
@@ -97,19 +98,43 @@ public:
     double latDist  = calcDistanceLat(fromLat, toLat, isMetric);
     double longDist = calcDistanceLong(fromLat, fromLong, toLong, isMetric);
     double total    = sqrt(latDist * latDist + longDist * longDist);
-    return total;
+    return total;   // miles or km, depending on 'isMetric'
+  }
+
+  float calcHeading(double fromLat, double fromLong, double toLat, double toLong) {
+    // direction of travel, degrees from true north
+    double latAngleRadians = (fromLat - toLat) * radiansPerDegree;   // + north, - south
+    double latDistance     = latAngleRadians * earthRadiusKM;        // km
+
+    // double longDist = calcDistanceLong(fromLat, fromLong, toLong, true);
+    double scaleFactor      = fabs(cos(latAngleRadians));   // grids are narrower as you move from equator to north/south pole
+    double longAngleRadians = (fromLong - toLong) * radiansPerDegree * scaleFactor;
+    double longDistance     = longAngleRadians * earthRadiusKM;   // + east, - west
+
+    float degrees;                    // 0=north, 180=south
+    if (abs(latDistance) > 0.001) {   // avoid dividing by near zero
+      degrees = atan(longDistance / latDistance) * degreesPerRadian;
+      degrees += 90.0;   // rotate from 0=right=east to 0=up=north
+      if (degrees > 360.0) {
+        degrees -= 360.0;   // normalize to 0..360
+      }
+    } else {
+      if (latDistance > 0.0) {
+        degrees = 0.0;   // 0 = due north
+      } else {
+        degrees = 180.0;   // 180 = due south
+      }
+    }
+    return degrees;
   }
 
   double calcDistanceLat(double fromLat, double toLat, bool isMetric) {
     // calculate distance in N-S direction (miles or km)
     // input:   latitudes in degrees
     //          metric true=km, false=miles
-    // returns: 'double' in either English or Metric
+    // returns: positive distance, in either English or Metric
 
-    double R = 3958.8;   // average Earth radius (miles)
-    if (isMetric) {
-      R = 6371.0;   // average Earth radius (kilometers)
-    }
+    double R            = isMetric ? earthRadiusKM : earthRadiusMiles;
     double angleDegrees = fabs(fromLat - toLat);
     double angleRadians = angleDegrees / degreesPerRadian;
     double distance     = angleRadians * R;
@@ -120,12 +145,9 @@ public:
     // calculate distance in E-W direction (miles or km)
     // input:   latitudes in degrees
     //          metric true=km, false=miles
-    // returns: 'double' in either English or Metric
+    // returns: positive distance, in either English or Metric
 
-    double R = 3958.8;   // average Earth radius (miles)
-    if (isMetric) {
-      R = 6371.0;   // average Earth radius (kilometers)
-    }
+    double R            = isMetric ? earthRadiusKM : earthRadiusMiles;
     double scaleFactor  = fabs(cos(lat / degreesPerRadian));   // grids are narrower as you move from equator to north/south pole
     double angleDegrees = fabs(fromLong - toLong);
     double angleRadians = angleDegrees / degreesPerRadian * scaleFactor;
