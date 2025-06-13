@@ -101,9 +101,9 @@ protected:
   FunctionButton settings2Buttons[nButtonsGPS] = {
       // label              origin             size      touch-target
       // text                 x,y               w,h        x,y       w,h  radius  color   functionID
-      {"Clear",        xButton, yRow1 - 14,   130, 40,  {158, 58,  136,42}, 4, cVALUE, eCLEAR},      // [eCLEAR] Clear track history
-      {"GPS Receiver", xButton, yRow3 - 26,   130, 40,  {128,112,  180,50}, 4, cVALUE, eRECEIVER},   // [eRECEIVER] Satellite receiver
-      {"Simulator",    xButton, yRow4 - 26,   130, 40,  {130,164,  180,60}, 4, cVALUE, eSIMULATOR},  // [eSIMULATOR] Simulated track
+      {"Clear",        xButton, yRow1 - 14,   130, 40,  {154, 58,  156,54}, 4, cVALUE, eCLEAR},      // [eCLEAR] Clear track history
+      {"GPS Receiver", xButton, yRow3 - 26,   130, 40,  {130,112,  180,50}, 4, cVALUE, eRECEIVER},   // [eRECEIVER] Satellite receiver
+      {"Simulator",    xButton, yRow4 - 26,   130, 40,  {130,164,  180,50}, 4, cVALUE, eSIMULATOR},  // [eSIMULATOR] Simulated track
     //{"Factory Reset",xButton, 180,          130,30,   {138,174,  180,50}, 4,  cVALUE,  fFactoryReset},// [eFACTORYRESET] Factory Reset
   };
   // clang-format on
@@ -119,12 +119,12 @@ protected:
   }
   void fReceiver() {
     // select GPS receiver data
-    logger.log(CONFIG, INFO, "->->-> Clicked GPS RECEIVER button.");
+    logger.log(CONFIG, INFO, "->->-> Clicked GPS RECEIVER button");
     fSetReceiver();   // use "class Model" for GPS receiver hardware
   }
   void fSimulated() {
     // simulate satellite track
-    logger.log(CONFIG, INFO, "->->-> Clicked GPS SIMULATOR button.");
+    logger.log(CONFIG, INFO, "->->-> Clicked GPS SIMULATOR button");
     fSetSimulated();   // use "class MockModel" for simulated track
   }
   void fFactoryReset() {
