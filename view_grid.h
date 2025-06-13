@@ -66,11 +66,11 @@ protected:
     N_DISTANCE, S_DISTANCE, E_DISTANCE, W_DISTANCE,
     N_GRIDNAME, S_GRIDNAME, E_GRIDNAME, W_GRIDNAME,
     N_BOX_LAT,  S_BOX_LAT,  E_BOX_LONG, W_BOX_LONG,
-    SPEEDOMETER,
+    SPEEDOMETER, GRID4BOTTOM,
   };
 
   // ----- all screen text
-  #define numTextGrid 24
+  #define numTextGrid 25
   TextField txtGrid[numTextGrid] = {
     //         text      x,y     color
     TextField("CN77",  101,101,  cGRIDNAME),              // GRID4: center of screen
@@ -96,7 +96,8 @@ protected:
     TextField("47",     56,190,  cBOXDEGREES, ALIGNRIGHT),  // S_BOX_LAT
     TextField("122",   243, 20,  cBOXDEGREES),              // E_BOX_LONG
     TextField("124",    72, 20,  cBOXDEGREES, ALIGNRIGHT),  // W_BOX_LONG
-    TextField(55, gMarginX+2, gMarginY+40, cSPEEDOMETER, ALIGNLEFT, eFONTBIG), // SPEEDOMETER
+    TextField(55,   gMarginX+2, gMarginY+40, cSPEEDOMETER, ALIGNLEFT, eFONTBIG), // SPEEDOMETER
+    TextField("123",   102,176,  cGRIDNAME, ALIGNLEFT, eFONTSMALL), // GRID4BOTTOM
   };
   // clang-format on
 
@@ -122,6 +123,7 @@ public:
     plotCurrentPosition(myLocation, gridOrigin);                // show current pushpin
   }
   void startScreen() {
+    logger.fencepost("View_Grid_Base::startScreen", __LINE__);
     this->clearScreen(this->background);          // clear screen
     txtGrid[0].setBackground(this->background);   // set background for all TextFields in this view
     TextField::setTextDirty(txtGrid, numTextGrid);
@@ -154,6 +156,11 @@ protected:
     String grid5_6 = newGridName.substring(4, 6);
     txtGrid[GRID4].print(grid1_4);
     txtGrid[GRID6].print(grid5_6);
+  }
+  void drawGridNameBottom(String newGridName) {
+    // one line: "CN87" in lower left
+    String grid1_4 = newGridName.substring(0, 4);
+    txtGrid[GRID4BOTTOM].print(grid1_4);
   }
   void drawPositionLL(double fLat, double fLong) {
     setFontSize(0);
@@ -491,8 +498,8 @@ public:
     drawGridName(grid6);   // huge letters centered on screen
   }
   void startScreen() {
+    logger.fencepost("ViewGridMain::startScreen", __LINE__);
     View_Grid_Base::startScreen();   // call base class for common view setup
-    // todo - add setup for this derived view
   }
 
 protected:
@@ -511,14 +518,23 @@ public:
   void updateScreen() {
     View_Grid_Base::updateScreen();
 
-    compass.drawPointer(model->gSpeed, model->gAngle);       // update compass pointer
-    compass.drawSpeedometer(model->gSpeed, model->gAngle);   // update speedometer
+    compass.dirty = true;                 // debug
+    int nAngle    = (int)model->gAngle;   // cast float to integer
+    int nSpeed    = (int)model->gSpeed;
+    logger.log(GPS_SETUP, DEBUG, "Pointer %d degrees", nAngle);   // debug
+    compass.drawPointer(nSpeed, nAngle);                          // update compass pointer
+    //compass.drawSpeedometer(nSpeed, nAngle);                      // update speedometer
+
+    char grid4[7];
+    grid.calcLocator(grid4, model->gLatitude, model->gLongitude, 4);
+    drawGridNameBottom(grid4);   // big letters in lower left
 
     PointGPS myLocation{model->gLatitude, model->gLongitude};   // current location
     PointGPS gridOrigin{grid.nextGridLineSouth(model->gLatitude), grid.nextGridLineWest(model->gLongitude)};
     plotCurrentPosition(myLocation, gridOrigin);   // redraw vehicle on top of compass, if needed
   }
   void startScreen() {
+    logger.fencepost("ViewGridCompass::startScreen", __LINE__);
     View_Grid_Base::startScreen();   // call base class for common view setup
     compass.setBackground(this->background);
     compass.dirty = true;

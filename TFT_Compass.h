@@ -39,8 +39,8 @@ public:
   // screen coordinates
   const Point center;       // screen coord of center of compass
   const int radiusCircle;   //
-  const int base   = 24;    // base width of triangle
-  const int height = 56;    // height of triangle
+  const int base   = 22;    // base width of triangle
+  const int height = 52;    // height of triangle
   TextField *speedometer;
 
   Point p0, p1, p2;        // starting corners of triangular pointer
@@ -91,8 +91,11 @@ public:
 
   //=========== main work routines ===================================
   void drawPointer(int speed, int degrees) {
+    // speed   = mph or kph
+    // degrees = compass direction, 0 = north
     if (degrees != oldDegrees || dirty) {
-      float angle = degrees / degreesPerRadian;
+      // convert compass degrees (North=0) to screen angle (East=0)
+      float angle = (degrees + 90) * radiansPerDegree;  
 
       // rotate triangle (three points) around the center of the compass
       Point new0 = rotate(p0, center, angle);

@@ -15,8 +15,9 @@
          https://github.com/PaulStoffregen/Time
 */
 
-#include <Arduino.h>             //
-#include <Adafruit_GPS.h>        // "Ultimate GPS" library
+#include <Arduino.h>        //
+#include <Adafruit_GPS.h>   // "Ultimate GPS" library
+#include <cmath>
 #include "constants.h"           // Griduino constants, colors, typedefs
 #include "hardware.h"            //
 #include "logger.h"              // conditional printing to Serial port
@@ -42,17 +43,19 @@ extern Dates date;          // date_helper.h
 class Model {
 public:
   // Class member variables
-  double gLatitude    = 0;       // GPS position, floating point, decimal degrees
-  double gLongitude   = 0;       // GPS position, floating point, decimal degrees
-  float gAltitude     = 0;       // Altitude in meters above MSL
-  time_t gTimestamp   = 0;       // date/time of GPS reading
-  bool gHaveGPSfix    = false;   // true = GPS.fix() = whether or not gLatitude/gLongitude is valid
-  uint8_t gSatellites = 0;       // number of satellites in use
-  float gSpeed        = 0.0;     // current speed over ground in MPH
-  float gAngle        = 0.0;     // direction of travel, degrees from true north
-  bool gMetric        = false;   // distance reported in miles(false), kilometers(true)
-  int gTimeZone       = -7;      // default local time Pacific (-7 hours)
-  bool compare4digits = true;    // true=4 digit, false=6 digit comparisons
+  double gLatitude     = 0;       // GPS position, floating point, decimal degrees
+  double gLongitude    = 0;       // GPS position, floating point, decimal degrees
+  float gAltitude      = 0;       // Altitude in meters above MSL
+  time_t gTimestamp    = 0;       // date/time of GPS reading
+  bool gHaveGPSfix     = false;   // GPS.fix() = whether or not gLatitude/gLongitude is valid
+  int gFixQuality      = 0;       // GPS.fixquality() 0 = no signal, 1 = only using GNSS satellites, 2=differential GPS (n/a), 3=RTK (n/a)
+  uint8_t gSatellites  = 0;       // number of satellites in use
+  float gSpeed         = 0.0;     // current speed over ground in MPH
+  float gAngle         = 0.0;     // direction of travel, degrees from true north
+  bool gMetric         = false;   // distance reported in miles(false), kilometers(true)
+  int gTimeZone        = -7;      // default local time Pacific (-7 hours)
+  bool compare4digits  = true;    // true=4 digit, false=6 digit comparisons
+  const int dataSource = eGPSRECEIVER;
 
 protected:
   int gPrevFix       = false;        // previous value of gPrevFix, to help detect "signal lost"
@@ -140,7 +143,7 @@ public:
     gAltitude      = from.gAltitude;        // Altitude in meters above MSL
     gTimestamp     = from.gTimestamp;       // date/time of GPS reading
     gHaveGPSfix    = false;                 // assume no fix yet
-    gSatellites    = 0;                     // assume no satellites yet
+    gSatellites    = 0;                     // GPS.satellites, assume no satellites
     gSpeed         = 0.0;                   // assume speed unknown
     gAngle         = 0.0;                   // assume direction of travel unknown
     gMetric        = from.gMetric;          // distance report in miles/kilometers
@@ -175,6 +178,7 @@ public:
     } else {
       gHaveGPSfix = false;
     }
+    gFixQuality = GPS.fixquality;
 
     // read hardware regardless of GPS signal acquisition
     gSatellites = GPS.satellites;
@@ -345,15 +349,15 @@ public:
   }
 
 private:
-  void echoGPSinfo() {
-    logger.fencepost("model_gps.h", "getGPS()", __LINE__);  // debug
-    // send GPS statistics from the Adafruit_GPS library (not from our own data in our model)
+  virtual void echoGPSinfo() {
+    logger.fencepost("model_gps.h", "getGPS()", __LINE__);   // debug
+    // report GPS statistics from the Adafruit_GPS library (not from our own data in our model)
     // to serial console for desktop debugging
     char sDate[26];   // strlen("0000-00-00  hh:mm:ss") = 20
     getCurrentDateTime(sDate);
 
     char msg[128];
-    snprintf(msg, sizeof(msg), "Model: %s  Fix(%d)", sDate, (int)GPS.fix);
+    snprintf(msg, sizeof(msg), "GPS: %s  Sats(%d) Fix(%d)", sDate, GPS.satellites, (int)GPS.fix);
     logger.log(GPS_SETUP, DEBUG, msg);
 
     if (GPS.fix) {
@@ -364,8 +368,8 @@ private:
       floatToCharArray(sAngle, sizeof(sAngle), GPS.angle, 0);
       floatToCharArray(sAlt, sizeof(sAlt), gAltitude, 1);
 
-      snprintf(msg, sizeof(msg), "   Loc(%s,%s) Quality(%d) Sats(%d) Speed(%s knots) Angle(%s) Alt(%s)",
-              sLat, sLong, (int)GPS.fixquality, gSatellites, sSpeed, sAngle, sAlt);
+      snprintf(msg, sizeof(msg), "   gps(%s,%s) Quality(%d) Sats(%d) Speed(%s knots) Heading(%s) Alt(%s)",
+               sLat, sLong, (int)GPS.fixquality, gSatellites, sSpeed, sAngle, sAlt);
       logger.log(GPS_SETUP, DEBUG, msg);
     }
   }
@@ -378,6 +382,8 @@ class MockModel : public Model {
   // Generate a simulated travel path for demonstrations and testing
   // Note: GPS Position: Simulated
   //       Realtime Clock: Actual time as given by hardware
+public:
+  const int dataSource = eGPSSIMULATOR;   //
 
 protected:
   const double lngDegreesPerPixel = gridWidthDegrees / gBoxWidth;     // grid square = 2.0 degrees wide E-W
@@ -387,9 +393,12 @@ protected:
   const PointGPS llCN87{47.40, -123.35};    // lower left of CN87
   unsigned long startTime = 0;
 
+  PointGPS prevGPS;   // helps compute simulated ground speed
+  time_t prevTime;
+
 public:
-  // read SIMULATED GPS hardware
-  void getGPS() {
+  // read SIMULATED GPS position
+  void getGPS() override {
     gHaveGPSfix = true;   // indicate 'fix' whether the GPS hardware sees
                           // any satellites or not, so the simulator can work
                           // indoors all the time for everybody
@@ -427,7 +436,7 @@ public:
       gLongitude = llCN87.lng + secondHand / gBoxWidth;
       break;
 
-    case 3:   // ----- move slowly NORTH forever, with sine wave left-right
+    case 3:   // ----- move slowly NORTH forever, with sine wave east-west
       gLatitude  = midCN87.lat + secondHand / gBoxHeight;
       gLongitude = midCN87.lng + 0.7 * gridWidthDegrees * sin(secondHand / 800.0 * 2.0 * PI);
       gAltitude += float(GPS.seconds) / 60.0 * 100.0;   // Simulated altitude (meters)
@@ -435,14 +444,59 @@ public:
 
     case 4:   // ----- move in oval around a single grid
       // Funny note!
-      //    How fast are we going???
+      //    How fast are we moving???
       //    The simulated ground speeds with timeScale=1200 are:
       //    1-degree north-south is about (69.1 miles / (6m 17s) = 660 mph
       //    2-degrees east-west is about (94.3 miles) / (6m 17s) = 900 mph
       float timeScale = 1200.0;   // arbitrary divisor to slow down the motion
       gLatitude       = midCN87.lat + 0.6 * gridHeightDegrees * cos(secondHand / timeScale * 2.0 * PI);
       gLongitude      = midCN87.lng + 0.7 * gridWidthDegrees * sin(secondHand / timeScale * 2.0 * PI);
+
+      double distance = grid.calcDistance(prevGPS.lat, prevGPS.lng, gLatitude, gLongitude, gMetric);
+
+      // calculate speed-over-ground in mph
+      gSpeed = distance / (gTimestamp - prevTime) * timeScale;                      // = distance/time (knots)
+      gAngle = grid.calcHeading(prevGPS.lat, prevGPS.lng, gLatitude, gLongitude);   // direction of travel, degrees from true north
+
+      int nSpeed = (int)gSpeed;                                                       // debug
+      int nAngle = (int)gAngle;                                                       // debug
+      logger.log(GPS_SETUP, DEBUG, "   Sim speed(%d) heading(%d)", nSpeed, nAngle);   // debug
+
+      // simulate number of satellites
+      // should look like a slow smooth sine wave in the "Satellites" view
+      timeScale   = 500;   // arbitrary divisor for "slow sine wave"
+      gSatellites = round(4.0 + 3.0 * sin(secondHand / timeScale * 2.0 * PI));
+
+      // simulate whether or not we have a valid gps position
+      gHaveGPSfix = gSatellites ? true: false; 
+      gFixQuality = gSatellites ? 1 : 0;
+
       break;
+    }
+    prevGPS  = {gLatitude, gLongitude};   // help compute simulated ground speed
+    prevTime = gTimestamp;
+  }
+  void echoGPSinfo() override {
+    logger.fencepost("model_gps.h", "getGPS()", __LINE__);   // debug
+    // report position from simulated GPS
+    char sDate[26];   // strlen("0000-00-00  hh:mm:ss") = 20
+    getCurrentDateTime(sDate);
+
+    char msg[128];
+    snprintf(msg, sizeof(msg), "Simulated: %s  Sats(%d) Fix(%d)", sDate, gSatellites, gHaveGPSfix);
+    logger.log(GPS_SETUP, DEBUG, msg);
+
+    if (GPS.fix) {
+      char sLat[12], sLong[12], sSpeed[12], sAngle[12], sAlt[12];
+      floatToCharArray(sLat, sizeof(sLat), gLatitude, 4);
+      floatToCharArray(sLong, sizeof(sLong), gLongitude, 4);
+      floatToCharArray(sSpeed, sizeof(sSpeed), gSpeed, 1);
+      floatToCharArray(sAngle, sizeof(sAngle), gAngle, 0);
+      floatToCharArray(sAlt, sizeof(sAlt), gAltitude, 1);
+
+      snprintf(msg, sizeof(msg), "   Sim(%s,%s) Quality(%d) Sats(%d) Speed(%s knots) Heading(%s) Alt(%s)",
+               sLat, sLong, gFixQuality, gSatellites, sSpeed, sAngle, sAlt);
+      logger.log(GPS_SETUP, DEBUG, msg);
     }
   }
 };
