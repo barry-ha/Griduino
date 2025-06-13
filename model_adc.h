@@ -6,8 +6,8 @@
   Hardware: John Vanderbeck, KM7O, Seattle, WA
 
   Purpose:  Measure the voltage on the coin battery that powers
-            the Quectel GPS. If the battery falls below 1.6v then
-            the GPS can no longer acquire satellites.
+            the Adafruit/Quectel GPS - if the battery falls below
+            1.6v then the GPS can no longer acquire satellites.
 
   Note:     PCB v7+ has wiring to measure battery voltage.
             PCB v4 has no such sensor.
