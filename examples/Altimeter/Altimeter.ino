@@ -337,7 +337,7 @@ void echoGPSinfo() {
     Serial.print(") Speed(");
     Serial.print(GPS.speed);
     Serial.print(" knots");
-    Serial.print(") Angle(");
+    Serial.print(") Heading(");
     Serial.print(GPS.angle);
     Serial.print(") Alt(");
     Serial.print(GPS.altitude * FEET_PER_METER);
