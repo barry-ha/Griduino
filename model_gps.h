@@ -448,7 +448,13 @@ public:
       //    The simulated ground speeds with timeScale=1200 are:
       //    1-degree north-south is about (69.1 miles / (6m 17s) = 660 mph
       //    2-degrees east-west is about (94.3 miles) / (6m 17s) = 900 mph
-      float timeScale = 1200.0;   // arbitrary divisor to slow down the motion
+      // 1200 takes Xm XXs for one trip around the circle
+      //  800 takes 6m 30s for one trip
+      //  200 takes 3m 10s for one trip
+      //  100 takes 2m 29s for one trip (about as fast as you want it to go)
+      //   50 takes 0m 45s for one trip (each jump is very large)
+
+      float timeScale = 200.0;   // arbitrary divisor to slow down the motion
       gLatitude       = midCN87.lat + 0.6 * gridHeightDegrees * cos(secondHand / timeScale * 2.0 * PI);
       gLongitude      = midCN87.lng + 0.7 * gridWidthDegrees * sin(secondHand / timeScale * 2.0 * PI);
 
@@ -464,11 +470,11 @@ public:
 
       // simulate number of satellites
       // should look like a slow smooth sine wave in the "Satellites" view
-      timeScale   = 500;   // arbitrary divisor for "slow sine wave"
+      timeScale   = 500;   // arbitrary divisor for "slow Satellite Count sine wave"`
       gSatellites = round(4.0 + 3.0 * sin(secondHand / timeScale * 2.0 * PI));
 
       // simulate whether or not we have a valid gps position
-      gHaveGPSfix = gSatellites ? true: false; 
+      gHaveGPSfix = gSatellites ? true : false;
       gFixQuality = gSatellites ? 1 : 0;
 
       break;
