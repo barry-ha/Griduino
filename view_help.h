@@ -86,6 +86,7 @@ void ViewHelp::updateScreen() {
 
 void ViewHelp::startScreen() {
   // called once each time this view becomes active
+  logger.log(SCREEN, DEBUG, "ViewHelp::startScreen()");
   this->clearScreen(this->background);   // clear screen
 
   // ----- draw buttons

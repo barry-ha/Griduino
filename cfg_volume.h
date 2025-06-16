@@ -212,6 +212,7 @@ void ViewVolume::updateScreen() {
 
 void ViewVolume::startScreen() {
   // called once each time this view becomes active
+  logger.log(SCREEN, DEBUG, "ViewVolume::startScreen()");
   this->clearScreen(cBACKGROUND);                     // clear screen
   txtVolume[BIGVOLUME].setBackground(cBACKGROUND);    // set background for all TextFields in this view
   TextField::setTextDirty(txtVolume, numVolFields);   // make sure all fields get re-printed on screen change

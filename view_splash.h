@@ -54,6 +54,7 @@ void ViewSplash::updateScreen() {
 
 void ViewSplash::startScreen() {
   // called once each time this view becomes active
+  logger.log(SCREEN, DEBUG, "ViewSplash::startScreen()");
 
   TextField txtSplash[] = {
       //        text     x,y    color       alignment    font size

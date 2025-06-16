@@ -345,6 +345,7 @@ void ViewEvents::updateScreen() {
 
 void ViewEvents::startScreen() {
   // called once each time this view becomes active
+  logger.log(SCREEN, DEBUG, "ViewEvents::startScreen()");
   this->clearScreen(this->background);               // clear screen
   txtDate[0].setBackground(this->background);        // set background for all TextFields in this view
   TextField::setTextDirty(txtDate, numDateFields);   // make sure all fields get re-printed on screen change

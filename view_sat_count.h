@@ -253,6 +253,7 @@ void ViewSatCount::updateScreen() {
 
 void ViewSatCount::startScreen() {
   // called once each time this view becomes active
+  logger.log(SCREEN, DEBUG, "ViewSatCount::startScreen()");
   this->clearScreen(this->background);                   // clear screen
   txtValues[0].setBackground(this->background);          // set background for all TextFields in this view
   TextField::setTextDirty(txtValues, nSatCountValues);   // make sure all fields get re-printed on screen change

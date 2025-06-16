@@ -181,6 +181,7 @@ void ViewStatus::updateScreen() {
 
 void ViewStatus::startScreen() {
   // called once each time this view becomes active
+  logger.log(SCREEN, DEBUG, "ViewStatus::startScreen()");
   this->clearScreen(this->background);                 // clear screen
   txtValues[0].setBackground(this->background);        // set background for all TextFields in this view
   TextField::setTextDirty(txtValues, nStatusValues);   // make sure all fields get re-printed on screen change

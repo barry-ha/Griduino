@@ -108,7 +108,8 @@ void ViewScreen1::updateScreen() {
 }
 
 void ViewScreen1::startScreen() {
-  // one-time preparation
+  // called once each time this view becomes active
+  logger.log(SCREEN, DEBUG, "ViewScreen1::startScreen()");
   startView(6000);
   showDefaultTouchTargets();   // optionally draw box around default button-touch areas
   showMyTouchTargets(0, 0);    // no real buttons on this view

@@ -550,6 +550,7 @@ void ViewBaro::updateScreen() {
 
 void ViewBaro::startScreen() {
   // called once each time this view becomes active
+  logger.log(SCREEN, DEBUG, "ViewBaro::startScreen()");
   this->clearScreen(this->background);               // clear screen
   txtBaro[0].setBackground(this->background);        // set background for all TextFields in this view
   TextField::setTextDirty(txtBaro, numBaroFields);   // make sure all fields get re-printed on screen change

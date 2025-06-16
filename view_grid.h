@@ -123,7 +123,7 @@ public:
     plotCurrentPosition(myLocation, gridOrigin);                // show current pushpin
   }
   void startScreen() {
-    logger.fencepost("View_Grid_Base::startScreen", __LINE__);
+    logger.log(SCREEN, DEBUG, "View_Grid_Base::startScreen()");
     this->clearScreen(this->background);          // clear screen
     txtGrid[0].setBackground(this->background);   // set background for all TextFields in this view
     TextField::setTextDirty(txtGrid, numTextGrid);
@@ -498,7 +498,7 @@ public:
     drawGridName(grid6);   // huge letters centered on screen
   }
   void startScreen() {
-    logger.fencepost("ViewGridMain::startScreen", __LINE__);
+    logger.log(SCREEN, DEBUG, "ViewGridMain::startScreen()");
     View_Grid_Base::startScreen();   // call base class for common view setup
   }
 
@@ -534,7 +534,7 @@ public:
     plotCurrentPosition(myLocation, gridOrigin);   // redraw vehicle on top of compass, if needed
   }
   void startScreen() {
-    logger.fencepost("ViewGridCompass::startScreen", __LINE__);
+    logger.log(SCREEN, DEBUG, "ViewGridCompass::startScreen()");
     View_Grid_Base::startScreen();   // call base class for common view setup
     compass.setBackground(this->background);
     compass.dirty = true;

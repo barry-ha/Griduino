@@ -178,6 +178,7 @@ void ViewTime::updateScreen() {
 
 void ViewTime::startScreen() {
   // called once each time this view becomes active
+  logger.log(SCREEN, DEBUG, "ViewTime::startScreen()");
   this->clearScreen(this->background);                 // clear screen
   txtClock[0].setBackground(this->background);         // set background for all TextFields in this view
   TextField::setTextDirty(txtClock, numClockFields);   // make sure all fields get re-printed on screen change

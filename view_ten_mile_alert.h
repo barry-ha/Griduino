@@ -319,6 +319,7 @@ void ViewTenMileAlert::updateScreen() {
 
 void ViewTenMileAlert::startScreen() {
   // called once each time this view becomes active
+  logger.log(SCREEN, DEBUG, "ViewTenMileAlert::startScreen()");
   loadConfig();                                                  // restore from NVR
   this->clearScreen(this->background);                           // clear screen
   txtTenMileAlert[0].setBackground(this->background);            // set all TextField's background

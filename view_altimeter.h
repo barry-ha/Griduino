@@ -297,6 +297,7 @@ void ViewAltimeter::updateScreen() {
 
 void ViewAltimeter::startScreen() {
   // called once each time this view becomes active
+  logger.log(SCREEN, DEBUG, "ViewAltimiter::startScreen()");
   loadConfig();   // restore our settings from NVR
   // this->sealevelPa = DEFAULT_SEALEVEL_PASCALS;  // debug: one-time override NVR
   this->clearScreen(this->background);                     // clear screen

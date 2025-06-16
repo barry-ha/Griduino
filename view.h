@@ -85,6 +85,7 @@ protected:
    *  The One and Only True Clear Screen (TOOTCS) function
    */
   void clearScreen(uint16_t color = cBACKGROUND) {   // clear entire screen
+    logger.fencepost("View::clearScreen", __LINE__);  // debug
     tft->fillScreen(color);
   }
 

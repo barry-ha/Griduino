@@ -159,6 +159,8 @@ void ViewBattery::updateScreen() {
 }   // end updateScreen
 
 void ViewBattery::startScreen() {
+  // called once each time this view becomes active
+  logger.log(SCREEN, DEBUG, "ViewBattery::startScreen()");
   if (!pcb.canReadBattery) {         // if we CANNOT read the battery
     selectNewView(goto_next_view);   // advance to next normal user view
     return;
