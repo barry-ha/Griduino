@@ -6,7 +6,8 @@
   Hardware: John Vanderbeck, KM7O, Seattle, WA
 */
 
-#include <Arduino.h>             // for Serial
+#include <Arduino.h>   // for Serial
+#include <cstddef>
 #include "constants.h"           // Griduino constants and colors
 #include "Adafruit_ILI9341.h"    // TFT color display library
 #include "morse_dac.h"           // Morse code
@@ -20,6 +21,7 @@
 #include "view_grid.h"           // primary grid displays of position or speed+compass
 #include "grid_helper.h"         // lat/long conversion routines
 #include "date_helper.h"         // date/time conversions
+#include "TFT_Compass.h"         // Compass and speedometer
 
 // ========== extern ===========================================
 extern void setFontSize(int font);   // TextField.cpp
@@ -643,6 +645,83 @@ int verifyRestoreTrail(int howMany) {
   return 0;
 }
 // =============================================================
+// Testing "grid helper" routines in grid_helper.h
+struct compassTest {
+  int compass;           // intended test direction, 0..360, where 0=north
+  char name[4];          // readable test direction
+  PointGPS to;           // GPS lat/long target being tested
+  int expectedHeading;   // expected resultant heading, 0..360, where 0=north
+};
+
+int testCalcHeading(PointGPS from, compassTest test) {
+  int r = 0;
+
+  float fHeading = grid.calcHeading(from.lat, from.lng, test.to.lat, test.to.lng);
+  int nHeading   = round(fHeading);
+
+  char msg[128];
+  snprintf(msg, sizeof(msg), "Compass pointer %s: expectedHeading %d, result %d", test.name, test.expectedHeading, nHeading);
+  if (nHeading != test.expectedHeading) {
+    strcat(msg, " <-- Unequal");
+    r++;
+  }
+  logger.println(msg);
+  return r;
+}
+// =============================================================
+// calculating compass heading from simulated-GPS starting and ending coordinates
+//
+//        UNIT CIRCLE                   COMPASS                  GPS
+//            +90°                        0                  coordinates
+//             ▲                          ▲                +-------------+ 48°
+//         Q2  |  Q1                      |                |             |
+//  180°◄------+------► 0°     270°◄------+------► 90°     |             |
+//         Q3  |  Q4                      |                |             |
+//             ▼                          ▼                +-------------+ 47° latitude
+//            -90°                       180°            -122°         -120°   longitude
+//
+int verifyPointerDirection() {
+  logger.fencepost("unittest.cpp", "verifyPointerDirection", __LINE__);
+  int fails = 0;
+
+  const PointGPS from = {47.00, -122.00};   // degrees GPS
+
+  compassTest testHeading[] = {
+      // see test data in "2025-06-15 compass pointer degrees.xlsx"
+      {00, "N  ", {from.lat + 0.1000, from.lng + 0.0000}, 00},
+      {30, "NNE", {from.lat + 0.0866, from.lng + 0.0735}, 30},
+      {45, "NE ", {from.lat + 0.0707, from.lng + 0.1039}, 45},
+      {60, "ENE", {from.lat + 0.0500, from.lng + 0.1273}, 60},
+      {90, "E  ", {from.lat + 0.0000, from.lng + 0.1470}, 90},
+      {135, "SE ", {from.lat - 0.0707, from.lng + 0.1039}, 135},
+      {180, "S  ", {from.lat - 0.1000, from.lng + 0.0000}, 180},
+      {225, "SW ", {from.lat - 0.0707, from.lng - 0.1039}, 225},
+      {270, "W  ", {from.lat + 0.0000, from.lng - 0.1470}, 270},
+      {300, "WNW", {from.lat + 0.0500, from.lng - 0.1273}, 300},
+      {315, "NW ", {from.lat + 0.0707, from.lng - 0.1039}, 315},
+  };
+
+  // test math calculations
+  const int numItems = sizeof(testHeading) / (sizeof(testHeading[0]));
+  for (int ii = 0; ii < numItems; ii++) {
+    compassTest item = testHeading[ii];
+    fails += testCalcHeading(from, item);
+  }
+
+  // test screen display
+  const Point center     = {gMarginX + gBoxWidth / 2, gMarginY + gBoxHeight / 2};         // center point of compass
+  const int radiusCircle = gBoxHeight / 2 - 2;                                            // 78 = outer edge of compass rose circle
+  TextField speedo(55, gMarginX + 2, gMarginY + 40, cSPEEDOMETER, ALIGNLEFT, eFONTBIG);   // SPEEDOMETER
+  TFT_Compass compass(&tft, center, radiusCircle, &speedo);
+
+  for (int ii = 0; ii <= 10; ii++) {
+    compass.drawPointer(ii, ii * 360 / 10);   // from 0=north clockwise for 360 degrees in 10 steps
+    delay(1000);
+  }
+
+  return fails;
+}
+// =============================================================
 // deriving grid square from lat-long coordinates
 int verifyDerivingGridSquare() {
   logger.fencepost("unittest.cpp", "verifyDerivingGridSquare", __LINE__);
@@ -748,7 +827,7 @@ void runUnitTest() {
   tft.fillScreen(ILI9341_BLACK);
 
   // ----- announce ourselves
-  setFontSize(24);
+  setFontSize(eFONTBIG);
   tft.setCursor(12, 38);
   tft.setTextColor(ILI9341_WHITE);
   tft.print("--Unit Test--");
@@ -763,8 +842,8 @@ void runUnitTest() {
 
   int f = 0;
   /*****
-  f += verifyNMEAtime();              // verify conversions from GPS' time (NMEA) to time_t
-  countDown(5);                       //
+  f += verifyNMEAtime();   // verify conversions from GPS' time (NMEA) to time_t
+  countDown(5);            //
   f += verifyCalcTimeDiff();          // verify human-friendly time intervals
   countDown(5);                       //
   f += verifyMorseCode();             // verify Morse code
@@ -776,7 +855,6 @@ void runUnitTest() {
   countDown(5);                       //
   f += verifyBreadCrumbs();           // verify pushpins near the four corners
   countDown(15);                       //
-  *****/
   f += verifyBreadCrumbTrail1();          // verify painting the bread crumb trail
   countDown(15);                          //
   int howMany = 7;                        // keep test small
@@ -786,12 +864,15 @@ void runUnitTest() {
   countDown(15);                          //
   f += verifyRestoreTrail(howMany);       // restore GPS route from non-volatile memory
   countDown(15);                          //
+  *****/
+  f += verifyPointerDirection();   // calculating screen pointer from GPS direction of travel
+  countDown(5);
+  f += verifyDerivingGridSquare();   // verify deriving grid square from lat-long coordinates
+  countDown(5);                      //
+  f += verifyComputingDistance();    // verify computing distance
+  f += verifyComputingGridLines();   // verify finding grid lines on E and W
+  countDown(5);                      // give user time to inspect display appearance for unit test problems
   /*****
-  f += verifyDerivingGridSquare();    // verify deriving grid square from lat-long coordinates
-  countDown(5);                       //
-  f += verifyComputingDistance();     // verify computing distance
-  f += verifyComputingGridLines();    // verify finding grid lines on E and W
-  countDown(5);                       // give user time to inspect display appearance for unit test problems
   *****/
   trail.clearHistory();             // clean up our mess after unit test
   trail.rememberPUP();              //

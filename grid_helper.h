@@ -17,6 +17,9 @@
 #include "logger.h"      // conditional printing to Serial port
 #include <cstdlib>
 
+// ----- globals
+extern Logger logger;   // Griduino.ino
+
 // ========== class Grids =========================================
 class Grids {
 public:
@@ -101,31 +104,67 @@ public:
     return total;   // miles or km, depending on 'isMetric'
   }
 
+// Calculate compass heading from simulated-GPS starting and ending coordinates
+// Not needed when reading GPS hardware because NMEA includes compass heading directly
+// Calculations are done on the unit circle, then converted to compass headings.
+//
+//        UNIT CIRCLE
+//   aka SCREEN DEGREES                COMPASS                   GPS
+//            +90°                        0                  coordinates
+//             ▲                          ▲                +-------------+ 48°
+//         Q2  |  Q1                      |                |             |
+//  180°◄------+------► 0°     270°◄------+------► 90°     |             |
+//         Q3  |  Q4                      |                |             |
+//             ▼                          ▼                +-------------+ 47° latitude
+//            -90°                       180°            -122°         -120°   longitude
+//      +ve angles = CCW           +ve angles = CW
+//
   float calcHeading(double fromLat, double fromLong, double toLat, double toLong) {
-    // direction of travel, degrees from true north
-    double latAngleRadians = (fromLat - toLat) * radiansPerDegree;   // + north, - south
+    // direction of travel, returns degrees from true north
+    double latAngleRadians = (toLat - fromLat) * radiansPerDegree;   // + north, - south
     double latDistance     = latAngleRadians * earthRadiusKM;        // km
 
     // double longDist = calcDistanceLong(fromLat, fromLong, toLong, true);
-    double scaleFactor      = fabs(cos(latAngleRadians));   // grids are narrower as you move from equator to north/south pole
-    double longAngleRadians = (fromLong - toLong) * radiansPerDegree * scaleFactor;
+    double scaleFactor      = cos(fromLat * radiansPerDegree);   // grids are narrower as you move from equator to north/south pole
+    double longAngleRadians = (toLong - fromLong) * radiansPerDegree * scaleFactor;
     double longDistance     = longAngleRadians * earthRadiusKM;   // + east, - west
 
-    float degrees;                    // 0=north, 180=south
-    if (abs(latDistance) > 0.001) {   // avoid dividing by near zero
-      degrees = atan(longDistance / latDistance) * degreesPerRadian;
-      degrees += 90.0;   // rotate from 0=right=east to 0=up=north
-      if (degrees > 360.0) {
-        degrees -= 360.0;   // normalize to 0..360
-      }
-    } else {
-      if (latDistance > 0.0) {
-        degrees = 0.0;   // 0 = due north
-      } else {
-        degrees = 180.0;   // 180 = due south
-      }
+    // avoid dividing by near-zero
+    float ratio = (abs(latDistance) < 0.001) ? (latDistance * 1000.0) : (latDistance / longDistance);
+
+    // "arctan" returns values in the range of -π/2 (south) to 0 (east) to +π/2 (north)
+    float screenDegrees = atan(ratio) * degreesPerRadian;
+
+    // westward movement requires heading adjustment into left-hand side of unit circle
+    if (longDistance < 0.0) {
+      screenDegrees -= 180.0;
     }
-    return degrees;
+
+    // convert unit circle headings to compass headings, and use positive 0..360
+    int resultHeading = 90 - round(screenDegrees);
+    if (resultHeading >= 360) {
+      resultHeading -= 360;
+    }
+    if (resultHeading < 0) {
+      resultHeading += 360;
+    }
+
+    // clang-format off
+    char msg[256];
+    char sToLat[12], sToLong[12], sLatDistance[12], sLongDistance[12], sScaleFactor[12], sRatio[12], sScreenDegrees[12];
+    floatToCharArray(sToLat, sizeof(sToLat), toLat, 4);
+    floatToCharArray(sToLong, sizeof(sToLong), toLong, 4);
+    floatToCharArray(sLatDistance, sizeof(sLatDistance), latDistance, 2);
+    floatToCharArray(sLongDistance, sizeof(sLongDistance), longDistance, 2);
+    floatToCharArray(sRatio, sizeof(sRatio), ratio, 2);
+    floatToCharArray(sScaleFactor, sizeof(sScaleFactor), scaleFactor, 3);
+    floatToCharArray(sScreenDegrees, sizeof(sScreenDegrees), screenDegrees, 1);
+    snprintf(msg, sizeof(msg), "toLat(%s), toLong(%s), latDistance(%s), longDistance(%s), scaleFactor(%s), ratio(%s), screenDegrees(%s), resultHeading(%d)",
+                                sToLat,    sToLong,    sLatDistance,    sLongDistance,    sScaleFactor,    sRatio,    sScreenDegrees,    resultHeading);
+    logger.log(GPS_SETUP, DEBUG, msg);
+    // clang-format on
+
+    return resultHeading;
   }
 
   double calcDistanceLat(double fromLat, double toLat, bool isMetric) {

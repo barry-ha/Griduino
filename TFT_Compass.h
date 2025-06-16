@@ -94,10 +94,9 @@ public:
     // speed   = mph or kph
     // degrees = compass direction, 0 = north
     if (degrees != oldDegrees || dirty) {
-      // convert compass degrees (North=0) to screen angle (East=0)
-      float angle = (degrees + 90) * radiansPerDegree;  
 
       // rotate triangle (three points) around the center of the compass
+      float angle = degrees * radiansPerDegree;
       Point new0 = rotate(p0, center, angle);
       Point new1 = rotate(p1, center, angle);
       Point new2 = rotate(p2, center, angle);
