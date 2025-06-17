@@ -12,7 +12,6 @@
 //      Draw compass rose   compass.rose(center, radius);
 //      Draw pointer        compass.draw(angle in degrees);
 //      Force redraw        compass.dirty();
-//      Draw speedometer    compass.drawSpeedometer(mph, coord);
 //
 //  Notes:
 //      1. Optimized pointer will not redraw given the same angle
@@ -29,10 +28,10 @@
 
 class TFT_Compass {
 public:
-  Adafruit_ILI9341 *tft;   // an instance of the TFT Display
-  int oldDegrees = 0;       // previous compass pointer angle
-  Point old0, old1, old2;   // cached corners of triangle pointer
-  bool dirty = true;        // true=force redraw even if old=new
+  Adafruit_ILI9341 *tft;         // an instance of the TFT Display
+  int oldDegrees = 0;            // previous compass pointer angle
+  Point old0, old1, old2;        // cached corners of triangle pointer
+  bool dirty           = true;   // true=force redraw even if old=new
   uint16_t cForeground = cCOMPASSPOINTER;
   uint16_t cBackground = cBACKGROUND;
 
@@ -43,7 +42,7 @@ public:
   const int height = 52;    // height of triangle
   TextField *speedometer;
 
-  Point p0, p1, p2;        // starting corners of triangular pointer
+  Point p0, p1, p2;   // starting corners of triangular pointer
 
   TFT_Compass(Adafruit_ILI9341 *vtft, Point vcenter, int vradius, TextField *vspeedo)   // ctor
       : tft(vtft), center(vcenter), radiusCircle(vradius), speedometer(vspeedo) {
@@ -90,23 +89,20 @@ public:
   }
 
   //=========== main work routines ===================================
-  void drawPointer(int speed, int degrees) {
-    // speed   = mph or kph
+  void drawPointer(int degrees, int speed) {
     // degrees = compass direction, 0 = north
+    // speed   = mph or km, doesn't matter, if zero speed then change pointer color
     if (degrees != oldDegrees || dirty) {
 
       // rotate triangle (three points) around the center of the compass
       float angle = degrees * radiansPerDegree;
-      Point new0 = rotate(p0, center, angle);
-      Point new1 = rotate(p1, center, angle);
-      Point new2 = rotate(p2, center, angle);
+      Point new0  = rotate(p0, center, angle);
+      Point new1  = rotate(p1, center, angle);
+      Point new2  = rotate(p2, center, angle);
 
-      tft->fillTriangle(old0.x, old0.y, old1.x, old1.y, old2.x, old2.y, cBackground);       // erase old
-      if (speed == 0) {
-        tft->fillTriangle(new0.x, new0.y, new1.x, new1.y, new2.x, new2.y, cDISABLED);   // draw new
-      } else {
-        tft->fillTriangle(new0.x, new0.y, new1.x, new1.y, new2.x, new2.y, cCOMPASSPOINTER);   // draw new
-      }
+      uint16_t cPointer = (speed == 0) ? cDISABLED : cCOMPASSPOINTER;
+      tft->fillTriangle(old0.x, old0.y, old1.x, old1.y, old2.x, old2.y, cBackground);   // erase old
+      tft->fillTriangle(new0.x, new0.y, new1.x, new1.y, new2.x, new2.y, cPointer);      // draw new
 
       old0  = new0;   // save to erase ourselves next pass
       old1  = new1;
@@ -116,12 +112,6 @@ public:
       // show pivot point
       tft->fillCircle(center.x, center.y, 4, cCOMPASSPIVOT);
     }
-  }
-
-  void drawSpeedometer(int speed, int angle) {
-    // speed = mph or kph, 0..999
-    // angle = direction of travel, degrees 0..359 (unused)
-    speedometer->print(speed);
   }
 
 };   // end class TFT_Compass

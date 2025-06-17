@@ -715,7 +715,7 @@ int verifyPointerDirection() {
   TFT_Compass compass(&tft, center, radiusCircle, &speedo);
 
   for (int ii = 0; ii <= 10; ii++) {
-    compass.drawPointer(ii, ii * 360 / 10);   // from 0=north clockwise for 360 degrees in 10 steps
+    compass.drawPointer(ii * 360 / 10, ii);   // from 0=north clockwise for 360 degrees in 10 steps
     delay(1000);
   }
 

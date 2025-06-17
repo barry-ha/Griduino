@@ -96,8 +96,9 @@ protected:
     TextField("47",     56,190,  cBOXDEGREES, ALIGNRIGHT),  // S_BOX_LAT
     TextField("122",   243, 20,  cBOXDEGREES),              // E_BOX_LONG
     TextField("124",    72, 20,  cBOXDEGREES, ALIGNRIGHT),  // W_BOX_LONG
-    TextField(55,   gMarginX+2, gMarginY+40, cSPEEDOMETER, ALIGNLEFT, eFONTBIG), // SPEEDOMETER
-    TextField("123",   102,176,  cGRIDNAME, ALIGNLEFT, eFONTSMALL), // GRID4BOTTOM
+//  TextField(55,   gMarginX+2, gMarginY+40,  cSPEEDOMETER, ALIGNLEFT, eFONTSMALL), // SPEEDOMETER
+    TextField(55,      102, gMarginY+20,  cSPEEDOMETER, ALIGNLEFT, eFONTSMALL), // SPEEDOMETER
+    TextField("123",   102,176,  cGRIDNAME,   ALIGNLEFT, eFONTSMALL), // GRID4BOTTOM
   };
   // clang-format on
 
@@ -522,8 +523,8 @@ public:
     int nAngle    = (int)model->gAngle;   // cast float to integer
     int nSpeed    = (int)model->gSpeed;
     logger.log(GPS_SETUP, DEBUG, "Pointer %d degrees", nAngle);   // debug
-    compass.drawPointer(nSpeed, nAngle);                          // update compass pointer
-    //compass.drawSpeedometer(nSpeed, nAngle);                      // update speedometer
+    compass.drawPointer(nAngle, nSpeed);                          // update compass pointer
+    txtGrid[SPEEDOMETER].print(nSpeed);                           // update speedometer
 
     char grid4[7];
     grid.calcLocator(grid4, model->gLatitude, model->gLongitude, 4);
