@@ -5,7 +5,7 @@
 #if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
 #define PROGRAM_VERSION "v1.14"
 #else
-#define PROGRAM_VERSION "v1.14.6"
+#define PROGRAM_VERSION "v1.14.7"
 #endif
 #define HARDWARE_VERSION "Rev 4"   // Rev 4 | Rev 7 | Rev 12 | Rev 14
 #define PROGRAM_LINE1    "Barry K7BWH"
@@ -28,6 +28,8 @@
 
 #define gBoxWidth  180   // grid square width as shown on display, pixels
 #define gBoxHeight 160   // grid square height as shown on display, pixels
+#define gMarginX   70    // define space for grid outline on screen
+#define gMarginY   26    // and position text relative to this outline
 
 // ------- Physical constants ---------
 const float gridWidthDegrees  = 2.0;   // horiz E-W size of one grid square, degrees
@@ -36,10 +38,15 @@ const float gridHeightDegrees = 1.0;   // vert N-S size of one grid square, degr
 const double minLong = gridWidthDegrees / gBoxWidth;     // longitude degrees from one pixel to the next (minimum visible movement)
 const double minLat  = gridHeightDegrees / gBoxHeight;   // latitude degrees from one pixel to the next
 
-#define feetPerMeters         (3.28084)       // altitude conversion
-#define mphPerKnots           (1.15078)       // speed conversion
-#define mphPerMetersPerSecond (0.44704)       // speed conversion
-const double degreesPerRadian = 57.2957795;   // conversion factor = (360 degrees)/(2 pi radians)
+#define feetPerMeters         (3.28084)      // altitude conversion
+#define mphPerKnots           (1.15078)      // speed conversion
+#define mphPerMetersPerSecond (0.44704)      // speed conversion
+
+#define degreesPerRadian      (57.2957795)   // (360 degrees)/(2 pi radians)
+#define radiansPerDegree      (0.01745329)   // (2 pi radians)/(360 degrees)
+
+#define earthRadiusMiles (3958.8)   // average Earth radius (miles)
+#define earthRadiusKM    (6371.0)   // average Earth radius (kilometers)
 
 #define SECS_PER_1MIN  ((time_t)(60UL))
 #define SECS_PER_5MIN  ((time_t)(300UL))

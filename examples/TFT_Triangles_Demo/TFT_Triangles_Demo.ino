@@ -22,14 +22,10 @@
 // ---------- Hardware Wiring ----------
 // Same as Griduino platform - see hardware.h
 
-
 // ---------- TFT display
 Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 
 // ========== helpers ==========================================
-
-const int gMarginX = 70;   // define space for grid outline on screen
-const int gMarginY = 26;   // and position text relative to this outline
 
 void drawGridOutline() {
   tft.drawRect(gMarginX, gMarginY, gBoxWidth, gBoxHeight, ILI9341_CYAN);
@@ -37,8 +33,8 @@ void drawGridOutline() {
 
 // ========== text screen layout ===================================
 
-    // ----- dynamic screen text
-TextField txtSpeedo = {55, gMarginX+2, gMarginY+40, cSPEEDOMETER, ALIGNLEFT, eFONTBIG};
+// ----- dynamic screen text
+TextField txtSpeedo = {"55 mph", 102, gMarginY + 20, cSPEEDOMETER, ALIGNLEFT, eFONTSMALL};   // SPEEDOMETER
 
 // create an instance of the Compass display
 const Point center     = {320 / 2, 240 / 2};   // center point of compass (and triangle and screen)
@@ -104,19 +100,22 @@ void setup() {
   digitalWrite(PIN_LED, LOW);   // turn off little red LED
   Serial.println("NeoPixel initialized and turned off");
 
-  drawGridOutline();           // box outline around grid
+  drawGridOutline();   // box outline around grid
   txtSpeedo.setBackground(cBACKGROUND);
   compass.setBackground(cBACKGROUND);
   compass.drawRose(center, radiusCircle);
+  compass.drawCompassPoints();
 }
 
 //=========== main work loop ===================================
 void loop() {
   // ----- update compass pointer
-  compass.drawPointer(newSpeed, newAngle);   // compass pointer
+  compass.drawPointer(newAngle, newSpeed);   // compass pointer
 
   // ----- update speedometer
-  compass.drawSpeedometer(newSpeed, newAngle);    // speedometer
+  char ss[40];
+  snprintf(ss, sizeof(ss), "%d mph", newSpeed);
+  txtSpeedo.print(ss);   // speedometer
 
   // increment loop variables
   const int stepDegrees = 2;   // warning: 3 degrees is too much, too chunky
