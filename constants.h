@@ -38,12 +38,14 @@ const float gridHeightDegrees = 1.0;   // vert N-S size of one grid square, degr
 const double minLong = gridWidthDegrees / gBoxWidth;     // longitude degrees from one pixel to the next (minimum visible movement)
 const double minLat  = gridHeightDegrees / gBoxHeight;   // latitude degrees from one pixel to the next
 
-#define feetPerMeters         (3.28084)      // altitude conversion
-#define mphPerKnots           (1.15078)      // speed conversion
-#define mphPerMetersPerSecond (0.44704)      // speed conversion
+#define feetPerMeters         (3.28084)    // altitude conversion
+#define mphPerKnots           (1.15078)    // speed conversion
+#define mphPerMetersPerSecond (0.44704)    // speed conversion
+#define knotsPerKph           (0.539957)   // speed conversion
+#define milesPerKm            (0.621371)   // speed conversion
 
-#define degreesPerRadian      (57.2957795)   // (360 degrees)/(2 pi radians)
-#define radiansPerDegree      (0.01745329)   // (2 pi radians)/(360 degrees)
+#define degreesPerRadian (57.2957795)   // (360 degrees)/(2 pi radians)
+#define radiansPerDegree (0.01745329)   // (2 pi radians)/(360 degrees)
 
 #define earthRadiusMiles (3958.8)   // average Earth radius (miles)
 #define earthRadiusKM    (6371.0)   // average Earth radius (kilometers)
@@ -52,6 +54,7 @@ const double minLat  = gridHeightDegrees / gBoxHeight;   // latitude degrees fro
 #define SECS_PER_5MIN  ((time_t)(300UL))
 #define SECS_PER_10MIN ((time_t)(600UL))
 #define SECS_PER_15MIN ((time_t)(900UL))
+#define SECS_PER_HOUR  ((time_t)(3600UL))
 
 #define DEFAULT_SEALEVEL_PASCALS (101740.0)
 #define DEFAULT_SEALEVEL_HPA     (1017.40)

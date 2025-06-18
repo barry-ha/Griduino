@@ -141,7 +141,7 @@ public:
     gLatitude      = from.gLatitude;        // GPS position, floating point, decimal degrees
     gLongitude     = from.gLongitude;       // GPS position, floating point, decimal degrees
     gAltitude      = from.gAltitude;        // Altitude in meters above MSL
-    gTimestamp     = from.gTimestamp;       // date/time of GPS reading
+    gTimestamp     = from.gTimestamp;       // number of seconds since Jan 1, 1970
     gHaveGPSfix    = false;                 // assume no fix yet
     gSatellites    = 0;                     // GPS.satellites, assume no satellites
     gSpeed         = 0.0;                   // assume speed unknown
@@ -159,7 +159,7 @@ public:
     // NMEA years are the last two digits and start at year 2000, time_t starts at 1970
     const uint8_t year = nmeaYear + (2000 - 1970);
     TimeElements tm{nmeaSeconds, nmeaMinute, nmeaHour, 1, nmeaDay, nmeaMonth, year};
-    time_t ret = makeTime(tm);
+    time_t ret = makeTime(tm);   // number of seconds since Jan 1, 1970
     return ret;
   }
 
@@ -411,7 +411,7 @@ public:
     gSatellites = GPS.satellites;
     gSpeed      = GPS.speed * mphPerKnots;
     gAngle      = GPS.angle;
-    gTimestamp  = now();
+    gTimestamp  = now() / 1000.0;   // seconds
 
     if (startTime == 0) {
       // one-time single initialization
@@ -443,25 +443,31 @@ public:
       break;
 
     case 4:   // ----- move in oval around a single grid
-      // Funny note!
-      //    How fast are we moving???
-      //    The simulated ground speeds with timeScale=1200 are:
-      //    1-degree north-south is about (69.1 miles / (6m 17s) = 660 mph
-      //    2-degrees east-west is about (94.3 miles) / (6m 17s) = 900 mph
-      // 1200 takes Xm XXs for one trip around the circle
-      //  800 takes 6m 30s for one trip
-      //  200 takes 3m 10s for one trip
-      //  100 takes 2m 29s for one trip (about as fast as you want it to go)
-      //   50 takes 0m 45s for one trip (each jump is very large)
+      const int elapsed   = 5;   // arbitrary time to have moved some distance
+      PointGPS currentPos = simulatedPosition(secondHand);
+      PointGPS prevPos    = simulatedPosition(secondHand - elapsed);
 
-      float timeScale = 200.0;   // arbitrary divisor to slow down the motion
-      gLatitude       = midCN87.lat + 0.6 * gridHeightDegrees * cos(secondHand / timeScale * 2.0 * PI);
-      gLongitude      = midCN87.lng + 0.7 * gridWidthDegrees * sin(secondHand / timeScale * 2.0 * PI);
+      gLatitude       = currentPos.lat;
+      gLongitude      = currentPos.lng;
+      double distance = grid.calcDistance(prevPos.lat, prevPos.lng, gLatitude, gLongitude, gMetric);
 
-      double distance = grid.calcDistance(prevGPS.lat, prevGPS.lng, gLatitude, gLongitude, gMetric);
+      // calculate speed-over-ground in mph or kph
+      double speedKps = (distance / elapsed);       // speed in kps
+      double speedKph = speedKps * SECS_PER_HOUR;   // speed in kph
 
-      // calculate speed-over-ground in mph
-      gSpeed = distance / (gTimestamp - prevTime) * timeScale;                      // = distance/time (knots)
+      Serial.print("Distance/Time = ");   // debug arithmetic
+      Serial.print(distance);
+      Serial.print(" km / ");
+      Serial.print(elapsed);
+      Serial.print(" sec = ");
+      Serial.print(speedKps);
+      Serial.print(" kps = ");
+      Serial.print(speedKph, 1);
+      Serial.print(" kph = ");
+      Serial.print(speedKph*milesPerKm,1);
+      Serial.println(" mph");
+
+      gSpeed = speedKph * knotsPerKph;                                              // = distance/time (knots)
       gAngle = grid.calcHeading(prevGPS.lat, prevGPS.lng, gLatitude, gLongitude);   // direction of travel, degrees from true north
 
       int nSpeed = (int)gSpeed;                                                       // debug
@@ -470,7 +476,7 @@ public:
 
       // simulate number of satellites
       // should look like a slow smooth sine wave in the "Satellites" view
-      timeScale   = 500;   // arbitrary divisor for "slow Satellite Count sine wave"`
+      float timeScale   = 500;   // arbitrary divisor for "slow Satellite Count sine wave"`
       gSatellites = round(4.0 + 3.0 * sin(secondHand / timeScale * 2.0 * PI));
 
       // simulate whether or not we have a valid gps position
@@ -482,6 +488,26 @@ public:
     prevGPS  = {gLatitude, gLongitude};   // help compute simulated ground speed
     prevTime = gTimestamp;
   }
+  PointGPS simulatedPosition(double secondHand) {
+    // Funny note!
+    //    How fast are we moving???
+    //    Perimeter of an ellipse is P = 2 pi sqrt(a^2 + b^2) / 2
+    //    where a is the length of the major axis, and b is the length of the minor axis
+    //
+    //    The simulated ground speeds with timeScale=1200 are:
+    //    1-degree north-south is about (69.1 miles / (6m 17s) = 660 mph
+    //    2-degrees east-west is about (94.3 miles) / (6m 17s) = 900 mph
+    //
+    //  200 takes Xm 10s for one trip around the circle
+    //  100 takes Xm 29s for one trip (about as fast as you want it to go)
+    //   50 takes 0m 45s for one trip (each jump is very large)
+    const float timeScale = 50.0;   // arbitrary divisor to slow down the motion
+    PointGPS where;
+    where.lat = midCN87.lat + 0.55 * gridHeightDegrees * cos(secondHand / timeScale);
+    where.lng = midCN87.lng + 0.68 * gridWidthDegrees * sin(secondHand / timeScale);
+    return where;
+  }
+
   void echoGPSinfo() override {
     logger.fencepost("model_gps.h", "getGPS()", __LINE__);   // debug
     // report position from simulated GPS
