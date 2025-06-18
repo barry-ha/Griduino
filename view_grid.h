@@ -96,8 +96,7 @@ protected:
     TextField("47",     56,190,  cBOXDEGREES, ALIGNRIGHT),  // S_BOX_LAT
     TextField("122",   243, 20,  cBOXDEGREES),              // E_BOX_LONG
     TextField("124",    72, 20,  cBOXDEGREES, ALIGNRIGHT),  // W_BOX_LONG
-//  TextField(55,   gMarginX+2, gMarginY+40,  cSPEEDOMETER, ALIGNLEFT, eFONTSMALL), // SPEEDOMETER
-    TextField(55,      102, gMarginY+20,  cSPEEDOMETER, ALIGNLEFT, eFONTSMALL), // SPEEDOMETER
+    TextField("55 mph",102, gMarginY+22,  cSPEEDOMETER, ALIGNLEFT, eFONTSMALL), // SPEEDOMETER
     TextField("123",   102,176,  cGRIDNAME,   ALIGNLEFT, eFONTSMALL), // GRID4BOTTOM
   };
   // clang-format on
@@ -524,7 +523,15 @@ public:
     int nSpeed    = (int)model->gSpeed;
     logger.log(GPS_SETUP, DEBUG, "Pointer %d degrees", nAngle);   // debug
     compass.drawPointer(nAngle, nSpeed);                          // update compass pointer
-    txtGrid[SPEEDOMETER].print(nSpeed);                           // update speedometer
+
+    char sSpeed[16];
+    snprintf(sSpeed, sizeof(sSpeed), "%d", nSpeed);
+    if (model->gMetric) {
+      strcat(sSpeed, " kph");
+    } else {
+      strcat(sSpeed, " mph");
+    }
+    txtGrid[SPEEDOMETER].print(sSpeed);   // update speedometer
 
     char grid4[7];
     grid.calcLocator(grid4, model->gLatitude, model->gLongitude, 4);
