@@ -271,7 +271,7 @@ void ViewVolume::endScreen() {
 }
 
 bool ViewVolume::onTouch(Point touch) {
-  logger.log(CONFIG, INFO, "->->-> Touched volume screen.");
+  logger.log(CONFIG, INFO, "->->-> Touched VOLUME screen.");
   bool handled = false;   // assume a touch target was not hit
   for (int ii = 0; ii < nVolButtons; ii++) {
     FunctionButton item = volButtons[ii];
