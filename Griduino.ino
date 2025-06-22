@@ -484,10 +484,10 @@ void selectNewView(int cmd) {
     nextView = cmd;
   } else {
     nextView = GRID_VIEW;   // default to main screen for errors
-    logger.log(CONFIG, ERROR, "Requested view is out of range: %d where maximum is %d", cmd, MAX_VIEWS);
+    logger.log(SCREEN, ERROR, "Requested view is out of range: %d where maximum is %d", cmd, MAX_VIEWS);
   }
   // clang-format on
-  logger.log(CONFIG, INFO, "selectNewView() from %d to %d", currentView, nextView);
+  logger.log(SCREEN, INFO, "selectNewView() from %d to %d", currentView, nextView);
   if (currentView != nextView) {
     pView->endScreen();                   // a goodbye-kiss to the departing view
     pView = viewTable[ nextView ];
@@ -507,7 +507,7 @@ void waitForSerial(int howLong) {
   // so give them a few seconds for this to settle before sending messages to IDE
 
   pView = &screen1View;   // select very first screen shown at startup
-  screen1View.startScreen();
+  //screen1View.startScreen();   // 'screen1View' is already started, don't start it again
   while (pView == &screen1View) {
     screen1View.updateScreen();
   }
@@ -1036,6 +1036,8 @@ void loop() {
   grid.calcLocator(newGrid6, model->gLatitude, model->gLongitude, 6);
 
   if (model->enteredNewGrid4()) {
+    logger.fencepost("Griduino.ino new grid4",__LINE__);  // debug
+
     pView->startScreen();          // update display so they can see new grid while listening to audible announcement
     pView->updateScreen();
     announceGrid(newGrid6, 4);     // announce with Morse code or speech, according to user's config
@@ -1043,19 +1045,18 @@ void loop() {
     Location whereAmI;
     model->makeLocation(&whereAmI);
     trail.rememberGPS(whereAmI);
-    logger.fencepost("Griduino.ino new grid4",__LINE__);  // debug
     trail.saveGPSBreadcrumbTrail();   // entered new 4-digit grid
 
     model->save();                 // entered new 4-digit grid
 
   } else if (model->enteredNewGrid6()) {
+    logger.fencepost("Griduino.ino new grid6",__LINE__);  // debug
     if (!model->compare4digits) {
       announceGrid(newGrid6, 6);   // announce with Morse code or speech, according to user's config
     }
     Location whereAmI;
     model->makeLocation(&whereAmI);
     trail.rememberGPS(whereAmI);    // when we enter a new 6-digit grid, save it in breadcrumb trail
-    logger.fencepost("Griduino.ino new grid6",__LINE__);  // debug
     trail.saveGPSBreadcrumbTrail();   // entered new 6-digit grid 
     // one user's home was barely in the next grid6
     // and we want to show his grid6 at next power up

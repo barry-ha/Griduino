@@ -32,8 +32,6 @@
 // ========== extern ===========================================
 extern Logger logger;                    // Griduino.ino
 extern void showDefaultTouchTargets();   // Griduino.ino
-extern void selectNewView(int cmd);      // Griduino.ino
-extern int grid_view;                    // Griduino.ino
 
 // ========== class ViewHelp ===================================
 class ViewHelp : public View {
@@ -55,8 +53,8 @@ protected:
   const int margin = 10;   // slight margin between button border and edge of screen
   const int radius = 10;   // rounded corners on buttons
 
-  // ----- screen text
-  // names for the array indexes, must be named in same order as array below
+  // ========== text screen layout ===================================
+  // these are names for the array indexes, must be named in same order as array below
   enum txtIndex {
     SETTINGS = 0,
     NEXTVIEW,
@@ -69,10 +67,10 @@ protected:
 #define nHelpButtons 3
   Button helpButtons[nHelpButtons] = {
       //       text       x,y                w,h      r      color
-      {"Settings",   margin,     margin,  98, 105, radius, cBUTTONLABEL},   //[SETTINGS]
-      {"Next view",  margin+108, margin, 192, 105, radius, cBUTTONLABEL},   //[NEXTVIEW]
-      {"Brightness", margin,     126,    300, 105, radius, cBUTTONLABEL},   //[BRIGHTNESS]
-    //{"Hint:",           1,1,            10, 10,  0,      cWARN},          //[VIEWNAME]
+      {"Settings",   margin,     margin,  98, 105, radius, cBUTTONLABEL},   // [SETTINGS]
+      {"Next view",  margin+108, margin, 192, 105, radius, cBUTTONLABEL},   // [NEXTVIEW]
+      {"Brightness", margin,     126,    300, 105, radius, cBUTTONLABEL},   // [BRIGHTNESS]
+    //{"Hint:",           1,1,            10, 10,  0,      cWARN},          // [VIEWNAME]
   };
   // clang-format on
 
@@ -88,6 +86,7 @@ void ViewHelp::startScreen() {
   // called once each time this view becomes active
   logger.log(SCREEN, DEBUG, "ViewHelp::startScreen()");
   this->clearScreen(this->background);   // clear screen
+
 
   // ----- draw buttons
   setFontSize(eFONTSMALL);
@@ -118,7 +117,7 @@ void ViewHelp::startScreen() {
 }   // end startScreen()
 
 bool ViewHelp::onTouch(Point touch) {
-  // do nothing - this screen does not respond to buttons
+  // do nothing - this screen has no special buttons (only default touch areas)
   logger.log(CONFIG, INFO, "->->-> Touched help screen.");
   return false;   // true=handled, false=controller uses default action
 
