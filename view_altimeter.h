@@ -364,7 +364,8 @@ void ViewAltimeter::endScreen() {
   // because writing to NVR is slow (0.5 sec) and would delay the user
   // while trying to press a button many times in a row.
   saveConfig();
-}
+
+}   // end startScreen()
 
 bool ViewAltimeter::onTouch(Point touch) {
   logger.log(CONFIG, INFO, "->->-> Touched altimeter screen.");
@@ -398,6 +399,7 @@ bool ViewAltimeter::onTouch(Point touch) {
     logger.log(CONFIG, DEBUG, "No match to my hit targets.");
   }
   return handled;   // true=handled, false=controller uses default action
+
 }   // end onTouch()
 
 // ========== load/save config setting =========================
