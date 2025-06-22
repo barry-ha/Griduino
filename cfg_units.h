@@ -33,8 +33,6 @@
 extern Logger logger;   // Griduino.ino
 extern Model *model;    // "model" portion of model-view-controller
 
-extern void showDefaultTouchTargets();   // Griduino.ino
-
 // ========== class ViewCfgUnits ==============================
 class ViewCfgUnits : public View {
 public:
@@ -170,7 +168,7 @@ void ViewCfgUnits::startScreen() {
 void ViewCfgUnits::endScreen() {
   // Called once each time this view becomes INactive
   // This is a 'goodbye kiss' to do cleanup work
-  // For the current configuration screen; save our settings here instead of on each
+  // For english/metric units selection, save our settings here instead of on each
   // button press because writing to NVR is slow (0.5 sec) and would delay the user
   // while trying to press a button many times in a row.
   saveConfig();
