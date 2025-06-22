@@ -259,7 +259,11 @@ void ViewSatCount::startScreen() {
   TextField::setTextDirty(txtValues, nSatCountValues);   // make sure all fields get re-printed on screen change
   setFontSize(eFONTSMALL);
 
-  drawAllIcons();   // draw gear (settings) and arrow (next screen)
+  drawAllIcons();              // draw gear (settings) and arrow (next screen)
+  showDefaultTouchTargets();   // optionally draw box around default button-touch areas
+  showMyTouchTargets(0, 0);    // optionally show this view's touch targets
+  showScreenBorder();          // optionally outline visible area
+  showScreenCenterline();      // optionally draw visual alignment bar
 
   // ----- draw border for canvas of bar graph
   tft->drawRect(xLeft - 1, yTop - 1, (xRight - xLeft) + 2, (yBot - yTop) + 2, ILI9341_CYAN);
