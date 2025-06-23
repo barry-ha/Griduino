@@ -91,12 +91,12 @@ public:
       {false, "FENC"},   // FENCE,        // fencepost debug
       {true, "CMD "},    // COMMAND,
       {false, "GPS "},   // GPS_SETUP,
-      {true, "CFG "},    // CONFIG,       // is used in all modules named "cfg_xxxxx"
+      {false, "CFG "},   // CONFIG,       // is used in all modules named "cfg_xxxxx"
       {false, "BARO"},   // BARO,         // barometric pressure sensor
       {false, "AUD "},   // AUDIO,        // morse code and speech output
-      {false, "BATT"},   // BATTERY,      // coin battery for GPS
+      {true, "BATT"},    // BATTERY,      // coin battery for GPS
       {true, "FILE"},    // FILES,        // all file handling, including save/restore
-      {true, "TIME"},    // TIME
+      {false, "TIME"},   // TIME
       {true, "SCRN"},    // SCREEN
   };
 
@@ -145,7 +145,7 @@ public:
       strncpy(needle, pText, 6);
       needle[6] = 0;   // null terminated
       Serial.print(pText);
-      if (strstr("$GPRMC", needle)) {
+      if (strstr(haystack, needle)) {
         Serial.println();   // insert blank line after $GPRMC
       }
     }
@@ -302,7 +302,7 @@ public:
     //   printPrefix(sys, sev);
     //  example output: "Griduino.ino[123]"
     char msg[128];
-    snprintf(msg, sizeof(msg), "%s[%d]", pModule, lineno);
+    snprintf(msg, sizeof(msg), " %s[%d]", pModule, lineno);
     log(FENCE, POST, msg);
     //}
   }
@@ -311,7 +311,7 @@ public:
     // example input:  logger.fencepost("unittest.cpp", "subroutineName()", __LINE__);
     // example output: "----- subroutineName(), unit_test.cpp[123]"
     char msg[128];
-    snprintf(msg, sizeof(msg), "----- %s, %s[%d] ", pSubroutine, pModule, lineno);
+    snprintf(msg, sizeof(msg), " ----- %s, %s[%d] ", pSubroutine, pModule, lineno);
     log(FENCE, POST, msg);
   }
 
@@ -353,7 +353,7 @@ protected:
       Serial.print(pfx);
       break;
     case POST:
-      snprintf(pfx, sizeof(pfx), "fencepost: ", printSystem[system].name);
+      snprintf(pfx, sizeof(pfx), "fencepost: %s", printSystem[system].name);
       Serial.print(pfx);
       break;
     case INFO:
