@@ -22,17 +22,12 @@
             +-------------------------------------------+
 */
 
-#include <Adafruit_ILI9341.h>   // TFT color display library
-#include "constants.h"          // Griduino constants and colors
-#include "logger.h"             // conditional printing to Serial port
-#include "model_gps.h"          // Model of a GPS for model-view-controller
-#include "TextField.h"          // Optimize TFT display text for proportional fonts
-#include "view.h"               // Base class for all views
+#include "constants.h"   // Griduino constants and colors
+#include "logger.h"      // conditional printing to Serial port
+#include "TextField.h"   // Optimize TFT display text for proportional fonts
+#include "view.h"        // Base class for all views
 
 // ========== extern ===========================================
-extern Logger logger;   // Griduino.ino
-extern Model *model;    // "model" portion of model-view-controller
-
 extern void showDefaultTouchTargets();   // Griduino.ino
 
 // ========== class ViewCfgRotation ==============================
@@ -46,7 +41,7 @@ public:
   }
   void updateScreen();
   void startScreen();
-  bool onTouch(Point touch);
+  bool onTouch(Point touch) override;
   void loadConfig();
   void saveConfig();
 
@@ -139,6 +134,7 @@ void ViewCfgRotation::updateScreen() {
 
 void ViewCfgRotation::startScreen() {
   // called once each time this view becomes active
+  logger.log(SCREEN, DEBUG, "ViewCfgRotation::startScreen()");
   this->clearScreen(this->background);               // clear screen
   txtSettings6[0].setBackground(this->background);   // set background for all TextFields in this view
   TextField::setTextDirty(txtSettings6, nFields);    // make sure all fields get re-printed on screen change
@@ -186,7 +182,7 @@ void ViewCfgRotation::startScreen() {
     tft->drawCircle(xCenter, yCenter, 7, cVALUE);
   }
 
-  showProgressBar(9, 9);   // draw marker for advancing through settings
+  showProgressBar(7, 9);   // draw marker for advancing through settings
   updateScreen();          // update UI immediately, don't wait for laggy mainline loop
 }   // end startScreen()
 
@@ -262,5 +258,5 @@ void ViewCfgRotation::loadConfig() {
 void ViewCfgRotation::saveConfig() {
   SaveRestore config(SCREEN_CONFIG_FILE, CONFIG_SCREEN_VERSION);
   int rc = config.writeConfig((byte *)&screenRotation, sizeof(screenRotation));
-  logger.log(CONFIG, DEBUG, "Finished ViewCfgNMEA::saveConfig() with rc = %d", rc);   // debug
+  logger.log(CONFIG, DEBUG, "Finished ViewCfgRotation::saveConfig() with rc = %d", rc);   // debug
 }

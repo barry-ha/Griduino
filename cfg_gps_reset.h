@@ -27,15 +27,12 @@
                           xBtn
 */
 
-#include <Adafruit_ILI9341.h>   // TFT color display library
-#include "constants.h"          // Griduino constants and colors
-#include "logger.h"             // conditional printing to Serial port
-#include "TextField.h"          // Optimize TFT display text for proportional fonts
-#include "view.h"               // Base class for all views
+#include "constants.h"   // Griduino constants and colors
+#include "logger.h"      // conditional printing to Serial port
+#include "TextField.h"   // Optimize TFT display text for proportional fonts
+#include "view.h"        // Base class for all views
 
 // ========== extern ===========================================
-extern Logger logger;   // Griduino.ino
-
 #include "model_gps.h"   // Model of a GPS for model-view-controller
 extern Model *model;
 
@@ -50,7 +47,7 @@ public:
   }
   void updateScreen();
   void startScreen();
-  bool onTouch(Point touch);
+  bool onTouch(Point touch) override;
 
 protected:
   // ---------- local data for this derived class ----------
@@ -136,6 +133,7 @@ void ViewCfgGpsReset::updateScreen() {
 
 void ViewCfgGpsReset::startScreen() {
   // called once each time this view becomes active
+  logger.log(SCREEN, DEBUG, "ViewCfgGpsReset::startScreen()");
   this->clearScreen(this->background);                  // clear screen
   txtStatic[0].setBackground(this->background);         // set background for all TextFields in this view
   TextField::setTextDirty(txtStatic, nRestartValues);   // make sure all fields get re-printed on screen change
@@ -166,7 +164,7 @@ void ViewCfgGpsReset::startScreen() {
     tft->print(item.text);
   }
 
-  showProgressBar(6, 9);   // draw marker for advancing through settings
+  showProgressBar(8, 9);   // draw marker for advancing through settings
   updateScreen();          // update UI immediately, don't wait for the main loop to eventually get around to it
 }   // end startScreen()
 

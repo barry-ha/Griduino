@@ -461,23 +461,25 @@ void selectNewView(int cmd) {
   } else if (cmd == GOTO_SETTINGS) {
     // operator requested the next SETTINGS view
     switch (currentView) {
+      case GRID_VIEW:      nextView = CFG_VOLUME; break;   // from normal view, start showing cfg views
       case CFG_VOLUME:     nextView = CFG_AUDIO_TYPE; break;
       //se VOLUME2_VIEW:   nextView = CFG_AUDIO_TYPE; break;
       case CFG_AUDIO_TYPE: nextView = CFG_CROSSING; break;
       case CFG_CROSSING:   nextView = CFG_GPS; break;
       case CFG_GPS:        nextView = CFG_NMEA; break;
-      case CFG_NMEA:       nextView = CFG_GPS_RESET; break;
-      case CFG_GPS_RESET:  nextView = CFG_REFORMAT; break;
-      case CFG_REFORMAT:   nextView = CFG_UNITS; break;
+      case CFG_NMEA:       nextView = CFG_UNITS; break;
       case CFG_UNITS:      nextView = CFG_ROTATION; break;
 #if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
-      case CFG_ROTATION:   nextView = CFG_REBOOT; break;
+      case CFG_ROTATION:   nextView = CFG_GPS_RESET; break;
 #else
-      case CFG_ROTATION:   nextView = GRID_VIEW; break;   // at end of settings views, return to normal view
+      case CFG_ROTATION:   nextView = CFG_REFORMAT; break;
 #endif
-      case CFG_REBOOT:     nextView = CFG_VOLUME; break;
+      case CFG_GPS_RESET:  nextView = CFG_REFORMAT; break;
+      case CFG_REFORMAT:   nextView = CFG_REBOOT; break;
+
+      case CFG_REBOOT:     nextView = GRID_VIEW; break;      // at end of settings views, return to normal view
       // none of above: we must be showing some normal user view, so go to the first settings view
-      default:             nextView = CFG_VOLUME; break;
+      default:             nextView = GRID_VIEW; break;
     }
   } else if (cmd < MAX_VIEWS) {
     // a specific view was requested, such as HELP_VIEW via a USB command
@@ -535,7 +537,7 @@ void adjustBrightness() {
   gCurrentBrightnessIndex = (gCurrentBrightnessIndex + 1) % gNumLevels;   // incr index
   int brightness          = gaBrightness[gCurrentBrightnessIndex];        // look up brightness
   PWM_backlight.setPWM(TFT_BL, frequency, brightness);                    // write to hardware
-  logger.log(CONFIG, INFO, "Set brightness %d", brightness);
+  logger.log(SCREEN, INFO, "Set brightness %d", brightness);
 }
 #else
 // ----- adjust screen brightness: Feather M4
@@ -548,7 +550,7 @@ void adjustBrightness() {
   gCurrentBrightnessIndex = (gCurrentBrightnessIndex + 1) % gNumLevels;   // incr index
   int brightness          = gaBrightness[gCurrentBrightnessIndex];        // look up brightness
   analogWrite(TFT_BL, brightness);                                        // write to hardware
-  logger.log(CONFIG, INFO, "Set brightness %d", brightness);
+  logger.log(SCREEN, INFO, "Set brightness %d", brightness);
 }
 #endif
 
@@ -682,6 +684,9 @@ void setup() {
 
   // ----- init screen orientation
   cfgRotation.loadConfig();           // restore previous screen orientation
+
+  // ----- init English/Metric
+  cfgUnits.begin();                   // restore previous units
 
   // ----- init touchscreen
   tsn.setScreenSize(tft.width(), tft.height());                                         // required
@@ -1132,8 +1137,10 @@ void loop() {
       showWhereTouched(screenLoc);   // debug: show where touched
     }
 
+    logger.fencepost("Griduino.ino", __LINE__);   // debug
     Point touch = {screenLoc.x, screenLoc.y};
     bool touchHandled = pView->onTouch(touch);
+    logger.fencepost("Griduino.ino", __LINE__);   // debug
 
     if (!touchHandled) {
       // not handled by one of the views, so run our default action

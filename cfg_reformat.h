@@ -25,15 +25,13 @@
             xLeft    xButtonUL
 */
 
-#include <Adafruit_ILI9341.h>   // TFT color display library
-#include "constants.h"          // Griduino constants and colors
-#include "logger.h"             // conditional printing to Serial port
-#include "TextField.h"          // Optimize TFT display text for proportional fonts
-#include "view.h"               // Base class for all views
+#include "constants.h"   // Griduino constants and colors
+#include "logger.h"      // conditional printing to Serial port
+#include "TextField.h"   // Optimize TFT display text for proportional fonts
+#include "view.h"        // Base class for all views
 // #include "SdFat_format/SdFat_format.h"   // Adafruit FAT formatter: provides format_fat12(), check_fat12()
 
 // ========== extern ===========================================
-extern Logger logger;             // Griduino.ino
 extern int goto_next_view;        // Griduino.ino
 extern void ff_setup(void);       // ff_SdFat_Format.cpp
 extern void format_fat12(void);   // ff_SdFat_format.cpp
@@ -51,7 +49,7 @@ public:
   void updateScreen();
   void startScreen();
   void endScreen();
-  bool onTouch(Point touch);
+  bool onTouch(Point touch) override;
 
 protected:
   // ---------- local data for this derived class ----------
@@ -211,7 +209,7 @@ protected:
       txtFinal[ii].print();
     }
 
-    showProgressBar(7, 9);   // draw marker for advancing through settings
+    showProgressBar(9, 9);   // draw marker for advancing through settings
     updateScreen();          // update UI immediately, don't wait for laggy mainline loop
   }   // end startScreen()
 
@@ -226,6 +224,7 @@ void ViewCfgReformat::updateScreen() {
 
 void ViewCfgReformat::startScreen() {
   // called once each time this view becomes active
+  logger.log(SCREEN, DEBUG, "ViewCfgReformat::startScreen()");
   this->clearScreen(this->background);                 // clear screen
   txtStatic[0].setBackground(this->background);        // set background for all TextFields in this view
   TextField::setTextDirty(txtStatic, nTextReformat);   // make sure all fields get re-printed on screen change
@@ -257,7 +256,7 @@ void ViewCfgReformat::startScreen() {
     tft->print(item.text);
   }
 
-  showProgressBar(7, 9);   // draw marker for advancing through settings
+  showProgressBar(9, 9);   // draw marker for advancing through settings
   updateScreen();          // update UI immediately, don't wait for laggy mainline loop
 }   // end startScreen()
 
