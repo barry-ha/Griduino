@@ -10,7 +10,6 @@
             and for templates to be used in derived classes.
 */
 
-#include <Arduino.h>
 #include <Adafruit_ILI9341.h>   // TFT color display library
 #include "constants.h"          // Griduino constants and colors
 #include "logger.h"             // conditional printing to Serial port
@@ -21,7 +20,7 @@ extern bool showTouchTargets;       // Griduino.ino
 extern bool showCenterline;         // Griduino.ino
 extern BatteryVoltage gpsBattery;   // model_adc.h
 
-// ========== abstract base class ViewCfgAudioType ================
+// ========== abstract base class View ================
 class View {
 public:
   // public member variables go here
@@ -63,10 +62,11 @@ public:
   /**
    * Called whenever the touchscreen has an event for this view
    */
-  virtual bool onTouch(Point touch) {
-    logger.log(CONFIG, INFO, "->->-> Touched screen.");
+  virtual bool onTouch(Point touch) = 0;   // pure virtual, derived classes MUST implement
+  /*{
+    logger.log(SCREEN, INFO, "->->-> Touched screen.");
     return false;   // true=handled, false=controller uses default action
-  }
+  }*/
 
   /**
    * Call to load/save configuration from non-volatile RAM
@@ -84,8 +84,8 @@ protected:
   /**
    *  The One and Only True Clear Screen (TOOTCS) function
    */
-  void clearScreen(uint16_t color = cBACKGROUND) {   // clear entire screen
-    logger.fencepost("View::clearScreen", __LINE__);  // debug
+  void clearScreen(uint16_t color = cBACKGROUND) {     // clear entire screen
+    logger.fencepost("View::clearScreen", __LINE__);   // debug
     tft->fillScreen(color);
   }
 
