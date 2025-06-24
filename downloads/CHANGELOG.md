@@ -8,27 +8,31 @@ Version numbers correspond to [Downloads](https://github.com/barry-ha/Griduino/t
 
 The changelog format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and the Griduino project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## v1.14.6 dev &nbsp; 2025-06-06
+## v1.15 beta &nbsp; 2025-06-22
 
-Version 1.14.6 is a prototype of a speed+compass display. This is an intermediate checkpoint. Some functions are temporarily disabled and so is not intended for public installs.
+Version 1.15 is a beta release to consolidate enhancements since the last stable release of v1.10 on 2022-08-05. Read the changelog features below to find more new features.
 
-New: main grid display shows vehicle speed in upper left and a large bright pointer of direction, replacing the large 6-digit grid letters. 
+New: an additional main grid display shows vehicle speed and a large bright pointer of direction. The breadcrumb trail will paint over the status while you drive. The large 6-digit grid letters are smaller to make room for the compass. The compass is derived from GPS readings; when you're stopped at 0 mph, you can expect the compass to wander around.
 
-![](img/compass-img6840.jpg)
+![](img/compass-img6877.jpg)
 
-New: Griduino runs correctly on both PCB v4 and PCB v14 hardware
+New: Griduino runs correctly on both PCB v4 and the latest PCB v14 hardware 
 
-New: auto detect barometric sensor SPI or I2C
+New: Configurator screens are resequenced to put the most commonly used options first.
 
-New: TFT_Triangle_Demo.ino sketch shows the simplest possible "speed+compass" for performance testing 
+New: GPS Simulator rewritten and now generates speed for the compass+speedometer display. Note it will show 2,000-3,000 mph which is the real ground speed required to traverse the big oval track that it generates.
+
+New: example/TFT_Triangle_Demo.ino sketch shows the simplest possible "speed+compass" for performance testing 
 
 ![](img/tft-triangle-demo-img6841.jpg)
 
+New: auto detect barometric sensor SPI or I2C hardware
+
 Fixed: coin battery voltage is only shown on PCB hardware that has a voltage sensor (PCB v12 and later)
 
-Fixed: some of the compiler warnings such as "unused variable"
+Issue: no spoken word audio
 
-Issue: no history saved for the barometric pressure sensor
+Issue: barometric pressure "Baroduino" screen will plot three days of air pressure readings in real time but it does not save history when turned off
 
 ## v1.14.4 alpha &nbsp; 2024-12-20
 
