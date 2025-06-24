@@ -55,7 +55,6 @@
 
 */
 
-#include <Adafruit_ILI9341.h>   // TFT color display library
 #include <TimeLib.h>            // time_t=seconds since Jan 1, 1970, https://github.com/PaulStoffregen/Time
 #include "constants.h"          // Griduino constants and colors
 #include "logger.h"             // conditional printing to Serial port
@@ -65,9 +64,6 @@
 #include "view.h"               // Base class for all views
 
 // ========== extern ===========================================
-extern Logger logger;   // Griduino.ino
-extern Model *model;    // "model" portion of model-view-controller
-
 extern void showDefaultTouchTargets();   // Griduino.ino
 
 // ===== definitions to manage the count up/down events
@@ -198,7 +194,7 @@ public:
   void updateScreen();
   void startScreen();
   void endScreen();
-  bool onTouch(Point touch);
+  bool onTouch(Point touch) override;
   // void loadConfig();
   // void saveConfig();
 

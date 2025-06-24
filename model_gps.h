@@ -15,11 +15,10 @@
          https://github.com/PaulStoffregen/Time
 */
 
-#include <Arduino.h>        //
-#include <Adafruit_GPS.h>   // "Ultimate GPS" library
-#include <cmath>
+#include <Adafruit_GPS.h>        // "Ultimate GPS" library
+#include <cmath>                 // for sin() and cos()
 #include "constants.h"           // Griduino constants, colors, typedefs
-#include "hardware.h"            //
+#include "hardware.h"            // battery definitions
 #include "logger.h"              // conditional printing to Serial port
 #include "model_breadcrumbs.h"   // breadcrumb trail
 #include "grid_helper.h"         // lat/long conversion routines
@@ -29,7 +28,6 @@
 // ========== extern ===========================================
 extern Adafruit_GPS GPS;    // Griduino.ino
 extern Breadcrumbs trail;   // model of breadcrumb trail
-extern Logger logger;       // Griduino.ino
 extern Grids grid;          // grid_helper.h
 extern Dates date;          // date_helper.h
 
@@ -52,7 +50,6 @@ public:
   uint8_t gSatellites  = 0;       // number of satellites in use
   float gSpeed         = 0.0;     // current speed over ground in MPH
   float gAngle         = 0.0;     // direction of travel, degrees from true north
-  bool gMetric         = false;   // distance reported in miles(false), kilometers(true)
   int gTimeZone        = -7;      // default local time Pacific (-7 hours)
   bool compare4digits  = true;    // true=4 digit, false=6 digit comparisons
   const int dataSource = eGPSRECEIVER;
@@ -66,17 +63,6 @@ public:
   // Constructor - create and initialize member variables
   Model() {}
 
-  // Setters
-  void setEnglish() {
-    gMetric = false;   // caller is responsible to save GPS model to NVR
-                       // on a schedule convenient to their UI timing, typ. "endView()"
-                       // because saving entire model is slow, ~1 second
-  }
-  void setMetric() {
-    gMetric = true;   // caller is responsible to save GPS model to NVR
-                      // on a schedule convenient to their UI timing, typ. "endView()"
-                      // because saving entire model is slow, ~1 second
-  }
   void factoryReset() {
 // Should never be needed, but in rare cases the GPS gets into some state
 // where it goes for days/weeks without acquiring satellites.
@@ -146,7 +132,6 @@ public:
     gSatellites    = 0;                     // GPS.satellites, assume no satellites
     gSpeed         = 0.0;                   // assume speed unknown
     gAngle         = 0.0;                   // assume direction of travel unknown
-    gMetric        = from.gMetric;          // distance report in miles/kilometers
     gTimeZone      = from.gTimeZone;        // offset from GMT to local time
     compare4digits = from.compare4digits;   // true=4 digit, false=6 digit comparisons
   }
@@ -442,14 +427,14 @@ public:
       gAltitude += float(GPS.seconds) / 60.0 * 100.0;   // Simulated altitude (meters)
       break;
 
-    case 4:   // ----- move in oval around a single grid
+    case 4:                      // ----- move in oval around a single grid
       const int elapsed   = 5;   // arbitrary time to have moved some distance
       PointGPS currentPos = simulatedPosition(secondHand);
       PointGPS prevPos    = simulatedPosition(secondHand - elapsed);
 
       gLatitude       = currentPos.lat;
       gLongitude      = currentPos.lng;
-      double distance = grid.calcDistance(prevPos.lat, prevPos.lng, gLatitude, gLongitude, gMetric);
+      double distance = grid.calcDistance(prevPos.lat, prevPos.lng, gLatitude, gLongitude, true);
 
       // calculate speed-over-ground in mph or kph
       double speedKps = (distance / elapsed);       // speed in kps
@@ -464,7 +449,7 @@ public:
       Serial.print(" kps = ");
       Serial.print(speedKph, 1);
       Serial.print(" kph = ");
-      Serial.print(speedKph*milesPerKm,1);
+      Serial.print(speedKph * milesPerKm, 1);
       Serial.println(" mph");
 
       gSpeed = speedKph * knotsPerKph;                                              // = distance/time (knots)
@@ -476,8 +461,8 @@ public:
 
       // simulate number of satellites
       // should look like a slow smooth sine wave in the "Satellites" view
-      float timeScale   = 500;   // arbitrary divisor for "slow Satellite Count sine wave"`
-      gSatellites = round(4.0 + 3.0 * sin(secondHand / timeScale * 2.0 * PI));
+      float timeScale = 500;   // arbitrary divisor for "slow Satellite Count sine wave"`
+      gSatellites     = round(4.0 + 3.0 * sin(secondHand / timeScale * 2.0 * PI));
 
       // simulate whether or not we have a valid gps position
       gHaveGPSfix = gSatellites ? true : false;

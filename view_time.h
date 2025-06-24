@@ -39,18 +39,14 @@
 
 */
 
-#include <Adafruit_ILI9341.h>   // TFT color display library
-#include "constants.h"          // Griduino constants and colors
-#include "logger.h"             // conditional printing to Serial port
-#include "model_gps.h"          // Model of a GPS for model-view-controller
-#include "save_restore.h"       // Save configuration in non-volatile RAM
-#include "TextField.h"          // Optimize TFT display text for proportional fonts
-#include "view.h"               // Base class for all views
+#include "constants.h"      // Griduino constants and colors
+#include "logger.h"         // conditional printing to Serial port
+#include "model_gps.h"      // Model of a GPS for model-view-controller
+#include "save_restore.h"   // Save configuration in non-volatile RAM
+#include "TextField.h"      // Optimize TFT display text for proportional fonts
+#include "view.h"           // Base class for all views
 
 // ========== extern ===========================================
-extern Logger logger;   // Griduino.ino
-extern Model *model;    // "model" portion of model-view-controller
-
 extern void showDefaultTouchTargets();           // Griduino.ino
 extern void getDate(char *result, int maxlen);   // model_gps.h
 
@@ -66,7 +62,7 @@ public:
   void updateScreen();
   void startScreen();
   void endScreen();
-  bool onTouch(Point touch);
+  bool onTouch(Point touch) override;
   // void loadConfig();
   // void saveConfig();
 
@@ -229,8 +225,8 @@ void ViewTime::endScreen() {
   // We save our settings here instead of on each button press
   // because writing to NVR is slow (0.5 sec) and would delay the user
   // while trying to press a button many times in a row.
-  //model->save();    // BUT! this slows down showing the next view
-  // TODO: schedule the "model->save" until some idle time with no 
+  // model->save();    // BUT! this slows down showing the next view
+  // TODO: schedule the "model->save" until some idle time with no
   //       user input, say 10 seconds of no touches
 }
 

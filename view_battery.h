@@ -29,16 +29,13 @@
                 xUL     xLR xV        xVolts
 */
 
-// #include <Arduino.h>
-#include <Adafruit_ILI9341.h>   // TFT color display library
-#include "constants.h"          // Griduino constants and colors
-#include "logger.h"             // conditional printing to Serial port
-#include "TextField.h"          // Optimize TFT display text for proportional fonts
-#include "view.h"               // Base class for all views
-#include "model_adc.h"          // Model of the analog-digital converter
+#include "constants.h"   // Griduino constants and colors
+#include "logger.h"      // conditional printing to Serial port
+#include "TextField.h"   // Optimize TFT display text for proportional fonts
+#include "view.h"        // Base class for all views
+#include "model_adc.h"   // Model of the analog-digital converter
 
 // ========== extern ===========================================
-extern Logger logger;                                                                // Griduino.ino
 void floatToCharArray(char *result, int maxlen, double fValue, int decimalPlaces);   // Griduino.ino
 extern BatteryVoltage gpsBattery;                                                    // model_adc.h
 extern void selectNewView(int cmd);                                                  // Griduino.ino
@@ -55,7 +52,7 @@ public:
   }
   void updateScreen();
   void startScreen();
-  bool onTouch(Point touch);
+  bool onTouch(Point touch) override;
 
 protected:
   // ---------- local data for this derived class ----------

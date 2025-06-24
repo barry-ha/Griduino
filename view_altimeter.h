@@ -35,19 +35,19 @@
               col1            col2 col3
 */
 
-#include <Adafruit_ILI9341.h>   // TFT color display library
-#include <TimeLib.h>            // time_t=seconds since Jan 1, 1970, https://github.com/PaulStoffregen/Time
-#include "constants.h"          // Griduino constants and colors
-#include "logger.h"             // conditional printing to Serial port
-#include "model_gps.h"          // Model of a GPS for model-view-controller
-#include "model_baro.h"         // Model of a barometer that stores 3-day history
-#include "TextField.h"          // Optimize TFT display text for proportional fonts
-#include "view.h"               // Base class for all views
+#include <TimeLib.h>      // time_t=seconds since Jan 1, 1970, https://github.com/PaulStoffregen/Time
+#include "constants.h"    // Griduino constants and colors
+#include "logger.h"       // conditional printing to Serial port
+#include "model_gps.h"    // Model of a GPS for model-view-controller
+#include "model_baro.h"   // Model of a barometer that stores 3-day history
+#include "TextField.h"    // Optimize TFT display text for proportional fonts
+#include "view.h"         // Base class for all views
+#include "cfg_units.h"    // config english/metric
 
 // ========== extern ===========================================
-extern Logger logger;              // Griduino.ino
 extern Model *model;               // "model" portion of model-view-controller
 extern BarometerModel baroModel;   // singleton instance of the barometer model
+extern ViewCfgUnits cfgUnits;      // English/Metric
 
 extern void showDefaultTouchTargets();   // Griduino.ino
 
@@ -63,7 +63,7 @@ public:
   void updateScreen();
   void startScreen();
   void endScreen();
-  bool onTouch(Point touch);
+  bool onTouch(Point touch) override;
   void loadConfig();
   void saveConfig();
 
@@ -191,7 +191,7 @@ protected:
 
     // how much to change "sea level pressure" with each button press depends on english/metric setting
     float pascals;
-    if (model->gMetric) {
+    if (cfgUnits.isMetric) {
       pascals = (0.002F) * PASCALS_PER_INCHES_MERCURY;   // 0.002 inHg = 6.0 Pa = about 2 feet
     } else {
       pascals = (10.0F);   // 10 Pa is about 1 meter
@@ -263,7 +263,7 @@ void ViewAltimeter::updateScreen() {
   float altFeet   = altMeters * feetPerMeters;
   // altMeters += 2000;              // debug, helps test layout with large numbers
   // altFeet += 2000;                // debug
-  if (model->gMetric) {
+  if (cfgUnits.isMetric) {
     int precision = (abs(altMeters) < 10) ? 1 : 0;
     txtAltimeter[eBaroValue].print(altMeters, precision);
   } else {
@@ -275,7 +275,7 @@ void ViewAltimeter::updateScreen() {
 
   float gpsMeters = model->gAltitude;   // meters above MSL
   float gpsFeet   = gpsMeters * feetPerMeters;
-  if (model->gMetric) {
+  if (cfgUnits.isMetric) {
     int precision = (abs(gpsMeters) < 10) ? 1 : 0;
     txtAltimeter[eGpsValue].print(gpsMeters, precision);
   } else {
@@ -310,7 +310,7 @@ void ViewAltimeter::startScreen() {
   showScreenBorder();                                      // optionally outline visible area
   showScreenCenterline();                                  // optionally draw visual alignment bar
 
-  if (model->gMetric) {
+  if (cfgUnits.isMetric) {
     txtAltimeter[eBaroUnits].print("m");
     txtAltimeter[eGpsUnits].print("m");
   } else {

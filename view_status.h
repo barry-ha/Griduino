@@ -23,21 +23,22 @@
                     labelX  valueX
 */
 
-#include <Arduino.h>
-#include <Adafruit_ILI9341.h>   // TFT color display library
-#include "constants.h"          // Griduino constants and colors
-#include "logger.h"             // conditional printing to Serial port
-#include "grid_helper.h"        // lat/long conversion routines
-#include "model_gps.h"          // Model of a GPS for model-view-controller
-#include "TextField.h"          // Optimize TFT display text for proportional fonts
-#include "view.h"               // Base class for all views
+#include "constants.h"     // Griduino constants and colors
+#include "logger.h"        // conditional printing to Serial port
+#include "grid_helper.h"   // lat/long conversion routines
+#include "model_gps.h"     // Model of a GPS for model-view-controller
+#include "TextField.h"     // Optimize TFT display text for proportional fonts
+#include "view.h"          // Base class for all views
+#include "cfg_units.h"     // config english/metric
 
 // ========== extern ===========================================
-extern Logger logger;                                                                // Griduino.ino
-extern Grids grid;                                                                   // grid_helper.h
-extern Model *model;                                                                 // "model" portion of model-view-controller
+extern Grids grid;              // grid_helper.h
+extern Model *model;            // "model" portion of model-view-controller
+extern ViewCfgUnits cfgUnits;   // English/Metric
+
 void floatToCharArray(char *result, int maxlen, double fValue, int decimalPlaces);   // Griduino.ino
-extern void showDefaultTouchTargets();                                               // Griduino.ino
+
+extern void showDefaultTouchTargets();   // Griduino.ino
 
 // ========== class ViewStatus =================================
 class ViewStatus : public View {
@@ -50,7 +51,7 @@ public:
   }
   void updateScreen();
   void startScreen();
-  bool onTouch(Point touch);
+  bool onTouch(Point touch) override;
 
 protected:
   // ---------- local data for this derived class ----------
@@ -116,7 +117,7 @@ void ViewStatus::updateScreen() {
 
   setFontSize(12);
   char sUnits[] = "mi";
-  if (model->gMetric) {
+  if (cfgUnits.isMetric) {
     strcpy(sUnits, "km");
   }
 
@@ -131,8 +132,8 @@ void ViewStatus::updateScreen() {
   float nextSouth = grid.nextGridLineSouth(model->gLatitude);
   float nextEast  = grid.nextGridLineEast(model->gLongitude);
   float nextWest  = grid.nextGridLineWest(model->gLongitude);
-  int nsDistance  = (int)round(grid.calcDistanceLat(nextNorth, nextSouth, model->gMetric));
-  int ewDistance  = (int)round(grid.calcDistanceLong(model->gLatitude, nextEast, nextWest, model->gMetric));
+  int nsDistance  = (int)round(grid.calcDistanceLat(nextNorth, nextSouth, cfgUnits.isMetric));
+  int ewDistance  = (int)round(grid.calcDistanceLong(model->gLatitude, nextEast, nextWest, cfgUnits.isMetric));
 
   char msg[33];
   snprintf(msg, sizeof(msg), "%d x %d %s", ewDistance, nsDistance, sUnits);
@@ -147,8 +148,8 @@ void ViewStatus::updateScreen() {
   nextSouth = grid.nextGrid6South(model->gLatitude);
   nextEast  = grid.nextGrid6East(model->gLongitude);
   nextWest  = grid.nextGrid6West(model->gLongitude);
-  float fNS = grid.calcDistanceLat(nextNorth, nextSouth, model->gMetric);
-  float fEW = grid.calcDistanceLong(model->gLatitude, nextEast, nextWest, model->gMetric);
+  float fNS = grid.calcDistanceLat(nextNorth, nextSouth, cfgUnits.isMetric);
+  float fEW = grid.calcDistanceLong(model->gLatitude, nextEast, nextWest, cfgUnits.isMetric);
   char sNS[10], sEW[10];
   floatToCharArray(sNS, 8, fNS, 1);
   floatToCharArray(sEW, 8, fEW, 1);
@@ -161,8 +162,8 @@ void ViewStatus::updateScreen() {
   const double minLong = gridWidthDegrees / gBoxWidth;     // longitude degrees from one pixel to the next
   const double minLat  = gridHeightDegrees / gBoxHeight;   // latitude degrees from one pixel to the next
 
-  float ewScale = grid.calcDistanceLong(model->gLatitude, 0.0, minLong, model->gMetric);
-  float nsScale = grid.calcDistanceLat(0.0, minLat, model->gMetric);
+  float ewScale = grid.calcDistanceLong(model->gLatitude, 0.0, minLong, cfgUnits.isMetric);
+  float nsScale = grid.calcDistanceLat(0.0, minLat, cfgUnits.isMetric);
   float scale   = (ewScale + nsScale) / 2;
   char sScale[10];
   floatToCharArray(sScale, 8, scale, 1);

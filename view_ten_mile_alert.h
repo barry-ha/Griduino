@@ -27,19 +27,17 @@
               col1  yCenter   col2 col3
 */
 
-#include <Adafruit_ILI9341.h>   // TFT color display library
-#include <TimeLib.h>            // time_t=seconds since Jan 1, 1970, https://github.com/PaulStoffregen/Time
-#include "constants.h"          // Griduino constants and colors
-#include "logger.h"             // conditional printing to Serial port
-#include "grid_helper.h"        // lat/long conversion routines
-#include "model_gps.h"          // Model of a GPS for model-view-controller
-#include "TextField.h"          // Optimize TFT display text for proportional fonts
-#include "view.h"               // Base class for all views
+#include <TimeLib.h>       // time_t=seconds since Jan 1, 1970, https://github.com/PaulStoffregen/Time
+#include "constants.h"     // Griduino constants and colors
+#include "logger.h"        // conditional printing to Serial port
+#include "grid_helper.h"   // lat/long conversion routines
+#include "model_gps.h"     // Model of a GPS for model-view-controller
+#include "TextField.h"     // Optimize TFT display text for proportional fonts
+#include "view.h"          // Base class for all views
 
 // ========== extern ===========================================
-extern Logger logger;   // Griduino.ino
-extern Grids grid;      // grid_helper.h
-extern Model *model;    // "model" portion of model-view-controller
+extern Grids grid;     // grid_helper.h
+extern Model *model;   // "model" portion of model-view-controller
 
 extern void showDefaultTouchTargets();   // Griduino.ino
 
@@ -55,7 +53,7 @@ public:
   void updateScreen();
   void startScreen();
   void endScreen();
-  bool onTouch(Point touch);
+  bool onTouch(Point touch) override;
   void loadConfig();
   void saveConfig();
 
@@ -272,7 +270,7 @@ void ViewTenMileAlert::updateScreen() {
   // called on every pass through main()
 
   // compute distance
-  double dist = grid.calcDistance(startLat, startLong, model->gLatitude, model->gLongitude, model->gMetric);
+  double dist = grid.calcDistance(startLat, startLong, model->gLatitude, model->gLongitude, cfgUnits.isMetric);
   updateDistance(dist);
 
   // draw starting and current grid text
@@ -336,7 +334,7 @@ void ViewTenMileAlert::startScreen() {
     txtTenMileAlert[ii].print();
   }
 
-  if (model->gMetric) {
+  if (cfgUnits.isMetric) {
     txtTenMileAlert[eUnits].print("km");
   } else {
     txtTenMileAlert[eUnits].print("miles");

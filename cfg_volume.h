@@ -26,17 +26,15 @@
             +-------+----------------+------------------+
 */
 
-#include <Adafruit_ILI9341.h>   // TFT color display library
-#include <DS1804.h>             // DS1804 digital potentiometer library
-#include "constants.h"          // Griduino constants and colors
-#include "logger.h"             // conditional printing to Serial port
-#include "model_gps.h"          // Model of a GPS for model-view-controller
-#include "morse_dac.h"          // morse code
-#include "TextField.h"          // Optimize TFT display text for proportional fonts
-#include "view.h"               // Base class for all views
+#include <DS1804.h>      // DS1804 digital potentiometer library
+#include "constants.h"   // Griduino constants and colors
+#include "logger.h"      // conditional printing to Serial port
+#include "model_gps.h"   // Model of a GPS for model-view-controller
+#include "morse_dac.h"   // morse code
+#include "TextField.h"   // Optimize TFT display text for proportional fonts
+#include "view.h"        // Base class for all views
 
 // ========== extern ===========================================
-extern Logger logger;                                 // Griduino.ino
 extern void announceGrid(String gridName, int len);   // Griduino.ino
 extern DACMorseSender dacMorse;                       // morse code (so we can send audio sample)
 extern DS1804 volume;                                 // digital potentiometer
@@ -57,7 +55,7 @@ public:
   void updateScreen();
   void startScreen();
   void endScreen();
-  bool onTouch(Point touch);
+  bool onTouch(Point touch) override;
   void loadConfig();
   void saveConfig();
 

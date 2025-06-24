@@ -34,22 +34,21 @@
       ViewGridMain   ViewGridCompass
 */
 
-#include <Adafruit_ILI9341.h>   // TFT color display library
-#include "constants.h"          // Griduino constants and colors
-#include "logger.h"             // conditional printing to Serial port
-#include "grid_helper.h"        // lat/long conversion routines
-#include "model_gps.h"          // Model of a GPS for model-view-controller
-#include "model_baro.h"         // Model of a barometer that measures temperature
-#include "model_adc.h"          // Model of analog-digital converter
-#include "TextField.h"          // Optimize TFT display text for proportional fonts
-#include "view.h"               // Base class for all views
-#include "TFT_Compass.h"        // Compass and speedometer
+#include "constants.h"     // Griduino constants and colors
+#include "logger.h"        // conditional printing to Serial port
+#include "grid_helper.h"   // lat/long conversion routines
+#include "model_gps.h"     // Model of a GPS for model-view-controller
+#include "model_baro.h"    // Model of a barometer that measures temperature
+#include "model_adc.h"     // Model of analog-digital converter
+#include "TextField.h"     // Optimize TFT display text for proportional fonts
+#include "view.h"          // Base class for all views
+#include "TFT_Compass.h"   // Compass and speedometer
+#include "cfg_units.h"     // config english/metric
 
 // ========== extern ===========================================
-extern Logger logger;               // Griduino.ino
-extern Model *model;                // GPS "model" of model-view-controller (model_gps.h)
-extern BarometerModel baroModel;    // Barometer "model" is singleton (model_baro.h)
-extern BatteryVoltage gpsBattery;   // Coin battery "model" is singleton (model_adc.h)
+extern Model *model;               // GPS "model" of model-view-controller (model_gps.h)
+extern BarometerModel baroModel;   // Barometer "model" is singleton (model_baro.h)
+extern ViewCfgUnits cfgUnits;      // English/Metric
 
 extern void showDefaultTouchTargets();   // Griduino.ino
 
@@ -166,7 +165,7 @@ protected:
     setFontSize(0);
 
     // the message line shows either or a position (lat,long) or a message (waiting for GPS)
-    char sTemp[27];   // why 27? Small system font will fit 26 characters on one row (smallest fits >32)
+    char sTemp[27];   // why 27? "small" system font will fit 26 characters on one row ("smallest" fits >32)
     if (model->gHaveGPSfix) {
       char latitude[10], longitude[10];
       floatToCharArray(latitude, sizeof(latitude), fLat, 4);
@@ -181,7 +180,7 @@ protected:
     setFontSize(0);
     float temperature;
     char units[2] = "?";
-    if (model->gMetric) {
+    if (cfgUnits.isMetric) {
       temperature = celsius;
       units[0]    = 'c';
     } else {
@@ -226,7 +225,7 @@ protected:
     setFontSize(0);
 
     char sTemp[8];   // strlen("12345'") = 6
-    if (model->gMetric) {
+    if (cfgUnits.isMetric) {
       int altMeters = model->gAltitude;
       snprintf(sTemp, sizeof(sTemp), "%dm", altMeters);
     } else {
@@ -275,13 +274,13 @@ protected:
     setFontSize(12);
 
     // N-S: grid lines occur on nearest INTEGER degree
-    float fNorth = grid.calcDistanceLat(model->gLatitude, ceil(model->gLatitude), model->gMetric);
+    float fNorth = grid.calcDistanceLat(model->gLatitude, ceil(model->gLatitude), cfgUnits.isMetric);
     if (fNorth < 2.0) {
       txtGrid[N_DISTANCE].print(fNorth, 2);
     } else {
       txtGrid[N_DISTANCE].print(fNorth, 1);
     }
-    float fSouth = grid.calcDistanceLat(model->gLatitude, floor(model->gLatitude), model->gMetric);
+    float fSouth = grid.calcDistanceLat(model->gLatitude, floor(model->gLatitude), cfgUnits.isMetric);
     if (fSouth < 2.0) {
       txtGrid[S_DISTANCE].print(fSouth, 2);
     } else {
@@ -291,8 +290,8 @@ protected:
     // E-W: grid lines occur on nearest EVEN degrees
     int eastLine = grid.nextGridLineEast(model->gLongitude);
     int westLine = grid.nextGridLineWest(model->gLongitude);
-    float fEast  = grid.calcDistanceLong(model->gLatitude, model->gLongitude, eastLine, model->gMetric);
-    float fWest  = grid.calcDistanceLong(model->gLatitude, model->gLongitude, westLine, model->gMetric);
+    float fEast  = grid.calcDistanceLong(model->gLatitude, model->gLongitude, eastLine, cfgUnits.isMetric);
+    float fWest  = grid.calcDistanceLong(model->gLatitude, model->gLongitude, westLine, cfgUnits.isMetric);
     if (fEast < 2.0) {
       txtGrid[E_DISTANCE].print(fEast, 2);
     } else {
@@ -481,7 +480,7 @@ protected:
       }
     }
   }
-};
+};   // end class View_Grid_Base
 
 // ========== class ViewGridMain ===================================
 class ViewGridMain : public View_Grid_Base {
@@ -526,7 +525,7 @@ public:
 
     char sSpeed[16];
     snprintf(sSpeed, sizeof(sSpeed), "%d", nSpeed);
-    if (model->gMetric) {
+    if (cfgUnits.isMetric) {
       strcat(sSpeed, " kph");
     } else {
       strcat(sSpeed, " mph");

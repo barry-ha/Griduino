@@ -23,7 +23,6 @@
             +-------------------------------------------+
 */
 
-#include <Adafruit_ILI9341.h>    // TFT color display library
 #include "constants.h"           // Griduino constants and colors
 #include "logger.h"              // conditional printing to Serial port
 #include "model_breadcrumbs.h"   // breadcrumb trail
@@ -32,10 +31,6 @@
 #include "view.h"                // Base class for all views
 
 // ========== extern ===========================================
-extern Logger logger;       // Griduino.ino
-extern Model *model;        // "model" portion of model-view-controller
-extern Breadcrumbs trail;   // model of breadcrumb trail
-
 extern void showDefaultTouchTargets();   // Griduino.ino
 extern void fSetReceiver();              // Griduino.ino
 extern void fSetSimulated();             // Griduino.ino
@@ -52,7 +47,7 @@ public:
   }
   void updateScreen();
   void startScreen();
-  bool onTouch(Point touch);
+  bool onTouch(Point touch) override;
 
 protected:
   // ---------- local data for this derived class ----------

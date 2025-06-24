@@ -26,7 +26,6 @@
          labelX valueX
 */
 
-#include <Adafruit_ILI9341.h>            // TFT color display library
 #include "constants.h"                   // Griduino constants and colors
 #include <elapsedMillis.h>               // Scheduling intervals in main loop
 #include "logger.h"                      // conditional printing to Serial port
@@ -55,7 +54,7 @@ public:
   }
   void updateScreen();
   void startScreen();
-  bool onTouch(Point touch);
+  bool onTouch(Point touch) override;
 
   etl::circular_buffer<satCountItem, 19> cbSats;
   etl::circular_buffer<satCountItem, 19>::iterator cbIter;

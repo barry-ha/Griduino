@@ -23,18 +23,13 @@
             +-------------------------------------------+
 */
 
-#include <Adafruit_ILI9341.h>   // TFT color display library
-#include "constants.h"          // Griduino constants and colors
-#include "logger.h"             // conditional printing to Serial port
-#include "grid_helper.h"        // lat/long conversion routines
-#include "TextField.h"          // Optimize TFT display text for proportional fonts
-#include "view.h"               // Base class for all views
+#include "constants.h"     // Griduino constants and colors
+#include "logger.h"        // conditional printing to Serial port
+#include "grid_helper.h"   // lat/long conversion routines
+#include "TextField.h"     // Optimize TFT display text for proportional fonts
+#include "view.h"          // Base class for all views
 
 // ========== extern ===========================================
-extern Logger logger;   // Griduino.ino
-extern Grids grid;      // grid_helper.h
-extern Model *model;    // "model" portion of model-view-controller
-
 extern void showDefaultTouchTargets();                // Griduino.ino
 extern void announceGrid(String gridName, int len);   // Griduino.ino
 
@@ -49,7 +44,7 @@ public:
   }
   void updateScreen();
   void startScreen();
-  bool onTouch(Point touch);
+  bool onTouch(Point touch) override;
   void loadConfig();
   void saveConfig();
 

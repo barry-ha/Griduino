@@ -73,22 +73,17 @@
 
 */
 
-#include <Arduino.h>
-#include <Adafruit_ILI9341.h>   // TFT color display library
-#include <TimeLib.h>            // time_t=seconds since Jan 1, 1970, https://github.com/PaulStoffregen/Time
-#include "constants.h"          // Griduino constants and colors
-#include "logger.h"             // conditional printing to Serial port
-#include "model_gps.h"          // Model of a GPS for model-view-controller
-#include "model_baro.h"         // Model of a barometer that stores 3-day history
-#include "save_restore.h"       // Save configuration in non-volatile RAM
-#include "TextField.h"          // Optimize TFT display text for proportional fonts
-#include "view.h"               // Base class for all views
+#include <TimeLib.h>        // time_t=seconds since Jan 1, 1970, https://github.com/PaulStoffregen/Time
+#include "constants.h"      // Griduino constants and colors
+#include "logger.h"         // conditional printing to Serial port
+#include "model_gps.h"      // Model of a GPS for model-view-controller
+#include "model_baro.h"     // Model of a barometer that stores 3-day history
+#include "save_restore.h"   // Save configuration in non-volatile RAM
+#include "TextField.h"      // Optimize TFT display text for proportional fonts
+#include "view.h"           // Base class for all views
+#include "cfg_units.h"      // config english/metric
 
 // ========== extern ===========================================
-extern Logger logger;              // Griduino.ino
-extern Model *model;               // "model" portion of model-view-controller
-extern BarometerModel baroModel;   // singleton instance of the barometer model
-
 extern void showDefaultTouchTargets();           // Griduino.ino
 extern void getDate(char *result, int maxlen);   // model_gps.h
 
@@ -103,7 +98,7 @@ public:
   }
   void updateScreen();
   void startScreen();
-  bool onTouch(Point touch);
+  bool onTouch(Point touch) override;
   void setMetric(bool metric);
 
 protected:
@@ -234,7 +229,7 @@ protected:
     char hPa[]  = "hPa";
     float fPressure;
     int decimals = 1;
-    if (model->gMetric) {
+    if (cfgUnits.isMetric) {
       fPressure = pascals / 100;
       sUnits    = hPa;
       decimals  = 1;
@@ -367,7 +362,7 @@ protected:
     // write limits of pressure scale in consistent units
     setFontSize(9);
     tft->setTextColor(ILI9341_CYAN);
-    if (model->gMetric) {
+    if (cfgUnits.isMetric) {
       // metric: hecto-Pascal (hPa)
       superimposeLabel(MARGIN, yBot + TEXTHEIGHT / 3, (fMinPa / 100), 0);
       superimposeLabel(MARGIN, yBot - graphHeight + TEXTHEIGHT / 3, (fMaxPa / 100), 0);
@@ -436,8 +431,8 @@ protected:
              xRight);
     logger.log(BARO, INFO, msg);   // debug
 
-    float yTopPa = (model->gMetric) ? fMaxPa : (fMaxHg * PASCALS_PER_INCHES_MERCURY);
-    float yBotPa = (model->gMetric) ? fMinPa : (fMinHg * PASCALS_PER_INCHES_MERCURY);
+    float yTopPa = (cfgUnits.isMetric) ? fMaxPa : (fMaxHg * PASCALS_PER_INCHES_MERCURY);
+    float yBotPa = (cfgUnits.isMetric) ? fMinPa : (fMinHg * PASCALS_PER_INCHES_MERCURY);
 
     logger.logFloat(BARO, INFO, ". Top graph pressure = %s Pa", yTopPa, 1);
     logger.logFloat(BARO, INFO, ". Bottom graph pressure = %s", yBotPa, 1);
@@ -453,7 +448,7 @@ protected:
         //    The data to plot is always 'float Pascals'
         //    but the graph's y-axis is either Pascals or inches-Hg, each with different scale
         //    so scale the data into the appropriate units on the y-axis
-        if (model->gMetric) {
+        if (cfgUnits.isMetric) {
           // todo
         }
         int y1 = map(baroModel.pressureStack[ii].pressure, yBotPa, yTopPa, yBot, yTop);

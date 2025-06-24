@@ -24,8 +24,6 @@
               xGrid  xEnter        xExit       xDuration
 */
 
-#include <Arduino.h>             //
-#include <Adafruit_ILI9341.h>    // TFT color display library
 #include "constants.h"           // Griduino constants and colors
 #include "logger.h"              // conditional printing to Serial port
 #include "grid_helper.h"         // lat/long conversion routines
@@ -36,13 +34,7 @@
 #include "view.h"                // Base class for all views
 
 // ========== extern ===========================================
-extern void showDefaultTouchTargets();   // Griduino.ino
-extern Logger logger;                    // Griduino.ino
-extern Grids grid;                       // grid_helper.h
-extern Adafruit_ILI9341 tft;             // Griduino.ino
-extern Breadcrumbs trail;                // model of breadcrumb trail
-extern Model *model;                     // "model" portion of model-view-controller
-
+extern void showDefaultTouchTargets();                                               // Griduino.ino
 void floatToCharArray(char *result, int maxlen, double fValue, int decimalPlaces);   // Griduino.ino
 
 // ========== class ViewGridCrossing ===========================
@@ -318,7 +310,7 @@ protected:
   void dumpCrossingInfo(const CrossingInfo *timeInGrid, int index) {
     return;   // do nothing
 
-    char dump[128];                                                                 // debug
+    char dump[128];                                                                   // debug
     snprintf(dump, sizeof(dump), "timeInGrid[%d] = '%s', %llu, %llu, %llu seconds",   // "%lld" is unsigned long int
              index,
              timeInGrid->grid4,

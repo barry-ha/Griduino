@@ -23,16 +23,12 @@
             +-------------------------------------------+
 */
 
-#include <Adafruit_ILI9341.h>   // TFT color display library
-#include "constants.h"          // Griduino constants and colors
-#include "logger.h"             // conditional printing to Serial port
-#include "TextField.h"          // Optimize TFT display text for proportional fonts
-#include "view.h"               // Base class for all views
+#include "constants.h"   // Griduino constants and colors
+#include "logger.h"      // conditional printing to Serial port
+#include "TextField.h"   // Optimize TFT display text for proportional fonts
+#include "view.h"        // Base class for all views
 
 // ========== extern ===========================================
-extern Logger logger;   // Griduino.ino
-extern Model *model;    // "model" portion of model-view-controller
-
 extern void start_nmea();   // commands.cpp
 extern void stop_nmea();    // commands.cpp
 
@@ -53,7 +49,7 @@ public:
   void updateScreen();
   void startScreen();
   void endScreen();
-  bool onTouch(Point touch);
+  bool onTouch(Point touch) override;
   void loadConfig();
   void saveConfig();
 
@@ -272,5 +268,5 @@ void ViewCfgNMEA::saveConfig() {
   SaveRestore config(NMEA_CONFIG_FILE, NMEA_CONFIG_VERSION);
   logger.log(NMEA, INFO, "Saving value: %d", selectedOption);
   int rc = config.writeConfig((byte *)&selectedOption, sizeof(selectedOption));
-  logger.log(NMEA, DEBUG, "Finished ViewCfgRotation::saveConfig(%d) with rc = %d", selectedOption, rc);   // debug
+  logger.log(NMEA, DEBUG, "Finished ViewCfgNMEA::saveConfig(%d) with rc = %d", selectedOption, rc);   // debug
 }
