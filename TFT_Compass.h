@@ -100,7 +100,7 @@ public:
       Point new1  = rotate(p1, center, angle);
       Point new2  = rotate(p2, center, angle);
 
-      uint16_t cPointer = (speed == 0) ? cDISABLED : cCOMPASSPOINTER;
+      uint16_t cPointer = cCOMPASSPOINTER;
       tft->fillTriangle(old0.x, old0.y, old1.x, old1.y, old2.x, old2.y, cBackground);   // erase old
       tft->fillTriangle(new0.x, new0.y, new1.x, new1.y, new2.x, new2.y, cPointer);      // draw new
 
