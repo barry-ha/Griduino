@@ -95,7 +95,7 @@ protected:
     TextField("47",     56,190,  cBOXDEGREES, ALIGNRIGHT),  // S_BOX_LAT
     TextField("122",   243, 20,  cBOXDEGREES),              // E_BOX_LONG
     TextField("124",    72, 20,  cBOXDEGREES, ALIGNRIGHT),  // W_BOX_LONG
-    TextField("55 mph",gMarginX+4, gMarginY+36,  cSPEEDOMETER, ALIGNLEFT, eFONTBIG), // SPEEDOMETER
+    TextField("55 mph",gMarginX+5, gMarginY+37,  cSPEEDOMETER, ALIGNLEFT, eFONTBIG), // SPEEDOMETER
     TextField("123",   102,176,  cGRIDNAME,   ALIGNLEFT, eFONTSMALL), // GRID4BOTTOM
   };
   // clang-format on
