@@ -6,10 +6,8 @@
   Hardware: John Vanderbeck, KM7O, Seattle, WA
 */
 
-#include <Arduino.h>   // for Serial
-#include <cstddef>
+#include <Arduino.h>             // for Serial, strlen()
 #include "constants.h"           // Griduino constants and colors
-#include "Adafruit_ILI9341.h"    // TFT color display library
 #include "morse_dac.h"           // Morse code
 #include "save_restore.h"        // Configuration data in nonvolatile RAM
 #include "logger.h"              // conditional printing to Serial port
@@ -310,7 +308,7 @@ int testCalcLocator8(const char *sExpected, double lat, double lon) {
 // Testing "distance helper" routines in Griduino.cpp
 int testDistanceLat(double expected, double fromLat, double toLat) {
   // unit test helper function to calculate N-S distances
-  double distance = grid.calcDistanceLat(fromLat, toLat, model->gMetric);
+  double distance = grid.calcDistanceLat(fromLat, toLat, false);
   Serial.print("N-S Distance Test: expected = ");
   Serial.print(expected, 2);
   Serial.print(", result = ");
@@ -320,7 +318,7 @@ int testDistanceLat(double expected, double fromLat, double toLat) {
 int testDistanceLong(double expected, double lat, double fromLong, double toLong) {
   // unit test helper function to calculate E-W distances
   int r         = 0;
-  double result = grid.calcDistanceLong(lat, fromLong, toLong, model->gMetric);
+  double result = grid.calcDistanceLong(lat, fromLong, toLong, false);
   Serial.print("E-W Distance Test: expected = ");
   Serial.print(expected, 2);
   Serial.print(", result = ");
