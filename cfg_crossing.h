@@ -192,7 +192,7 @@ void ViewCfgCrossing::startScreen() {
     txtSettings4[ii].print();
   }
 
-  showProgressBar(3, 9);    // draw marker for advancing through settings
+  showProgressBar(3, 9);    // announce at 4- or 6-digit grid lines
   showScreenBorder();       // optionally outline visible area
   showScreenCenterline();   // optionally draw alignment bar
 

@@ -339,7 +339,7 @@ enum VIEW_INDEX {
   BARO_VIEW,             // 1 barometer graph
   BATTERY_VIEW,          // 2 coin battery voltage
   CFG_AUDIO_TYPE,        // 3 audio output Morse/speech
-  CFG_CROSSING,          // 4 announce grid crossing 4/6 digit boundaries
+  CFG_ANNOUNCEMENTS,     // 4 announce grid crossing 4/6 digit boundaries
   CFG_GPS,               // 5 gps/simulator
   CFG_GPS_RESET,         // 6 factory reset GPS
   CFG_NMEA,              // 7 broadcast NMEA
@@ -383,7 +383,7 @@ ViewAltimeter     altimeterView(&tft, ALTIMETER_VIEW);  // alphabetical order by
 ViewBaro          baroView(&tft, BARO_VIEW);            // instantiate derived classes
 ViewBattery       batteryView(&tft, BATTERY_VIEW);
 ViewCfgAudioType  cfgAudioType(&tft, CFG_AUDIO_TYPE);
-ViewCfgCrossing   cfgCrossing(&tft, CFG_CROSSING);
+ViewCfgCrossing   cfgAnnouncements(&tft, CFG_ANNOUNCEMENTS);
 ViewCfgGPS        cfgGPS(&tft, CFG_GPS);
 ViewCfgGpsReset   cfgGpsReset(&tft, CFG_GPS_RESET);
 ViewCfgNMEA       cfgNMEA(&tft, CFG_NMEA);
@@ -414,7 +414,7 @@ void selectNewView(int cmd) {
       &baroView,            // [BARO_VIEW]
       &batteryView,         // [BATTERY_VIEW]
       &cfgAudioType,        // [CFG_AUDIO_TYPE]
-      &cfgCrossing,         // [CFG_CROSSING]
+      &cfgAnnouncements,    // [CFG_ANNOUNCEMENTS]
       &cfgGPS,              // [CFG_GPS]
       &cfgGpsReset,         // [CFG_GPS_RESET]
       &cfgNMEA,             // [CFG_NMEA]
@@ -461,23 +461,18 @@ void selectNewView(int cmd) {
   } else if (cmd == GOTO_SETTINGS) {
     // operator requested the next SETTINGS view
     switch (currentView) {
-      case GRID_VIEW:      nextView = CFG_VOLUME; break;   // from normal view, start showing cfg views
-      case CFG_VOLUME:     nextView = CFG_AUDIO_TYPE; break;
-      //se VOLUME2_VIEW:   nextView = CFG_AUDIO_TYPE; break;
-      case CFG_AUDIO_TYPE: nextView = CFG_CROSSING; break;
-      case CFG_CROSSING:   nextView = CFG_GPS; break;
-      case CFG_GPS:        nextView = CFG_NMEA; break;
-      case CFG_NMEA:       nextView = CFG_UNITS; break;
-      case CFG_UNITS:      nextView = CFG_ROTATION; break;
-#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
-      case CFG_ROTATION:   nextView = CFG_GPS_RESET; break;
-#else
-      case CFG_ROTATION:   nextView = CFG_REFORMAT; break;
-#endif
-      case CFG_GPS_RESET:  nextView = CFG_REFORMAT; break;
-      case CFG_REFORMAT:   nextView = CFG_REBOOT; break;
+      case GRID_VIEW:         nextView = CFG_VOLUME; break;       // from normal view, start showing cfg views
+      case CFG_VOLUME:        nextView = CFG_AUDIO_TYPE; break;   // 1
+      case CFG_AUDIO_TYPE:    nextView = CFG_ANNOUNCEMENTS; break;// 2
+      case CFG_ANNOUNCEMENTS: nextView = CFG_GPS; break;          // 3
+      case CFG_GPS:           nextView = CFG_NMEA; break;         // 4
+      case CFG_NMEA:          nextView = CFG_UNITS; break;        // 5
+      case CFG_UNITS:         nextView = CFG_ROTATION; break;     // 6
+      case CFG_ROTATION:      nextView = CFG_GPS_RESET; break;    // 7
+      case CFG_GPS_RESET:     nextView = CFG_REFORMAT; break;     // 8
+      case CFG_REFORMAT:      nextView = GRID_VIEW; break;        // 9 at end of settings views, return to normal view
 
-      case CFG_REBOOT:     nextView = GRID_VIEW; break;      // at end of settings views, return to normal view
+      //case CFG_REBOOT:     nextView = GRID_VIEW; break;     // Not shown on Feather M4!
       // none of above: we must be showing some normal user view, so go to the first settings view
       default:             nextView = GRID_VIEW; break;
     }

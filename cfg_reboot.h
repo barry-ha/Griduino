@@ -205,7 +205,7 @@ void ViewCfgReboot::startScreen() {
     tft->print(item.text);
   }
 
-  showProgressBar(10, 9);   // draw marker for advancing through settings
+  showProgressBar(11, 11);   // draw marker for advancing through settings
   updateScreen();           // update UI immediately, don't wait for the main loop to eventually get around to it
 }   // end startScreen()
 
