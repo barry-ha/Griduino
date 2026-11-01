@@ -107,18 +107,12 @@ void setVolume(int wiperPosition) {
   }
   gWiperNow = wiperPosition;
 
-  Serial.print("Set wiper position ");
+  // These output statements stop sine wave generation. Keep these short to minimize clicks.
+  Serial.print("Wiper ");
   Serial.println(wiperPosition);
 
   tft.setCursor(xLabel, yRow6);
-  tft.print("Wiper position ");
   tft.print(wiperPosition);
-  tft.print(" of 0-99  ");
-
-  tft.setCursor(xLabel, yRow7);
-  tft.print("Pitch ");
-  tft.print(gFrequency, 0);
-  tft.print(" Hz");
 }
 void increaseVolume() {
   // send new volume command to DS1804 digital potentiometer
@@ -157,6 +151,12 @@ void startSplashScreen() {
 
   tft.setCursor(xLabel, yRow6);
   tft.setTextColor(cTEXTCOLOR, cBACKGROUND);
+
+  tft.setCursor(xLabel, yRow7);
+  tft.print("Pitch ");
+  tft.print(gFrequency, 0);
+  tft.print(" Hz");
+
 }
 void clearScreen() {
   tft.fillScreen(cBACKGROUND);
