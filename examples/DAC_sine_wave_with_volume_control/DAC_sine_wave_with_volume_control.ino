@@ -93,11 +93,19 @@ const int yRow6 = yRow5 + 60;  // "Wiper position NN of 99"
 const int yRow7 = yRow6 + 20;  // "Pitch 1200 Hz"
 
 // ----- Do The Thing
+int gWiperNow = 0;  // wiper position currently in the DS1804 (the chip cannot be read back)
+
 void setVolume(int wiperPosition) {
   // set digital potentiometer
   // @param wiperPosition = 0..99
-  volume.moveDown(100);  //volume.setWiperPosition(wiperPosition);
-  volume.moveUp(wiperPosition);
+  // Move only by the difference from the current position, so the volume
+  // does not drop to zero on every step
+  if (wiperPosition > gWiperNow) {
+    volume.moveUp(wiperPosition - gWiperNow);
+  } else if (wiperPosition < gWiperNow) {
+    volume.moveDown(gWiperNow - wiperPosition);
+  }
+  gWiperNow = wiperPosition;
 
   Serial.print("Set wiper position ");
   Serial.println(wiperPosition);
@@ -118,7 +126,8 @@ void increaseVolume() {
     gVolume = 0;
     Serial.println("----- Start over");
   } else {
-    // digital pot has linear steps, so to increase by about 3 dB we would double the setting
+    // digital pot has linear steps of resistance
+    // in theory, to change volume by about 3 dB we would double or halve resistance
     // for this example sketch, we add 1 to test all steps
     gVolume = constrain(gVolume + 1, 0, maxVolume);
   }
@@ -191,6 +200,7 @@ void setup() {
   pinMode(PIN_VCS, OUTPUT);  // init pin in case another sketch changed it
 
   volume.moveDown(100);  // reset volume to zero
+  gWiperNow = 0;
   Serial.println(" 0. Set wiper position = 0");
 
 #if defined(SAMD_SERIES)
