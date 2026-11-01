@@ -118,13 +118,11 @@ On-board lights:
 #define PIN_SPEAKER DAC0   // uses DAC
 #endif
 
-// ---------- Coin battery voltage sensor
-#define BATTERY_ADC A2
-
 // ---------- Feather RP2040 onboard led
 #if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
 #define RED_LED 25   // diagnostics RED LED
 #else
+// ---------- Feather M4 onboard lights
 #define RED_LED 13   // diagnostics RED LED
 #endif
 
@@ -136,6 +134,7 @@ On-board lights:
 #if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
 // todo - Griduino PCB v7 uses volume control on I2C
 #else
+// Adafruit Feather M4 Express pin definitions
 // Griduino PCB v7 uses volume control DS1804 on SPI
 #define PIN_VCS A1   // volume chip select
 #define PIN_VUD A2   // volume up/down
