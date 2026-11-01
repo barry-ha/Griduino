@@ -3,7 +3,7 @@
   Altimeter -- a functional altimeter with comparison to GPS altitudes
 
   Version history:
-            2026-11-01 code reviewed by Claude
+            2026-11-01 code review by Claude
             2022-06-05 refactored pin definitions into hardware.h
             2021-01-30 added support for BMP390 and latest Adafruit_BMP3XX library
             2020-05-12 updated TouchScreen code
@@ -58,7 +58,6 @@
 #define PROGRAM_LINE1 "Barry K7BWH"
 #define PROGRAM_LINE2 "John KM7O"
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
-#define SCREEN_ROTATION 1  // 1=landscape, 3=landscape 180-degrees
 
 // ---------- Hardware Wiring ----------
 // Same as Griduino platform - see hardware.h
@@ -387,7 +386,7 @@ void startSplashScreen() {
   tft.setCursor(xLabel, yRow2 + 160);
   tft.println(PROGRAM_COMPILED);
 
-  delay(2000);
+  delay(4000);
   clearScreen();
 
   tft.setCursor(xLabel, yRow1);
@@ -527,24 +526,7 @@ void setup() {
   // GPS.sendCommand(PGCMD_ANTENNA);             // Request updates on whether antenna is connected or not (comment out to keep quiet)
 
   // ----- announce ourselves
-  tft.setTextSize(2);
-
-  tft.setCursor(xLabel, yRow1);
-  tft.setTextColor(cTEXTCOLOR);
-  tft.print(PROGRAM_TITLE);
-
-  tft.setCursor(xLabel, yRow2);
-  tft.setTextColor(cLABEL);
-  tft.print(PROGRAM_VERSION);
-
-  tft.setCursor(xLabel, yRow2 + 20);
-  tft.println(PROGRAM_LINE1);
-
-  tft.setCursor(xLabel, yRow2 + 40);
-  tft.println(PROGRAM_LINE2);
-
-  delay(2000);
-  clearScreen();
+  startSplashScreen();
   /*
   // --> bmp3_defs.h
 
@@ -567,11 +549,7 @@ void setup() {
   */
 
   // ----- init BMP388 or BMP390 barometer
-#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
-  bool initialized = baro.begin_I2C(BMP3XX_DEFAULT_ADDRESS, &Wire1);   // Griduino v7 pcb
-#else
   bool initialized = baro.begin_SPI(BMP_CS);   // Griduino v4 pcb
-#endif
   if (initialized) {
     // success
   } else {
