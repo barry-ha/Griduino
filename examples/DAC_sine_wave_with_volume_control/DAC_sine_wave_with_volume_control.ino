@@ -184,7 +184,7 @@ void setup() {
 
   // ----- init TFT display
   tft.begin();                       // initialize TFT display
-  tft.setRotation(SCREEN_ROTATION);  // landscape (default is portrait)
+  tft.setRotation(SCREEN_ROTATION);  // 1=landscape (default is 0=portrait)
   clearScreen();                     // note that "tft.begin()" does not clear screen
 
   // ----- init TFT backlight
