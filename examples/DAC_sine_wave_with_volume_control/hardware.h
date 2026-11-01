@@ -56,6 +56,7 @@ On-board lights:
 // separate 'select' pins to identify the active device on the bus.
 
 #if defined(SAMD_SERIES)
+#warning ----- Compiling for Arduino Feather M4 Express -----
 // Adafruit Feather M4 Express pin definitions
 // To compile for Feather M0/M4, install "additional boards manager"
 // https://learn.adafruit.com/adafruit-feather-m4-express-atsamd51/setup

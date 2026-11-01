@@ -3,7 +3,7 @@
   Audio sine wave using onboard DAC (mono)
 
   Version history:
-            2026-11-01 
+            2026-11-01 code reviewed by Claude
             2022-06-05 refactored pin definitions into hardware.h
             2020-08-19 use the display to show what's happening
             2019-12-28 created
@@ -27,18 +27,17 @@
             It shows status on display but has no user inputs.
 */
 
-#include <Adafruit_ILI9341.h>  // TFT display, Adafruit: https://github.com/adafruit/Adafruit_ILI9341 
+#include <Adafruit_ILI9341.h>  // TFT display, Adafruit: https://github.com/adafruit/Adafruit_ILI9341
 #include <DS1804.h>            // digital pot, Rob Tillaart: https://github.com/RobTillaart/DS1804
 #include "elapsedMillis.h"     // msec timing, Paul Stoffregen: https://github.com/pfeerick/elapsedMillis/wiki
 #include "hardware.h"          // Griduino pin definitions
 
 // ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE "DAC Sine Wave with DS1804 Volume Control"
-#define PROGRAM_VERSION "v1.13"
+#define PROGRAM_VERSION "v1.15"
 #define PROGRAM_LINE1 "Barry K7BWH"
 #define PROGRAM_LINE2 "John KM7O"
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
-
 #define SCREEN_ROTATION 1  // 1=landscape, 3=landscape 180-degrees
 
 // ---------- Hardware Wiring ----------
@@ -80,8 +79,11 @@ const float gStep = twopi / gSamplesPerWaveform;                  // radians to 
 // RGB 565 true color: https://chrishewett.com/blog/true-rgb565-colour-picker/
 // RGB 565 color code: http://www.barth-dev.de/online/rgb565-color-picker/
 #define cBACKGROUND 0x00A        // 0,   0,  10 = darker than ILI9341_NAVY, but not black
+#define cSCALECOLOR 0xF844       // color picker: http://www.barth-dev.de/online/rgb565-color-picker/
 #define cTEXTCOLOR ILI9341_CYAN  // 0, 255, 255
 #define cLABEL ILI9341_GREEN
+#define cVALUE ILI9341_YELLOW
+#define cINPUT ILI9341_WHITE
 
 // screen layout
 const int xLabel = 10;         // indent labels, slight margin on left edge of screen
@@ -129,7 +131,7 @@ void increaseVolume() {
   setVolume(gVolume);
 }
 
-// ========== splash screen helpers ============================
+// ========== splash screen ====================================
 void startSplashScreen() {
   tft.setTextSize(2);
 
@@ -159,13 +161,15 @@ void startSplashScreen() {
   tft.print(" Hz");
 
 }
+
+// ========== screen helpers ===================================
 void clearScreen() {
   tft.fillScreen(cBACKGROUND);
 }
 
 // ----- console Serial port helper
 void waitForSerial(int howLong) {
-  // Adafruit Feather M4 Express takes awhile to restore its USB connx to the PC
+  // Adafruit Feather M4 Express takes awhile to restore its USB connection to the PC
   // and the operator takes awhile to restart the console (Tools > Serial Monitor)
   // so give them a few seconds for this to settle before sending messages to IDE
   unsigned long targetTime = millis() + howLong * 1000;
@@ -178,6 +182,15 @@ void waitForSerial(int howLong) {
 //=========== setup ============================================
 void setup() {
 
+  // ----- init TFT display
+  tft.begin();                       // initialize TFT display
+  tft.setRotation(SCREEN_ROTATION);  // landscape (default is portrait)
+  clearScreen();                     // note that "tft.begin()" does not clear screen
+
+  // ----- init TFT backlight
+  pinMode(TFT_BL, OUTPUT);
+  analogWrite(TFT_BL, 255);  // start backlight at full brightness
+
   // ----- init serial monitor (do not "Serial.print" before this, it won't show up in console)
   Serial.begin(115200);          // init for debugging in the Arduino IDE
   waitForSerial(howLongToWait);  // wait for developer to connect debugging console
@@ -186,15 +199,6 @@ void setup() {
   Serial.println(PROGRAM_TITLE " " PROGRAM_VERSION);  // Report our program name to console
   Serial.println("Compiled " PROGRAM_COMPILED);       // Report our compiled date
   Serial.println(__FILE__);                           // Report our source code file name
-
-  // ----- init TFT backlight
-  pinMode(TFT_BL, OUTPUT);
-  analogWrite(TFT_BL, 255);  // start at full brightness
-
-  // ----- init TFT display
-  tft.begin();                       // initialize TFT display
-  tft.setRotation(SCREEN_ROTATION);  // landscape (default is portrait)
-  clearScreen();
 
   // ----- init digital potentiometer
   // Griduino PCB v4 has DS1804 volume control using SPI
