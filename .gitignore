@@ -12,6 +12,7 @@
 *.bin
 *.psd
 *.xlsx
+
 build/
 datasheets/
 docs_mfr/
@@ -25,6 +26,7 @@ work_in_progress/
 .vscode/*.json
 .vscode/c_cpp_properties.json
 .vscode/settings.json
+.vscode/arduino.json
 
 # Python Tools for Visual Studio (PTVS)
 __pycache__/
