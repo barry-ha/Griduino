@@ -3,6 +3,7 @@
   Altimeter -- a functional altimeter with comparison to GPS altitudes
 
   Version history:
+            2026-11-01 code reviewed by Claude
             2022-06-05 refactored pin definitions into hardware.h
             2021-01-30 added support for BMP390 and latest Adafruit_BMP3XX library
             2020-05-12 updated TouchScreen code
@@ -44,32 +45,25 @@
 
 */
 
-#if defined(SAMD_SERIES)
-#warning----- Compiling for Arduino Feather M4 Express -----
-#elif defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
-#warning----- Compiling for Arduino Feather RP2040 -----
-#endif
-
-#include <Adafruit_GFX.h>       // Core graphics display library
-#include <Adafruit_ILI9341.h>   // TFT color display library
-#include <TouchScreen.h>        // Touchscreen built in to 3.2" Adafruit TFT display
-#include <Adafruit_GPS.h>       // Ultimate GPS library
-#include "Adafruit_BMP3XX.h"    // Precision barometric and temperature sensor
-#include "hardware.h"           // Griduino pin definitions
+#include <Adafruit_GFX.h>      // Core graphics display library
+#include <Adafruit_ILI9341.h>  // TFT display, Adafruit: https://github.com/adafruit/Adafruit_ILI9341
+#include <TouchScreen.h>       // Touchscreen built in to 3.2" Adafruit TFT display
+#include <Adafruit_GPS.h>      // Ultimate GPS library
+#include "Adafruit_BMP3XX.h"   // Precision barometric and temperature sensor
+#include "hardware.h"          // Griduino pin definitions
 
 // ------- Identity for splash screen and console --------
-#define PROGRAM_TITLE    "Griduino Altimeter"
-#define PROGRAM_VERSION  "v1.14"
-#define PROGRAM_LINE1    "Barry K7BWH"
-#define PROGRAM_LINE2    "John KM7O"
+#define PROGRAM_TITLE "Griduino Altimeter"
+#define PROGRAM_VERSION "v1.15"
+#define PROGRAM_LINE1 "Barry K7BWH"
+#define PROGRAM_LINE2 "John KM7O"
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
-
-#define SCREEN_ROTATION 1   // 1=landscape, 3=landscape 180-degrees
+#define SCREEN_ROTATION 1  // 1=landscape, 3=landscape 180-degrees
 
 // ---------- Hardware Wiring ----------
 // Same as Griduino platform - see hardware.h
 
-// ---------- TFT display
+// ---------- TFT Display
 Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 
 // ---------- Touch Screen
@@ -107,7 +101,7 @@ typedef struct {
 } Button;
 
 // ------------ definitions
-const int howLongToWait = 6;   // max number of seconds at startup waiting for Serial port to console
+const int howLongToWait = 10;  // max number of seconds before using Serial port to console
 #define gScreenWidth    320    // pixels wide, landscape orientation
 #define gScreenHeight   240    // pixels high
 #define SCREEN_ROTATION 1      // 1=landscape, 3=landscape 180 degrees
@@ -127,12 +121,12 @@ const int xLabel = 8;      // indent labels, slight margin on left edge of scree
 // ----- Griduino color scheme
 // RGB 565 true color: https://chrishewett.com/blog/true-rgb565-colour-picker/
 // RGB 565 color code: http://www.barth-dev.de/online/rgb565-color-picker/
-#define cBACKGROUND 0x00A          // 0,   0,  10 = darker than ILI9341_NAVY, but not black
-#define cSCALECOLOR 0xF844         // color picker: http://www.barth-dev.de/online/rgb565-color-picker/
-#define cTEXTCOLOR  ILI9341_CYAN   // 0, 255, 255
-#define cLABEL      ILI9341_GREEN
-#define cVALUE      ILI9341_YELLOW
-#define cINPUT      ILI9341_WHITE
+#define cBACKGROUND 0x00A        // 0,   0,  10 = darker than ILI9341_NAVY, but not black
+#define cSCALECOLOR 0xF844       // color picker: http://www.barth-dev.de/online/rgb565-color-picker/
+#define cTEXTCOLOR ILI9341_CYAN  // 0, 255, 255
+#define cLABEL ILI9341_GREEN
+#define cVALUE ILI9341_YELLOW
+#define cINPUT ILI9341_WHITE
 // #define cHIGHLIGHT    ILI9341_WHITE
 #define cBUTTONFILL    ILI9341_NAVY
 #define cBUTTONOUTLINE ILI9341_CYAN
@@ -232,13 +226,13 @@ bool TouchScreen::isTouching(void) {
   static bool button_state = false;
   uint16_t pres_val        = ::myPressure();
 
-  if ((button_state == false) && (pres_val > TOUCHPRESSURE)) {
+  if ((button_state == false) && (pres_val > START_TOUCH_PRESSURE)) {
     Serial.print(". pressed, pressure = ");
     Serial.println(pres_val);   // debug
     button_state = true;
   }
 
-  if ((button_state == true) && (pres_val < TOUCHPRESSURE)) {
+  if ((button_state == true) && (pres_val < END_TOUCH_PRESSURE)) {
     Serial.print(". released, pressure = ");
     Serial.println(pres_val);   // debug
     button_state = false;
@@ -502,16 +496,16 @@ void setup() {
 
   // ----- init TFT backlight
   pinMode(TFT_BL, OUTPUT);
-  analogWrite(TFT_BL, 255);   // set backlight to full brightness
+  analogWrite(TFT_BL, 255);  // start backlight at full brightness
 
   // ----- init serial monitor (do not "Serial.print" before this, it won't show up in console)
-  Serial.begin(115200);           // init for debugging in the Arduino IDE
-  waitForSerial(howLongToWait);   // wait for developer to connect debugging console
+  Serial.begin(115200);          // init for debugging in the Arduino IDE
+  waitForSerial(howLongToWait);  // wait for developer to connect debugging console
 
   // now that Serial is ready and connected (or we gave up)...
-  Serial.println(PROGRAM_TITLE " " PROGRAM_VERSION);   // Report our program name to console
-  Serial.println("Compiled " PROGRAM_COMPILED);        // Report our compiled date
-  Serial.println(__FILE__);                            // Report our source code file name
+  Serial.println(PROGRAM_TITLE " " PROGRAM_VERSION);  // Report our program name to console
+  Serial.println("Compiled " PROGRAM_COMPILED);       // Report our compiled date
+  Serial.println(__FILE__);                           // Report our source code file name
 
   // ----- init GPS
   GPS.begin(9600);                        // 9600 NMEA is the default baud rate for Adafruit MTK GPS's
