@@ -56,8 +56,8 @@ const int gDacOffset = 2048;  // = exactly half of 2^12
 const int maxVolume = 40;     // max allowed wiper 0..99, but the speaker sounds distorted around 26 so we stop at about 30-50
 
 
-// ctor         DS1804( ChipSel pin, Incr pin,  U/D pin,  maxResistance (K) )
-DS1804 volume = DS1804(PIN_VCS, PIN_VINC, PIN_VUD /*, DS1804_TEN*/);
+// ctor         DS1804(ChipSel, Incr pin, U/D pin, maxResistance (K) )
+DS1804 volume = DS1804(PIN_VCS, PIN_VINC, PIN_VUD /*,DS1804_TEN*/);
 
 int gVolume = 0;  // initial digital potentiometer wiper position, 0..99
 
@@ -198,8 +198,10 @@ void setup() {
   // ----- init digital potentiometer
   // Griduino PCB v4 has DS1804 volume control using SPI
   pinMode(PIN_VCS, OUTPUT);  // init pin in case another sketch changed it
+  volume.begin();            // required by RobTillaart's library
+  volume.select(true);       // required
+  volume.moveDown(100);      // reset volume to zero
 
-  volume.moveDown(100);  // reset volume to zero
   gWiperNow = 0;
   Serial.println(" 0. Set wiper position = 0");
 
