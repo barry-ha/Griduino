@@ -47,39 +47,60 @@ void setup() {
   Wire.begin();
   Serial.begin(115200);
 }
+
+bool wakeupDevice() {
+  uint8_t ret_code = sha204.simpleWakeup();
+  if (ret_code != SHA204_SUCCESS) {
+    Serial.print("simpleWakeup failed, is the ATSHA204 connected? Error 0x");
+    Serial.println(ret_code, HEX);
+    return false;
+  }
+  return true;
+}
+
+void sleepDevice() {
+  Serial.println("Put device to sleep mode.");
+  uint8_t ret_code = sha204.simpleSleep();
+  if (ret_code != SHA204_SUCCESS) {
+    Serial.print("simpleSleep failed. Error 0x");
+    Serial.println(ret_code, HEX);
+  }
+}
+
 void loop() {
-  Serial.println("wake up device.");
-  sha204.simpleWakeup();
-  Serial.print("Get Serial Number:");
-  serialNumberExample();
-  Serial.println("Put device to sleep mode.");
-  sha204.simpleSleep();
-  delay(2000);
+  Serial.println("\n1. Wake up device.");
+  if (wakeupDevice()) {
+    Serial.print("Get Serial Number:");
+    serialNumberExample();
+  }
+  sleepDevice();
+  delay(3000);
 
-  Serial.println("Wake up device.");
-  sha204.simpleWakeup();
-  Serial.println("Call random:");
-  randomExample();
-  Serial.println("Put device to sleep mode.");
-  sha204.simpleSleep();
-  Serial.println();
+  Serial.println("2. Wake up device.");
+  if (wakeupDevice()) {
+    Serial.println("Call random:");
+    randomExample();
+  }
+  sleepDevice();
+  delay(3000);
 
-  delay(2000);
-
-  Serial.println("Wake up device.");
-  sha204.simpleWakeup();
-  Serial.println("Sending a MAC Challenge.");
-  macChallengeExample();
-  Serial.println("Put device to sleep mode.");
-  sha204.simpleSleep();
-  Serial.println();
-  delay(2000);
+  Serial.println("3. Wake up device.");
+  if (wakeupDevice()) {
+    Serial.println("Sending a MAC Challenge.");
+    macChallengeExample();
+  }
+  sleepDevice();
+  delay(3000);
 }
 
 uint8_t randomExample() {
   uint8_t response[32];
   uint8_t returnValue;
   returnValue = sha204.simpleGetRandom(response);
+  if (returnValue != SHA204_SUCCESS) {
+    Serial.println("simpleGetRandom failed.");
+    return returnValue;
+  }
   hexDump(response, sizeof(response));
   return returnValue;
 }
@@ -89,6 +110,10 @@ uint8_t serialNumberExample() {
   uint8_t returnValue;
 
   returnValue = sha204.simpleGetSerialNumber(serialNumber);
+  if (returnValue != SHA204_SUCCESS) {
+    Serial.println("simpleGetSerialNumber failed.");
+    return returnValue;
+  }
   hexDump(serialNumber, sizeof(serialNumber));
 
   return returnValue;
@@ -116,7 +141,17 @@ uint8_t macChallengeExample() {
   loadKeyFromHex(hex_key, key);
   uint8_t mac_offline[32];
   ret_code = sha204.simpleMacOffline(challenge, mac_offline, key);
+  if (ret_code != SHA204_SUCCESS) {
+    Serial.println("simpleMacOffline failed.");
+    return ret_code;
+  }
   Serial.print("MAC Offline:\n");
   hexDump(mac_offline, sizeof(mac_offline));
+
+  if (memcmp(mac, mac_offline, sizeof(mac)) != 0) {
+    Serial.println("MAC mismatch: device key does not match, authentication FAILED.");
+    return SHA204_FUNC_FAIL;
+  }
+  Serial.println("MAC match: device authenticated.");
   return ret_code;
 }
