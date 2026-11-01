@@ -1,6 +1,8 @@
 # DAC Sine Wave with Volume Control
 
-This example plays a steady 800 Hz sine wave through the Griduino speaker and slowly steps the volume up using the DS1804 digital potentiometer. It's a quick way to check the audio chain on a Griduino board: DAC, digital pot, LM386 amplifier and speaker.
+This example plays a steady 800 Hz sine wave through the Griduino speaker and slowly steps the volume up using the DS1804 digital potentiometer. 
+
+This sketch is a quick way to check the audio chain on a Griduino board: DAC, digital pot, LM386 amplifier and speaker.
 
 The sketch has no user inputs. Plug a speaker into the Griduino jack for its output. It shows its status on the TFT display and the Serial Monitor.
 
