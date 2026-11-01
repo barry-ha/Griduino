@@ -126,7 +126,8 @@ void increaseVolume() {
     gVolume = 0;
     Serial.println("----- Start over");
   } else {
-    // digital pot has linear steps, so to increase by about 3 dB we would double the setting
+    // digital pot has linear steps of resistance
+    // in theory, to change volume by about 3 dB we would double or halve resistance
     // for this example sketch, we add 1 to test all steps
     gVolume = constrain(gVolume + 1, 0, maxVolume);
   }
