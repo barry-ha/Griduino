@@ -18,7 +18,7 @@
             This sketch is a simple monaural sine wave using only A0.
 
             The DAC on the SAMD51 is a 12-bit output, from 0 - 3.3v.
-            The largest 12-bit number is 4,096:
+            The largest 12-bit number is 4,095:
             * Writing 0 will set the DAC to minimum (0.0 v) output.
             * Writing 4096 sets the DAC to maximum (3.3 v) output.
 
@@ -48,16 +48,16 @@ Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 
 // ============== constants ====================================
 const float twopi = PI * 2;
-// const int gDacVolume = 2040;        // = maximum allowed multiplier, slightly less than half of 2^12 prevents overflow from rounding errors
-const int gDacVolume = 1200;   // = limit DAC output to a value empirically determined, so the audio amp doesn't clip/distort
-                               // note: 4-ohm speaker is too much load for the LM386 amplifier
-const int gDacOffset = 2048;   // = exactly half of 2^12
-                               // Requirement is: gDacOffset +/- gDacVolume = voltage range of DAC
-// nst int maxVolume = 99;             // maximum allowed wiper position on digital potentiometer is 0..99
-const int maxVolume = 40;   // but the speaker sounds distorted around 26 so we stop at about 30-50
+//nst int gDacVolume = 2040;  // = maximum allowed multiplier, slightly less than half of 2^12 prevents overflow from rounding errors
+const int gDacVolume = 1200;  // = limit DAC output to a value empirically determined, so the audio amp doesn't clip/distort
+                              // note: 4-ohm speaker is too much load for the LM386 amplifier
+const int gDacOffset = 2048;  // = exactly half of 2^12
+                              // Requirement is: gDacOffset +/- gDacVolume = voltage range of DAC
+const int maxVolume = 40;     // max allowed wiper 0..99, but the speaker sounds distorted around 26 so we stop at about 30-50
+
 
 // ctor         DS1804( ChipSel pin, Incr pin,  U/D pin,  maxResistance (K) )
-DS1804 volume = DS1804(PIN_VCS, PIN_VINC, PIN_VUD, DS1804_TEN);
+DS1804 volume = DS1804(PIN_VCS, PIN_VINC, PIN_VUD /*, DS1804_TEN*/);
 
 int gVolume = 0;   // initial digital potentiometer wiper position, 0..99
 
@@ -70,6 +70,9 @@ elapsedMicros usec      = 0;     //
 // Set frequency and granularity
 const float gFrequency          = 800.0;   // desired output frequency, Hz
 const float gSamplesPerWaveform = 25.0;    // desired steps in each cycle
+
+const float gfDuration = 1E6 / gFrequency / gSamplesPerWaveform;  // microseconds to hold each output sample
+const float gStep = twopi / gSamplesPerWaveform;                  // radians to advance around unit circle at each step
 //=======================================================================
 
 // ----- Griduino color scheme
@@ -80,23 +83,22 @@ const float gSamplesPerWaveform = 25.0;    // desired steps in each cycle
 #define cLABEL      ILI9341_GREEN
 
 // screen layout
-const int xLabel = 10;           // indent labels, slight margin on left edge of screen
-const int yRow1  = 10;           // title: "DAC Sine Wave"
-const int yRow2  = yRow1 + 40;   // program version
-const int yRow3  = yRow2 + 20;   // compiled date
-const int yRow4  = yRow3 + 20;   // author line 1
-const int yRow5  = yRow4 + 20;   // author line 2
-const int yRow6  = yRow5 + 60;   // "Wiper position NN of 99"
-const int yRow7  = yRow6 + 20;   // "Pitch 1200 Hz"
-
-float gfDuration = 1E6 / gFrequency / gSamplesPerWaveform;   // microseconds to hold each output sample
-float gStep      = twopi / gSamplesPerWaveform;              // radians to advance around unit circle at each step
+const int xLabel = 10;         // indent labels, slight margin on left edge of screen
+const int yRow1 = 10;          // title: "DAC Sine Wave"
+const int yRow2 = yRow1 + 40;  // program version
+const int yRow3 = yRow2 + 20;  // compiled date
+const int yRow4 = yRow3 + 20;  // author line 1
+const int yRow5 = yRow4 + 20;  // author line 2
+const int yRow6 = yRow5 + 60;  // "Wiper position NN of 99"
+const int yRow7 = yRow6 + 20;  // "Pitch 1200 Hz"
 
 // ----- Do The Thing
 void setVolume(int wiperPosition) {
   // set digital potentiometer
   // @param wiperPosition = 0..99
-  volume.setWiperPosition(wiperPosition);
+  volume.moveDown(100); //volume.setWiperPosition(wiperPosition);
+  volume.moveUp(wiperPosition);
+
   Serial.print("Set wiper position ");
   Serial.println(wiperPosition);
 
@@ -116,7 +118,8 @@ void increaseVolume() {
     gVolume = 0;
     Serial.println("----- Start over");
   } else {
-    // digital pot has linear steps, so to increase by about 3 dB we double the setting
+    // digital pot has linear steps, so to increase by about 3 dB we would double the setting
+    // for this example sketch, we add 1 to test all steps
     gVolume = constrain(gVolume + 1, 0, maxVolume);
   }
   setVolume(gVolume);
@@ -184,7 +187,10 @@ void setup() {
   clearScreen();
 
   // ----- init digital potentiometer
-  volume.setToZero();
+  // Griduino PCB v4 has DS1804 volume control using SPI
+  pinMode(PIN_VCS, OUTPUT);           // init pin in case another sketch left it locked
+
+  volume.moveDown(100);  // reset volume to zero
   Serial.println(" 0. Set wiper position = 0");
 
 #if defined(SAMD_SERIES)
@@ -196,13 +202,10 @@ void setup() {
 // ----- init onboard DAC
 #if defined(SAMD_SERIES)
   // Only set DAC resolution on devices that have a DAC
-  analogWriteResolution(12);   // 1..32, sets DAC output resolution to 12 bit (4096 levels)
-                               // because Feather M4 maximum output resolution is 12 bit
+  analogWriteResolution(12);  // 1..32, sets DAC output resolution to 12 bit (4096 levels)
+                              // because Feather M4 maximum output resolution is 12 bit
+  delay(100);                 // settling time
 #endif
-
-  delay(100);                                            // settling time
-  gfDuration = 1E6 / gFrequency / gSamplesPerWaveform;   // microseconds to hold each DAC sample
-  gStep      = twopi / gSamplesPerWaveform;              // radians to advance after each sample
 
   // ----- debug: echo our initial settings to the console
   char msg[256], ff[32], gg[32];
@@ -218,9 +221,9 @@ void setup() {
   sprintf(msg, "gDacVolume(%d), gDacOffset(%d)", gDacVolume, gDacOffset);
   Serial.println(msg);
 
-  byte wiperPos = volume.getWiperPosition();
-  sprintf(msg, "Initial wiper position(%d)", wiperPos);
-  Serial.println(msg);
+  //byte wiperPos = volume.getWiperPosition();
+  //sprintf(msg, "Initial wiper position(%d)", wiperPos);
+  //Serial.println(msg);
 
   // ----- announce ourselves
   startSplashScreen();
@@ -234,11 +237,6 @@ const int VOLUME_CHANGE_INTERVAL = 600;   // msec between changing volume settin
 
 void loop() {
 
-  // if a timer or system millis() wrapped around, reset it
-  if (prevTime > millis()) {
-    prevTime = millis();
-  }
-
   // periodically change speaker volume
   if (millis() - prevTime > VOLUME_CHANGE_INTERVAL) {
     prevTime = millis();   // restart another interval
@@ -248,7 +246,7 @@ void loop() {
 
   // ----- generate sine wave
   float val = gDacVolume * sin(gPhase) + gDacOffset;
-  analogWrite(DAC0, (int)val);
+  analogWrite(DAC_PIN, (int)val);
   delayMicroseconds((int)gfDuration);   // Hold the sample value for the sample time
 
   gPhase += gStep;   // step angle 0.03 radians, at 50 microseconds = 88 Hz
