@@ -3,6 +3,7 @@
   Audio sine wave using onboard DAC (mono)
 
   Version history:
+            2026-11-01 
             2022-06-05 refactored pin definitions into hardware.h
             2020-08-19 use the display to show what's happening
             2019-12-28 created
@@ -26,9 +27,9 @@
             It shows status on display but has no user inputs.
 */
 
-#include <Adafruit_ILI9341.h>  // TFT color display library
-#include <DS1804.h>            // DS1804 digital potentiometer library
-#include "elapsedMillis.h"     // short-interval timing functions
+#include <Adafruit_ILI9341.h>  // TFT display, Adafruit: https://github.com/adafruit/Adafruit_ILI9341 
+#include <DS1804.h>            // digital pot, Rob Tillaart: https://github.com/RobTillaart/DS1804
+#include "elapsedMillis.h"     // msec timing, Paul Stoffregen: https://github.com/pfeerick/elapsedMillis/wiki
 #include "hardware.h"          // Griduino pin definitions
 
 // ------- Identity for splash screen and console --------
