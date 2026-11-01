@@ -1,6 +1,25 @@
+// Please format this file with clang before check-in to GitHub
+/*
+  Example program to verify basic functionality
+
+  Version history:
+            2026-11-01 code reviewed by Claude
+            2025-12-20 copied from driver library
+*/
+
 #include <Arduino.h>
 #include <Wire.h>
-#include <sha204_i2c.h>
+#include <sha204_i2c.h>  // SparkFun ATSHA204, https://github.com/sparkfun/SparkFun_ATSHA204_Arduino_Library
+
+// ------- Identity for splash screen and console --------
+#define PROGRAM_TITLE "ATSHA Basic Example"
+#define PROGRAM_VERSION "v1.15"
+#define PROGRAM_LINE1 "Barry K7BWH"
+#define PROGRAM_LINE2 "John KM7O"
+#define PROGRAM_COMPILED __DATE__ " " __TIME__
+
+// ------------ definitions
+const int howLongToWait = 4;  // max number of seconds before using Serial port to console
 
 uint8_t randomExample();
 uint8_t serialNumberExample();
@@ -39,13 +58,35 @@ void loadKeyFromHex(const char *hex_key, uint8_t *key) {
   hex2bin(hex_key, key);
 }
 
-/* Attention: we need to set BUFFER_LENGTH to at least 64 in Wire.h */
+// Attention: we need to set BUFFER_LENGTH to at least 64 in Wire.h
 atsha204Class sha204;
 
+// ----- console Serial port helper
+void waitForSerial(int howLong) {
+  // Adafruit Feather M4 Express takes awhile to restore its USB connection to the PC
+  // and the operator takes awhile to restart the console (Tools > Serial Monitor)
+  // so give them a few seconds for this to settle before sending messages to IDE
+  unsigned long targetTime = millis() + howLong * 1000;
+  while (millis() < targetTime) {
+    if (Serial)
+      break;
+  }
+}
+
+//=========== setup ============================================
 void setup() {
-  //Remember to set BUFFER_LENGTH to at 64 in Wire.h
+  // ----- Remember to set BUFFER_LENGTH to at 64 in Wire.h
   Wire.begin();
-  Serial.begin(115200);
+
+  // ----- init serial monitor (do not "Serial.print" before this, it won't show up in console)
+  Serial.begin(115200);          // init for debugging in the Arduino IDE
+  waitForSerial(howLongToWait);  // wait for developer to connect debugging console
+
+  // now that Serial is ready and connected (or we gave up)...
+  Serial.println(PROGRAM_TITLE " " PROGRAM_VERSION);  // Report our program name to console
+  Serial.println("Compiled " PROGRAM_COMPILED);       // Report our compiled date
+  Serial.println(__FILE__);                           // Report our source code file name
+
 }
 
 bool wakeupDevice() {
