@@ -13,7 +13,11 @@ AccessModifierOffset: -2
 
 AlignConsecutiveAssignments: true
 AlignConsecutiveDeclarations: false
-AlignConsecutiveMacros: true
+AlignConsecutiveMacros: Consecutive
+AlignConsecutiveMacros: 
+  Enabled: true
+  AcrossEmptyLines: false
+  AcrossComments: true
 
 # Turn off "sort includes" because we prefer listing system libraries first, 
 # then user includes, and clang's default sorting would do the opposite
