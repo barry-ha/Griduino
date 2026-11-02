@@ -19,10 +19,10 @@
               int tempValue;
               int result = config.readConfig((byte *)&tempValue, sizeof(tempValue));
               if (result) {
-                Serial.print("Loaded my value from NVR: ");
-                Serial.println(myValue);
+                logger.print("Loaded my value from NVR: ");
+                logger.println(myValue);
               } else {
-                Serial.println("Failed to load settings, re-initializing config file");
+                logger.println("Failed to load settings, re-initializing config file");
                 saveConfig();
               }
             }
@@ -71,6 +71,15 @@ public:
    */
   int writeConfig(const byte *pBuffer, const unsigned int sizeBuffer);
 
+  // ========== append-only log of fixed-size records ======================
+  /*
+   * File format is the same as writeConfig(): a header followed by data,
+   * where the data is any number of fixed-size records.
+   * Appending is easier on flash memory than rewriting the whole file.
+   */
+  int appendRecord(const byte *pRecord, const unsigned int sizeRecord);
+  int readLastRecords(byte *pBuffer, const unsigned int sizeRecord, const unsigned int maxRecords);
+
   // ========== file management ======================
   // Very basic file management is provided to report on the files
   // stored in SDRAM. This provides an easier way to see where and how
@@ -89,6 +98,7 @@ public:
 
 protected:
   int openFlash();   // helper
+  bool isHeaderValid(File32 &file);
   void showFile(const char *indent, const int count, const char *filename, const int filesize);
   void showDirectory(const char *dirname);
 };

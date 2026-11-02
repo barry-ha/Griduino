@@ -27,13 +27,13 @@ public:
     // Example 1:
     //      char sDate[24];
     //      datetimeToString( sDate, sizeof(sDate), now(), " GMT" );
-    //      Serial.println( sDate );
+    //      logger.println( sDate );
     //      --> "2022-12-3 08:07 GMT"
     // Example 2:
     //      char sDate[24];
-    //      Serial.print("The current date is ");
-    //      Serial.print( datetimeToString(sDate, sizeof(sDate), now()) );
-    //      Serial.println(" GMT");
+    //      logger.print("The current date is ");
+    //      logger.print( datetimeToString(sDate, sizeof(sDate), now()) );
+    //      logger.println(" GMT");
     snprintf(msg, len, "%04d-%d-%d %02d:%02d:%02d",
              year(tm), month(tm), day(tm),
              hour(tm), minute(tm), second(tm));
@@ -81,7 +81,7 @@ public:
       // debug - issue message to console to help track down timing problem in Baroduino view
       // char msg[120];
       // snprintf(msg, sizeof(msg), "Date ymd not valid: %d-%d-%d");
-      // Serial.println(msg);
+      // logger.log(GMT, DEBUG, msg);
     }
     return valid;
   }
