@@ -70,6 +70,19 @@
          The BMP388 sensor has a relative accuracy of 8 Pascals, which translates to
          about +/- 0.5 meter of altitude.
 
+  How the pressure history log works to reduce wear on the flash memory chip:
+        Every 15 minutes: logPressure() calls the new appendHistory(), 
+        which adds one 8-byte reading to the end of barometr.dat. 
+        It no longer truncates and rewrites more than 3 KB.
+
+        Full rewrite: this only happens when the file is missing or if it
+        has the wrong header (the first time after this update, for example), 
+        or when it reaches 2 × maxReadings records. That's about once every 4 days, 
+        and the file stays under about 6.2 KB.
+
+        On boot: loadHistory() reads the most recent 384 readings, however many
+        have been appended, and puts the newest at the end of pressureStack.
+
   Real Time Clock:
          The real time clock in the Adafruit Ultimate GPS is not directly readable nor
          accessible from the Arduino. It's definitely not writeable. It's only internal
@@ -117,8 +130,7 @@
 //--------------CONFIG--------------
 // float elevCorr = 4241;  // elevation correction in Pa,
 // use difference between altimeter setting and station pressure: https://www.weather.gov/epz/wxcalc_altimetersetting
-
-float elevCorr = 0;
+// float elevCorr = 0;    // unused for now
 
 float fMaxPa = 102000;   // top bar of graph: highest pressure rounded UP to nearest multiple of 2000 Pa
 float fMinPa = 98000;    // bot bar of graph: lowest pressure rounded DOWN to nearest multiple of 2000 Pa
@@ -134,7 +146,7 @@ const float HG_RES = 0.2;     // english y-axis resolution, ie, nearest 0.2 inHg
 
 enum units { eMetric,
              eEnglish };
-int gUnits = eEnglish;   // units on startup: 0=english=inches mercury, 1=metric=millibars
+int gUnits = eEnglish;   // units on startup: 0=metric=millibars, 1=english=inches mercury
 
 // ---------- extern
 extern void mapTouchToScreen(TSPoint touch, Point *screen, int orientation);
@@ -151,7 +163,7 @@ Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 Resistive_Touch_Screen tsn(PIN_XP, PIN_YP, PIN_XM, PIN_YM, XP_XM_OHMS);
 
 // ---------- lat/long and date/time conversion utilities
-//ids grid = Grids();
+//Grids grid = Grids();
 Dates date = Dates();
 
 // ---------- NeoPixel
@@ -181,50 +193,6 @@ const int howLongToWait = 6;   // max number of seconds at startup waiting for S
 #define cTITLE ILI9341_GREEN
 #define cWARN  0xF844   // brighter than ILI9341_RED but not pink
 
-// ======== date time helpers =================================
-char *datetimeToString(char *msg, int len, time_t datetime) {
-  // utility function to format date:  "2020-9-27 at 11:22:33"
-  // Example 1:
-  //      char sDate[24];
-  //      datetimeToString( sDate, sizeof(sDate), now() );
-  //      Serial.println( sDate );
-  // Example 2:
-  //      char sDate[24];
-  //      Serial.print("The current time is ");
-  //      Serial.println( datetimeToString(sDate, sizeof(sDate), now()) );
-  snprintf(msg, len, "%d-%d-%d at %02d:%02d:%02d",
-           year(datetime), month(datetime), day(datetime),
-           hour(datetime), minute(datetime), second(datetime));
-  return msg;
-}
-
-// Does the GPS real-time clock contain a valid date?
-bool isDateValid(int yy, int mm, int dd) {
-  if (yy < 20) {
-    return false;
-  }
-  if (mm < 1 || mm > 12) {
-    return false;
-  }
-  if (dd < 1 || dd > 31) {
-    return false;
-  }
-  return true;
-}
-
-time_t nextOneSecondMark(time_t timestamp) {
-  return timestamp + 1;
-}
-time_t nextOneMinuteMark(time_t timestamp) {
-  return ((timestamp + 1 + SECS_PER_MIN) / SECS_PER_MIN) * SECS_PER_MIN;
-}
-time_t nextFiveMinuteMark(time_t timestamp) {
-  return ((timestamp + 1 + SECS_PER_5MIN) / SECS_PER_5MIN) * SECS_PER_5MIN;
-}
-time_t nextFifteenMinuteMark(time_t timestamp) {
-  return ((timestamp + 1 + SECS_PER_15MIN) / SECS_PER_15MIN) * SECS_PER_15MIN;
-}
-
 // ============== helpers ======================================
 void floatToCharArray(char* result, int maxlen, double fValue, int decimalPlaces) {
   String temp = String(fValue, decimalPlaces);
@@ -247,7 +215,6 @@ void floatToCharArray(char* result, int maxlen, double fValue, int decimalPlaces
 bool redrawGraph   = true;   // true=request graph be drawn
 bool waitingForRTC = true;   // true=waiting for GPS hardware to give us the first valid date/time
 
-#include "model_baro.h"     // a barometer that can also store history
 BarometerModel baroModel;   // create instance of the model
 
 // ======== unit tests =========================================
@@ -263,7 +230,7 @@ void initTestStepValues() {
   time_t fakeTime = makeTime(tm);
 
   char sDate[24];   // strlen("1999-12-31 at 00:11:22") = 22
-  datetimeToString(sDate, sizeof(sDate), fakeTime);
+  date.datetimeToString(sDate, sizeof(sDate), fakeTime);
   Serial.print("initTestStepValue() starting date: ");   // debug
   Serial.println(sDate);                                 // debug
 
@@ -297,9 +264,10 @@ void initTestSineWave() {
   float offsetPa  = 1020.0 * 100;    // readings are saved in Pa (not hPa)
   float amplitude = 10.1 * 100;      // readings are saved in Pa (not hPa)
 
-  //                              ss,mm,hh, dow, dd,mm,yy
-  // meElements tm = TimeElements{  1, 2, 3,  4,   5, 6, 7 };   // 1977-06-05 on Wed at 03:02:01
-  TimeElements tm      = TimeElements{0, 0, 0, 1, 26, 9, 20};   // 20 Sept 2020 on Sun at 12:00:00 am
+  //                                 ss,mm,hh, dow, dd,mm,yy
+  // TimeElements tm   = TimeElements{1, 2, 3,  4,   5, 6, 7};   // 1977-06-05 on Wed at 03:02:01
+  // TimeElements tm   = TimeElements{0, 0, 0,  1,  26, 9,20};   // 26 Sept 1990 on Sun at 12:00:00 am
+  TimeElements tm      = TimeElements{0,30, 6,  1,   2,11,56};   //  2 Nov  2026 on Sun at  6:30:00 am
   time_t todayMidnight = makeTime(tm);
 
   for (int ii = 0; ii < numTestData; ii++) {
@@ -678,7 +646,7 @@ void drawGraph() {
   time_t minTime = maxTime - SECS_PER_DAY * 3;
 
   char msg[100], sDate[24];
-  datetimeToString(sDate, sizeof(sDate), today);
+  date.datetimeToString(sDate, sizeof(sDate), today);
 
   snprintf(msg, sizeof(msg), ". Right now is %d-%d-%d at %02d:%02d:%02d",
            year(today), month(today), day(today),
@@ -727,14 +695,14 @@ void drawGraph() {
       int x1 = map(t1, minTime, maxTime, xDay1, xRight);
 
       if (x1 < xDay1) {
-        datetimeToString(sDate, sizeof(sDate), t1);
+        date.datetimeToString(sDate, sizeof(sDate), t1);
         snprintf(msg, sizeof(msg), "%d. Ignored: Date x1 (%s = %d) is off left edge of (%d).",
                  ii, sDate, x1, xDay1);
         Serial.println(msg);   // debug
         continue;
       }
       if (x1 > xRight) {
-        datetimeToString(sDate, sizeof(sDate), t1);
+        date.datetimeToString(sDate, sizeof(sDate), t1);
         snprintf(msg, sizeof(msg), "%d. Ignored: Date x1 (%s = %d) is off right edge of (%d).",
                  ii, sDate, x1, xRight);
         Serial.println(msg);   // debug
@@ -786,13 +754,24 @@ void adjustUnits() {
 
 int loadConfigUnits() {
   SaveRestore config(UNITS_CONFIG_FILE, UNITS_CONFIG_VERSION);
-  int tempUnitSetting;
+  int tempUnitSetting = eEnglish;   // default to English units
   int result = config.readConfig((byte *)&tempUnitSetting, sizeof(tempUnitSetting));
+
   if (result) {
-    gUnits = tempUnitSetting;   // set english/metric units
-    Serial.print(". Loaded units setting: ");
-    Serial.println(tempUnitSetting);
+    if ((tempUnitSetting == eEnglish) || (tempUnitSetting == eMetric)) {
+      gUnits = tempUnitSetting;   // success, set english/metric units
+    } else {
+      gUnits = eEnglish;   // default to English units
+      Serial.print("!! Invalid english/metric setting read from non-volatile RAM: ");
+      Serial.println(tempUnitSetting);
+      result = 0;   // error
+    }
+  } else {
+    // do nothing: no config file is normal on first run, it'll be created later
   }
+
+  Serial.print(". Set english/metric units to: ");
+  Serial.println(gUnits);
   return result;
 }
 
@@ -849,7 +828,6 @@ void setup() {
   pixel.begin();
   pixel.clear();                // turn off NeoPixel
   digitalWrite(PIN_LED, LOW);   // turn off little red LED
-  Serial.println("NeoPixel initialized and turned off");
 
   // ----- announce ourselves
   startSplashScreen();
@@ -974,7 +952,7 @@ void loop() {
   }
 
   // look for the first "setTime()" to begin the datalogger
-  if (waitingForRTC && isDateValid(GPS.year, GPS.month, GPS.day)) {
+  if (waitingForRTC && date.isDateValid(GPS.year, GPS.month, GPS.day)) {
     // found a transition from an unknown date -> correct date/time
     // assuming "class Adafruit_GPS" contains 2000-01-01 00:00 until
     // it receives an update via NMEA sentences
@@ -996,7 +974,7 @@ void loop() {
     prevShowTime = tempMillis;
 
     // update RTC from GPS
-    if (isDateValid(GPS.year, GPS.month, GPS.day)) {
+    if (date.isDateValid(GPS.year, GPS.month, GPS.day)) {
 
       setTime(GPS.hour, GPS.minute, GPS.seconds, GPS.day, GPS.month, GPS.year);
       // adjustTime(offset * SECS_PER_HOUR);  // todo - adjust to local time zone. for now, we only do GMT
@@ -1013,7 +991,7 @@ void loop() {
   if (rightnow >= nextShowPressure) {
     // nextShowPressure = nextFiveMinuteMark( rightnow );
     // nextShowPressure = nextOneMinuteMark( rightnow );
-    nextShowPressure = nextOneSecondMark(rightnow);
+    nextShowPressure = date.nextOneSecondMark(rightnow);
 
     float pascals = baroModel.getBaroPressure();
     // redrawGraph = true;             // request draw graph
@@ -1027,7 +1005,7 @@ void loop() {
     if (timeStatus() == timeSet) {
       baroModel.logPressure(rightnow);
       redrawGraph      = true;   // request draw graph
-      nextSavePressure = nextFifteenMinuteMark(rightnow);
+      nextSavePressure = date.nextFifteenMinuteMark(rightnow);
     }
   }
 
