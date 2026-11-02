@@ -48,7 +48,7 @@ extern Logger logger;   // Griduino.ino
 int SaveRestore::deleteFile(const char *vFilename) {
   int result = 1;   // assume success
   logger.log(FILES, INFO, "Delete file from SDRAM: ", vFilename);
-  gFatfs.remove(fqFilename);   // delete file
+  gFatfs.remove(vFilename);   // delete file
   return result;
 }
 
@@ -168,6 +168,88 @@ int SaveRestore::writeConfig(const byte *pData, const unsigned int sizeData) {
 
   writeFile.close();
   return 1;   // success
+}
+
+// ========== append-only log of fixed-size records ======
+/*
+ * Append one record to the end of a file previously created by writeConfig()
+ * Returns number of records now in the file, or 0=failure
+ * On failure, the caller should rewrite the whole file with writeConfig()
+ */
+int SaveRestore::appendRecord(const byte *pRecord, const unsigned int sizeRecord) {
+  logger.log(FILES, INFO, "Appending to file: %s", fqFilename);
+
+  if (!openFlash()) {
+    return 0;
+  }
+
+  File32 file = gFatfs.open(fqFilename, O_RDWR);
+  if (!file) {
+    logger.log(FILES, ERROR, "Failed to open file for appending, %s", fqFilename);
+    return 0;
+  }
+  if (!isHeaderValid(file)) {
+    file.close();
+    return 0;
+  }
+
+  const unsigned int sizeHeader = sizeof(fqFilename) + sizeof(sVersion);
+  if ((file.size() - sizeHeader) % sizeRecord != 0) {
+    logger.log(FILES, ERROR, "file size %d is not a whole number of records", file.size());
+    file.close();
+    return 0;
+  }
+
+  file.seekEnd();
+  int count = file.write(pRecord, sizeRecord);
+  if (count != (int)sizeRecord) {
+    logger.log(FILES, ERROR, "failed to append record to %s", fqFilename);
+    file.close();
+    return 0;
+  }
+
+  int numRecords = (file.size() - sizeHeader) / sizeRecord;
+  file.close();
+  return numRecords;
+}
+
+/*
+ * Read the most recent records (up to maxRecords) from a file created by
+ * writeConfig() and extended by appendRecord(), oldest first
+ * Returns number of records read into pBuffer, or -1=failure
+ */
+int SaveRestore::readLastRecords(byte *pBuffer, const unsigned int sizeRecord, const unsigned int maxRecords) {
+  logger.log(FILES, INFO, "Reading records: %s", fqFilename);
+
+  if (!openFlash()) {
+    return -1;
+  }
+
+  File32 file = gFatfs.open(fqFilename, FILE_READ);
+  if (!file) {
+    logger.log(FILES, ERROR, "Failed to open file for reading, %s", fqFilename);
+    return -1;
+  }
+  if (!isHeaderValid(file)) {
+    file.close();
+    return -1;
+  }
+
+  const unsigned int sizeHeader = sizeof(fqFilename) + sizeof(sVersion);
+  unsigned int numRecords       = (file.size() - sizeHeader) / sizeRecord;
+  unsigned int first            = (numRecords > maxRecords) ? numRecords - maxRecords : 0;
+  unsigned int numToRead        = numRecords - first;
+
+  file.seekSet(sizeHeader + first * sizeRecord);
+  int count = file.read(pBuffer, numToRead * sizeRecord);
+  file.close();
+  if (count != (int)(numToRead * sizeRecord)) {
+    logger.log(FILES, ERROR, "failed to read records from %s", fqFilename);
+    return -1;
+  }
+
+  logger.log(FILES, INFO, ". Read %d of %d records", numToRead, numRecords);
+  return numToRead;
 }
 
 // ========== line-by-line string functions ============
@@ -425,7 +507,35 @@ int SaveRestore::typeFile() {   // Echo file contents to console
   }
   return rc;
 }
+
 // ----- protected helpers -----
+bool SaveRestore::isHeaderValid(File32 &file) {
+  // verify the header fields written by writeConfig(), and leave file positioned after them
+  char temp[sizeof(fqFilename)];   // buffer size is as large as our largest member variable
+
+  file.seekSet(0);
+  if (file.read(temp, sizeof(fqFilename)) != (int)sizeof(fqFilename)) {
+    logger.log(FILES, ERROR, "failed to read filename field, %s", fqFilename);
+    return false;
+  }
+  temp[sizeof(fqFilename) - 1] = 0;   // ensure null terminated
+  if (strcmp(temp, fqFilename) != 0) {
+    logger.log(FILES, ERROR, "unexpected filename, %s", temp);
+    return false;
+  }
+
+  if (file.read(temp, sizeof(sVersion)) != (int)sizeof(sVersion)) {
+    logger.log(FILES, ERROR, "failed to read version field, %s", fqFilename);
+    return false;
+  }
+  temp[sizeof(sVersion) - 1] = 0;   // ensure null terminated
+  if (strcmp(temp, sVersion) != 0) {
+    logger.log(FILES, ERROR, "unexpected version, got (%s) and expected (%s)", temp, sVersion);
+    return false;
+  }
+  return true;
+}
+
 int SaveRestore::openFlash() {
   // returns 1=success, 0=failure
 

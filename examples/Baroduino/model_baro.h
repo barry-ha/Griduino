@@ -21,7 +21,7 @@
          Goal is to hide hardware from the caller via conditional compile.
          Adafruit BMP280 Barometric Pressure          https://www.adafruit.com/product/2651
          Adafruit BMP388 Barometric Pressure          https://www.adafruit.com/product/3966
-         Adafruit BMP390                              https://www.adafruit.com/product/4816
+         Adafruit BMP390 Barometric Pressure          https://www.adafruit.com/product/4816
 
          Bosch BMP280 datasheet:    https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bmp280-ds001.pdf
          Bosch BMP388 datasheet:    https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bmp388-ds001.pdf
@@ -97,11 +97,12 @@ public:
 
 #define maxReadings 384                          // 384 = (4 readings/hour)*(24 hours/day)*(4 days)
 #define lastIndex   (maxReadings - 1)            // index to the last element in pressure array
+#define maxLogRecords (2 * maxReadings)          // history file is rewritten from pressureStack when it grows this big
   BaroReading pressureStack[maxReadings] = {};   // array to hold pressure data, init filled with zeros
 
-  // float elevCorr = 4241;          // elevation correction in Pascals
-  //  use difference between altimeter setting and station pressure: https://www.weather.gov/epz/wxcalc_altimetersetting
-  float elevCorr = 0;   // todo: unused for now, review and change if needed
+  // float elevCorr = 4241;  // elevation correction in Pa,
+  // use difference between altimeter setting and station pressure: https://www.weather.gov/epz/wxcalc_altimetersetting
+  // float elevCorr = 0;    // unused for now
 
   // ----- init BMP380, BMP388 or BMP390 barometer
   int begin(void) {
@@ -226,24 +227,26 @@ public:
     float pressure = getBaroPressure();                       // read
     rememberPressure(pressure, rightnow);                     // push onto stack
     logger.logFloat(BARO, INFO, "logPressure(%s)", pressure, 1);   // debug
-    saveHistory();                                            // write stack to NVR
+    appendHistory();                                               // write newest reading to NVR
   }
 
   // ========== load/save barometer pressure history =============
   // Filenames MUST match between Griduino and Baroduino example program
   // To erase and rewrite a new data file, change the version string below.
+  // v03 = header followed by any number of appended BaroReading records, oldest first
   const char PRESSURE_HISTORY_FILE[25]    = CONFIG_FOLDER "/barometr.dat";
-  const char PRESSURE_HISTORY_VERSION[15] = "Pressure v02";
+  const char PRESSURE_HISTORY_VERSION[15] = "Pressure v03";
   int loadHistory() {
-    logger.log(BARO, ERROR, "model_baro.h: loadHistory() is disabled");
-    return true;   // debug!! todo!!! help!!!!
     SaveRestore history(PRESSURE_HISTORY_FILE, PRESSURE_HISTORY_VERSION);
     BaroReading tempStack[maxReadings] = {};   // array to hold pressure data, fill with zeros
-    int result                         = history.readConfig((byte *)&tempStack, sizeof(tempStack));
+    int count                          = history.readLastRecords((byte *)&tempStack, sizeof(BaroReading), maxReadings);
+    int result                         = (count >= 0);
     if (result) {
+      // put the newest reading at the end of the stack, same as rememberPressure()
+      int offset     = maxReadings - count;
       int numNonZero = 0;
       for (int ii = 0; ii < maxReadings; ii++) {
-        // pressureStack[ii] = tempStack[ii];  // debug!
+        pressureStack[ii] = (ii < offset) ? BaroReading{} : tempStack[ii - offset];
         if (pressureStack[ii].pressure > 0) {
           numNonZero++;
         }
@@ -253,6 +256,17 @@ public:
     }
     dumpPressureHistory();   // debug
     return result;
+  }
+
+  void appendHistory() {
+    // add the newest reading to the end of the history file, instead of rewriting
+    // the whole file, to reduce wear on the flash memory chip
+    SaveRestore history(PRESSURE_HISTORY_FILE, PRESSURE_HISTORY_VERSION);
+    int numRecords = history.appendRecord((byte *)&pressureStack[lastIndex], sizeof(BaroReading));
+    if (numRecords == 0 || numRecords >= maxLogRecords) {
+      // file is missing, unreadable, or full: rewrite it from the current stack
+      saveHistory();
+    }
   }
 
   void saveHistory() {
