@@ -50,10 +50,10 @@
 #define SCREEN_ROTATION 1             // 1=landscape, 3=landscape 180-degrees
 
 //--------------CONFIG--------------
-//float elevCorr = 4241;              // elevation correction in Pa, 
+// float elevCorr = 4241;  // elevation correction in Pa,
 // use difference between altimeter setting and station pressure: https://www.weather.gov/epz/wxcalc_altimetersetting
+// float elevCorr = 0;    // unused for now
 
-float elevCorr = 0;
 float maxP = 104000;                  // in Pa
 float minP = 98000;                   // in Pa
 const int yShift = 9;                 // in pixels
@@ -79,16 +79,6 @@ Adafruit_BMP3XX baro;                 // hardware SPI
 
 // ---------- Feather's onboard light
 Adafruit_NeoPixel pixel = Adafruit_NeoPixel(NUMPIXELS, PIN_NEOPIXEL, NEO_GRB + NEO_KHZ800);
-
-const int MAXBRIGHT = 255;            // = 100% brightness = maximum allowed on individual LED
-const int BRIGHT = 32;                // = tolerably bright indoors
-const int HALFBR = 20;                // = half of tolerably bright
-const int OFF = 0;                    // = turned off
-
-const uint32_t colorRed    = pixel.Color(HALFBR, OFF,    OFF);
-const uint32_t colorGreen  = pixel.Color(OFF,    HALFBR, OFF);
-const uint32_t colorBlue   = pixel.Color(OFF,    OFF,    BRIGHT);
-const uint32_t colorPurple = pixel.Color(HALFBR, OFF,    HALFBR);
 
 // ---------- GPS ----------
 // Hardware serial port for GPS
@@ -688,39 +678,6 @@ void setup() {
   pixel.clear();                      // turn off NeoPixel
   digitalWrite(PIN_LED, LOW);         // turn off little red LED
   Serial.println("NeoPixel initialized and turned off");
-
-  /* ***** test code commented out...
-  delay(3000);     // waiting for serial console to attach
-  for (int ii=0; ii<10; ii++) {
-    Serial.print(ii); 
-    Serial.print(". Red ");
-    pixel.setPixelColor(0, colorRed);
-    pixel.show();
-    digitalWrite(PIN_LED, HIGH);       // little red LED on
-    delay(800);
-
-    Serial.print(". Green ");
-    pixel.setPixelColor(0, colorGreen);
-    pixel.show();
-    digitalWrite(PIN_LED, LOW);        // little red LED off
-    delay(800);
-
-    Serial.print(". Blue ");
-    pixel.setPixelColor(0, colorBlue);
-    pixel.show();
-    digitalWrite(PIN_LED, HIGH);       // little red LED on
-    delay(800);
-    
-    Serial.print(". Purple ");
-    pixel.setPixelColor(0, colorPurple);
-    pixel.show();
-    digitalWrite(PIN_LED, LOW);        // little red LED off
-    delay(800);
-
-    Serial.println();
-  }
-  pixel.clear();
-  ... end test code ***** */
 
   // ----- announce ourselves
   startSplashScreen();
