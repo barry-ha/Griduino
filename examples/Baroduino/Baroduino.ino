@@ -4,6 +4,7 @@
             A standalone example program to demonstrate BMP388 or BMP390 barometric sensor
 
   Version history:
+            2026-11-01 update logger.h to match latest Griduino
             2024-01-17 replaced Adafruit_Touchscreen with my own Resistive_Touch_Screen library
             2021-02-02 this example program was merged into the main Griduino.ino program
             2021-01-30 added support for BMP390 and latest Adafruit_BMP3XX library, v0.31
@@ -93,7 +94,6 @@
 #if defined(SAMD_SERIES)
   #warning----- Compiling for Arduino Feather M4 Express -----
 #else
-#error
   #error Hardware platform unknown.
 #endif
 
@@ -149,6 +149,10 @@ Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 
 // ---------- Touch Screen
 Resistive_Touch_Screen tsn(PIN_XP, PIN_YP, PIN_XM, PIN_YM, XP_XM_OHMS);
+
+// ---------- lat/long and date/time conversion utilities
+//ids grid = Grids();
+Dates date = Dates();
 
 // ---------- NeoPixel
 #define NUMPIXELS 1   // Feather M4 has one NeoPixel on board

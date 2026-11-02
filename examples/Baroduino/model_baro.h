@@ -70,7 +70,7 @@
 
 // ========== extern ===========================================
 extern Logger logger;   // Griduino.ino
-//tern Dates date;      // for "datetimeToString()", Griduino.ino
+extern Dates date;      // for "datetimeToString()", Griduino.ino
 
 // ------------ definitions
 #define MILLIBARS_PER_INCHES_MERCURY (0.02953)
@@ -183,7 +183,7 @@ public:
         logger.log(BARO, ERROR, "ID = 0x56-0x58 = a BMP 280");
         break;
       case 0x60:
-        logger.log(BARO, ERROR, "ID = 0x60 = a BME 280");
+        logger.log(BARO, ERROR, "ID = 0x60 = a BME 280 or 390");
         break;
       case 0x61:
         logger.log(BARO, ERROR, "ID = 0x61 = a BME 680");
@@ -225,7 +225,7 @@ public:
   void logPressure(time_t rightnow) {
     float pressure = getBaroPressure();                       // read
     rememberPressure(pressure, rightnow);                     // push onto stack
-    logger.log(BARO, INFO, "logPressure(%s)", pressure, 1);   // debug
+    logger.logFloat(BARO, INFO, "logPressure(%s)", pressure, 1);   // debug
     saveHistory();                                            // write stack to NVR
   }
 
@@ -287,7 +287,7 @@ protected:
       if (item.pressure > 0) {
         char sDate[24], sPressure[24], out[128];
 
-        Serial.println(date.datetimeToString(sDate, sizeof(sDate), item.time));
+        date.datetimeToString(sDate, sizeof(sDate), item.time);
         floatToCharArray(sPressure, sizeof(sPressure), item.pressure, 4);
         snprintf(out, sizeof(out), "Stack[%d] = %s  %s", ii, sPressure, sDate);
 

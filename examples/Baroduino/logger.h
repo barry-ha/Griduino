@@ -92,7 +92,7 @@ public:
       {false, "CMD "},  // COMMAND 
       {false, "GPS "},  // GPS_SETUP 
       {false, "CFG "},  // CONFIG       // is used in all modules named "cfg_xxxxx"
-      {false, "BARO"},  // BARO         // barometric pressure sensor
+      {true, "BARO"},   // BARO         // barometric pressure sensor
       {false, "AUD "},  // AUDIO        // morse code and speech output
       {false, "BATT"},  // BATTERY      // coin battery for GPS
       {false, "FILE"},  // FILES        // all file handling, including save/restore
@@ -254,7 +254,7 @@ public:
 
       // print the given text and value
       char msg[256];
-      char sFloat[8];
+      char sFloat[16];
       floatToCharArray(sFloat, sizeof(sFloat), value1, decimalPlaces);
       snprintf(msg, sizeof(msg), pFormat, sFloat);
       Serial.println(msg);
@@ -269,7 +269,7 @@ public:
       printPrefix(system, severity);
 
       // print the given text and value
-      char sFloat1[8], sFloat2[8];
+      char sFloat1[16], sFloat2[16];
       floatToCharArray(sFloat1, sizeof(sFloat1), value1, places1);
       floatToCharArray(sFloat2, sizeof(sFloat2), value2, places2);
 
