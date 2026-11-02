@@ -63,13 +63,7 @@
          about +/- 0.5 meter of altitude.
 */
 
-#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
-#include <Wire.h>
-#include <Adafruit_BMP280.h>   // Precision barometric and temperature sensor
-#include <Adafruit_Sensor.h>
-#else
 #include <Adafruit_BMP3XX.h>   // Precision barometric and temperature sensor
-#endif
 #include "constants.h"     // Griduino constants, colors, typedefs
 #include "logger.h"        // conditional printing to Serial port
 #include "date_helper.h"   // date/time conversions
@@ -91,17 +85,11 @@ extern Dates date;      // for "datetimeToString()", Griduino.ino
 class BarometerModel {
 public:
   // Class member variables
-#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
-  // BMP280 Constructor
-  Adafruit_BMP280 baro;   // has-a hardware-managing class object, use I2C interface
-  BarometerModel() : baro(&Wire1) {}
-#else
   // BMP388 and BMP390 Constructor
   Adafruit_BMP3XX baro;   // has-a hardware-managing class object, use SPI interface
   BarometerModel(int vChipSelect = BMP_CS) {
     bmp_cs = vChipSelect;
   }
-#endif
   int bmp_cs;        // Chip Select for BMP388 / BMP390 hardware
   float gPressure;   // pressure in Pascals
   float inchesHg;    // same pressure in inHg
@@ -118,12 +106,7 @@ public:
   // init BMP388 or BMP390 barometer
   int begin(void) {
     int rc = 1;   // assume success
-#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
-    Wire1.begin();
-    bool initialized = baro.begin(0x76, 0x58);   // Griduino v7 pcb, I2C
-#else
     bool initialized = baro.begin_SPI(bmp_cs);   // Griduino v4 pcb, SPI
-#endif
     if (initialized) {
       //  IIR:
       //       An "infinite impulse response" filter intended to remove short-term

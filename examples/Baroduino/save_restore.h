@@ -117,11 +117,6 @@ public:
   void close();
 
 protected:
-#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
-  // Adafruit Feather RP2040, https://www.adafruit.com/product/4884
-  File32 handle;
-#else
   // Adafruit Feather M4, https://www.adafruit.com/product/3857
   File32 handle;   // contains result of gFatfs.open()
-#endif
 };

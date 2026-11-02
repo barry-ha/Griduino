@@ -91,9 +91,10 @@
 */
 
 #if defined(SAMD_SERIES)
-#warning----- Compiling for Arduino Feather M4 Express -----
-#elif defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
-#warning----- Compiling for Arduino Feather RP2040 -----
+  #warning----- Compiling for Arduino Feather M4 Express -----
+#else
+#error
+  #error Hardware platform unknown.
 #endif
 
 #include <Adafruit_ILI9341.h>    // TFT color display library
