@@ -63,7 +63,6 @@ enum LogSystem {
 };
 
 #include <Arduino.h>   // for "strncpy" and others
-//#include "logger.h"    // conditional printing to Serial port
 
 // extern
 void floatToCharArray(char *result, int maxlen, double fValue, int decimalPlaces);   // Griduino.ino
@@ -86,18 +85,19 @@ public:
 
   // subsystems
   systemDef printSystem[numSystems] = {
-      {false, "NMEA"},   // NMEA = 0,     // MUST be in same order as enum
-      {false, "GMT "},   // GMT,
-      {true, "FENC"},   // FENCE,        // fencepost debug
-      {true, "CMD "},    // COMMAND,
-      {false, "GPS "},   // GPS_SETUP,
-      {true, "CFG "},   // CONFIG,       // is used in all modules named "cfg_xxxxx"
-      {false, "BARO"},   // BARO,         // barometric pressure sensor
-      {false, "AUD "},   // AUDIO,        // morse code and speech output
-      {true, "BATT"},    // BATTERY,      // coin battery for GPS
-      {true, "FILE"},    // FILES,        // all file handling, including save/restore
-      {false, "TIME"},   // TIME
-      {true, "SCRN"},    // SCREEN
+      // MUST be in same order as enum
+      {false, "NMEA"},  // NMEA = 0     // set TRUE for NmeaTime2 by www.visualgps.net
+      {false, "GMT "},  // GMT 
+      {true, "FENC"},   // FENCE        // fencepost debug, example output: "Griduino.ino[123]"
+      {true, "CMD "},   // COMMAND 
+      {false, "GPS "},  // GPS_SETUP 
+      {true, "CFG "},   // CONFIG       // is used in all modules named "cfg_xxxxx"
+      {false, "BARO"},  // BARO         // barometric pressure sensor
+      {false, "AUD "},  // AUDIO        // morse code and speech output
+      {true, "BATT"},   // BATTERY      // coin battery for GPS
+      {true, "FILE"},   // FILES        // all file handling, including save/restore
+      {false, "TIME"},  // TIME
+      {true, "SCRN"},   // SCREEN
   };
 
   // severities

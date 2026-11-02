@@ -221,6 +221,12 @@ time_t nextFifteenMinuteMark(time_t timestamp) {
   return ((timestamp + 1 + SECS_PER_15MIN) / SECS_PER_15MIN) * SECS_PER_15MIN;
 }
 
+// ============== helpers ======================================
+void floatToCharArray(char* result, int maxlen, double fValue, int decimalPlaces) {
+  String temp = String(fValue, decimalPlaces);
+  temp.toCharArray(result, maxlen);
+}
+
 //==============================================================
 //
 //      BarometerModel
