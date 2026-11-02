@@ -9,10 +9,10 @@
 
 #include <Arduino.h>
 #include <Wire.h>
-#include <sha204_i2c.h>  // SparkFun ATSHA204, https://github.com/sparkfun/SparkFun_ATSHA204_Arduino_Library
+#include <sha204_i2c.h>  // MengGuang ATSHA204, github.com/mengguang/atsha204_i2c
 
 // ------- Identity for splash screen and console --------
-#define PROGRAM_TITLE "ATSHA Basic Example"
+#define PROGRAM_TITLE "\nATSHA Basic Example"
 #define PROGRAM_VERSION "v1.15"
 #define PROGRAM_LINE1 "Barry K7BWH"
 #define PROGRAM_LINE2 "John KM7O"
@@ -35,30 +35,8 @@ void hexDump(uint8_t *data, uint32_t length) {
   Serial.println();
 }
 
-int char2int(char input) {
-  if (input >= '0' && input <= '9')
-    return input - '0';
-  if (input >= 'A' && input <= 'F')
-    return input - 'A' + 10;
-  if (input >= 'a' && input <= 'f')
-    return input - 'a' + 10;
-  return 0;
-}
-
-// This function assumes src to be a zero terminated sanitized string with
-// an even number of [0-9a-f] characters, and target to be sufficiently large
-void hex2bin(const char *src, uint8_t *target) {
-  while (*src && src[1]) {
-    *(target++) = char2int(*src) * 16 + char2int(src[1]);
-    src += 2;
-  }
-}
-
-void loadKeyFromHex(const char *hex_key, uint8_t *key) {
-  hex2bin(hex_key, key);
-}
-
-// Attention: we need to set BUFFER_LENGTH to at least 64 in Wire.h
+// The driver library's README says to set BUFFER_LENGTH to at least 64 in Wire.h.
+// That is not needed on Griduino: the Adafruit SAMD core's Wire buffers are already 256 bytes.
 atsha204Class sha204;
 
 // ----- console Serial port helper
@@ -75,7 +53,6 @@ void waitForSerial(int howLong) {
 
 //=========== setup ============================================
 void setup() {
-  // ----- Remember to set BUFFER_LENGTH to at 64 in Wire.h
   Wire.begin();
 
   // ----- init serial monitor (do not "Serial.print" before this, it won't show up in console)
@@ -84,9 +61,9 @@ void setup() {
 
   // now that Serial is ready and connected (or we gave up)...
   Serial.println(PROGRAM_TITLE " " PROGRAM_VERSION);  // Report our program name to console
-  Serial.println("Compiled " PROGRAM_COMPILED);       // Report our compiled date
-  Serial.println(__FILE__);                           // Report our source code file name
-
+  Serial.println(PROGRAM_LINE1 ", " PROGRAM_LINE2);     // Report the authors
+  Serial.println("Compiled " PROGRAM_COMPILED);         // Report our compiled date
+  Serial.println(__FILE__);                             // Report our source code file name
 }
 
 bool wakeupDevice() {
@@ -109,28 +86,31 @@ void sleepDevice() {
 }
 
 void loop() {
-  Serial.println("\n1. Wake up device.");
+  uint8_t rc;
+
+  Serial.println("\n1. Wake up device for serial number.");
+  // If wakeup fails, skip sleep too: the chip's watchdog returns it to sleep by itself
   if (wakeupDevice()) {
     Serial.print("Get Serial Number:");
-    serialNumberExample();
+    rc = serialNumberExample();
+    sleepDevice();
   }
-  sleepDevice();
   delay(3000);
 
-  Serial.println("2. Wake up device.");
+  Serial.println("2. Wake up device for random number.");
   if (wakeupDevice()) {
     Serial.println("Call random:");
-    randomExample();
+    rc = randomExample();
+    sleepDevice();
   }
-  sleepDevice();
   delay(3000);
 
-  Serial.println("3. Wake up device.");
+  Serial.println("3. Wake up device for MAC challenge.");
   if (wakeupDevice()) {
     Serial.println("Sending a MAC Challenge.");
-    macChallengeExample();
+    rc = macChallengeExample();
+    sleepDevice();
   }
-  sleepDevice();
   delay(3000);
 }
 
@@ -139,7 +119,8 @@ uint8_t randomExample() {
   uint8_t returnValue;
   returnValue = sha204.simpleGetRandom(response);
   if (returnValue != SHA204_SUCCESS) {
-    Serial.println("simpleGetRandom failed.");
+    Serial.print("simpleGetRandom failed. Error 0x");
+    Serial.println(returnValue, HEX);
     return returnValue;
   }
   hexDump(response, sizeof(response));
@@ -152,7 +133,8 @@ uint8_t serialNumberExample() {
 
   returnValue = sha204.simpleGetSerialNumber(serialNumber);
   if (returnValue != SHA204_SUCCESS) {
-    Serial.println("simpleGetSerialNumber failed.");
+    Serial.print("simpleGetSerialNumber failed. Error 0x");
+    Serial.println(returnValue, HEX);
     return returnValue;
   }
   hexDump(serialNumber, sizeof(serialNumber));
@@ -164,26 +146,35 @@ uint8_t macChallengeExample() {
   static uint32_t n = 0;
   uint8_t mac[32];
   uint8_t challenge[MAC_CHALLENGE_SIZE] = { 0 };
-  sprintf((char *)challenge, "Are you OK? %lu", n++);
+  snprintf((char *)challenge, sizeof(challenge), "Are you OK? %lu", (unsigned long)n++);
   Serial.print("Challenge: ");
   Serial.println((char *)challenge);
 
   uint8_t ret_code = sha204.simpleMac(challenge, mac);
   if (ret_code != SHA204_SUCCESS) {
-    Serial.println("simpleMac failed.");
+    Serial.print("simpleMac failed. Error 0x");
+    Serial.println(ret_code, HEX);
     return ret_code;
   }
   Serial.print("MAC:\n");
   hexDump(mac, sizeof(mac));
 
-  uint8_t key[32];
-  //Change your key here.
-  const char *hex_key = "A9CD7F1B6688159B54BBE862F638FF9D29E0FA5F87C69D27BFCD007814BA69C9";
-  loadKeyFromHex(hex_key, key);
+  // Change your key here. It must match the secret key already programmed into the chip's
+  // slot 0, otherwise every MAC challenge reports a mismatch. A new, unconfigured chip will
+  // not match this demo key, so a mismatch does not necessarily mean the hardware is bad.
+  // Storing the secret key in the sketch like this is for demonstration only. Never put a
+  // real key in source code that is pushed to GitHub, or anyone can forge MAC responses.
+  static uint8_t key[32] = {
+    0xA9, 0xCD, 0x7F, 0x1B, 0x66, 0x88, 0x15, 0x9B,
+    0x54, 0xBB, 0xE8, 0x62, 0xF6, 0x38, 0xFF, 0x9D,
+    0x29, 0xE0, 0xFA, 0x5F, 0x87, 0xC6, 0x9D, 0x27,
+    0xBF, 0xCD, 0x00, 0x78, 0x14, 0xBA, 0x69, 0xC9
+  };
   uint8_t mac_offline[32];
   ret_code = sha204.simpleMacOffline(challenge, mac_offline, key);
   if (ret_code != SHA204_SUCCESS) {
-    Serial.println("simpleMacOffline failed.");
+    Serial.print("simpleMacOffline failed. Error 0x");
+    Serial.println(ret_code, HEX);
     return ret_code;
   }
   Serial.print("MAC Offline:\n");
@@ -191,6 +182,7 @@ uint8_t macChallengeExample() {
 
   if (memcmp(mac, mac_offline, sizeof(mac)) != 0) {
     Serial.println("MAC mismatch: device key does not match, authentication FAILED.");
+    Serial.println("(Check that key[] matches the key programmed into the chip's slot 0.)");
     return SHA204_FUNC_FAIL;
   }
   Serial.println("MAC match: device authenticated.");
