@@ -91,22 +91,25 @@ void setup() {
   Serial.println(__FILE__);                            // Report our source code file name
 
   // ----- init BMP380, BMP388 or BMP390 barometer
-  bool initialized = baro.begin_SPI(BMP_CS);
+  // Try I2C first (Griduino PCB v7 and later), then fall back to SPI (PCB v4).
+  // Trying SPI first would toggle D13, which is also the Feather's onboard red LED.
+  bool initialized = baro.begin_I2C(BMP3XX_DEFAULT_ADDRESS, &Wire);
   if (initialized) {
-    // success - SPI
-    Serial.println("--> Successfully initialized barometric sensor with SPI <--");
+    // success - I2C
+    Serial.println("==> Successfully initialized barometric pressure sensor with I2C <==");
 
   } else {
-    initialized = baro.begin_I2C(BMP3XX_DEFAULT_ADDRESS, &Wire);
+    initialized = baro.begin_SPI(BMP_CS);
     if (initialized) {
-      // success - I2C
-      Serial.println("==> Successfully initialized barometric pressure sensor with I2C <==");
+      // success - SPI
+      Serial.println("--> Successfully initialized barometric sensor with SPI <--");
 
     } else {
       // failed to initialize hardware
-      while (1)
+      while (1) {
         Serial.println("Error, unable to initialize BMP380-BMP388-BMP390, check your wiring");
         delay(5000);
+      }
     }
   }
 
@@ -130,7 +133,10 @@ void loop() {
   }
   float temperature = baro.temperature;                            // celsius
   float pressure    = baro.pressure / 100.0;                       // hectoPascal
-  float altitude    = baro.readAltitude(SEA_LEVEL_PRESSURE_HPA);   // meters
+  // Compute altitude from this same reading. Don't call baro.readAltitude() here,
+  // because it takes a second, separate reading inside the Adafruit library.
+  // Same formula as Adafruit_BMP3XX::readAltitude()
+  float altitude = 44330.0 * (1.0 - pow(pressure / SEA_LEVEL_PRESSURE_HPA, 0.1903));   // meters
 
   // ---- Print Readings: Console ----------------
   Serial.println();
