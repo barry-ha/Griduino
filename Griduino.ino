@@ -1093,16 +1093,12 @@ void loop() {
     }
   }
 
-  // periodically log the coin battery's voltage 
-  // todo: sensor exists only on PCB v7+
-  if (batteryTimer > LOG_COIN_BATTERY_INTERVAL) {
+  // periodically log the coin battery's voltage
+  // sensor exists only on PCB v7+
+  if (pcb.canReadBattery && batteryTimer > LOG_COIN_BATTERY_INTERVAL) {
     batteryTimer = 0;
 
-    const float analogRef     = 3.3;    // analog reference voltage
-    const uint16_t analogBits = 1024;   // ADC resolution is 10 bits
-
-    int coin_adc       = analogRead(BATTERY_ADC);
-    float coin_voltage = (float)coin_adc * analogRef / analogBits;
+    float coin_voltage = gpsBattery.readCoinBatteryVoltage();
     logger.logFloat(BATTERY, INFO, "Coin battery = %sv", coin_voltage, 3);
 
     trail.rememberBAT(coin_voltage);
