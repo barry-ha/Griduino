@@ -3,11 +3,12 @@
   This is an example program for the BMP3XX temperature & pressure sensor
   updated for Griduino hardware.
 
-  Designed specifically to work with either Adafruit breakout board:
+  Designed specifically for:
   * BMP380   Tested with Bosch BMP380 chip, surface mounted by JLCPCB.
-  * BMP388     http://www.adafruit.com/products/3966   +/- 8 Pascals (0.5 meters altitude)
-  * BMP390L    https://www.adafruit.com/product/4816   +/- 3 Pascals (0.25 meters altitude)
+  * BMP388   http://www.adafruit.com/products/3966   +/- 8 Pascals (0.5 meters altitude)
+  * BMP390L  https://www.adafruit.com/product/4816   +/- 3 Pascals (0.25 meters altitude)
           ^- the "L" is "long product support life"
+  * Arduino Feather M4 Express (120 MHz SAMD51)     https://www.adafruit.com/product/3857
 
   This example uses SPI pins as defined for Griduino with PCB version 4.
   This example uses I2C as built for all Griduino PCB version 7 and above.
@@ -24,13 +25,12 @@
 
   Version history:
           2026-11-03 - code review by Claude
-          2025-05-10 - updated for PCB rev 14
+          2025-05-10 - updated for PCB rev 14+
           2022-12-28 - support I2C for Feather rp2040 and also SPI for Feather M4
           2021-01-30 - updated for BMP390
           2020-03-05 - adapted for Griduino with BMP388
 
   Tested with:
-          1. Arduino Feather M4 Express (120 MHz SAMD51)     https://www.adafruit.com/product/3857
 
           2. Adafruit BMP388 - Precision Barometric Pressure https://www.adafruit.com/product/3966
              Adafruit BMP390                                 https://www.adafruit.com/product/4816
@@ -39,10 +39,10 @@
 
 #include <SPI.h>               // Serial Peripheral Interface
 #include <Wire.h>              // I2C
-#include "Adafruit_BMP3XX.h"   // Barometric and temperature sensor: https://github.com/adafruit/Adafruit_BMP3XX 
+#include "Adafruit_BMP3XX.h"   // Barometric and temperature sensor: https://github.com/adafruit/Adafruit_BMP3XX
 
 // ------- Identity for splash screen and console --------
-#define PROGRAM_TITLE    "BMP388 /BMP390 Test"
+#define PROGRAM_TITLE    "BMP380 / BMP388 /BMP390 Test"
 #define PROGRAM_VERSION  "v1.15"
 #define PROGRAM_LINE1    "Barry K7BWH"
 #define PROGRAM_LINE2    "John KM7O"
@@ -104,9 +104,9 @@ void setup() {
 
     } else {
       // failed to initialize hardware
-      Serial.println("Error, unable to initialize BMP380-BMP388-BMP390, check your wiring");
       while (1)
-        ;
+        Serial.println("Error, unable to initialize BMP380-BMP388-BMP390, check your wiring");
+        delay(5000);
     }
   }
 
