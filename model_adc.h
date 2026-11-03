@@ -22,7 +22,6 @@ extern Logger logger;              // Griduino.ino
 // ========== class BatteryVoltage ==================================
 class BatteryVoltage {
 private:
-  const int inputPin         = A2;
   const float analogRef      = 3.3;      // ADC reference voltage = Vcc = 3.3 volts
   const float analogBits     = 1024.0;   // ADC resolution is 10 bits = 2^10 = 1024
   const float voltsPerSample = (analogRef / analogBits);

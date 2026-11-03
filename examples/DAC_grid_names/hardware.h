@@ -98,7 +98,10 @@ On-board lights:
 #define PIN_YP A5   // Touchscreen Y+ must be an analog pin, use "An" notation
 #define PIN_YM 9    // Touchscreen Y- can be a digital pin
 
-// ---------- Feather's onboard lights
+// ---------- Coin battery voltage sensor
+#define BATTERY_ADC A2     // PCB v4 has no battery voltage sensor, PCB v7+ has it
+
+// ---------- Feather M4 onboard lights
 #define RED_LED 13   // diagnostics RED LED
 // define PIN_LED 13                    // already defined in Feather's board variant.h
 
@@ -111,13 +114,7 @@ On-board lights:
 #define PIN_SPEAKER DAC0   // uses DAC
 
 // ---------- Digital potentiometer
-// Adafruit Feather M4 Express pin definitions
+// Griduino PCB v7 uses volume control DS1804 on SPI
 #define PIN_VCS A1   // volume chip select
 #define PIN_VUD A2   // volume up/down
-
-// Adafruit ItsyBitsy M4 Express potentiometer wiring
-#if defined(ADAFRUIT_ITSYBITSY_M4_EXPRESS)
-#define PIN_VINC 2   // volume increment, ItsyBitsy M4 Express
-#else
 #define PIN_VINC 6   // volume increment, Feather M4 Express
-#endif

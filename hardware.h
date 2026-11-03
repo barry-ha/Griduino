@@ -68,20 +68,6 @@ On-board lights:
 #define SD_CD  10   // SD card detect pin - Feather
 #define SD_CCS 11   // SD card select pin - Feather
 
-#elif defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
-// Ref: https://arduino-pico.readthedocs.io/en/latest/index.html
-// Adafruit Feather_RP2040 pin definitions
-// To compile for Feather_RP2040, install "additional boards manager"
-// https://github.com/earlephilhower/arduino-pico/releases/download/global/package_rp2040_index.json
-
-#define TFT_BL 4    // TFT backlight
-#define TFT_CS 5    // TFT chip select pin
-#define TFT_DC 12   // TFT display/command pin
-#define BMP_CS 13   // BMP388 sensor, chip select
-
-#define SD_CD  10   // SD card detect pin - Feather
-#define SD_CCS 11   // SD card select pin - Feather
-
 #else
 #warning You need to define pins for your SPI bus hardware
 #endif
@@ -102,9 +88,13 @@ On-board lights:
 #define PIN_XM      A4     // Touchscreen X- must be an analog pin, use "An" notation
 #define PIN_YP      A5     // Touchscreen Y+ must be an analog pin, use "An" notation
 #define PIN_YM      9      // Touchscreen Y- can be a digital pin
+
 // ---------- Audio output pins
 #define DAC_PIN     DAC0   // onboard DAC0 == pin A0
 #define PIN_SPEAKER DAC0   // uses DAC
+
+// ---------- Coin battery voltage sensor
+#define BATTERY_ADC A2     // PCB v4 has no battery voltage sensor, PCB v7+ has it
 
 // ---------- Feather M4 onboard lights
 #define RED_LED 13   // diagnostics RED LED
@@ -114,14 +104,7 @@ On-board lights:
 // define PIN_NEOPIXEL 8     // already defined in Feather's board variant.h
 
 // ---------- Digital potentiometer
-// Adafruit Feather M4 Express pin definitions
 // Griduino PCB v7 uses volume control DS1804 on SPI
 #define PIN_VCS A1   // volume chip select
 #define PIN_VUD A2   // volume up/down
-
-// Adafruit ItsyBitsy M4 Express potentiometer wiring
-#if defined(ADAFRUIT_ITSYBITSY_M4_EXPRESS)
-#define PIN_VINC 2   // volume increment, ItsyBitsy M4 Express
-#else
 #define PIN_VINC 6   // volume increment, Feather M4 Express
-#endif

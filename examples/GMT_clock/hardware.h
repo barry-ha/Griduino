@@ -113,22 +113,17 @@ On-board lights:
 #define PIN_XM      A4     // Touchscreen X- must be an analog pin, use "An" notation
 #define PIN_YP      A5     // Touchscreen Y+ must be an analog pin, use "An" notation
 #define PIN_YM      9      // Touchscreen Y- can be a digital pin
+
 // ---------- Audio output pins
 #define DAC_PIN     DAC0   // onboard DAC0 == pin A0
 #define PIN_SPEAKER DAC0   // uses DAC
 #endif
 
-// ---------- Battery voltage sensor
-#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
-#define BATTERY_ADC A1
-#endif
+// ---------- Coin battery voltage sensor
+#define BATTERY_ADC A2     // PCB v4 has no battery voltage sensor, PCB v7+ has it
 
-// ---------- Feather RP2040 onboard led
-#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
-#define RED_LED 25   // diagnostics RED LED
-#else
+// ---------- Feather M4 onboard lights
 #define RED_LED 13   // diagnostics RED LED
-#endif
 
 // ---------- neopixel
 #define NUMPIXELS 1   // Feather M4 has one NeoPixel on board
