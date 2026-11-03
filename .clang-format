@@ -1,6 +1,17 @@
 # https://clang.llvm.org/docs/ClangFormatStyleOptions.html
 # https://zed0.co.uk/clang-format-configurator/
 
+# Please use Visual Studio Code to reformat source code.
+#
+# VS Code finds a .clang-format anywhere above the file, such as repo root. 
+# (Arduino IDE doesn’t search parent folders.) 
+# Arduino IDE 2 only looks in:
+# 1. the sketch’s own folder, then in 
+# 2. your user config folder: %USERPROFILE%\.arduinoIDE on Windows. 
+# If neither has one, it uses Arduino’s built-in style. 
+# To use clang in Arduino IDE, copy your file into %USERPROFILE%\.arduinoIDE, 
+# or into each sketch folder.
+
 # We prefer the LLVM style, but with 2 columns indentation.
 Standard: Cpp11
 BasedOnStyle: LLVM
