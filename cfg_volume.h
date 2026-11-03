@@ -26,7 +26,7 @@
             +-------+----------------+------------------+
 */
 
-#include <DS1804.h>      // DS1804 digital potentiometer library
+#include <DS1804.h>      // digital pot, Tom Dudman: https://github.com/tom-dudman/DS1804
 #include "constants.h"   // Griduino constants and colors
 #include "logger.h"      // conditional printing to Serial port
 #include "model_gps.h"   // Model of a GPS for model-view-controller

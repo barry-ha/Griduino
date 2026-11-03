@@ -43,7 +43,7 @@
 
 #include <Arduino.h>
 #include <Adafruit_ILI9341.h>        // TFT color display library
-#include <DS1804.h>                  // DS1804 digital potentiometer library
+#include <DS1804.h>                  // digital pot, Tom Dudman: https://github.com/tom-dudman/DS1804
 #include "SAMD51_InterruptTimer.h"   // https://github.com/Dennis-van-Gils/SAMD51_InterruptTimer
 #include "hardware.h"                // Griduino pin definitions
 

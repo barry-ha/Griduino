@@ -87,7 +87,7 @@
 #include <Resistive_Touch_Screen.h>   // Touchscreen built in to 3.2" Adafruit TFT display
 #include <Adafruit_GPS.h>             // Ultimate GPS library
 #include <Adafruit_NeoPixel.h>        // On-board color addressable LED
-#include <DS1804.h>                   // DS1804 digital potentiometer library
+#include <DS1804.h>                   // digital pot, Tom Dudman: https://github.com/tom-dudman/DS1804
 #include <elapsedMillis.h>            // Scheduling intervals in main loop
 #include "save_restore.h"             // save/restore configuration data to SDRAM
 #include "constants.h"                // Griduino constants, colors, typedefs

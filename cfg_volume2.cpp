@@ -33,7 +33,7 @@
 #include "constants.h"          // Griduino constants and colors
 #include "logger.h"             // conditional printing to Serial port
 #include "morse_dac.h"          // morse code
-#include "DS1804.h"             // DS1804 digital potentiometer library
+#include <DS1804.h>             // digital pot, Tom Dudman: https://github.com/tom-dudman/DS1804
 #include "save_restore.h"       // save/restore configuration data to SDRAM
 #include "TextField.h"          // Optimize TFT display text for proportional fonts
 

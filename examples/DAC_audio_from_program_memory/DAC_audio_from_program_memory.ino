@@ -31,7 +31,7 @@
 */
 
 #include <Adafruit_ILI9341.h>   // TFT color display library
-#include <DS1804.h>             // DS1804 digital potentiometer library
+#include <DS1804.h>             // digital pot, Tom Dudman: https://github.com/tom-dudman/DS1804
 #include "elapsedMillis.h"      // short-interval timing functions
 #include "hardware.h"           // Griduino pin definitions
 #include "sample1.h"            // audio clip 1

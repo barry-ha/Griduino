@@ -28,7 +28,7 @@
 */
 
 #include <Adafruit_ILI9341.h>  // TFT display, Adafruit: https://github.com/adafruit/Adafruit_ILI9341
-#include <DS1804.h>            // digital pot, Rob Tillaart: https://github.com/RobTillaart/DS1804
+#include <DS1804.h>            // digital pot, Tom Dudman: https://github.com/tom-dudman/DS1804
 #include "elapsedMillis.h"     // msec timing, Paul Stoffregen: https://github.com/pfeerick/elapsedMillis/wiki
 #include "hardware.h"          // Griduino pin definitions
 
