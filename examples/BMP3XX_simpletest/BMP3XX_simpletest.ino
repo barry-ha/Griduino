@@ -10,8 +10,9 @@
           ^- the "L" is "long product support life"
   * Arduino Feather M4 Express (120 MHz SAMD51)     https://www.adafruit.com/product/3857
 
-  This example uses SPI pins as defined for Griduino with PCB version 4.
-  This example uses I2C as built for all Griduino PCB version 7 and above.
+  This sketch detects and automatically uses either connection type:
+  * PCB v4 has BMP388 using SPI
+  * PCB v18 has BMP390 using I2C
 
   Adafruit invests time and resources providing this open source code,
   please support Adafruit and open-source hardware by purchasing products
@@ -39,6 +40,16 @@
 
 #include <SPI.h>               // Serial Peripheral Interface
 #include <Wire.h>              // I2C
+#if defined(SAMD_SERIES)
+  #warning ----- Compiling for Arduino Feather M4 Express (pcb v4) -----
+  #define TARGET_GRIDUINO "PCB v4"
+#elif defined(ARDUINO_ARCH_ESP32)
+  #warning ----- Compiling for ESP32 S3 (pcb v18) -----
+  #define TARGET_GRIDUINO "PCB v17+"
+#else
+  #error Hardware platform unknown.
+#endif
+
 #include "Adafruit_BMP3XX.h"   // Barometric and temperature sensor: https://github.com/adafruit/Adafruit_BMP3XX
 
 // ------- Identity for splash screen and console --------
@@ -86,7 +97,7 @@ void setup() {
   waitForSerial(howLongToWait);  // wait for developer to connect debugging console
 
   // now that Serial is ready and connected (or we gave up)...
-  Serial.println(PROGRAM_TITLE " " PROGRAM_VERSION);   // Report our program name to console
+  Serial.println(PROGRAM_TITLE " " PROGRAM_VERSION " " TARGET_GRIDUINO);   // Report our program name to console
   Serial.println("Compiled " PROGRAM_COMPILED);        // Report our compiled date
   Serial.println(__FILE__);                            // Report our source code file name
 
