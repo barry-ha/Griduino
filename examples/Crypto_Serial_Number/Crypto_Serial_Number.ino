@@ -161,24 +161,43 @@ void getGriduinoSerno(uint8_t chip[6], char* msg) {
 
 //=========== main work loop ===================================
 void loop() {
-  uint8_t chipSerialNumber[6];
+  uint8_t chipSerialNumber[6] = {0};   // stays all-zero if the read fails
 
   Serial.print("\nGet Chip Serial: ");
-  serialNumberExample(chipSerialNumber);
-  tft.setCursor(xLabel, yRow2 + 60);
-  tft.setTextColor(cLABEL);
-  tft.print("Chip s/n: ");
-  tft.setTextColor(cVALUE);
-  tft.print("0xAAbbCCddEEff");
+  uint8_t rc = serialNumberExample(chipSerialNumber);
 
-  Serial.print("Look up Griduino public serno: ");
+  // format the real chip serial number as "0x" + 12 hex digits
+  char hex[3 + 2 * 6];   // "0x" + 12 digits + NUL
+  strcpy(hex, "0x");
+  for (int i = 0; i < 6; i++) {
+    snprintf(hex + 2 + 2 * i, 3, "%02X", chipSerialNumber[i]);
+  }
+
+  // two-argument setTextColor() paints the background too, so each redraw
+  // erases the previous text; trailing spaces erase any longer old value
+  tft.setCursor(xLabel, yRow2 + 60);
+  tft.setTextColor(cLABEL, cBACKGROUND);
+  tft.print("Chip s/n: ");
+  if (rc == SHA204_SUCCESS) {
+    tft.setTextColor(cVALUE, cBACKGROUND);
+    tft.print(hex);
+  } else {
+    tft.setTextColor(ILI9341_RED, cBACKGROUND);
+    tft.print("read error    ");
+  }
+
   char msg[128] = "blank";
-  getGriduinoSerno(chipSerialNumber, msg);
-  Serial.println(msg);  // console
+  if (rc == SHA204_SUCCESS) {
+    Serial.print("Look up Griduino public serno: ");
+    getGriduinoSerno(chipSerialNumber, msg);
+  } else {
+    strcpy(msg, "unknown        ");   // don't derive a serno from a failed read
+  }
+  Serial.println(msg);   // console
   tft.setCursor(xLabel, yRow2 + 80);
-  tft.setTextColor(cLABEL);
+  tft.setTextColor(cLABEL, cBACKGROUND);
   tft.print("Griduino: ");
-  tft.setTextColor(cVALUE);
+  tft.setTextColor(rc == SHA204_SUCCESS ? cVALUE : ILI9341_RED, cBACKGROUND);
   tft.print(msg);
 
   delay(4000);
