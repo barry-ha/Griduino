@@ -6,8 +6,6 @@
   Hardware: John Vanderbeck, KM7O, Seattle, WA
 
   Purpose:  This selects the audio output type: Morse code or speech.
-            Since it's not intended for a driver in motion, we can use
-            a smaller font and cram more stuff onto the screen.
 
             +-------------------------------------------+
             |                Audio Type                 |
@@ -18,7 +16,7 @@
             |                                           |
             |                     ( )[ No audio ]       |... yRow3
             |                                           |
-            | v1.12, Feb 10 2021                        |... yRow9
+            | v1.15, Nov 10 2026                        |... yRow9
             +-------------------------------------------+
 */
 
@@ -71,16 +69,13 @@ protected:
   const int yRow3 = yRow2 + 52;           //                  "No audio"
   const int yRow9 = gScreenHeight - 10;   // "v1.14, Jan 22 2024"
 
-#define col1    10    // left-adjusted column of text
-#define xButton 160   // indented column of buttons
-
   // names for the array indexes, must be named in same order as array below
   enum txtSettings5 {
     SETTINGS = 0,
     ANNOUNCEMENTS,
     ANNOUNCEMENTS2,
     COMPILED,
-    PANEL,
+    //PANEL,
   };
 
   // clang-format off
@@ -88,8 +83,8 @@ protected:
   TextField txtSettings5[nTxtSettings5] = {
       //  text             x, y      color
       {"Audio Type",      -1, 20,    cHIGHLIGHT, ALIGNCENTER},   // [SETTINGS]
-      {"Announce",      col1, yRow1, cVALUE},                    // [ANNOUNCEMENTS]
-      {"grids using:",  col1, yRow1 + 20, cVALUE},               // [ANNOUNCEMENTS2]
+      {"Announce",     gCol1, yRow1, cVALUE},                    // [ANNOUNCEMENTS]
+      {"grids using:", gCol1, yRow1 + 20, cVALUE},               // [ANNOUNCEMENTS2]
       {PROGRAM_VERDATE,   -1, yRow9, cLABEL, ALIGNCENTER},       // [COMPILED]
       //{"2 of 6",      xPanel, 20,    cFAINT},                    // [PANEL]
   };
@@ -98,11 +93,11 @@ protected:
   // clang-format off
 #define nButtonsAudio 3
   FunctionButton myButtons[nButtonsAudio] = {
-      // label              origin          size           touch-target
-      // text               x,y             w,h            x,y              w,h    radius color  functionID
-      {"Morse code",        xButton, yRow1 - 26, 140, 40, {120, yRow1 - 42, 195, 62}, 4, cVALUE, MORSE},
-      {"Speech (disabled)", xButton, yRow2 - 26, 140, 40, {120, yRow2 - 32, 195, 52}, 4, cVALUE, SPEECH},
-      {"No audio",          xButton, yRow3 - 26, 140, 40, {120, yRow3 - 32, 195, 62}, 4, cVALUE, NO_AUDIO},
+      // label              origin             size         touch-target
+      // text               x,y                w,h            x,y              w,h    radius color  functionID
+      {"Morse code",        gxButton, yRow1 - 26, 140, 40, {120, yRow1 - 42, 195, 62}, 4, cVALUE, MORSE},
+      {"Speech (disabled)", gxButton, yRow2 - 26, 140, 40, {120, yRow2 - 32, 195, 52}, 4, cFAINT, SPEECH},
+      {"No audio",          gxButton, yRow3 - 26, 140, 40, {120, yRow3 - 32, 195, 62}, 4, cVALUE, NO_AUDIO},
   };
   // clang-format on
 
@@ -128,6 +123,7 @@ protected:
     grid.calcLocator(newGrid4, model->gLatitude, model->gLongitude, 4);
     announceGrid(newGrid4, 4);   // announce 4-digit grid by Morse code OR speech
   }
+
   void setNone() {
     logger.log(CONFIG, INFO, "->->-> Clicked NO AUDIO button.");
     selectedAudio = NO_AUDIO;
@@ -140,23 +136,14 @@ protected:
 void ViewCfgAudioType::updateScreen() {
   // called on every pass through main()
 
-  // ----- show selected radio buttons by filling in the circle
+  // ----- show selected radio button by filling in the circle
   for (int ii = 0; ii < nButtonsAudio; ii++) {
     FunctionButton item = myButtons[ii];
     int xCenter         = item.x - 16;
     int yCenter         = item.y + (item.h / 2);
-    int buttonFillColor = cBACKGROUND;
 
-    if (ii == MORSE && selectedAudio == MORSE) {
-      buttonFillColor = cLABEL;
-    }
-    if (ii == SPEECH && selectedAudio == SPEECH) {
-      buttonFillColor = cLABEL;
-    }
-    if (ii == NO_AUDIO && selectedAudio == NO_AUDIO) {
-      buttonFillColor = cLABEL;
-    }
-    tft->fillCircle(xCenter, yCenter, 4, buttonFillColor);
+    int buttonFillColor = (ii == selectedAudio) ? cLABEL : cBACKGROUND;
+    tft->fillCircle( xCenter, yCenter, 4, buttonFillColor);
   }
 }   // end updateScreen
 
@@ -203,7 +190,7 @@ void ViewCfgAudioType::startScreen() {
     txtSettings5[ii].print();
   }
 
-  showProgressBar(2, 9);    // draw marker for advancing through settings
+  showProgressBar(2, NUM_SETTINGS_SCREENS);    // draw marker for advancing through settings
   showScreenBorder();       // optionally outline visible area
   showScreenCenterline();   // optionally draw alignment bar
 
@@ -222,7 +209,7 @@ void ViewCfgAudioType::endScreen() {
 bool ViewCfgAudioType::onTouch(Point touch) {
   logger.log(CONFIG, INFO, "->->-> Touched settings screen.");
   bool handled = false;   // assume a touch target was not hit
-  for (int ii = 0; ii < nButtonsAudio; ii++) {
+  for (int ii = 0; (ii < nButtonsAudio) && !handled; ii++) {
     FunctionButton item = myButtons[ii];
     if (item.hitTarget.contains(touch)) {
       handled = true;               // hit!
@@ -256,7 +243,25 @@ void ViewCfgAudioType::loadConfig() {
   functionID tempAudioOutputType;
   int result = config.readConfig((byte *)&tempAudioOutputType, sizeof(tempAudioOutputType));
   if (result) {
-    this->selectedAudio = tempAudioOutputType;
+
+    switch (tempAudioOutputType) {
+      case MORSE:
+        this->selectedAudio = MORSE;
+        break;
+      case SPEECH:
+        //this->selectedAudio = SPEECH;   // 2024-01-03 disabled "SPEECH" temporarily because it's a crasher
+        logger.log(AUDIO, INFO, "Ignored SPEECH audio output");
+        return; // debug - do nothing until SPEECH is working (this is the least confusing behavior)
+        break;
+      case NO_AUDIO:
+        this->selectedAudio = NO_AUDIO;
+        break;
+      default:
+        logger.log(CONFIG, ERROR, "Invalid audio output type read from config file: %d", tempAudioOutputType);
+        this->selectedAudio = MORSE;   // default to Morse code if invalid value is read
+        break;
+    }
+
     logger.log(AUDIO, INFO, "Loaded audio output type: %d", this->selectedAudio);
   } else {
     logger.log(AUDIO, ERROR, "Failed to load Audio Output Type, re-initializing config file");
