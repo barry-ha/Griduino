@@ -178,15 +178,12 @@ protected:
   const int yRow2 = yRow1 + 50;           // "Metric",           "Kilometers, hPa"
   const int yRow9 = gScreenHeight - 10;   // "v1.14, Jan 22 2024"
 
-  const int col1 = 10;   // left-adjusted column of text
-#define xButton 160      // indented column of buttons
-
   // clang-format off
   TextField txtStatic[nTextUnits] = {
       //  text             x, y      color
       {"Units",           -1, 20,    cHIGHLIGHT, ALIGNCENTER},
-      {"English",       col1, yRow1, cVALUE},
-      {"Metric",        col1, yRow2, cVALUE},
+      {"English",      gCol1, yRow1, cVALUE},
+      {"Metric",       gCol1, yRow2, cVALUE},
       {PROGRAM_VERDATE,   -1, yRow9, cLABEL, ALIGNCENTER},
   };
   // clang-format on
@@ -199,8 +196,8 @@ protected:
   FunctionButton myButtons[nUnitsButtons] = {
       // label                  origin           size      touch-target
       // text                     x,y             w,h       x,y            w,h  radius color  functionID
-      {"Miles, Feet, inHg", xButton, yRow1-26,  150, 40, {112, yRow1-36, 204, 56}, 4, cVALUE, eENGLISH},   // [eENGLISH] set units Miles/inHg
-      {"Kilometers, hPa",   xButton, yRow2-26,  150, 40, {112, yRow2-31, 204, 64}, 4, cVALUE, eMETRIC},    // [eMETRIC] set units Metric
+      {"Miles, Feet, inHg", gxButton, yRow1-26,  150, 40, {112, yRow1-36, 204, 56}, 4, cVALUE, eENGLISH},   // [eENGLISH] set units Miles/inHg
+      {"Kilometers, hPa",   gxButton, yRow2-26,  150, 40, {112, yRow2-31, 204, 64}, 4, cVALUE, eMETRIC},    // [eMETRIC] set units Metric
   };
   // clang-format on
 

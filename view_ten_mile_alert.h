@@ -24,7 +24,7 @@
             |                                     +---|
             +-----------------------------------------+
               :     :            : :
-              col1  yCenter   col2 col3
+             gCol1  yCenter   col2 col3
 */
 
 #include <TimeLib.h>       // time_t=seconds since Jan 1, 1970, https://github.com/PaulStoffregen/Time
@@ -76,12 +76,11 @@ protected:
   const int yRow2 = yRow1 + 50;   // "Now at" grid square
   const int yRow3 = 92;           // "Distance"
   const int yRow4 = yRow3 + 28;   // "NNW"
-  const int col1  = 6;            // left-adjusted text
   const int col2  = 96;           // left-adjusted grid square
   const int col3  = col2 + 124;   // left-adjusted unit names
 
   // compass size and placement
-  const int xCenter = (col1 + col2) / 2 - 7;   // pixels
+  const int xCenter = (gCol1 + col2) / 2 - 7;   // pixels
   const int yCenter = yRow3;                   // pixels
   const int radius  = 37;                      // pixels
 
@@ -111,10 +110,10 @@ protected:
       {"miles", col3, yRow3, cVALUE, ALIGNLEFT, eFONTSMALL},             // [eUnits]
       {"NNE", -1, yRow4, cVALUE, ALIGNCENTER, eFONTSMALL},               // [eDirectionName]
                                                                          //
-      {"Here:", col1, yRow1, cLABEL, ALIGNLEFT, eFONTSMALL},             // [eCurrentLabel]
+      {"Here:",gCol1, yRow1, cLABEL, ALIGNLEFT, eFONTSMALL},             // [eCurrentLabel]
       {"CN87vv", col2 - 14, yRow1, cTEXTCOLOR, ALIGNLEFT, eFONTBIG},     // [eCurrentValue]
                                                                          //
-      {"Start:", col1, yRow2, cLABEL, ALIGNLEFT, eFONTSMALL},            // [eStartLabel]
+      {"Start:",gCol1, yRow2, cLABEL, ALIGNLEFT, eFONTSMALL},            // [eStartLabel]
       {"CN87us", col2 - 14, yRow2, cFAINT, ALIGNLEFT, eFONTBIG},         // [eStartValue]
   };
 

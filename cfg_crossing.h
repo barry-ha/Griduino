@@ -58,9 +58,6 @@ protected:
   const int yRow3 = yRow1 + 68;           //                     "6-Digit"
   const int yRow9 = gScreenHeight - 10;   // "v1.14, Jan 22 2024"
 
-#define col1    10    // left-adjusted column of text
-#define xButton 160   // indented column of buttons
-
   // names for the array indexes, must be named in same order as array below
   enum txtSettings4 {
     SETTINGS = 0,
@@ -77,10 +74,10 @@ protected:
   TextField txtSettings4[nTextCrossing] = {
       //  text             x, y      color
       {"Announcements",   -1, 20,    cHIGHLIGHT, ALIGNCENTER},   // [SETTINGS]
-      {"Announce at",   col1, yRow1, cVALUE},                    // [ANNOUNCE1]
-      {"grid crossing", col1, yRow2, cVALUE},                    // [ANNOUNCE2]
-      {"70 - 100 mi", xButton + 24, yRow1 + 22, cVALUE},         // [DISTANCE4]
-      {"3 - 4 mi",    xButton + 38, yRow3 + 22, cVALUE},         // [DISTANCE6]
+      {"Announce at",  gCol1, yRow1, cVALUE},                    // [ANNOUNCE1]
+      {"grid crossing",gCol1, yRow2, cVALUE},                    // [ANNOUNCE2]
+      {"70 - 100 mi", gxButton + 24, yRow1 + 22, cVALUE},         // [DISTANCE4]
+      {"3 - 4 mi",    gxButton + 38, yRow3 + 22, cVALUE},         // [DISTANCE6]
       {PROGRAM_VERDATE,   -1, yRow9, cLABEL, ALIGNCENTER},       // [COMPILED]
       //{"3 of 6",      xPanel, 20,    cFAINT},                    // [PANEL]
   };
@@ -116,10 +113,10 @@ protected:
   // clang-format off
 #define nButtonsDigits 2
   FunctionButton myButtons[nButtonsDigits] = {
-      // label           visible rectangle      touch-target          text
-      // text            x,y           w,h      x,y      w,h  radius  color   function
-      {"4-Digit", xButton, yRow1 - 26, 140, 60, {130, 40, 180, 70}, 4, cVALUE, e4DIGIT},    // [e4DIGIT] set units English
-      {"6-Digit", xButton, yRow3 - 26, 140, 60, {130, 110, 180, 70}, 4, cVALUE, e6DIGIT},   // [e6DIGIT] set units Metric
+      // label           visible rectangle        touch-target            text
+      // text            x,y              w,h       x,y       w,h  radius color  function
+      {"4-Digit", gxButton, yRow1 - 26, 140, 60, {130,  40, 180, 70}, 4, cVALUE, e4DIGIT},    // [e4DIGIT] set units English
+      {"6-Digit", gxButton, yRow3 - 26, 140, 60, {130, 110, 180, 70}, 4, cVALUE, e6DIGIT},   // [e6DIGIT] set units Metric
   };
   // clang-format on
 

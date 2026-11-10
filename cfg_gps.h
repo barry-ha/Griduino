@@ -60,9 +60,6 @@ protected:
   const int yRow4 = yRow3 + 48;           //                     "Simulator"
   const int yRow9 = gScreenHeight - 10;   // "v1.14, Jan 22 2024"
 
-#define col1    10    // left-adjusted column of text
-#define xButton 160   // indented column of buttons
-
   // names for the array indexes, must be named in same order as array below
   enum txtSettings2 {
     SETTINGS = 0,
@@ -78,9 +75,9 @@ protected:
   TextField txtSettings2[nTextGPS] = {
       //  text                x, y      color
       {"GPS",                -1, 20,    cHIGHLIGHT, ALIGNCENTER},   // [SETTINGS]
-      {"Breadcrumb trail", col1, yRow1, cVALUE},                    // [TRAIL]
-      {"%d crumbs",        col1, yRow2, cLABEL},                    // [TRAILCOUNT]
-      {"Route",            col1, yRow3, cVALUE},                    // [GPSTYPE]
+      {"Breadcrumb trail",gCol1, yRow1, cVALUE},                    // [TRAIL]
+      {"%d crumbs",       gCol1, yRow2, cLABEL},                    // [TRAILCOUNT]
+      {"Route",           gCol1, yRow3, cVALUE},                    // [GPSTYPE]
       {PROGRAM_VERDATE,      -1, yRow9, cLABEL, ALIGNCENTER},       // [COMPILED]
   };
   // clang-format on
@@ -94,12 +91,12 @@ protected:
   // clang-format off
   #define nButtonsGPS 3
   FunctionButton settings2Buttons[nButtonsGPS] = {
-      // label              origin             size      touch-target
-      // text                 x,y               w,h        x,y       w,h  radius  color   functionID
-      {"Clear",        xButton, yRow1 - 14,   130, 40,  {154, 58,  156,54}, 4, cVALUE, eCLEAR},      // [eCLEAR] Clear track history
-      {"GPS Receiver", xButton, yRow3 - 26,   130, 40,  {130,112,  180,50}, 4, cVALUE, eRECEIVER},   // [eRECEIVER] Satellite receiver
-      {"Simulator",    xButton, yRow4 - 26,   130, 40,  {130,164,  180,50}, 4, cVALUE, eSIMULATOR},  // [eSIMULATOR] Simulated track
-    //{"Factory Reset",xButton, 180,          130,30,   {138,174,  180,50}, 4,  cVALUE,  fFactoryReset},// [eFACTORYRESET] Factory Reset
+      // label              origin              size      touch-target
+      // text                 x,y                w,h        x,y       w,h  radius  color   functionID
+      {"Clear",        gxButton, yRow1 - 14,   130, 40,  {154, 58,  156,54}, 4, cVALUE, eCLEAR},       // [eCLEAR] Clear track history
+      {"GPS Receiver", gxButton, yRow3 - 26,   130, 40,  {130,112,  180,50}, 4, cVALUE, eRECEIVER},    // [eRECEIVER] Satellite receiver
+      {"Simulator",    gxButton, yRow4 - 26,   130, 40,  {130,164,  180,50}, 4, cVALUE, eSIMULATOR},   // [eSIMULATOR] Simulated track
+    //{"Factory Reset",gxButton, 180,          130, 30,  {138,174,  180,50}, 4, cVALUE, fFactoryReset},// [eFACTORYRESET] Factory Reset
   };
   // clang-format on
 

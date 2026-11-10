@@ -54,18 +54,16 @@ protected:
   const int yRow2 = yRow1 + 70;           //                       "That edge up"
   const int yRow9 = gScreenHeight - 10;   // "v1.14, Feb 12 2024"
 
-#define col1    10    // left-adjusted column of text
-#define xButton 160   // indented column of buttons
-#define bWidth  140   //
-#define bHeight 40    //
+#define bWidth  140   // button width
+#define bHeight 40    // button height
 
   // clang-format off
 #define nFields 4
   TextField txtSettings6[nFields] = {
       //  text             x, y      color
       {"Rotation",        -1, 20,    cHIGHLIGHT, ALIGNCENTER},
-      {"Screen",        col1, yRow1, cVALUE},
-      {"Orientation",   col1, yRow1 + 20, cVALUE},
+      {"Screen",       gCol1, yRow1, cVALUE},
+      {"Orientation",  gCol1, yRow1 + 20, cVALUE},
       {PROGRAM_VERSION,   -1, yRow9, cLABEL, ALIGNCENTER},
   };
   // clang-format on
@@ -79,12 +77,12 @@ protected:
   FunctionButton myButtons[nButtons] = {
       // label             origin           size                  touch-target
       // text                x,y             w,h                     x,y            w,h  radius  color   functionID
-      {"This edge up", xButton, yRow1-26,  bWidth, bHeight, {xButton-2, yRow1-28,  bWidth+4, bHeight+4}, 4, cVALUE, THIS_BUTTON},
-      {"That edge up", xButton, yRow2-26,  bWidth, bHeight, {xButton-2, yRow2-28,  bWidth+4, bHeight+4}, 4, cVALUE, THAT_BUTTON},
+      {"This edge up", gxButton, yRow1-26,  bWidth, bHeight, {gxButton-2, yRow1-28,  bWidth+4, bHeight+4}, 4, cVALUE, THIS_BUTTON},
+      {"That edge up", gxButton, yRow2-26,  bWidth, bHeight, {gxButton-2, yRow2-28,  bWidth+4, bHeight+4}, 4, cVALUE, THAT_BUTTON},
   };
   // clang-format on
 
-#define xLine (xButton + 100)
+#define xLine (gxButton + 100)
 #define topY  8
 #define botY  (gScreenHeight - 6)
 

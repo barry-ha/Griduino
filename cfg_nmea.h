@@ -75,18 +75,16 @@ protected:
   const int yButton1 = 62;
   const int yButton2 = yButton1 + 54;
 
-#define col1    10    // left-adjusted column of text
-#define xButton 160   // indented column of buttons
-#define bWidth  140   //
-#define bHeight 40    //
+#define bWidth  140   // button width
+#define bHeight 40    // button height
 
   // clang-format off
 #define nTextNMEA 6
   TextField txtStatic[nTextNMEA] = {
       //  text                x, y      color
       {"GPS NMEA Sentences", -1, 20,    cHIGHLIGHT, ALIGNCENTER},
-      {"Report GPS ",      col1, yRow1, cVALUE},
-      {"positions",        col1, yRow2, cVALUE},
+      {"Report GPS ",     gCol1, yRow1, cVALUE},
+      {"positions",       gCol1, yRow2, cVALUE},
       {"NMEA sentences are available", -1, yRow4, cFAINT, ALIGNCENTER},
       {"to a USB-attached computer",   -1, yRow5, cFAINT, ALIGNCENTER},
       {PROGRAM_VERDATE,   -1, yRow9, cLABEL, ALIGNCENTER},
@@ -100,10 +98,10 @@ protected:
   // clang-format off
 #define nButtonsNMEA 2
   FunctionButton myButtons[nButtonsNMEA] = {
-      // label                  origin           size      touch-target
-      // text                     x,y             w,h       x,y            w,h  radius color  functionID
-      {"Send NMEA",         xButton, yButton1,  150, 40, {130, yButton1, 184, 50}, 4, cVALUE, eSTART_NMEA},
-      {"No report",         xButton, yButton2,  150, 40, {130, yButton2, 184, 60}, 4, cVALUE, eSTOP_NMEA},
+      // label                   origin           size      touch-target
+      // text                      x,y             w,h       x,y            w,h  radius color  functionID
+      {"Send NMEA",         gxButton, yButton1,  150, 40, {130, yButton1, 184, 50}, 4, cVALUE, eSTART_NMEA},
+      {"No report",         gxButton, yButton2,  150, 40, {130, yButton2, 184, 60}, 4, cVALUE, eSTOP_NMEA},
   };
   // clang-format on
 
