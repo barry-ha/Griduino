@@ -18,7 +18,7 @@
             |                                  |        |
             |                                  |        |
             |                                  |        |
-            | v1.12, Feb 10 2021              \|/       |
+            | v1.15, Nov 10 2026              \|/       |
             +-------------------------------------------+
 */
 
@@ -182,7 +182,7 @@ void ViewCfgRotation::startScreen() {
     tft->drawCircle(xCenter, yCenter, 7, cVALUE);
   }
 
-  showProgressBar(7, 9);   // draw marker for advancing through settings
+  showProgressBar(7, NUM_SETTINGS_SCREENS);   // draw marker for advancing through settings
   updateScreen();          // update UI immediately, don't wait for laggy mainline loop
 }   // end startScreen()
 

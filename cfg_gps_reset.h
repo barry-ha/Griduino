@@ -164,7 +164,7 @@ void ViewCfgGpsReset::startScreen() {
     tft->print(item.text);
   }
 
-  showProgressBar(8, 9);   // draw marker for advancing through settings
+  showProgressBar(8, NUM_SETTINGS_SCREENS);   // draw marker for advancing through settings
   updateScreen();          // update UI immediately, don't wait for the main loop to eventually get around to it
 }   // end startScreen()
 

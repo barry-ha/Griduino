@@ -23,7 +23,7 @@
             |  |             |         |             |  |
             |  +=============+         +-------------+  |
             |                                           |
-            | v1.12, Feb 10 2021                        |... yRow9
+            | v1.15, Nov 10 2026                        |... yRow9
             +-------------------------------------------+
 */
 
@@ -205,7 +205,7 @@ void ViewCfgReboot::startScreen() {
     tft->print(item.text);
   }
 
-  showProgressBar(11, 11);   // draw marker for advancing through settings
+  showProgressBar(11, NUM_SETTINGS_SCREENS);   // draw marker for advancing through settings
   updateScreen();           // update UI immediately, don't wait for the main loop to eventually get around to it
 }   // end startScreen()
 

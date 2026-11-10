@@ -209,7 +209,7 @@ protected:
       txtFinal[ii].print();
     }
 
-    showProgressBar(9, 9);   // draw marker for advancing through settings
+    showProgressBar(9, NUM_SETTINGS_SCREENS);   // draw marker for advancing through settings
     updateScreen();          // update UI immediately, don't wait for laggy mainline loop
   }   // end startScreen()
 
@@ -256,7 +256,7 @@ void ViewCfgReformat::startScreen() {
     tft->print(item.text);
   }
 
-  showProgressBar(9, 9);   // draw marker for advancing through settings
+  showProgressBar(9, NUM_SETTINGS_SCREENS);   // draw marker for advancing through settings
   updateScreen();          // update UI immediately, don't wait for laggy mainline loop
 }   // end startScreen()
 

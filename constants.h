@@ -2,11 +2,7 @@
 
 // ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE "Griduino"
-#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
-#define PROGRAM_VERSION "v1.14"
-#else
 #define PROGRAM_VERSION "v1.15"
-#endif
 #define HARDWARE_VERSION "Rev 4"   // Rev 4 | Rev 7 | Rev 12 | Rev 14
 #define PROGRAM_LINE1    "Barry K7BWH"
 #define PROGRAM_LINE2    "John KM7O"
@@ -30,6 +26,8 @@
 #define gBoxHeight 160   // grid square height as shown on display, pixels
 #define gMarginX   70    // define space for grid outline on screen
 #define gMarginY   26    // and position text relative to this outline
+#define gCol1      10    // starting column of all leftmost screen text
+#define gxButton  160    // indented column of all buttons on config screens
 
 // ------- Physical constants ---------
 const float gridWidthDegrees  = 2.0;   // horiz E-W size of one grid square, degrees
@@ -62,6 +60,8 @@ const double minLat  = gridHeightDegrees / gBoxHeight;   // latitude degrees fro
 #define FIRST_RELEASE_YEAR  (2019)   // this date can help filter out bogus GPS timestamps
 #define FIRST_RELEASE_MONTH (12)
 #define FIRST_RELEASE_DAY   (19)
+
+#define NUM_SETTINGS_SCREENS (9)  // number of control panel screens, 0..8, used for cycling through them with the "gear" button
 
 // ----- load/save configuration using SDRAM
 // #define EXTERNAL_FLASH_USE_QSPI     // 2020-02-11 added by BarryH, since it seems to be missing from
