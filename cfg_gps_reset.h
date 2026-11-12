@@ -114,7 +114,10 @@ enum buttonID {
     txtStatic[CONFIRMATION].dirty = true;
     txtStatic[CONFIRMATION].print();
 
-    model->factoryReset();   // do the thing
+    // todo - implement a cpu reboot
+    // Feather M4 doesn't have a reboot function, so we tell the user to power cycle it. 
+    // Investigate ESP32 S3 and figure out how to restart.
+    //model->factoryReset();   // do the thing
   }
   void drawNumSatellites() {
     char sTemp[8];   // strlen("12#") = 3

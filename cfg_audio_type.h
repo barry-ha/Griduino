@@ -78,7 +78,6 @@ protected:
     ANNOUNCEMENTS,
     ANNOUNCEMENTS2,
     COMPILED,
-    //PANEL,
   };
 
   // ----- static screen text
@@ -86,10 +85,10 @@ protected:
 #define nTxtSettings5 4
   TextField txtSettings[nTxtSettings5] = {
       //  text             x, y      color
-      {"Audio Type",      -1, 20,    cHIGHLIGHT, ALIGNCENTER},   // [SETTINGS]
+      {"Audio Type",      -1, gyTitle, cHIGHLIGHT, ALIGNCENTER, eFONTSMALLEST},   // [TITLE] centered
       {"Announce",     gCol1, yRow1, cVALUE},                    // [ANNOUNCEMENTS]
       {"grids using:", gCol1, yRow1 + 20, cVALUE},               // [ANNOUNCEMENTS2]
-      {PROGRAM_VERDATE,   -1, yRow9, cFAINT, ALIGNCENTER, eFONTSMALLEST},       // [COMPILED]
+      {PROGRAM_VERDATE,   -1, yRow9, cFAINT, ALIGNCENTER, eFONTSMALLEST},   // [COMPILED]
   };
 
 #define nButtonsAudio 3

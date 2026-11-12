@@ -86,7 +86,6 @@ protected:
     eCLEAR,
     eRECEIVER,
     eSIMULATOR,
-    eFACTORYRESET,
   };
   // clang-format off
   #define nButtonsGPS 3
@@ -96,7 +95,6 @@ protected:
       {"Clear",        gxButton, yRow1 - 14,   130, 40,  {154, 58,  156,54}, 4, cVALUE, eCLEAR},       // [eCLEAR] Clear track history
       {"GPS Receiver", gxButton, yRow3 - 26,   130, 40,  {130,112,  180,50}, 4, cVALUE, eRECEIVER},    // [eRECEIVER] Satellite receiver
       {"Simulator",    gxButton, yRow4 - 26,   130, 40,  {130,164,  180,50}, 4, cVALUE, eSIMULATOR},   // [eSIMULATOR] Simulated track
-    //{"Factory Reset",gxButton, 180,          130, 30,  {138,174,  180,50}, 4, cVALUE, fFactoryReset},// [eFACTORYRESET] Factory Reset
   };
   // clang-format on
 
@@ -119,10 +117,12 @@ protected:
     logger.log(CONFIG, INFO, "->->-> Clicked GPS SIMULATOR button");
     fSetSimulated();   // use "class MockModel" for simulated track
   }
+  /* unused fFactoryReset() 
   void fFactoryReset() {
     // todo: clear all settings, erase all saved files
     logger.log(CONFIG, INFO, "->->-> Clicked FACTORY RESET button.");
   }
+  */
 
 };   // end class ViewCfgGPS
 
