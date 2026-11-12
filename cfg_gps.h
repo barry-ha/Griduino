@@ -76,7 +76,7 @@ protected:
       //  text                x, y       color
       {"GPS",                -1, gyTitle,cHIGHLIGHT, ALIGNCENTER, eFONTSMALLEST},   // [TITLE] centered
       {"Breadcrumb trail",gCol1, yRow1,  cVALUE,     ALIGNLEFT,   eFONTSMALLEST},   // [TRAIL]
-      {"%d crumbs",       gCol1, yRow2,  cLABEL,     ALIGNLEFT,   eFONTSMALLEST},   // [TRAILCOUNT]
+      {"",                gCol1, yRow2,  cLABEL,     ALIGNLEFT,   eFONTSMALLEST},   // [TRAILCOUNT] "%d of %d"
       {"Route",           gCol1, yRow3,  cVALUE,     ALIGNLEFT,   eFONTSMALLEST},   // [GPSTYPE]
       {PROGRAM_VERDATE,      -1, yRow9,  cFAINT,     ALIGNCENTER, eFONTSMALLEST},   // [COMPILED]
   };
@@ -154,16 +154,16 @@ void ViewCfgGPS::updateScreen() {
 
 void ViewCfgGPS::startScreen() {
   // called once each time this view becomes active
-  this->clearScreen(this->background);               // clear screen
+  this->clearScreen(this->background);              // clear screen
   txtSettings[0].setBackground(this->background);   // set background for all TextFields in this view
   TextField::setTextDirty(txtSettings, nTextGPS);   // make sure all fields get re-printed on screen change
   setFontSize(eFONTSMALLEST);
 
-  drawAllIcons();                                      // draw gear (settings) and arrow (next screen)
-  showDefaultTouchTargets();                           // optionally draw box around default button-touch areas
+  drawAllIcons();                               // draw gear (settings) and arrow (next screen)
+  showDefaultTouchTargets();                    // optionally draw box around default button-touch areas
   showMyTouchTargets(myButtons, nButtonsGPS);   // optionally show this view's touch targets
-  showScreenBorder();                                  // optionally outline visible area
-  showScreenCenterline();                              // optionally draw visual alignment bar
+  showScreenBorder();                           // optionally outline visible area
+  showScreenCenterline();                       // optionally draw visual alignment bar
 
   // ----- draw text fields
   for (int ii = 0; ii < nTextGPS; ii++) {
