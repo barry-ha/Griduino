@@ -171,7 +171,7 @@ struct TwoPoints {
 struct Rect {
   Point ul;
   Point size;
-  bool contains(const Point touch) {
+  bool contains(const Point touch) const {
     if ((ul.x <= touch.x) && (touch.x <= ul.x + size.x) && (ul.y <= touch.y) && (touch.y <= ul.y + size.y)) {
       return true;
     } else {
