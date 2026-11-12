@@ -83,6 +83,16 @@ protected:
   };
   // clang-format on
 
+  // clang-format off
+#define nButtonsDigits 2
+  FunctionButton myButtons[nButtonsDigits] = {
+      // label           visible rectangle        touch-target            text
+      // text            x,y              w,h       x,y       w,h  radius color  function
+      {"4-Digit", gxButton, yRow1 - 26, 140, 60, {130,  40, 180, 84}, 4, cVALUE, e4DIGIT},    // [e4DIGIT] set units English
+      {"6-Digit", gxButton, yRow3 - 26, 140, 60, {130, 125, 180, 70}, 4, cVALUE, e6DIGIT},   // [e6DIGIT] set units Metric
+  };
+  // clang-format on
+
   // ---------- local functions for this derived class ----------
   void f4Digit() {
     logger.log(CONFIG, INFO, "->->-> Clicked 4-DIGIT button.");
@@ -110,15 +120,6 @@ protected:
     e4DIGIT = 0,
     e6DIGIT,
   };
-  // clang-format off
-#define nButtonsDigits 2
-  FunctionButton myButtons[nButtonsDigits] = {
-      // label           visible rectangle        touch-target            text
-      // text            x,y              w,h       x,y       w,h  radius color  function
-      {"4-Digit", gxButton, yRow1 - 26, 140, 60, {130,  40, 180, 70}, 4, cVALUE, e4DIGIT},    // [e4DIGIT] set units English
-      {"6-Digit", gxButton, yRow3 - 26, 140, 60, {130, 110, 180, 70}, 4, cVALUE, e6DIGIT},   // [e6DIGIT] set units Metric
-  };
-  // clang-format on
 
 };   // end class ViewCfgCrossing
 
