@@ -75,13 +75,12 @@ protected:
 #define nTextCrossing 6
   TextField txtSettings[nTextCrossing] = {
       //  text             x, y       color
-      {"Announcements",   -1, gyTitle,cHIGHLIGHT, ALIGNCENTER},   // [SETTINGS]
-      {"Announce at",  gCol1, yRow1,  cVALUE},                    // [ANNOUNCE1]
-      {"grid crossing",gCol1, yRow2,  cVALUE},                    // [ANNOUNCE2]
-      {"70 - 100 mi", gxButton + 24,  yRow1 + 22, cVALUE},        // [DISTANCE4]
-      {"3 - 4 mi",    gxButton + 38,  yRow3 + 22, cVALUE},        // [DISTANCE6]
-      {PROGRAM_VERDATE,   -1, yRow9,  cLABEL, ALIGNCENTER},       // [COMPILED]
-      //{"3 of 6",      xPanel, 20,   cFAINT},                    // [PANEL]
+      {"Announcements",   -1, gyTitle,cHIGHLIGHT, ALIGNCENTER, eFONTSMALLEST},   // [SETTINGS]
+      {"Announce at",  gCol1, yRow1,  cVALUE},                                   // [ANNOUNCE1]
+      {"grid crossing",gCol1, yRow2,  cVALUE},                                   // [ANNOUNCE2]
+      {"70 - 100 mi", gxButton + 24,  yRow1 + 22, cVALUE},                       // [DISTANCE4]
+      {"3 - 4 mi",    gxButton + 38,  yRow3 + 22, cVALUE},                       // [DISTANCE6]
+      {PROGRAM_VERDATE,   -1, yRow9,  cFAINT,     ALIGNCENTER, eFONTSMALLEST},   // [COMPILED]
   };
   // clang-format on
 

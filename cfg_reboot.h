@@ -99,7 +99,7 @@ protected:
       {"This option starts bootloader mode.", -1, yRow2,  cLABEL, ALIGNCENTER, eFONTSMALLEST},       // [LINE1] centered
       {"Do you have a UF2 file?",           left, yRow3,  cVALUE, ALIGNLEFT,   eFONTSMALL},          // [LINE2]
       {"Do you want to install it?",        left, yRow4,  cVALUE, ALIGNLEFT,   eFONTSMALL},          // [LINE3]
-      {PROGRAM_VERDATE,                       -1, yRow9,  cLABEL, ALIGNCENTER},                      // [COMPILED]
+      {PROGRAM_VERDATE,                       -1, yRow9,  cFAINT, ALIGNCENTER, eFONTSMALLEST},       // [COMPILED]
   };
 
 enum buttonID {

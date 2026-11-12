@@ -76,10 +76,10 @@ protected:
   TextField txtSettings[nTextGPS] = {
       //  text                x, y       color
       {"GPS",                -1, gyTitle,cHIGHLIGHT, ALIGNCENTER, eFONTSMALLEST},   // [TITLE] centered
-      {"Breadcrumb trail",gCol1, yRow1,  cVALUE},                    // [TRAIL]
-      {"%d crumbs",       gCol1, yRow2,  cLABEL},                    // [TRAILCOUNT]
-      {"Route",           gCol1, yRow3,  cVALUE},                    // [GPSTYPE]
-      {PROGRAM_VERDATE,      -1, yRow9,  cLABEL, ALIGNCENTER},       // [COMPILED]
+      {"Breadcrumb trail",gCol1, yRow1,  cVALUE,     ALIGNLEFT,   eFONTSMALLEST},   // [TRAIL]
+      {"%d crumbs",       gCol1, yRow2,  cLABEL,     ALIGNLEFT,   eFONTSMALLEST},   // [TRAILCOUNT]
+      {"Route",           gCol1, yRow3,  cVALUE,     ALIGNLEFT,   eFONTSMALLEST},   // [GPSTYPE]
+      {PROGRAM_VERDATE,      -1, yRow9,  cFAINT,     ALIGNCENTER, eFONTSMALLEST},   // [COMPILED]
   };
   // clang-format on
 

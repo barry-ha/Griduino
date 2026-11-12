@@ -186,7 +186,7 @@ protected:
       {"Units",           -1, gyTitle, cHIGHLIGHT, ALIGNCENTER, eFONTSMALLEST},   // [TITLE] centered
       {"English",      gCol1, yRow1,   cVALUE},
       {"Metric",       gCol1, yRow2,   cVALUE},
-      {PROGRAM_VERDATE,   -1, yRow9,   cLABEL, ALIGNCENTER},
+      {PROGRAM_VERDATE,   -1, yRow9,   cFAINT,     ALIGNCENTER, eFONTSMALLEST},
   };
   // clang-format on
 

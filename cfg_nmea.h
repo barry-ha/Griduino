@@ -90,7 +90,7 @@ protected:
       {"positions",       gCol1, yRow2,  cVALUE},
       {"NMEA sentences are available",-1, yRow4, cFAINT, ALIGNCENTER},
       {"to a USB-attached computer",  -1, yRow5, cFAINT, ALIGNCENTER},
-      {PROGRAM_VERDATE,   -1, yRow9,     cLABEL, ALIGNCENTER},
+      {PROGRAM_VERDATE,      -1, yRow9,  cFAINT, ALIGNCENTER, eFONTSMALLEST},   // [COMPILED]
   };
   // clang-format on
 

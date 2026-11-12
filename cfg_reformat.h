@@ -80,7 +80,7 @@ protected:
       {"will be erased. If you need to reformat", labelX, yRow3,   cFAINT, ALIGNLEFT},
       {"often, please let us know at",            labelX, yRow4,   cFAINT, ALIGNLEFT},
       {"griduino@gmail.com",                      labelX, yRow5,   cFAINT, ALIGNLEFT},
-      {PROGRAM_VERDATE,                           -1,     yRow9,   cLABEL, ALIGNCENTER},
+      {PROGRAM_VERDATE,                           -1,     yRow9,   cFAINT, ALIGNCENTER, eFONTSMALLEST},
   };
   // clang-format on
 
@@ -180,13 +180,13 @@ protected:
   // clang-format off
 #define nTextFinal 7
   TextField txtFinal[nTextFinal] = {
-      {"Reformat Successful",                 -1,     yRow1, cTITLE, ALIGNCENTER,   eFONTSMALLEST},   // view title, centered
-      {"Be sure to re-install audio files",   labelX, yRow2, cHIGHLIGHT, ALIGNLEFT, eFONTSMALLEST},
-      {"if you want spoken word audio for",   labelX, yRow3, cHIGHLIGHT, ALIGNLEFT, eFONTSMALLEST},
-      {"grid lines.",                         labelX, yRow4, cHIGHLIGHT, ALIGNLEFT, eFONTSMALLEST},
-      {"See docs folder in",                  labelX, yRow5, cHIGHLIGHT, ALIGNLEFT, eFONTSMALLEST},
-      {"github.com/barry-ha/Griduino",        labelX, yRow6, cHIGHLIGHT, ALIGNLEFT, eFONTSMALLEST},
-      {PROGRAM_VERDATE,                       -1,     yRow9, cLABEL, ALIGNCENTER},
+      {"Reformat Successful",                 -1,     yRow1, cTITLE,     ALIGNCENTER, eFONTSMALLEST},   // view title, centered
+      {"Be sure to re-install audio files",   labelX, yRow2, cHIGHLIGHT, ALIGNLEFT,   eFONTSMALLEST},
+      {"if you want spoken word audio for",   labelX, yRow3, cHIGHLIGHT, ALIGNLEFT,   eFONTSMALLEST},
+      {"grid lines.",                         labelX, yRow4, cHIGHLIGHT, ALIGNLEFT,   eFONTSMALLEST},
+      {"See docs folder in",                  labelX, yRow5, cHIGHLIGHT, ALIGNLEFT,   eFONTSMALLEST},
+      {"github.com/barry-ha/Griduino",        labelX, yRow6, cHIGHLIGHT, ALIGNLEFT,   eFONTSMALLEST},
+      {PROGRAM_VERDATE,                       -1,     yRow9, cFAINT,     ALIGNCENTER, eFONTSMALLEST},
   };
   // clang-format on
 
