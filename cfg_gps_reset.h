@@ -136,6 +136,7 @@ void ViewCfgGpsReset::startScreen() {
   logger.log(SCREEN, DEBUG, "ViewCfgGpsReset::startScreen()");
   this->clearScreen(this->background);                  // clear screen
   txtStatic[0].setBackground(this->background);         // set background for all TextFields in this view
+  txtStatic[CONFIRMATION].color = cBACKGROUND;          // hide confirmation until RESTART is tapped on this visit
   TextField::setTextDirty(txtStatic, nRestartValues);   // make sure all fields get re-printed on screen change
 
   drawAllIcons();                                   // draw gear (settings) and arrow (next screen)
