@@ -62,7 +62,7 @@ protected:
 
   // names for the array indexes, must be named in same order as array below
   enum txtSettings {
-    SETTINGS = 0,
+    TITLE = 0,
     TRAIL,
     TRAILCOUNT,
     GPSTYPE,
@@ -74,7 +74,7 @@ protected:
   #define nTextGPS 5
   TextField txtSettings[nTextGPS] = {
       //  text                x, y      color
-      {"GPS",                -1, 20,    cHIGHLIGHT, ALIGNCENTER},   // [SETTINGS]
+      {"GPS",                -1, 20,    cHIGHLIGHT, ALIGNCENTER},   // [TITLE]
       {"Breadcrumb trail",gCol1, yRow1, cVALUE},                    // [TRAIL]
       {"%d crumbs",       gCol1, yRow2, cLABEL},                    // [TRAILCOUNT]
       {"Route",           gCol1, yRow3, cVALUE},                    // [GPSTYPE]
@@ -90,7 +90,7 @@ protected:
   };
   // clang-format off
   #define nButtonsGPS 3
-  FunctionButton settings2Buttons[nButtonsGPS] = {
+  FunctionButton myButtons[nButtonsGPS] = {
       // label              origin              size      touch-target
       // text                 x,y                w,h        x,y       w,h  radius  color   functionID
       {"Clear",        gxButton, yRow1 - 14,   130, 40,  {154, 58,  156,54}, 4, cVALUE, eCLEAR},       // [eCLEAR] Clear track history
@@ -137,7 +137,7 @@ void ViewCfgGPS::updateScreen() {
 
   // ----- show selected radio buttons by filling in the circle
   for (int ii = eRECEIVER; ii <= eSIMULATOR; ii++) {
-    FunctionButton item = settings2Buttons[ii];
+    FunctionButton item = myButtons[ii];
     int xCenter         = item.x - 16;
     int yCenter         = item.y + (item.h / 2);
     int buttonFillColor = cBACKGROUND;
@@ -161,7 +161,7 @@ void ViewCfgGPS::startScreen() {
 
   drawAllIcons();                                      // draw gear (settings) and arrow (next screen)
   showDefaultTouchTargets();                           // optionally draw box around default button-touch areas
-  showMyTouchTargets(settings2Buttons, nButtonsGPS);   // optionally show this view's touch targets
+  showMyTouchTargets(myButtons, nButtonsGPS);   // optionally show this view's touch targets
   showScreenBorder();                                  // optionally outline visible area
   showScreenCenterline();                              // optionally draw visual alignment bar
 
@@ -173,7 +173,7 @@ void ViewCfgGPS::startScreen() {
   // ----- draw buttons
   setFontSize(eFONTSMALLEST);
   for (int ii = 0; ii < nButtonsGPS; ii++) {
-    FunctionButton item = settings2Buttons[ii];
+    FunctionButton item = myButtons[ii];
     tft->fillRoundRect(item.x, item.y, item.w, item.h, item.radius, cBUTTONFILL);
     tft->drawRoundRect(item.x, item.y, item.w, item.h, item.radius, cBUTTONOUTLINE);
 
@@ -187,7 +187,7 @@ void ViewCfgGPS::startScreen() {
 
   // ----- draw outlines of radio buttons
   for (int ii = eRECEIVER; ii <= eSIMULATOR; ii++) {
-    FunctionButton item = settings2Buttons[ii];
+    FunctionButton item = myButtons[ii];
     int xCenter         = item.x - 16;
     int yCenter         = item.y + (item.h / 2);
 
@@ -206,7 +206,7 @@ bool ViewCfgGPS::onTouch(Point touch) {
   logger.log(CONFIG, INFO, "->->-> Touched settings screen.");
   bool handled = false;   // assume a touch target was not hit
   for (int ii = 0; ii < nButtonsGPS; ii++) {
-    FunctionButton item = settings2Buttons[ii];
+    FunctionButton item = myButtons[ii];
     if (item.hitTarget.contains(touch)) {
       handled = true;               // hit!
       switch (item.functionIndex)   // do the thing
