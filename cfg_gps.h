@@ -225,6 +225,7 @@ bool ViewCfgGPS::onTouch(Point touch) {
         break;
       }
     }
+    if (handled) break;   // don't check any more buttons if one was pressed
   }
   return handled;   // true=handled, false=controller uses default action
 }   // end onTouch()
