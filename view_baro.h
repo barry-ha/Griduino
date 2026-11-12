@@ -20,20 +20,20 @@
             It saves the readings in non-volatile memory and re-displays them on power-up.
             Its RTC (realtime clock) is updated from the GPS satellite network.
 
-            +-----------------------------------------+
-            | *  date        Baroduino          hh:mm |
-            |    #sat       29.97 inHg            ss  |
-            | 30.5 +--------------------------------+ | <- yTop
-            |      |          |          |          | |
-            |      |          |          |          | |
-            |      |          |          |          | |
-            | 30.0 +  -  -  - - - -  -  -  -  -  -  + | <- yMid
-            |      |          |          |          | |
-            |      |          |          |          | |
-            |      |          |          |   Today  | |
-            | 29.5 +--------------------------------+ | <- yBot
-            |         10/18       10/19      10/20    |
-            +------:----------:----------:----------:-+
+            +------------------------------------------+
+            | *  date         Baroduino          hh:mm |... gyTitle
+            |    #sat        29.97 inHg            ss  |
+            | 30.5 +---------------------------------+ | <- yTop
+            |      |           |          |          | |
+            |      |           |          |          | |
+            |      |           |          |          | |
+            | 30.0 + -  -  -  -  -  -  -  -  -  -  - + | <- yMid
+            |      |           |          |          | |
+            |      |           |          |          | |
+            |      |           |          |   Today  | |
+            | 29.5 +---------------------------------+ | <- yBot
+            |          10/18       10/19      10/20    |
+            +------:-----------:----------:----------:-+
                    xDay1      xDay2      xDay3      xRight
 
   Units of Time:
@@ -158,13 +158,13 @@ protected:
   // clang-format off
 #define numBaroFields 7
   TextField txtBaro[numBaroFields] = {
-      {"Baroduino", -1, 18,   cTITLE,        ALIGNCENTER,  eFONTSMALLEST},    // [eTitle] screen title, centered
-      {"01-02",    60, 18,     cWARN,          ALIGNLEFT,  eFONTSMALLEST},    // [eDate]
-      {"0#",       60, 36,     cWARN,          ALIGNLEFT,  eFONTSMALLEST},    // [eNumSat]
-      {"12:34",   276, 18,     cWARN,          ALIGNRIGHT, eFONTSMALLEST},    // [eTimeHHMM]
-      {"56",      276, 36,     cWARN,          ALIGNRIGHT, eFONTSMALLEST},    // [eTimeSS]
-      {"30.000",  162, 46, ILI9341_WHITE,      ALIGNRIGHT, eFONTSMALL},       // [valPressure]
-      {"inHg", 180, 46, ILI9341_WHITE, ALIGNLEFT, eFONTSMALL},      // [unitPressure]
+      {"Baroduino", -1, gyTitle, cTITLE,   ALIGNCENTER, eFONTSMALLEST},   // [eTitle] screen title, centered
+      {"01-02",     60, 18,      cWARN,    ALIGNLEFT,   eFONTSMALLEST},   // [eDate]
+      {"0#",        60, 36,      cWARN,    ALIGNLEFT,   eFONTSMALLEST},   // [eNumSat]
+      {"12:34",    276, 18,      cWARN,    ALIGNRIGHT,  eFONTSMALLEST},   // [eTimeHHMM]
+      {"56",       276, 36,      cWARN,    ALIGNRIGHT,  eFONTSMALLEST},   // [eTimeSS]
+      {"30.000",   162, 46, ILI9341_WHITE, ALIGNRIGHT,  eFONTSMALL},      // [valPressure]
+      {"inHg",     180, 46, ILI9341_WHITE, ALIGNLEFT,   eFONTSMALL},      // [unitPressure]
   };
   // clang-format on
 

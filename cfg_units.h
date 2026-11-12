@@ -10,16 +10,18 @@
             a smaller font and cram more stuff onto the screen.
 
             +-------------------------------------------+
-            |  *                Units                >  |
+            |  *                Units                >  |... gyTitle
             |                                           |
-            | Distance         (o)[ Miles, inHg     ]   |. . .yRow1
-            |                  ( )[ Kilometers, hPa ]   |. . .yRow2
-            |                                           |
-            |                                           |
+            | Distance         (o)[ Miles, inHg     ]   |... yRow1
+            |                  ( )[ Kilometers, hPa ]   |... yRow2
             |                                           |
             |                                           |
-            |       v1.15, compiled Jun 23 2025         |... yRow9
-            +-------------------------------------------+
+            |                                           |
+            |                                           |
+            | v1.15, Nov 10 2026                        |... yRow9
+            +----------------------:--------------------+
+                                   :
+                                   gxButton
 */
 
 #include "logger.h"      // conditional printing to Serial port
@@ -180,11 +182,11 @@ protected:
 
   // clang-format off
   TextField txtStatic[nTextUnits] = {
-      //  text             x, y      color
-      {"Units",           -1, 20,    cHIGHLIGHT, ALIGNCENTER},
-      {"English",      gCol1, yRow1, cVALUE},
-      {"Metric",       gCol1, yRow2, cVALUE},
-      {PROGRAM_VERDATE,   -1, yRow9, cLABEL, ALIGNCENTER},
+      //  text             x, y        color
+      {"Units",           -1, gyTitle, cHIGHLIGHT, ALIGNCENTER, eFONTSMALLEST},   // [TITLE] centered
+      {"English",      gCol1, yRow1,   cVALUE},
+      {"Metric",       gCol1, yRow2,   cVALUE},
+      {PROGRAM_VERDATE,   -1, yRow9,   cLABEL, ALIGNCENTER},
   };
   // clang-format on
 

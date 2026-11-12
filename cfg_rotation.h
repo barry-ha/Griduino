@@ -10,16 +10,18 @@
             a smaller font and cram more stuff onto the screen.
 
             +-------------------------------------------+
-            |  *              Rotation        /|\     > |
+            |  *              Rotation        /|\     > |... gyTitle
             | Screen                           |        |
-            | Orientation         (o)[ This edge up ]   |
+            | Orientation       (o)[ This edge up ]     |
             |                                           |
-            |                     ( )[ That edge up ]   |
+            |                   ( )[ That edge up ]     |
             |                                  |        |
             |                                  |        |
             |                                  |        |
             | v1.15, Nov 10 2026              \|/       |
-            +-------------------------------------------+
+            +----------------------:--------------------+
+                                   :
+                                   gxButton
 */
 
 #include "constants.h"   // Griduino constants and colors
@@ -60,11 +62,11 @@ protected:
   // clang-format off
 #define nFields 4
   TextField txtSettings[nFields] = {
-      //  text             x, y      color
-      {"Rotation",        -1, 20,    cHIGHLIGHT, ALIGNCENTER},
-      {"Screen",       gCol1, yRow1, cVALUE},
+      //  text             x, y       color
+      {"Rotation",        -1, gyTitle,cHIGHLIGHT, ALIGNCENTER, eFONTSMALLEST},   // [TITLE] centered
+      {"Screen",       gCol1, yRow1,  cVALUE},
       {"Orientation",  gCol1, yRow1 + 20, cVALUE},
-      {PROGRAM_VERSION,   -1, yRow9, cLABEL, ALIGNCENTER},
+      {PROGRAM_VERSION,   -1, yRow9,  cLABEL, ALIGNCENTER},
   };
   // clang-format on
 

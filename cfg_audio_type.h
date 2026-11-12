@@ -8,7 +8,7 @@
   Purpose:  This selects the audio output type: Morse code or speech.
 
             +-------------------------------------------+
-            |                Audio Type                 |
+            |                Audio Type                 |... gyTitle
             |                                           |
             | Announcements       (o)[ Morse code ]     |... yRow1
             |                                           |
@@ -17,7 +17,9 @@
             |                     ( )[ No audio ]       |... yRow3
             |                                           |
             | v1.15, Nov 10 2026                        |... yRow9
-            +-------------------------------------------+
+            +----------------------:--------------------+
+                                   :
+                                   gxButton
 */
 
 #include "constants.h"     // Griduino constants and colors

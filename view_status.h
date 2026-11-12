@@ -10,17 +10,17 @@
             how to interpret the bread crumb trail, and how far to
             to within a 6-digit grid square.
 
-            +-----------------------------------+
-            | *      Grid Size and Scale      > |...yRow1
-            |                                   |...yRow2 (unused)
-            |     Size CN87:  93 x 69 mi        |...yRow3
-            |   Size CN87us:  3.9 x 2.9 mi      |...yRow4
-            |                                   |
-            |   Scale:  1 pixel = 0.5 miles     |...yRow5
-            |                                   |
-            |    Jan 01, 2020  01:01:01  GMT    |...yRow7
-            +------------:--:-------------------+
-                    labelX  valueX
+            +-------------------------------------------+
+            | *          Grid Size and Scale          > |... gyTitle
+            |                                           |... yRow2 (unused)
+            |     Size CN87:  93 x 69 mi                |... yRow3
+            |   Size CN87us:  3.9 x 2.9 mi              |... yRow4
+            |                                           |
+            |         Scale:  1 pixel = 0.5 miles       |... yRow5
+            |                                           |
+            | v1.15, Nov 10 2026                        |... yRow9
+            +--------------:--:-------------------+
+                      labelX  valueX
 */
 
 #include "constants.h"     // Griduino constants and colors
@@ -63,7 +63,7 @@ protected:
   const int space = 30;
   const int half  = space / 2;
 
-  const int yRow1 = 18;
+  const int yRow1 = gyTitle;
   const int yRow2 = yRow1 + space;
   const int yRow3 = yRow2 + half;
   const int yRow4 = yRow3 + space;

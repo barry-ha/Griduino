@@ -10,19 +10,20 @@
             evaluate how sensitive and consistent any given GPS
             sensor is reporting satellites.
 
-            +-----------------------------------+
-            | *      GPS Satellite Count      > |...yRow1
-            |    +---------------------------+  |...yTop
-            |10+ |               X           |  |...yRow10  green
-            | 8  |        X      X      X    |  |...yRow8   green
-            | 6  | X      X      X      X    |  |...yRow6   green
-            | 4  | X      X      X      X    |  |...yRow4   yellow
-            | 2  | X      X      X      X    |  |...yRow2   yellow
-            | 0  | X      X      X      X    |  |...yRow0   red
-            |    +---------------------------+  |...yBot
-            |   19:10  19:15  19:20  19:25      |
-            +-:-::---------------------------:--+
-              : :xLeft                       xRight
+            +-------------------------------------------+
+            | *          GPS Satellite Count          > |... gyTitle
+            |                                           |
+            |    +-----------------------------------+  |... yTop
+            |10+ |               X                   |  |... yRow10  green
+            | 8  |        X      X      X            |  |... yRow8   green
+            | 6  | X      X      X      X      X     |  |... yRow6   green
+            | 4  | X      X      X      X      X     |  |... yRow4   yellow
+            | 2  | X      X      X      X      X     |  |... yRow2   yellow
+            | 0  | X      X      X      X      X     |  |... yRow0   red
+            |    +-----------------------------------+  |... yBot
+            |   19:10  19:15  19:20  19:25  19:30       |
+            +-:-::-----------------------------------:--+
+              : :xLeft                             xRight
          labelX valueX
 */
 
@@ -78,7 +79,7 @@ protected:
   const int space = 30;
   const int half  = space / 2;
 
-  const int yRow1  = 18;
+  const int yRow1  = gyTitle;
   const int yRow10 = yRow1 + space + 8;
   const int yRow8  = yRow10 + 25;
   const int yRow6  = yRow8 + 25;

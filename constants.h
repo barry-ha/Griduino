@@ -24,10 +24,11 @@
 
 #define gBoxWidth  180   // grid square width as shown on display, pixels
 #define gBoxHeight 160   // grid square height as shown on display, pixels
-#define gMarginX   70    // define space for grid outline on screen
-#define gMarginY   26    // and position text relative to this outline
-#define gCol1      10    // starting column of all leftmost screen text
-#define gxButton  160    // indented column of all buttons on config screens
+#define gMarginX    70   // define space for grid outline on screen
+#define gMarginY    26   // and position text relative to this outline
+#define gCol1       10   // starting column of all leftmost screen text
+#define gxButton   160   // indented column of all buttons on config screens
+#define gyTitle     18   // row for title text on all screens
 
 // ------- Physical constants ---------
 const float gridWidthDegrees  = 2.0;   // horiz E-W size of one grid square, degrees

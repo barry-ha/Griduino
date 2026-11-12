@@ -10,21 +10,21 @@
             As such, the only thing it does is set the DS1804 digital potentiometer.
             It has nothing to do with the DAC, audio files, Morse code speed/pitch, or other playback attributes.
 
-            +---------------------------------+
-            | *        Settings 1           > |
-            |         Audio Volume            |
-            |                                 |
-            |  +---+---+---+---+---+---+---+  |
-            |  |###|###|###|   |   |   |   |  |
-            |  +---+---+---+---+---+---+---+  |
-            |  +------+             +------+  |
-            |  | Down |             |  Up  |  |
-            |  +------+             +------+  |
-            |                                 |
-            |            +------+             |
-            |            | Mute |             |
-            |            +------+             |
-            +------+---------------+----------+
+            +-------------------------------------------+
+            | *              Audio Volume             > |... gyTitle
+            |                                           |
+            |                                           |
+            |  +---+---+---+---+---+---+---+---+---+    |
+            |  |###|###|###|   |   |   |   |   |   |    |
+            |  +---+---+---+---+---+---+---+---+---+    |
+            |  +--------+                 +--------+    |
+            |  |  Down  |                 |   Up   |    |
+            |  +--------+                 +--------+    |
+            |                                           |
+            |                +--------+                 |
+            |                |  Mute  |                 |
+            |                +--------+                 |
+            +-------------------------------------------+
 
 */
 
@@ -72,12 +72,14 @@ const int numVolFields = sizeof(txtVolume2) / sizeof(TextField);
 
 const int margin     = 10;   // slight margin between button border and edge of screen
 const int radius     = 10;   // rounded corners
+  // clang-format off
 Button volButtons2[] = {
-    // text     x,y        w,h        r      color
-    {"", 38, 76, 136, 72, radius, cBUTTONLABEL, volUp2},          // Up
-    {"", 38, 156, 136, 72, radius, cBUTTONLABEL, volDown2},       // Down
-    {"Mute", 208, 116, 90, 68, radius, cBUTTONLABEL, volMute2},   // Mute
+    // text    x,y       w,h       r     color
+    {"",      38, 76,  136, 72, radius, cBUTTONLABEL, volUp2},     // Up
+    {"",      38, 156, 136, 72, radius, cBUTTONLABEL, volDown2},   // Down
+    {"Mute", 208, 116,  90, 68, radius, cBUTTONLABEL, volMute2},   // Mute
 };
+  // clang-format on
 const int nVolButtons = sizeof(volButtons2) / sizeof(Button);
 int volLevel2[11]     = {
     // Digital potentiometer settings, about 2 dB steps = ratio 1.585

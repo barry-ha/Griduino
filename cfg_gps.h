@@ -6,13 +6,11 @@
   Hardware: John Vanderbeck, KM7O, Seattle, WA
 
   Purpose:  This is the 'control panel' for one-time Griduino setup.
-            Since it's not intended for a driver in motion, we can use
-            a smaller font and cram more stuff onto the screen.
 
             +-------------------------------------------+
-            |                4. GPS                     |
+            |  *               GPS                   >  |... gyTitle
             |                                           |
-            | Breadcrumb trail     [ Clear ]            |
+            | Breadcrumb trail     [ Clear ]            |... yRow1
             | 123 of 6000                               |
             |                                           |
             | Route             (o)[ GPS Receiver ]     |
@@ -20,7 +18,9 @@
             |                                           |
             |                                           |
             | v1.15, Nov 10 2026                        |... yRow9
-            +-------------------------------------------+
+            +----------------------:--------------------+
+                                   :
+                                   gxButton
 */
 
 #include "constants.h"           // Griduino constants and colors
@@ -60,6 +60,7 @@ protected:
   const int yRow4 = yRow3 + 48;           //                     "Simulator"
   const int yRow9 = gScreenHeight - 10;   // "v1.14, Jan 22 2024"
 
+  // ----- screen text
   // names for the array indexes, must be named in same order as array below
   enum txtSettings {
     TITLE = 0,
@@ -73,12 +74,12 @@ protected:
   // clang-format off
   #define nTextGPS 5
   TextField txtSettings[nTextGPS] = {
-      //  text                x, y      color
-      {"GPS",                -1, 20,    cHIGHLIGHT, ALIGNCENTER},   // [TITLE]
-      {"Breadcrumb trail",gCol1, yRow1, cVALUE},                    // [TRAIL]
-      {"%d crumbs",       gCol1, yRow2, cLABEL},                    // [TRAILCOUNT]
-      {"Route",           gCol1, yRow3, cVALUE},                    // [GPSTYPE]
-      {PROGRAM_VERDATE,      -1, yRow9, cLABEL, ALIGNCENTER},       // [COMPILED]
+      //  text                x, y       color
+      {"GPS",                -1, gyTitle,cHIGHLIGHT, ALIGNCENTER, eFONTSMALLEST},   // [TITLE] centered
+      {"Breadcrumb trail",gCol1, yRow1,  cVALUE},                    // [TRAIL]
+      {"%d crumbs",       gCol1, yRow2,  cLABEL},                    // [TRAILCOUNT]
+      {"Route",           gCol1, yRow3,  cVALUE},                    // [GPSTYPE]
+      {PROGRAM_VERDATE,      -1, yRow9,  cLABEL, ALIGNCENTER},       // [COMPILED]
   };
   // clang-format on
 

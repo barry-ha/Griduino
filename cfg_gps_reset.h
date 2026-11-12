@@ -10,7 +10,7 @@
             the GPS is completely reset to as-shipped condition.
 
             +-------------------------------------------+
-            |  *          GPS Cold Restart           >  |... yRow1
+            |  *          GPS Cold Restart           >  |... gyTitle
             |                                           |
             |    If your GPS receives no satellites     |... yRow2
             |    for hours, this action might help.     |... yRow3
@@ -88,12 +88,12 @@ protected:
 #define nRestartValues 6
   TextField txtStatic[nRestartValues] = {
       //  text                                      x, y      color
-      {"GPS Cold Start",                           -1, 20,    cHIGHLIGHT, ALIGNCENTER, eFONTSMALLEST},   // [TITLE] centered
-      {"If your GPS receives no satellites",       -1, yRow2, cFAINT,     ALIGNCENTER, eFONTSMALLEST},   // [LINE1]
-      {"for hours, this action might help.",       -1, yRow3, cFAINT,     ALIGNCENTER, eFONTSMALLEST},   // [LINE2]
-      {"n#",                        (gScreenWidth-32), yBtnText, cLABEL,  ALIGNRIGHT,  eFONTSMALLEST},   // [NUMSATS]
-      {"Restarting! Please power cycle Griduino.", -1, yRow8, cBACKGROUND, ALIGNCENTER,eFONTSMALLEST},   // [CONFIRMATION]
-      {PROGRAM_VERDATE,                            -1, yRow9, cFAINT,     ALIGNCENTER, eFONTSMALLEST},   // [COMPILED]
+      {"GPS Cold Start",                           -1, gyTitle,cHIGHLIGHT, ALIGNCENTER, eFONTSMALLEST},   // [TITLE] centered
+      {"If your GPS receives no satellites",       -1, yRow2, cFAINT,      ALIGNCENTER, eFONTSMALLEST},   // [LINE1]
+      {"for hours, this action might help.",       -1, yRow3, cFAINT,      ALIGNCENTER, eFONTSMALLEST},   // [LINE2]
+      {"n#",                        (gScreenWidth-32), yBtnText, cLABEL,   ALIGNRIGHT,  eFONTSMALLEST},   // [NUMSATS]
+      {"Restarting! Please power cycle Griduino.", -1, yRow8, cBACKGROUND, ALIGNCENTER, eFONTSMALLEST},   // [CONFIRMATION]
+      {PROGRAM_VERDATE,                            -1, yRow9, cFAINT,      ALIGNCENTER, eFONTSMALLEST},   // [COMPILED]
   };
 
 enum buttonID {

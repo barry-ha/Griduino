@@ -30,22 +30,22 @@
 
   Inspired by: https://days.to/groundhog-day/2020
 
-            +-----------------------------------------+
-            | *        How many days since          > |
-            |       Sunday, February 2, 2020          |
-            |            Groundhog Day                |
-            |                                         |
-            |           NNNNN NNNNN NNNNN             |
-            |           NNNNN NNNNN NNNNN             |
-            |           NNNNN NNNNN NNNNN             |
-            |           NNNNN NNNNN NNNNN             |
-            |                                         |
-            |            HH    MM    SS               |
-            |           hours  min   sec              |
-            |                                         |
-            |               Today is                  |
-            | -7h          Oct 2, 2020             6# |
-            +-----------------------------------------+
+            +-------------------------------------------+
+            | *          How many days since          > |... gyTitle
+            |         Sunday, February 2, 2020          |
+            |              Groundhog Day                |
+            |                                           |
+            |             NNNNN NNNNN NNNNN             |
+            |             NNNNN NNNNN NNNNN             |
+            |             NNNNN NNNNN NNNNN             |
+            |             NNNNN NNNNN NNNNN             |
+            |                                           |
+            |              HH    MM    SS               |
+            |             hours  min   sec              |
+            |                                           |
+            |                 Today is                  |
+            | -7h            Oct 2, 2020             6# |
+            +----------------------:--------------------+
 
   Units of Time:
          This relies on "TimeLib.h" which uses "time_t" to represent time.
@@ -221,16 +221,16 @@ protected:
   // clang-format off
 #define numDateFields 9
   TextField txtDate[numDateFields] = {
-      // text          x,y    color       alignment    size
-      {"line1",       -1,  20, cTEXTCOLOR, ALIGNCENTER, eFONTSMALLEST},   // [TITLE1] program title, centered
-      {"line2",       -1,  44, cTEXTCOLOR, ALIGNCENTER, eFONTSMALLEST},   // [TITLE2]
-      {"line3",       -1,  86, cVALUE,     ALIGNCENTER, eFONTSMALL},      // [TITLE3]
-      {"nnn",         -1, 152, cVALUE,     ALIGNCENTER, eFONTGIANT},      // [COUNTDAYS] counted number of days
-      {"01:02:03",    -1, 182, cVALUEFAINT,ALIGNCENTER, eFONTSMALLEST},   // [COUNTTIME] counted number of hms
-      {"MMM dd, yyyy",66, 230, cFAINT,     ALIGNLEFT,   eFONTSMALLEST},   // [LOCALDATE] Local date
-      {"hh:mm:ss",   178, 230, cFAINT,     ALIGNLEFT,   eFONTSMALLEST},   // [LOCALTIME] Local time
-      {"-7h",          8, 230, cFAINT,     ALIGNLEFT,   eFONTSMALLEST},   // [TIMEZONE]  addHours time zone
-      {"6#",         308, 230, cFAINT,     ALIGNRIGHT,  eFONTSMALLEST},   // [NUMSATS]   numSats
+      // text          x,y        color       alignment    size
+      {"line1",       -1,gyTitle, cTEXTCOLOR, ALIGNCENTER, eFONTSMALLEST},   // [TITLE1] program title, centered
+      {"line2",       -1,  44,    cTEXTCOLOR, ALIGNCENTER, eFONTSMALLEST},   // [TITLE2]
+      {"line3",       -1,  86,    cVALUE,     ALIGNCENTER, eFONTSMALL},      // [TITLE3]
+      {"nnn",         -1, 152,    cVALUE,     ALIGNCENTER, eFONTGIANT},      // [COUNTDAYS] counted number of days
+      {"01:02:03",    -1, 182,    cVALUEFAINT,ALIGNCENTER, eFONTSMALLEST},   // [COUNTTIME] counted number of hms
+      {"MMM dd, yyyy",66, 230,    cFAINT,     ALIGNLEFT,   eFONTSMALLEST},   // [LOCALDATE] Local date
+      {"hh:mm:ss",   178, 230,    cFAINT,     ALIGNLEFT,   eFONTSMALLEST},   // [LOCALTIME] Local time
+      {"-7h",          8, 230,    cFAINT,     ALIGNLEFT,   eFONTSMALLEST},   // [TIMEZONE]  addHours time zone
+      {"6#",         308, 230,    cFAINT,     ALIGNRIGHT,  eFONTSMALLEST},   // [NUMSATS]   numSats
   };
   // clang-format on
 

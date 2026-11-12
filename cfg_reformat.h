@@ -8,20 +8,20 @@
   Purpose:  Factory reset the flash memory.
             This is useful to recover from a fatal memory error.
 
-            +--------------------------------------------+
-            |            Flash Memory Error              |...yRow1
-            |                                            |
-            |   All settings, logs, trails and audio     |...yRow2
-            |   files will be erased. If you need to     |...yRow3
-            |   reformat frequently, please let us       |...yrow4
-            |   know at griduino@gmail.com               |...yRow5
-            |                                            |
-            |               +------------+               |...yButtonUL
-            |               |  Reformat  |               |
-            |               +------------+               |
-            |                                            |
-            |        Program v1.14.4, Dec 3 2024         |...yRow9
-            +---:-----------:------------:---------------+
+            +-------------------------------------------+
+            |            Flash Memory Error             |... gyTitle
+            |                                           |
+            |   All settings, logs, trails and audio    |... yRow2
+            |   files will be erased. If you need to    |... yRow3
+            |   reformat frequently, please let us      |... yrow4
+            |   know at griduino@gmail.com              |... yRow5
+            |                                           |
+            |               +------------+              |... yButtonUL
+            |               |  Reformat  |              |
+            |               +------------+              |
+            |                                           |
+            |        Program v1.14.4, Dec 3 2024        |... yRow9
+            +---:-----------:------------:--------------+
             xLeft    xButtonUL
 */
 
@@ -75,12 +75,12 @@ protected:
   // clang-format off
 #define nTextReformat 6
   TextField txtStatic[nTextReformat] = {
-      {"Reformat Flash Memory",                   -1,     yRow1, cTITLE, ALIGNCENTER},   // view title, centered
-      {"All settings, logs, and audio files",     labelX, yRow2, cFAINT, ALIGNLEFT},
-      {"will be erased. If you need to reformat", labelX, yRow3, cFAINT, ALIGNLEFT},
-      {"often, please let us know at",            labelX, yRow4, cFAINT, ALIGNLEFT},
-      {"griduino@gmail.com",                      labelX, yRow5, cFAINT, ALIGNLEFT},
-      {PROGRAM_VERDATE,                           -1,     yRow9, cLABEL, ALIGNCENTER},
+      {"Reformat Flash Memory",                   -1,     gyTitle, cTITLE, ALIGNCENTER},   // [TITLE] centered
+      {"All settings, logs, and audio files",     labelX, yRow2,   cFAINT, ALIGNLEFT},
+      {"will be erased. If you need to reformat", labelX, yRow3,   cFAINT, ALIGNLEFT},
+      {"often, please let us know at",            labelX, yRow4,   cFAINT, ALIGNLEFT},
+      {"griduino@gmail.com",                      labelX, yRow5,   cFAINT, ALIGNLEFT},
+      {PROGRAM_VERDATE,                           -1,     yRow9,   cLABEL, ALIGNCENTER},
   };
   // clang-format on
 

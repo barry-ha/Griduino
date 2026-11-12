@@ -10,15 +10,15 @@
             the 'enter' time of the next grid.
 
             +-------------------------------------------+
-            |  *         Grid Crossing Log            > |...yRow1
-            |                                           |...yRow2 (unused)
-            | Grid   Enter         Exit                 |...yRow3
-            | CN77   7/25 1234z    -                    |...yRow4
-            | CN88   7/24 0813z    7/25 1234z  0d 13.7h |...yRow5
-            | CN98   7/20 1942z    7/24 1015z  4d 19.1h |...yRow6
-            | CN99   -             7/01 1234z           |...yRow7
+            |  *         Grid Crossing Log            > |... gyTitle
+            |                                           |... yRow2 (unused)
+            | Grid   Enter         Exit                 |... yRow3
+            | CN77   7/25 1234z    -                    |... yRow4
+            | CN88   7/24 0813z    7/25 1234z  0d 13.7h |... yRow5
+            | CN98   7/20 1942z    7/24 1015z  4d 19.1h |... yRow6
+            | CN99   -             7/01 1234z           |... yRow7
             |                                           |
-            |      Aug 22, 2022  08:23:17 GMT           |...yRowBot
+            |      Aug 22, 2022  08:23:17 GMT           |... yRowBot
             +-------------------------------------------+
               :      :             :           :
               xGrid  xEnter        xExit       xDuration
@@ -165,7 +165,7 @@ protected:
   const int space = 27;
   const int half  = space / 2;
 
-  const int yRow1   = 18;
+  const int yRow1   = gyTitle;
   const int yRow2   = yRow1 + space;
   const int yRow3   = yRow2 + half;
   const int yRow4   = yRow3 + space;
@@ -202,46 +202,46 @@ protected:
   // ----- static + dynamic screen text
   // clang-format off
   TextField txtFields[nCrossingsFields] = {
-      {"Grid Crossing Log", -1, yRow1, cTITLE, ALIGNCENTER, eFONTSMALLEST},             // [TITLE] view title, centered
-      {"Grid",         xGrid, yRow3, cTEXTCOLOR, ALIGNLEFT, eFONTSMALLEST},           // [GRID]
+      {"Grid Crossing Log", -1, yRow1, cTITLE, ALIGNCENTER, eFONTSMALLEST},           // [TITLE] view title, centered
+      {"Grid",         xGrid,         yRow3, cTEXTCOLOR, ALIGNLEFT, eFONTSMALLEST},   // [GRID]
       {"Entered Grid", xEnterCL - 70, yRow3, cTEXTCOLOR, ALIGNLEFT, eFONTSMALLEST},   // [ENTER]
-      {"",             xExitCL - 28, yRow3, cTEXTCOLOR, ALIGNLEFT, eFONTSMALLEST},    // [EXIT] unused
+      {"",             xExitCL - 28,  yRow3, cTEXTCOLOR, ALIGNLEFT, eFONTSMALLEST},   // [EXIT] unused
       {"Time in Grid", xDuration + 2, yRow3, cTEXTCOLOR, ALIGNRIGHT, eFONTSMALLEST},  // [DURATION]
 
-      {"CN86",         xGrid, yRow4, cVALUE, ALIGNLEFT, eFONTSMALLEST},         // [GRID1]
+      {"CN86",         xGrid,      yRow4, cVALUE, ALIGNLEFT, eFONTSMALLEST},    // [GRID1]
       {"2-1-2022",     xEnterDate, yRow4, cVALUE, ALIGNRIGHT, eFONTSMALLEST},   // [DATE1IN]
       {"0822",         xEnterTime, yRow4, cVALUE, ALIGNLEFT, eFONTSMALLEST},    // [TIME1IN]
-      {"",             xExitDate, yRow4, cVALUE, ALIGNRIGHT, eFONTSMALLEST},    // [DATE1OUT] unused
-      {"",             xExitTime, yRow4, cVALUE, ALIGNLEFT, eFONTSMALLEST},     // [TIME1OUT] unused
-      {"30s",          xDuration, yRow4, cVALUE, ALIGNRIGHT, eFONTSMALLEST},    // [DURATION]
+      {"",             xExitDate,  yRow4, cVALUE, ALIGNRIGHT, eFONTSMALLEST},   // [DATE1OUT] unused
+      {"",             xExitTime,  yRow4, cVALUE, ALIGNLEFT, eFONTSMALLEST},    // [TIME1OUT] unused
+      {"30s",          xDuration,  yRow4, cVALUE, ALIGNRIGHT, eFONTSMALLEST},   // [DURATION]
 
-      {"CN85",         xGrid, yRow5, cVALUE, ALIGNLEFT, eFONTSMALLEST},         // [GRID2]
+      {"CN85",         xGrid,      yRow5, cVALUE, ALIGNLEFT, eFONTSMALLEST},    // [GRID2]
       {"1-31-2022",    xEnterDate, yRow5, cVALUE, ALIGNRIGHT, eFONTSMALLEST},   // dummy data
       {"0723",         xEnterTime, yRow5, cVALUE, ALIGNLEFT, eFONTSMALLEST},
-      {"",             xExitDate, yRow5, cVALUE, ALIGNRIGHT, eFONTSMALLEST},
-      {"",             xExitTime, yRow5, cVALUE, ALIGNLEFT, eFONTSMALLEST},
-      {"59m",          xDuration, yRow5, cVALUE, ALIGNRIGHT, eFONTSMALLEST},
+      {"",             xExitDate,  yRow5, cVALUE, ALIGNRIGHT, eFONTSMALLEST},
+      {"",             xExitTime,  yRow5, cVALUE, ALIGNLEFT, eFONTSMALLEST},
+      {"59m",          xDuration,  yRow5, cVALUE, ALIGNRIGHT, eFONTSMALLEST},
 
-      {"CN84",         xGrid, yRow6, cVALUE, ALIGNLEFT, eFONTSMALLEST},         // [GRID3]
+      {"CN84",         xGrid,      yRow6, cVALUE, ALIGNLEFT, eFONTSMALLEST},    // [GRID3]
       {"12-11-2011",   xEnterDate, yRow6, cVALUE, ALIGNRIGHT, eFONTSMALLEST},   // dummy data
       {"0823",         xEnterTime, yRow6, cVALUE, ALIGNLEFT, eFONTSMALLEST},
-      {"",             xExitDate, yRow6, cVALUE, ALIGNRIGHT, eFONTSMALLEST},
-      {"",             xExitTime, yRow6, cVALUE, ALIGNLEFT, eFONTSMALLEST},
-      {"47.9h",        xDuration, yRow6, cVALUE, ALIGNRIGHT, eFONTSMALLEST},
+      {"",             xExitDate,  yRow6, cVALUE, ALIGNRIGHT, eFONTSMALLEST},
+      {"",             xExitTime,  yRow6, cVALUE, ALIGNLEFT, eFONTSMALLEST},
+      {"47.9h",        xDuration,  yRow6, cVALUE, ALIGNRIGHT, eFONTSMALLEST},
 
-      {"CN83",         xGrid, yRow7, cVALUE, ALIGNLEFT, eFONTSMALLEST},         // [GRID4]
+      {"CN83",         xGrid,      yRow7, cVALUE, ALIGNLEFT, eFONTSMALLEST},    // [GRID4]
       {"12-55-2055",   xEnterDate, yRow7, cVALUE, ALIGNRIGHT, eFONTSMALLEST},   // dummy data
       {"0823",         xEnterTime, yRow7, cVALUE, ALIGNLEFT, eFONTSMALLEST},
-      {"",             xExitDate, yRow7, cVALUE, ALIGNRIGHT, eFONTSMALLEST},
-      {"",             xExitTime, yRow7, cVALUE, ALIGNLEFT, eFONTSMALLEST},
-      {"99.9d",        xDuration, yRow7, cVALUE, ALIGNRIGHT, eFONTSMALLEST},
+      {"",             xExitDate,  yRow7, cVALUE, ALIGNRIGHT, eFONTSMALLEST},
+      {"",             xExitTime,  yRow7, cVALUE, ALIGNLEFT, eFONTSMALLEST},
+      {"99.9d",        xDuration,  yRow7, cVALUE, ALIGNRIGHT, eFONTSMALLEST},
 
-      {"CN82",         xGrid, yRow8, cVALUE, ALIGNLEFT, eFONTSMALLEST},         // [GRID5]
+      {"CN82",         xGrid,      yRow8, cVALUE, ALIGNLEFT, eFONTSMALLEST},    // [GRID5]
       {"1-1-1111",     xEnterDate, yRow8, cVALUE, ALIGNRIGHT, eFONTSMALLEST},   // dummy data
       {"0111",         xEnterTime, yRow8, cVALUE, ALIGNLEFT, eFONTSMALLEST},
-      {"",             xExitDate, yRow8, cVALUE, ALIGNRIGHT, eFONTSMALLEST},
-      {"",             xExitTime, yRow8, cVALUE, ALIGNLEFT, eFONTSMALLEST},
-      {"999d",         xDuration, yRow8, cVALUE, ALIGNRIGHT, eFONTSMALLEST},
+      {"",             xExitDate,  yRow8, cVALUE, ALIGNRIGHT, eFONTSMALLEST},
+      {"",             xExitTime,  yRow8, cVALUE, ALIGNLEFT, eFONTSMALLEST},
+      {"999d",         xDuration,  yRow8, cVALUE, ALIGNRIGHT, eFONTSMALLEST},
 
       {"Jan 01, 2001", 130, yRowBot, cFAINT, ALIGNRIGHT, eFONTSMALLEST},   // [GMT_DATE]
       {"02:34:56",     148, yRowBot, cFAINT, ALIGNLEFT, eFONTSMALLEST},    // [GMT_TIME]

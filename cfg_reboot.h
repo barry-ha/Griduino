@@ -12,7 +12,7 @@
   Purpose:  Ask operator to confirm reboot.
 
             +-------------------------------------------+
-            |  *           Griduino Reboot           >  |... yRow1
+            |  *           Griduino Reboot           >  |... gyTitle
             |                                           |
             |  Use this option to update firmware.      |... yRow2
             |  Do you have a UF2 file?                  |... yRow3
@@ -24,7 +24,9 @@
             |  +=============+         +-------------+  |
             |                                           |
             | v1.15, Nov 10 2026                        |... yRow9
-            +-------------------------------------------+
+            +----------------------:--------------------+
+                                   :
+                                   gxButton
 */
 
 #include "constants.h"   // Griduino constants and colors
@@ -92,13 +94,12 @@ protected:
   // clang-format off
 #define nRebootValues 5
   TextField txtValues[nRebootValues] = {
-      //  text             x, y      color
-      {"7. Firmware Update",                  -1, yRow1, cHIGHLIGHT, ALIGNCENTER, eFONTSMALLEST},   // [TITLE] centered
-      {"This option starts bootloader mode.", -1, yRow2, cLABEL, ALIGNCENTER, eFONTSMALLEST},       // [LINE1] centered
-      {"Do you have a UF2 file?",           left, yRow3, cVALUE, ALIGNLEFT,   eFONTSMALL},          // [LINE2]
-      {"Do you want to install it?",        left, yRow4, cVALUE, ALIGNLEFT,   eFONTSMALL},          // [LINE3]
-      {PROGRAM_VERDATE,                       -1, yRow9, cLABEL, ALIGNCENTER},                      // [COMPILED]
-      //{"7 of 6",                          xPanel, 20,    cFAINT, ALIGNLEFT},                        // [PANEL]
+      //  text                                 x, y       color
+      {"Firmware Update",                     -1, gyTitle,cHIGHLIGHT, ALIGNCENTER, eFONTSMALLEST},   // [TITLE] centered
+      {"This option starts bootloader mode.", -1, yRow2,  cLABEL, ALIGNCENTER, eFONTSMALLEST},       // [LINE1] centered
+      {"Do you have a UF2 file?",           left, yRow3,  cVALUE, ALIGNLEFT,   eFONTSMALL},          // [LINE2]
+      {"Do you want to install it?",        left, yRow4,  cVALUE, ALIGNLEFT,   eFONTSMALL},          // [LINE3]
+      {PROGRAM_VERDATE,                       -1, yRow9,  cLABEL, ALIGNCENTER},                      // [COMPILED]
   };
 
 enum buttonID {

@@ -10,19 +10,20 @@
 
   Purpose:
 
-            +-----------------------------------------+
-            | *          Microwave Rover            > |
-            |             Ten Mile Alert              |
-            |    /---\                                |
-            |   /     \    00.00 miles                |
-    xCenter |  |   +   |         NNE                  |
-            |   \     /                               |
-            |    \---/                            +---|
-            |                                     | S |
-            |     Here:    CN87bb                 | E |
-            |     Start:   CN87aa                 | T |
-            |                                     +---|
-            +-----------------------------------------+
+            +-------------------------------------------+
+            |  *           Microwave Rover           >  |... gyTitle
+            |               Ten Mile Alert              |
+            |                                           |
+            |    /---\                                  |
+            |   /     \    00.00 miles                  |
+    xCenter |  |   +   |         NNE                    |
+            |   \     /                                 |
+            |    \---/                              +---|
+            |                                       | S |
+            |     Here:    CN87bb                   | E |
+            |     Start:   CN87aa                   | T |
+            |                                       +---|
+            +-------------------------------------------+
               :     :            : :
              gCol1  yCenter   col2 col3
 */
@@ -102,19 +103,19 @@ protected:
 
 #define nTextTenMileAlert 9
   TextField txtTenMileAlert[nTextTenMileAlert] = {
-      // text             x,y      color      align       font
-      {"Microwave Rover", -1, 18, cTITLE, ALIGNCENTER, eFONTSMALLEST},   // [eTitle1] centered
-      {"Ten Mile Alert", -1, 40, cTITLE, ALIGNCENTER, eFONTSMALLEST},    // [eTitle2] centered
-                                                                         //
-      {"12.34", col3 - 10, yRow3, cVALUE, ALIGNRIGHT, eFONTBIG},         // [eDistance]
-      {"miles", col3, yRow3, cVALUE, ALIGNLEFT, eFONTSMALL},             // [eUnits]
-      {"NNE", -1, yRow4, cVALUE, ALIGNCENTER, eFONTSMALL},               // [eDirectionName]
-                                                                         //
-      {"Here:",gCol1, yRow1, cLABEL, ALIGNLEFT, eFONTSMALL},             // [eCurrentLabel]
-      {"CN87vv", col2 - 14, yRow1, cTEXTCOLOR, ALIGNLEFT, eFONTBIG},     // [eCurrentValue]
-                                                                         //
-      {"Start:",gCol1, yRow2, cLABEL, ALIGNLEFT, eFONTSMALL},            // [eStartLabel]
-      {"CN87us", col2 - 14, yRow2, cFAINT, ALIGNLEFT, eFONTBIG},         // [eStartValue]
+      // text              x,y        color       align       font
+      {"Microwave Rover", -1,gyTitle, cTITLE,     ALIGNCENTER, eFONTSMALLEST},   // [eTitle1] centered
+      {"Ten Mile Alert",  -1, 40,     cTITLE,     ALIGNCENTER, eFONTSMALLEST},   // [eTitle2] centered
+                                                                                 //
+      {"12.34",    col3 - 10, yRow3,  cVALUE,     ALIGNRIGHT,  eFONTBIG},        // [eDistance]
+      {"miles",         col3, yRow3,  cVALUE,     ALIGNLEFT,   eFONTSMALL},      // [eUnits]
+      {"NNE",             -1, yRow4,  cVALUE,     ALIGNCENTER, eFONTSMALL},      // [eDirectionName]
+                                                                                 //
+      {"Here:",        gCol1, yRow1,  cLABEL,     ALIGNLEFT,   eFONTSMALL},      // [eCurrentLabel]
+      {"CN87vv",   col2 - 14, yRow1,  cTEXTCOLOR, ALIGNLEFT,   eFONTBIG},        // [eCurrentValue]
+                                                                                 //
+      {"Start:",       gCol1, yRow2,  cLABEL,     ALIGNLEFT,   eFONTSMALL},      // [eStartLabel]
+      {"CN87us",   col2 - 14, yRow2,  cFAINT,     ALIGNLEFT,   eFONTBIG},        // [eStartValue]
   };
 
   enum buttonID {

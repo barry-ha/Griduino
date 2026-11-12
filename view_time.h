@@ -21,21 +21,21 @@
             or dashboard. After all, once a rover arrives at a
             destination they no longer need grid square navigation.
 
-            +-----------------------------------------+
-            |            Griduino GMT Clock           |
-            |  HHHHH HHHH  :  MMMM MMMM  : SSSS SSSS  |
-            |  HHHHH HHHH  :  MMMM MMMM  : SSSS SSSS  |
-            |  HHHHH HHHH  :  MMMM MMMM  : SSSS SSSS  |
-            |  HHHHH HHHH  :  MMMM MMMM  : SSSS SSSS  |
-            |  HHHHH HHHH  :  MMMM MMMM  : SSSS SSSS  |
-            |                                         |
-            |         GMT Date: Dec 19, 2020          |
-            |                                         |
-            |         Internal Temp:  101.7 F         |
-            |                                         |
-            +-------+                         +-------+
-            | +1 hr |    Local: HH:MM:SS      | -1 hr |
-            +-------+-------------------------+-------+
+            +-------------------------------------------+
+            |             Griduino GMT Clock            |... gyTitle
+            |   HHHHH HHHH  :  MMMM MMMM  : SSSS SSSS   |
+            |   HHHHH HHHH  :  MMMM MMMM  : SSSS SSSS   |
+            |   HHHHH HHHH  :  MMMM MMMM  : SSSS SSSS   |
+            |   HHHHH HHHH  :  MMMM MMMM  : SSSS SSSS   |
+            |   HHHHH HHHH  :  MMMM MMMM  : SSSS SSSS   |
+            |                                           |
+            |          GMT Date: Dec 19, 2020           |
+            |                                           |
+            |          Internal Temp:  101.7 F          |
+            |                                           |
+            +-------+                           +-------+
+            | +1 hr |    Local: HH:MM:SS        | -1 hr |
+            +-------+---------------------------+-------+
 
 */
 
@@ -95,18 +95,18 @@ protected:
   // clang-format off
 #define numClockFields 11
   TextField txtClock[numClockFields] = {
-      // text            x,y      color       align       font
-      {"Griduino GMT", -1,  18,   cTITLE,  ALIGNCENTER, eFONTSMALLEST},   // [TITLE]   program title, centered
-      {"hh",           12,  94,   cVALUE,  ALIGNLEFT,   eFONTGIANT},      // [HOURS]     giant clock hours
-      {":",            94,  94,   cVALUE,  ALIGNLEFT,   eFONTGIANT},      // [COLON1]    :
-      {"mm",          120,  94,   cVALUE,  ALIGNLEFT,   eFONTGIANT},      // [MINUTES]   giant clock minutes
-      {":",           204,  94,   cVALUE,  ALIGNLEFT,   eFONTGIANT},      // [COLON2]    :
-      {"ss",          230,  94,   cVALUE,  ALIGNLEFT,   eFONTGIANT},      // [SECONDS]   giant clock seconds
-      {"MMM dd, yyyy", -1, 140,   cVALUE,  ALIGNCENTER, eFONTSMALL},      // [GMTDATE]   GMT date
-      {"",             -1, 174,   cVALUE,  ALIGNCENTER, eFONTSMALL},      // [DEGREES]   Temperature e.g. "12.3 F"
-      {"hh:mm:ss",    118, yRow9, cTEXTCOLOR,ALIGNLEFT, eFONTSMALL},      // [LOCALTIME] Local time
-      {"-7h",           8, yRow9, cFAINT,  ALIGNLEFT,   eFONTSMALLEST},   // [TIMEZONE]  addHours time zone
-      {"6#",          308, yRow9, cFAINT,  ALIGNRIGHT,  eFONTSMALLEST},   // [NUMSATS]   numSats
+      // text           x,y         color       align       font
+      {"Griduino GMT", -1, gyTitle, cTITLE,    ALIGNCENTER, eFONTSMALLEST},   // [TITLE]     program title, centered
+      {"hh",           12,  94,     cVALUE,    ALIGNLEFT,   eFONTGIANT},      // [HOURS]     giant clock hours
+      {":",            94,  94,     cVALUE,    ALIGNLEFT,   eFONTGIANT},      // [COLON1]    :
+      {"mm",          120,  94,     cVALUE,    ALIGNLEFT,   eFONTGIANT},      // [MINUTES]   giant clock minutes
+      {":",           204,  94,     cVALUE,    ALIGNLEFT,   eFONTGIANT},      // [COLON2]    :
+      {"ss",          230,  94,     cVALUE,    ALIGNLEFT,   eFONTGIANT},      // [SECONDS]   giant clock seconds
+      {"MMM dd, yyyy", -1, 140,     cVALUE,    ALIGNCENTER, eFONTSMALL},      // [GMTDATE]   GMT date
+      {"",             -1, 174,     cVALUE,    ALIGNCENTER, eFONTSMALL},      // [DEGREES]   Temperature e.g. "12.3 F"
+      {"hh:mm:ss",    118, yRow9,   cTEXTCOLOR,ALIGNLEFT,   eFONTSMALL},      // [LOCALTIME] Local time
+      {"-7h",           8, yRow9,   cFAINT,    ALIGNLEFT,   eFONTSMALLEST},   // [TIMEZONE]  addHours time zone
+      {"6#",          308, yRow9,   cFAINT,    ALIGNRIGHT,  eFONTSMALLEST},   // [NUMSATS]   numSats
   };
   // clang-format on
 

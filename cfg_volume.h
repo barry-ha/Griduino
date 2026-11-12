@@ -12,7 +12,7 @@
             or with other playback attributes.
 
             +-------------------------------------------+
-            |  *               Speaker               >  |
+            |  *               Speaker               >  |... gyTitle
             |                                           |
             |    33    Audio Volume                     |... yRow1
             |    33    of 10                            |... yRow2
@@ -24,6 +24,7 @@
             |       |     Down       |   +--------+     |
             |       |                |                  |
             +-------+----------------+------------------+
+
 */
 
 #include <DS1804.h>      // digital pot, Tom Dudman: https://github.com/tom-dudman/DS1804
@@ -72,9 +73,10 @@ protected:
   const int yRow2 = yRow1 + 30;           // text:  "of 10"
   const int yRow9 = gScreenHeight - 10;   // "v1.14, Jan 22 2024"
 
+  // ----- screen text
   // names for the array indexes, must be named in same order as array below
   enum txtSettings {
-    SETTINGS = 0,
+    TITLE = 0,
     BIGVOLUME,
     LINE1,
     LINE2,
@@ -85,13 +87,12 @@ protected:
   // clang-format off
 #define numVolFields 5
   TextField txtVolume[numVolFields] = {
-      //  text           x, y      color       alignment    size
-      {"Speaker",       -1, 20,    cHIGHLIGHT, ALIGNCENTER, eFONTSMALLEST},   // [SETTINGS]
-      {"0",             82, yRow2, cVALUE, ALIGNRIGHT,      eFONTGIANT},      // [BIGVOLUME] giant audio volume display
-      {"Audio Volume",  98, yRow1, cLABEL, ALIGNLEFT,       eFONTSMALL},      // [LINE1] normal size text labels
-      {"of 10",         98, yRow2, cLABEL, ALIGNLEFT,       eFONTSMALL},      // [LINE2]
-      {"  Mute",       216, 180,   cBUTTONLABEL, ALIGNLEFT, eFONTSMALL},      // [MUTELABEL] leading blanks to be on top of "Unmute"
-      //{"1 of 6",    xPanel, 20,    cFAINT},                                 // [PANEL]
+      //  text           x, y        color       alignment    size
+      {"Speaker",       -1, gyTitle, cHIGHLIGHT, ALIGNCENTER, eFONTSMALLEST},   // [TITLE] centered
+      {"0",             82, yRow2,   cVALUE, ALIGNRIGHT,      eFONTGIANT},      // [BIGVOLUME] giant audio volume display
+      {"Audio Volume",  98, yRow1,   cLABEL, ALIGNLEFT,       eFONTSMALL},      // [LINE1] normal size text labels
+      {"of 10",         98, yRow2,   cLABEL, ALIGNLEFT,       eFONTSMALL},      // [LINE2]
+      {"  Mute",       216, 180,     cBUTTONLABEL, ALIGNLEFT, eFONTSMALL},      // [MUTELABEL] leading blanks to be on top of "Unmute"
   };
   // clang-format on
 

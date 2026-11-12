@@ -10,17 +10,20 @@
             a smaller font and cram more stuff onto the screen.
 
             +-------------------------------------------+
-            |  *          NMEA Broadcasting          >  |
+            |  *          NMEA Broadcasting          >  |... gyTitle
             |                                           |
-            | Send GPS position   ( )[ Send NMEA ]      |... yRow1
+            | Send GPS position  ( )[ Send NMEA ]       |... yRow1
             | position to                               |... yRow2
-            | USB port:           (o)[ None      ]      |... yRow3
+            | USB port:          (o)[ None      ]       |... yRow3
             |                                           |
             | NMEA sentences can be used by             |... yRow4
             | a USB-attached computer.                  |... yRow5
             |                                           |
-            | v1.14, Feb 12 2024                        |... yRow9
-            +-------------------------------------------+
+            |                                           |
+            | v1.15, Nov 10 2026                        |... yRow9
+            +----------------------:--------------------+
+                                   :
+                                   gxButton
 */
 
 #include "constants.h"   // Griduino constants and colors
@@ -81,13 +84,13 @@ protected:
   // clang-format off
 #define nTextNMEA 6
   TextField txtStatic[nTextNMEA] = {
-      //  text                x, y      color
-      {"GPS NMEA Sentences", -1, 20,    cHIGHLIGHT, ALIGNCENTER},
-      {"Report GPS ",     gCol1, yRow1, cVALUE},
-      {"positions",       gCol1, yRow2, cVALUE},
-      {"NMEA sentences are available", -1, yRow4, cFAINT, ALIGNCENTER},
-      {"to a USB-attached computer",   -1, yRow5, cFAINT, ALIGNCENTER},
-      {PROGRAM_VERDATE,   -1, yRow9, cLABEL, ALIGNCENTER},
+      //  text                x, y       color
+      {"GPS NMEA Sentences", -1, gyTitle,cHIGHLIGHT, ALIGNCENTER, eFONTSMALLEST},   // [TITLE] centered
+      {"Report GPS ",     gCol1, yRow1,  cVALUE},
+      {"positions",       gCol1, yRow2,  cVALUE},
+      {"NMEA sentences are available",-1, yRow4, cFAINT, ALIGNCENTER},
+      {"to a USB-attached computer",  -1, yRow5, cFAINT, ALIGNCENTER},
+      {PROGRAM_VERDATE,   -1, yRow9,     cLABEL, ALIGNCENTER},
   };
   // clang-format on
 

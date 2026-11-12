@@ -19,11 +19,11 @@
             As much as possible, this module uses Pascals (not hPa).
 
             +-------------------------------------------+
-            | *               Altitude                  |
+            | *               Altitude               >  |... gyTitle
             |                                        +--+
             |                                       | S |
-            | Barometer:       17.8 feet            | y |. . .yRow1
-            | GPS (5#):       123.4 feet            | n |. . .yRow2
+            | Barometer:       17.8 feet            | y |... yRow1
+            | GPS (5#):       123.4 feet            | n |... yRow2
             |                                       | c |
             | Enter local sea level pressure        +--+|
             | Accuracy depends on your input            |
@@ -109,7 +109,7 @@ protected:
   // clang-format off
 #define nTextAltimeter 15
   TextField txtAltimeter[nTextAltimeter] = {
-      {"Altitude", -1, 18,    cTITLE,        ALIGNCENTER,  eFONTSMALLEST},   // [eTitle] screen title, centered
+      {"Altitude", -1,gyTitle, cTITLE,        ALIGNCENTER,  eFONTSMALLEST},   // [eTitle] screen title, centered
       {"mm-dd",    60, 18,     cWARN,          ALIGNLEFT,  eFONTSMALLEST},    // [eDate]
       {"0#",       60, 36,     cWARN,          ALIGNLEFT,  eFONTSMALLEST},    // [eNumSat]
       {"hh:mm",   276, 18,     cWARN,          ALIGNRIGHT, eFONTSMALLEST},    // [eTimeHHMM]

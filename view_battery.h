@@ -12,21 +12,21 @@
             yellow below 2.4 volts
             red below 1.8 volts
 
-            +-----------------------------------+
-            | *     Coin Battery Voltage      > |...yRow1
-            |   +---===---+ 3.5                 |...y35, yUR
-            |   |         |                     |
-            |   |         | 3.0                 |...y30
-            |   | ####### |           2.951     |...yVolts
-            |   | ####### | 2.5       volts     |...y25
-            |   | ####### |                     |
-            |   | ####### | 2.0                 |...y20
-            |   | ####### |                     |
-            |   +---------+ 1.5                 |...y15, yLR
-            |      CR2032                       |
-            |    Jan 01, 2020  01:01:01  GMT    |...yRow9
-            +---:---------:-:---------:---------+
-                xUL     xLR xV        xVolts
+            +-------------------------------------------+
+            | *         Coin Battery Voltage          > |... gyTitle
+            |      +---===---+ 3.5                      |... y35, yUR
+            |      |         |                          |
+            |      |         | 3.0                      |... y30
+            |      | ####### |           2.951          |... yVolts
+            |      | ####### | 2.5       volts          |... y25
+            |      | ####### |                          |
+            |      | ####### | 2.0                      |... y20
+            |      | ####### |                          |
+            |      +---------+ 1.5                      |... y15, yLR
+            |         CR2032                            |
+            | v1.15, Nov 10 2026                        |... yRow9
+            +----------------------------:--------------+
+                 xUL       xLR xV       xVolts
 */
 
 #include "constants.h"   // Griduino constants and colors
@@ -88,13 +88,13 @@ protected:
   // clang-format off
 #define nBatteryValues 7
   TextField txtValues[nBatteryValues] = {
-      {"Coin Battery Voltage",-1, yRow1, cTITLE,  ALIGNCENTER,  eFONTSMALLEST}, // [TITLE] view title, centered
-      {"CR2032",        66, 206,    cLABEL,  ALIGNLEFT,   eFONTSMALLEST},   // [CELL_TYPE]
-      {"2.591",     xVolts, yVolts, cVALUE,  ALIGNLEFT,   eFONTSMALL},      // [MEASUREMENT]
-      {"volts",     xVolts, yVolts+space, cVALUE, ALIGNLEFT, eFONTSMALL},   // [VOLTS]
-      {"Apr 26, 2021", 130, yRow9,  cFAINT,  ALIGNRIGHT,  eFONTSMALLEST},   // [GMT_DATE]
-      {"02:34:56",     148, yRow9,  cFAINT,  ALIGNLEFT,   eFONTSMALLEST},   // [GMT_TIME]
-      {"GMT",          232, yRow9,  cFAINT,  ALIGNLEFT,   eFONTSMALLEST},   // [GMT]
+      {"Coin Battery Voltage",-1, gyTitle,  cTITLE, ALIGNCENTER, eFONTSMALLEST},   // [TITLE] centered
+      {"CR2032",           66, 206,         cLABEL, ALIGNLEFT,   eFONTSMALLEST},   // [CELL_TYPE]
+      {"2.591",        xVolts, yVolts,      cVALUE, ALIGNLEFT,   eFONTSMALL},      // [MEASUREMENT]
+      {"volts",        xVolts, yVolts+space,cVALUE, ALIGNLEFT,   eFONTSMALL},      // [VOLTS]
+      {"Apr 26, 2021",    130, yRow9,       cFAINT, ALIGNRIGHT,  eFONTSMALLEST},   // [GMT_DATE]
+      {"02:34:56",        148, yRow9,       cFAINT, ALIGNLEFT,   eFONTSMALLEST},   // [GMT_TIME]
+      {"GMT",             232, yRow9,       cFAINT, ALIGNLEFT,   eFONTSMALLEST},   // [GMT]
   };
   // clang-format on
 
