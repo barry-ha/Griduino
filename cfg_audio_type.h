@@ -67,8 +67,9 @@ protected:
   const int yRow1 = 80;                   // "Announcements", "Morse code"
   const int yRow2 = yRow1 + 52;           //                  "Spoken word"
   const int yRow3 = yRow2 + 52;           //                  "No audio"
-  const int yRow9 = gScreenHeight - 10;   // "v1.14, Jan 22 2024"
+  const int yRow9 = gScreenHeight - 10;   // "v1.15, Nov 10 2026"
 
+  // ----- screen text
   // names for the array indexes, must be named in same order as array below
   enum txtSettings {
     SETTINGS = 0,
@@ -78,6 +79,7 @@ protected:
     //PANEL,
   };
 
+  // ----- static screen text
   // clang-format off
 #define nTxtSettings5 4
   TextField txtSettings[nTxtSettings5] = {
@@ -85,12 +87,9 @@ protected:
       {"Audio Type",      -1, 20,    cHIGHLIGHT, ALIGNCENTER},   // [SETTINGS]
       {"Announce",     gCol1, yRow1, cVALUE},                    // [ANNOUNCEMENTS]
       {"grids using:", gCol1, yRow1 + 20, cVALUE},               // [ANNOUNCEMENTS2]
-      {PROGRAM_VERDATE,   -1, yRow9, cLABEL, ALIGNCENTER},       // [COMPILED]
-      //{"2 of 6",      xPanel, 20,    cFAINT},                    // [PANEL]
+      {PROGRAM_VERDATE,   -1, yRow9, cFAINT, ALIGNCENTER, eFONTSMALLEST},       // [COMPILED]
   };
-  // clang-format on
 
-  // clang-format off
 #define nButtonsAudio 3
   FunctionButton myButtons[nButtonsAudio] = {
       // label              origin             size         touch-target

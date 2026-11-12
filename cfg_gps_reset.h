@@ -14,14 +14,14 @@
             |                                           |
             |    If your GPS receives no satellites     |... yRow2
             |    for hours, this action might help.     |... yRow3
-            |             +---------------+             |... yBtn
-            |             |               |             |
-            |             |  Restart GPS  |             |... yBtn
-            |             |               |             |
-            |             +---------------+             |
+            |            +----------------+             |... yBtn
+            |            |                |             |
+            |            | Cold Start GPS |    #sat     |... yBtn
+            |            |                |             |
+            |            +----------------+             |
             |             :                             |
             |  Done. Please power cycle Griduino.       |... yRow8 Confirmation
-            | v1.14, Feb 15 2024                        |... yRow9
+            | v1.15, Nov 10 2026                        |... yRow9
             +-------------:-----------------------------+
                           :
                           xBtn
@@ -64,7 +64,7 @@ protected:
   const int yRow3 = yRow2 + space;
   const int yBtn  = yRow3 + space;                // ul corner of big button
   const int yRow8 = gScreenHeight - 10 - space;   // Confirmation message
-  const int yRow9 = gScreenHeight - 10;           // "v1.14, Feb 15 2024"
+  const int yRow9 = gScreenHeight - 10;           // "v1.15, Nov 10 2026"
 
   // ----- screen text
   // names for the array indexes, must be named in same order as array below
@@ -77,10 +77,10 @@ protected:
     COMPILED,
   };
 
-  const int bWidth  = 320 / 2;
+  const int bWidth  = gScreenWidth / 2;
   const int bHeight = 64;
 
-  const int xBtn     = 320 / 4;
+  const int xBtn     = gScreenWidth / 4;
   const int yBtnText = yBtn + (bHeight / 2) + 6;   // vertically center text inside big button
 
   // ----- static screen text
@@ -91,7 +91,7 @@ protected:
       {"GPS Cold Start",                           -1, 20,    cHIGHLIGHT, ALIGNCENTER},                  // [TITLE]
       {"If your GPS receives no satellites",       -1, yRow2, cFAINT,     ALIGNCENTER, eFONTSMALLEST},   // [LINE1]
       {"for hours, this action might help.",       -1, yRow3, cFAINT,     ALIGNCENTER, eFONTSMALLEST},   // [LINE2]
-      {"n#",                                 (320-32), yBtnText, cLABEL,  ALIGNRIGHT},                   // [NUMSATS]
+      {"n#",                        (gScreenWidth-32), yBtnText, cLABEL,  ALIGNRIGHT},                   // [NUMSATS]
       {"Restarting! Please power cycle Griduino.", -1, yRow8, cBACKGROUND, ALIGNCENTER},                 // [CONFIRMATION]
       {PROGRAM_VERDATE,                            -1, yRow9, cFAINT,     ALIGNCENTER, eFONTSMALLEST},   // [COMPILED]
   };
@@ -101,9 +101,9 @@ enum buttonID {
 };
 #define nRestartButtons 1
   FunctionButton myButtons[nRestartButtons] = {
-    // label              origin         size        {   touch-target     }
-    // text                 x,y           w,h        {   x,y        w,h   }, radius, color,      functionID
-      {"Cold Start GPS", xBtn,yBtn, bWidth,bHeight, {180,yBtn,  140,110 }, radius, cBUTTONLABEL, eRESTART},
+    // label              origin        size        {     touch-target                 }
+    // text                 x,y          w,h        {     x,y              w,h         }, radius, color,      functionID
+      {"Cold Start GPS", xBtn,yBtn, bWidth,bHeight, {xBtn-4,yBtn-4, bWidth+8,bHeight+8 }, radius, cBUTTONLABEL, eRESTART},
   };
   // clang-format on
 
@@ -127,6 +127,7 @@ enum buttonID {
 // ============== implement public interface ================
 void ViewCfgGpsReset::updateScreen() {
   // called on every pass through main()
+
   // nothing to do in the main loop - this screen has no dynamic items
   drawNumSatellites();
 }   // end updateScreen
@@ -165,7 +166,10 @@ void ViewCfgGpsReset::startScreen() {
   }
 
   showProgressBar(8, NUM_SETTINGS_SCREENS);   // draw marker for advancing through settings
-  updateScreen();          // update UI immediately, don't wait for the main loop to eventually get around to it
+  showScreenBorder();       // optionally outline visible area
+  showScreenCenterline();   // optionally draw alignment bar
+
+  updateScreen();   // update UI immediately, don't wait for laggy mainline loop
 }   // end startScreen()
 
 bool ViewCfgGpsReset::onTouch(Point touch) {
