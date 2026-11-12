@@ -59,7 +59,7 @@ protected:
 
   // clang-format off
 #define nFields 4
-  TextField txtSettings6[nFields] = {
+  TextField txtSettings[nFields] = {
       //  text             x, y      color
       {"Rotation",        -1, 20,    cHIGHLIGHT, ALIGNCENTER},
       {"Screen",       gCol1, yRow1, cVALUE},
@@ -134,8 +134,8 @@ void ViewCfgRotation::startScreen() {
   // called once each time this view becomes active
   logger.log(SCREEN, DEBUG, "ViewCfgRotation::startScreen()");
   this->clearScreen(this->background);               // clear screen
-  txtSettings6[0].setBackground(this->background);   // set background for all TextFields in this view
-  TextField::setTextDirty(txtSettings6, nFields);    // make sure all fields get re-printed on screen change
+  txtSettings[0].setBackground(this->background);   // set background for all TextFields in this view
+  TextField::setTextDirty(txtSettings, nFields);    // make sure all fields get re-printed on screen change
 
   drawAllIcons();                            // draw gear (settings) and arrow (next screen)
   showDefaultTouchTargets();                 // optionally draw box around default button-touch areas
@@ -145,7 +145,7 @@ void ViewCfgRotation::startScreen() {
 
   // ----- draw text fields
   for (int ii = 0; ii < nFields; ii++) {
-    txtSettings6[ii].print();
+    txtSettings[ii].print();
   }
 
   // ----- draw buttons

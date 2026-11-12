@@ -61,7 +61,7 @@ protected:
   const int yRow9 = gScreenHeight - 10;   // "v1.14, Jan 22 2024"
 
   // names for the array indexes, must be named in same order as array below
-  enum txtSettings2 {
+  enum txtSettings {
     SETTINGS = 0,
     TRAIL,
     TRAILCOUNT,
@@ -72,7 +72,7 @@ protected:
 
   // clang-format off
   #define nTextGPS 5
-  TextField txtSettings2[nTextGPS] = {
+  TextField txtSettings[nTextGPS] = {
       //  text                x, y      color
       {"GPS",                -1, 20,    cHIGHLIGHT, ALIGNCENTER},   // [SETTINGS]
       {"Breadcrumb trail",gCol1, yRow1, cVALUE},                    // [TRAIL]
@@ -133,7 +133,7 @@ void ViewCfgGPS::updateScreen() {
   // ----- fill in replacement string text
   char temp[100];
   snprintf(temp, sizeof(temp), "%d of %d", trail.getHistoryCount(), trail.capacity);
-  txtSettings2[TRAILCOUNT].print(temp);
+  txtSettings[TRAILCOUNT].print(temp);
 
   // ----- show selected radio buttons by filling in the circle
   for (int ii = eRECEIVER; ii <= eSIMULATOR; ii++) {
@@ -155,8 +155,8 @@ void ViewCfgGPS::updateScreen() {
 void ViewCfgGPS::startScreen() {
   // called once each time this view becomes active
   this->clearScreen(this->background);               // clear screen
-  txtSettings2[0].setBackground(this->background);   // set background for all TextFields in this view
-  TextField::setTextDirty(txtSettings2, nTextGPS);   // make sure all fields get re-printed on screen change
+  txtSettings[0].setBackground(this->background);   // set background for all TextFields in this view
+  TextField::setTextDirty(txtSettings, nTextGPS);   // make sure all fields get re-printed on screen change
   setFontSize(eFONTSMALLEST);
 
   drawAllIcons();                                      // draw gear (settings) and arrow (next screen)
@@ -167,7 +167,7 @@ void ViewCfgGPS::startScreen() {
 
   // ----- draw text fields
   for (int ii = 0; ii < nTextGPS; ii++) {
-    txtSettings2[ii].print();
+    txtSettings[ii].print();
   }
 
   // ----- draw buttons

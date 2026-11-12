@@ -59,7 +59,7 @@ protected:
   const int yRow9 = gScreenHeight - 10;   // "v1.14, Jan 22 2024"
 
   // names for the array indexes, must be named in same order as array below
-  enum txtSettings4 {
+  enum txtSettings {
     SETTINGS = 0,
     ANNOUNCE1,
     ANNOUNCE2,
@@ -71,7 +71,7 @@ protected:
 
   // clang-format off
 #define nTextCrossing 6
-  TextField txtSettings4[nTextCrossing] = {
+  TextField txtSettings[nTextCrossing] = {
       //  text             x, y      color
       {"Announcements",   -1, 20,    cHIGHLIGHT, ALIGNCENTER},   // [SETTINGS]
       {"Announce at",  gCol1, yRow1, cVALUE},                    // [ANNOUNCE1]
@@ -146,10 +146,10 @@ void ViewCfgCrossing::updateScreen() {
 void ViewCfgCrossing::startScreen() {
   // called once each time this view becomes active
   this->clearScreen(this->background);                    // clear screen
-  txtSettings4[0].setBackground(this->background);        // set background for all TextFields in this view
-  txtSettings4[DISTANCE4].setBackground(cBUTTONFILL);     // change background for text on top of buttons
-  txtSettings4[DISTANCE6].setBackground(cBUTTONFILL);     // change background for text on top of buttons
-  TextField::setTextDirty(txtSettings4, nTextCrossing);   // make sure all fields get re-printed on screen change
+  txtSettings[0].setBackground(this->background);        // set background for all TextFields in this view
+  txtSettings[DISTANCE4].setBackground(cBUTTONFILL);     // change background for text on top of buttons
+  txtSettings[DISTANCE6].setBackground(cBUTTONFILL);     // change background for text on top of buttons
+  TextField::setTextDirty(txtSettings, nTextCrossing);   // make sure all fields get re-printed on screen change
 
   drawAllIcons();                                  // draw gear (settings) and arrow (next screen)
   showDefaultTouchTargets();                       // optionally draw box around default button-touch areas
@@ -186,7 +186,7 @@ void ViewCfgCrossing::startScreen() {
 
   // ----- draw text fields
   for (int ii = 0; ii < nTextCrossing; ii++) {
-    txtSettings4[ii].print();
+    txtSettings[ii].print();
   }
 
   showProgressBar(3, NUM_SETTINGS_SCREENS);    // announce at 4- or 6-digit grid lines

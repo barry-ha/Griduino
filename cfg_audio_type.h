@@ -70,7 +70,7 @@ protected:
   const int yRow9 = gScreenHeight - 10;   // "v1.14, Jan 22 2024"
 
   // names for the array indexes, must be named in same order as array below
-  enum txtSettings5 {
+  enum txtSettings {
     SETTINGS = 0,
     ANNOUNCEMENTS,
     ANNOUNCEMENTS2,
@@ -80,7 +80,7 @@ protected:
 
   // clang-format off
 #define nTxtSettings5 4
-  TextField txtSettings5[nTxtSettings5] = {
+  TextField txtSettings[nTxtSettings5] = {
       //  text             x, y      color
       {"Audio Type",      -1, 20,    cHIGHLIGHT, ALIGNCENTER},   // [SETTINGS]
       {"Announce",     gCol1, yRow1, cVALUE},                    // [ANNOUNCEMENTS]
@@ -150,8 +150,8 @@ void ViewCfgAudioType::updateScreen() {
 void ViewCfgAudioType::startScreen() {
   // called once each time this view becomes active
   this->clearScreen(this->background);                    // clear screen
-  txtSettings5[0].setBackground(this->background);        // set background for all TextFields in this view
-  TextField::setTextDirty(txtSettings5, nTxtSettings5);   // make sure all fields get re-printed on screen change
+  txtSettings[0].setBackground(this->background);        // set background for all TextFields in this view
+  TextField::setTextDirty(txtSettings, nTxtSettings5);   // make sure all fields get re-printed on screen change
 
   drawAllIcons();                                 // draw gear (settings) and arrow (next screen)
   showDefaultTouchTargets();                      // optionally draw box around default button-touch areas
@@ -187,7 +187,7 @@ void ViewCfgAudioType::startScreen() {
 
   // ----- draw text fields
   for (int ii = 0; ii < nTxtSettings5; ii++) {
-    txtSettings5[ii].print();
+    txtSettings[ii].print();
   }
 
   showProgressBar(2, NUM_SETTINGS_SCREENS);    // draw marker for advancing through settings
