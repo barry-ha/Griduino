@@ -199,12 +199,11 @@ void ViewCfgCrossing::startScreen() {
 
 bool ViewCfgCrossing::onTouch(Point touch) {
   logger.log(CONFIG, INFO, "->->-> Touched settings screen.");
-  bool handled = false;   // assume a touch target was not hit
   for (int ii = 0; ii < nButtonsDigits; ii++) {
-    FunctionButton item = myButtons[ii];
+    const FunctionButton &item = myButtons[ii];
     if (item.hitTarget.contains(touch)) {
-      handled = true;               // hit!
-      switch (item.functionIndex)   // do the thing
+      bool wasCompare4digits = model->compare4digits;   // remember setting to detect a change
+      switch (item.functionIndex)                       // do the thing
       {
       case e4DIGIT:
         f4Digit();
@@ -216,10 +215,13 @@ bool ViewCfgCrossing::onTouch(Point touch) {
         logger.log(CONFIG, ERROR, "unknown function %d", item.functionIndex);
         break;
       }
-      this->saveConfig();   // after UI is updated, save setting to nvr
+      if (model->compare4digits != wasCompare4digits) {
+        this->saveConfig();   // after UI is updated, save setting to nvr (slow, so only when changed)
+      }
+      return true;   // hit! stop here so a touch on the edge between targets fires only one button
     }
   }
-  return handled;   // true=handled, false=controller uses default action
+  return false;   // true=handled, false=controller uses default action
 }   // end onTouch()
 
 // ========== load/save config setting =========================
