@@ -73,7 +73,7 @@ protected:
 
   // ----- screen text
   // names for the array indexes, must be named in same order as array below
-  enum txtSettings {
+  enum eSettings {
     SETTINGS = 0,
     ANNOUNCEMENTS,
     ANNOUNCEMENTS2,

@@ -62,13 +62,12 @@ protected:
 
   // ----- screen text
   // names for the array indexes, must be named in same order as array below
-  enum txtSettings {
+  enum eSettings {
     TITLE = 0,
     TRAIL,
     TRAILCOUNT,
     GPSTYPE,
     COMPILED,
-    PANEL,
   };
 
   // clang-format off

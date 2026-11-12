@@ -61,7 +61,7 @@ protected:
   const int yRow9 = gScreenHeight - 10;   // "v1.14, Jan 22 2024"
 
   // names for the array indexes, must be named in same order as array below
-  enum txtSettings {
+  enum eSettings {
     SETTINGS = 0,
     ANNOUNCE1,
     ANNOUNCE2,
