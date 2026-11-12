@@ -88,11 +88,11 @@ protected:
 #define nRestartValues 6
   TextField txtStatic[nRestartValues] = {
       //  text                                      x, y      color
-      {"GPS Cold Start",                           -1, 20,    cHIGHLIGHT, ALIGNCENTER},                  // [TITLE]
+      {"GPS Cold Start",                           -1, 20,    cHIGHLIGHT, ALIGNCENTER, eFONTSMALLEST},   // [TITLE] centered
       {"If your GPS receives no satellites",       -1, yRow2, cFAINT,     ALIGNCENTER, eFONTSMALLEST},   // [LINE1]
       {"for hours, this action might help.",       -1, yRow3, cFAINT,     ALIGNCENTER, eFONTSMALLEST},   // [LINE2]
-      {"n#",                        (gScreenWidth-32), yBtnText, cLABEL,  ALIGNRIGHT},                   // [NUMSATS]
-      {"Restarting! Please power cycle Griduino.", -1, yRow8, cBACKGROUND, ALIGNCENTER},                 // [CONFIRMATION]
+      {"n#",                        (gScreenWidth-32), yBtnText, cLABEL,  ALIGNRIGHT,  eFONTSMALLEST},   // [NUMSATS]
+      {"Restarting! Please power cycle Griduino.", -1, yRow8, cBACKGROUND, ALIGNCENTER,eFONTSMALLEST},   // [CONFIRMATION]
       {PROGRAM_VERDATE,                            -1, yRow9, cFAINT,     ALIGNCENTER, eFONTSMALLEST},   // [COMPILED]
   };
 
@@ -137,6 +137,7 @@ void ViewCfgGpsReset::startScreen() {
   logger.log(SCREEN, DEBUG, "ViewCfgGpsReset::startScreen()");
   this->clearScreen(this->background);                  // clear screen
   txtStatic[0].setBackground(this->background);         // set background for all TextFields in this view
+  txtStatic[CONFIRMATION].color = cBACKGROUND;          // hide confirmation until RESTART is tapped on this visit
   TextField::setTextDirty(txtStatic, nRestartValues);   // make sure all fields get re-printed on screen change
 
   drawAllIcons();                                   // draw gear (settings) and arrow (next screen)
