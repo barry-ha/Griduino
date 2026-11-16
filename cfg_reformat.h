@@ -75,12 +75,12 @@ protected:
   // clang-format off
 #define nTextReformat 6
   TextField txtStatic[nTextReformat] = {
-      {"Reformat Flash Memory",                   -1,     gyTitle, cTITLE, ALIGNCENTER},   // [TITLE] centered
-      {"All settings, logs, and audio files",     labelX, yRow2,   cFAINT, ALIGNLEFT},
-      {"will be erased. If you need to reformat", labelX, yRow3,   cFAINT, ALIGNLEFT},
-      {"often, please let us know at",            labelX, yRow4,   cFAINT, ALIGNLEFT},
-      {"griduino@gmail.com",                      labelX, yRow5,   cFAINT, ALIGNLEFT},
-      {PROGRAM_VERDATE,                           -1,     yRow9,   cFAINT, ALIGNCENTER, eFONTSMALLEST},
+      {"Reformat Flash Memory",                   -1,     gyTitle, cTITLE,     ALIGNCENTER, eFONTSMALLEST},   // [TITLE] centered
+      {"All settings, logs, and audio files",     labelX, yRow2,   cTEXTCOLOR, ALIGNLEFT,   eFONTSMALLEST},
+      {"will be erased. If you need to reformat", labelX, yRow3,   cTEXTCOLOR, ALIGNLEFT,   eFONTSMALLEST},
+      {"often, please let us know at",            labelX, yRow4,   cTEXTCOLOR, ALIGNLEFT,   eFONTSMALLEST},
+      {"griduino@gmail.com",                      labelX, yRow5,   cTEXTCOLOR, ALIGNLEFT,   eFONTSMALLEST},
+      {PROGRAM_VERDATE,                           -1,     yRow9,   cFAINT,     ALIGNCENTER, eFONTSMALLEST},
   };
   // clang-format on
 

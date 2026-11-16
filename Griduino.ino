@@ -342,7 +342,7 @@ enum VIEW_INDEX {
   CFG_ANNOUNCEMENTS,     // 4 announce grid crossing 4/6 digit boundaries
   CFG_GPS,               // 5 gps/simulator
   CFG_GPS_RESET,         // 6 factory reset GPS
-  CFG_NMEA,              // 7 broadcast NMEA
+  CFG_NMEA,              // 7 GPS NMEA Sentences
   CFG_REBOOT,            // 8 confirm reboot
   CFG_REFORMAT,          // 9 reformat flash
   CFG_ROTATION,          // 10 screen rotation

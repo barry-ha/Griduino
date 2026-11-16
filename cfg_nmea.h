@@ -10,7 +10,7 @@
             a smaller font and cram more stuff onto the screen.
 
             +-------------------------------------------+
-            |  *          NMEA Broadcasting          >  |... gyTitle
+            |  *          GPS NMEA Sentences         >  |... gyTitle
             |                                           |
             | Send GPS position  ( )[ Send NMEA ]       |... yRow1
             | position to                               |... yRow2
@@ -78,18 +78,15 @@ protected:
   const int yButton1 = 62;
   const int yButton2 = yButton1 + 54;
 
-#define bWidth  140   // button width
-#define bHeight 40    // button height
-
   // clang-format off
 #define nTextNMEA 6
   TextField txtStatic[nTextNMEA] = {
       //  text                x, y       color
       {"GPS NMEA Sentences", -1, gyTitle,cHIGHLIGHT, ALIGNCENTER, eFONTSMALLEST},   // [TITLE] centered
-      {"Report GPS ",     gCol1, yRow1,  cVALUE},
-      {"positions",       gCol1, yRow2,  cVALUE},
-      {"NMEA sentences are available",-1, yRow4, cFAINT, ALIGNCENTER},
-      {"to a USB-attached computer",  -1, yRow5, cFAINT, ALIGNCENTER},
+      {"Send GPS to",     gCol1, yRow1,  cVALUE,     ALIGNLEFT,   eFONTSMALLEST},
+      {"USB port",        gCol1, yRow2,  cVALUE,     ALIGNLEFT,   eFONTSMALLEST},
+      {"NMEA sentences are available",-1, yRow4, cTEXTCOLOR, ALIGNCENTER},
+      {"to a USB-attached computer",  -1, yRow5, cTEXTCOLOR, ALIGNCENTER},
       {PROGRAM_VERDATE,      -1, yRow9,  cFAINT, ALIGNCENTER, eFONTSMALLEST},   // [COMPILED]
   };
   // clang-format on
