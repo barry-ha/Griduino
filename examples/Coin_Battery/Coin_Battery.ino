@@ -9,11 +9,24 @@
   Hardware: John Vanderbeck, KM7O, Seattle, WA
 
   This example code is in the public domain.
+
+  Tested with:
+         1. Arduino Feather M4 Express (120 MHz SAMD51)     https://www.adafruit.com/product/3857
 */
 
 #include <Arduino.h>
 #include <Wire.h>
 #include <Adafruit_I2CDevice.h>
+
+// ------- Identity for splash screen and console --------
+#define PROGRAM_TITLE "Coin Battery Test"
+#define PROGRAM_VERSION "v1.15"
+#define PROGRAM_LINE1 "Barry K7BWH"
+#define PROGRAM_LINE2 "John KM7O"
+#define PROGRAM_COMPILED __DATE__ " " __TIME__
+
+// ------------ definitions
+const int howLongToWait = 10;  // max number of seconds before using Serial port to console
 
 const float analogRef     = 3.3;    // default analog reference voltage
 const uint16_t analogBits = 1024;   // default ADC resolution bits
@@ -77,19 +90,35 @@ int pcb_detect() {
   }
 }
 
-void setup() {
-  Serial.begin(115200);
-
-  // Wait for Serial port to open
-  while (!Serial) {
-    delay(10);
+// ----- console Serial port helper
+void waitForSerial(int howLong) {
+  // Adafruit Feather M4 Express takes awhile to restore its USB connection to the PC
+  // and the operator takes awhile to restart the console (Tools > Serial Monitor)
+  // so give them a few seconds for this to settle before sending messages to IDE
+  unsigned long targetTime = millis() + howLong * 1000;
+  while (millis() < targetTime) {
+    if (Serial)
+      break;
   }
-  delay(500);
-  Serial.println(__FILE__);
+}
+
+//=========== setup ============================================
+void setup() {
+
+  // ----- init serial monitor (do not "Serial.print" before this, it won't show up in console)
+  Serial.begin(115200);          // init for debugging in the Arduino IDE
+  waitForSerial(howLongToWait);  // wait for developer to connect debugging console
+
+  // now that Serial is ready and connected (or we gave up)...
+  Serial.println(PROGRAM_TITLE " " PROGRAM_VERSION);  // Report our program name to console
+  Serial.println("Compiled " PROGRAM_COMPILED);       // Report our compiled date
+  Serial.println(__FILE__);                           // Report our source code file name
+
   Serial.println("Griduino Coin Battery Measurement");
   Serial.println("Sampled resolution is (3.3v)/1024 = 3 mV");
 }
 
+//=========== main work loop ===================================
 void loop() {
   Serial.println("");
   pcbVersion = pcb_detect();
