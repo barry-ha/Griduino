@@ -102,7 +102,7 @@
 
 // ------- Identity for splash screen and console --------
 #define EXAMPLE_TITLE   "Flash File Performance Test"
-#define EXAMPLE_VERSION "v1.11 rp2040"
+#define EXAMPLE_VERSION "v1.16 rp2040"
 
 // ---------- SD chip
 // SD card share the hardware SPI interface with TFT display, and have

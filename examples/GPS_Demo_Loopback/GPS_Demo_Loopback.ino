@@ -153,7 +153,7 @@ Quectel:  $PMTK705,AG3331_AXN5.1.9_MODULE_STD_F8_P2,000B,Quectel-LC86L,1.0*26
 
 // ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE    "GPS Demo Loopback"
-#define PROGRAM_VERSION  "v1.15"
+#define PROGRAM_VERSION  "v1.16"
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
 
 #define SCREEN_ROTATION 1   // 1=landscape, 3=landscape 180-degrees

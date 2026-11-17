@@ -18,7 +18,7 @@
             |                                           |
             |                                           |
             |                                           |
-            | v1.15, Nov 10 2026                        |... yRow9
+            | v1.16, Nov 16 2026                        |... yRow9
             +----------------------:--------------------+
                                    :
                                    gxButton
@@ -178,7 +178,7 @@ protected:
   // vertical placement of text rows   ---label---         ---button---
   const int yRow1 = 92;                   // "English",          "Miles, inHg"
   const int yRow2 = yRow1 + 50;           // "Metric",           "Kilometers, hPa"
-  const int yRow9 = gScreenHeight - 10;   // "v1.14, Jan 22 2024"
+  const int yRow9 = gScreenHeight - 10;   // "v1.16, Nov 16 2026"
 
   // clang-format off
   TextField txtStatic[nTextUnits] = {

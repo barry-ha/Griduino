@@ -8,6 +8,14 @@ Version numbers correspond to [Downloads](https://github.com/barry-ha/Griduino/t
 
 The changelog format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and the Griduino project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v1.16 alpha &nbsp; 2026-11-16
+
+Version 1.16 is an alpha release to snapshot development before making bigger changes.
+
+v1.16 contains cleanup and fixes from the last year or so, since the last stable release of v1.15 on 2022-06-22. There are no new end-user features. 
+
+We've been busy developing new hardware but it's not ready yet. Nothing in this release directly supports the upcoming ESP32 C3 cpu. However, this is the basis for starting Griduino-2 with a new cpu. Our goal is to have common source code for old and new hardware, making it possible to keep them in sync with fixes and features.
+
 ## v1.15 beta &nbsp; 2025-06-22
 
 Version 1.15 is a beta release to consolidate enhancements since the last stable release of v1.10 on 2022-08-05. Read the changelog features below to find more new features.

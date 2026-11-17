@@ -16,7 +16,7 @@
             |                                           |
             |                     ( )[ No audio ]       |... yRow3
             |                                           |
-            | v1.15, Nov 10 2026                        |... yRow9
+            | v1.16, Nov 16 2026                        |... yRow9
             +----------------------:--------------------+
                                    :
                                    gxButton
@@ -69,7 +69,7 @@ protected:
   const int yRow1 = 80;                   // "Announcements", "Morse code"
   const int yRow2 = yRow1 + 52;           //                  "Spoken word"
   const int yRow3 = yRow2 + 52;           //                  "No audio"
-  const int yRow9 = gScreenHeight - 10;   // "v1.15, Nov 10 2026"
+  const int yRow9 = gScreenHeight - 10;   // "v1.16, Nov 16 2026"
 
   // ----- screen text
   // names for the array indexes, must be named in same order as array below

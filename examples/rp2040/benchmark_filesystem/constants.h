@@ -2,11 +2,7 @@
 
 // ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE    "Benchmark File System"
-#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
-#define PROGRAM_VERSION  "v1.14 rp2040"
-#else
-#define PROGRAM_VERSION "v1.14.6"
-#endif
+#define PROGRAM_VERSION "v1.16"
 #define HARDWARE_VERSION "Rev 4"   // Rev 4 | Rev 7 | Rev 12 | Rev 14
 #define PROGRAM_LINE1    "Barry K7BWH"
 #define PROGRAM_LINE2    "John KM7O"

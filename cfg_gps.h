@@ -17,7 +17,7 @@
             |                   ( )[  Simulator   ]     |
             |                                           |
             |                                           |
-            | v1.15, Nov 10 2026                        |... yRow9
+            | v1.16, Nov 16 2026                        |... yRow9
             +----------------------:--------------------+
                                    :
                                    gxButton
@@ -58,7 +58,7 @@ protected:
   const int yRow2 = yRow1 + 20;           // "%d of %d"
   const int yRow3 = yRow2 + 52;           // "Route",            "GPS Receiver"
   const int yRow4 = yRow3 + 48;           //                     "Simulator"
-  const int yRow9 = gScreenHeight - 10;   // "v1.14, Jan 22 2024"
+  const int yRow9 = gScreenHeight - 10;   // "v1.16, Nov 16 2026"
 
   // ----- screen text
   // names for the array indexes, must be named in same order as array below

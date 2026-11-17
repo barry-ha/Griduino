@@ -20,7 +20,7 @@
             | a USB-attached computer.                  |... yRow5
             |                                           |
             |                                           |
-            | v1.15, Nov 10 2026                        |... yRow9
+            | v1.16, Nov 16 2026                        |... yRow9
             +----------------------:--------------------+
                                    :
                                    gxButton

@@ -35,11 +35,11 @@
 //------------------------------------------------------------------------------
 //	Startup information
 //------------------------------------------------------------------------------
-#define PROGRAM_TITLE		"Touch Screen Demo"
-#define PROGRAM_VERSION "v1.14"
-#define PROGRAM_LINE1		"Barry K7BWH"
-#define PROGRAM_LINE2		"ACV"
-#define PROGRAM_COMPILED	__DATE__ " " __TIME__
+#define PROGRAM_TITLE       "Touch Screen Demo"
+#define PROGRAM_VERSION     "v1.16"
+#define PROGRAM_LINE1       "Barry K7BWH"
+#define PROGRAM_LINE2       "ACV"
+#define PROGRAM_COMPILED    __DATE__ " " __TIME__
 
 //------------------------------------------------------------------------------
 //	Screen Rotation:

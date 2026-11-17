@@ -13,7 +13,7 @@
 
 // ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE "\nATSHA Basic Example"
-#define PROGRAM_VERSION "v1.15"
+#define PROGRAM_VERSION "v1.16"
 #define PROGRAM_LINE1 "Barry K7BWH"
 #define PROGRAM_LINE2 "John KM7O"
 #define PROGRAM_COMPILED __DATE__ " " __TIME__

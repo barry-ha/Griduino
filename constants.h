@@ -1,8 +1,8 @@
 #pragma once   // Please format this file with clang before check-in to GitHub
 
 // ------- Identity for splash screen and console --------
-#define PROGRAM_TITLE "Griduino"
-#define PROGRAM_VERSION "v1.15"
+#define PROGRAM_TITLE    "Griduino"
+#define PROGRAM_VERSION  "v1.16"
 #define HARDWARE_VERSION "Rev 4"   // Rev 4 | Rev 7 | Rev 12 | Rev 14
 #define PROGRAM_LINE1    "Barry K7BWH"
 #define PROGRAM_LINE2    "John KM7O"

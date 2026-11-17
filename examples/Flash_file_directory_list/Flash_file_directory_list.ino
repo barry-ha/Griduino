@@ -31,7 +31,7 @@
 
 // ------- Identity for splash screen and console --------
 #define EXAMPLE_TITLE    "Flash File Directory List"
-#define EXAMPLE_VERSION  "v1.11 rp2040"
+#define EXAMPLE_VERSION  "v1.16 rp2040"
 #define PROGRAM_LINE1    "Barry K7BWH"
 #define PROGRAM_LINE2    ""
 #define PROGRAM_COMPILED __DATE__ " " __TIME__

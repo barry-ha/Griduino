@@ -23,7 +23,7 @@
             |  |             |         |             |  |
             |  +=============+         +-------------+  |
             |                                           |
-            | v1.15, Nov 10 2026                        |... yRow9
+            | v1.16, Nov 16 2026                        |... yRow9
             +----------------------:--------------------+
                                    :
                                    gxButton
@@ -74,7 +74,7 @@ protected:
   const int yRow3 = yRow2 + space;        // "Do you have a UF2 file?"
   const int yRow4 = yRow3 + space;        // "Do you want to install it?""
   const int yRow5 = yRow4 + half;         // "Cancel", "Install UF2" buttons
-  const int yRow9 = gScreenHeight - 10;   // "v1.14, Jan 22 2024"
+  const int yRow9 = gScreenHeight - 10;   // "v1.16, Nov 16 2026"
 
   // ----- screen text
   // names for the array indexes, must be named in same order as array below

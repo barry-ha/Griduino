@@ -21,7 +21,7 @@
             |            +----------------+             |
             |             :                             |
             |  Done. Please power cycle Griduino.       |... yRow8 Confirmation
-            | v1.15, Nov 10 2026                        |... yRow9
+            | v1.16, Nov 16 2026                        |... yRow9
             +-------------:-----------------------------+
                           :
                           xBtn
@@ -64,7 +64,7 @@ protected:
   const int yRow3 = yRow2 + space;
   const int yBtn  = yRow3 + space;                // ul corner of big button
   const int yRow8 = gScreenHeight - 10 - space;   // Confirmation message
-  const int yRow9 = gScreenHeight - 10;           // "v1.15, Nov 10 2026"
+  const int yRow9 = gScreenHeight - 10;           // "v1.16, Nov 16 2026"
 
   // ----- screen text
   // names for the array indexes, must be named in same order as array below

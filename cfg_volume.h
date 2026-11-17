@@ -71,7 +71,7 @@ protected:
   // vertical placement of text rows
   const int yRow1 = 66;                   // label: "Audio Volume"
   const int yRow2 = yRow1 + 30;           // text:  "of 10"
-  const int yRow9 = gScreenHeight - 10;   // "v1.14, Jan 22 2024"
+  const int yRow9 = gScreenHeight - 10;   // "v1.16, Nov 16 2026"
 
   // ----- screen text
   // names for the array indexes, must be named in same order as array below
