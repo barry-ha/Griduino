@@ -24,7 +24,6 @@ AccessModifierOffset: -2
 
 AlignConsecutiveAssignments: true
 AlignConsecutiveDeclarations: false
-AlignConsecutiveMacros: Consecutive
 AlignConsecutiveMacros: 
   Enabled: true
   AcrossEmptyLines: false
