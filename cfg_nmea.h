@@ -62,6 +62,10 @@ public:
   };
   functionID selectedOption;   // <-- this is the whole reason for this module's existence
 
+  // value currently stored in the config file, so endScreen() can skip writing when nothing changed
+  // -1 means "unknown", e.g. the file is missing or unreadable, so the next save will write it
+  int32_t savedOption = -1;
+
 protected:
   // ---------- local data for this derived class ----------
   // color scheme: see constants.h
@@ -232,8 +236,10 @@ void ViewCfgNMEA::loadConfig() {
   // resource-heavy functions like updateScreen()
 
   SaveRestore config(NMEA_CONFIG_FILE, NMEA_CONFIG_VERSION);
-  int tempOption = 0;
-  int result     = config.readConfig((byte *)&tempOption, sizeof(tempOption));
+  // The setting is stored as a 4-byte int32_t. Older files hold a 1-byte enum instead;
+  // they still load correctly because tempOption starts at zero and the CPU is little-endian.
+  int32_t tempOption = 0;
+  int result         = config.readConfig((byte *)&tempOption, sizeof(tempOption));
   if (result) {
     switch (tempOption) {
     case SEND_NMEA:
@@ -248,23 +254,40 @@ void ViewCfgNMEA::loadConfig() {
       // should not happen unless config file is corrupt
       char msg[256];
       snprintf(msg, sizeof(msg), "%s has unexpected setting: %d",
-               NMEA_CONFIG_FILE, tempOption);
+               NMEA_CONFIG_FILE, (int)tempOption);
       logger.log(CONFIG, ERROR, msg);
       this->selectedOption = SILENT;
       stop_nmea();
       break;
     }
+    if (this->selectedOption == tempOption) {
+      savedOption = tempOption;   // file matches, no need to rewrite it
+    }
     logger.log(NMEA, INFO, "Loaded NMEA value: %d", this->selectedOption);
   } else {
     logger.log(NMEA, ERROR, "Failed to load config, re-initializing file");
     this->selectedOption = SILENT;
+    savedOption          = -1;   // force a write
     saveConfig();
   }
 }
 // ----- save to SDRAM -----
 void ViewCfgNMEA::saveConfig() {
+  // The logger flag is the single source of truth, because the console commands
+  // "start nmea" and "stop nmea" change it without going through this screen.
+  selectedOption = logger.printSystem[NMEA].enabled ? SEND_NMEA : SILENT;
+
+  int32_t value = selectedOption;   // store a fixed-size value, not the compiler-dependent enum size
+  if (value == savedOption) {
+    logger.log(NMEA, DEBUG, "NMEA setting unchanged (%d), not saving", value);
+    return;   // writing to flash is slow, skip it when nothing changed
+  }
+
   SaveRestore config(NMEA_CONFIG_FILE, NMEA_CONFIG_VERSION);
-  logger.log(NMEA, INFO, "Saving value: %d", selectedOption);
-  int rc = config.writeConfig((byte *)&selectedOption, sizeof(selectedOption));
-  logger.log(NMEA, DEBUG, "Finished ViewCfgNMEA::saveConfig(%d) with rc = %d", selectedOption, rc);   // debug
+  logger.log(NMEA, INFO, "Saving value: %d", value);
+  int rc = config.writeConfig((byte *)&value, sizeof(value));
+  if (rc) {
+    savedOption = value;   // remember what's in the file now
+  }
+  logger.log(NMEA, DEBUG, "Finished ViewCfgNMEA::saveConfig(%d) with rc = %d", value, rc);   // debug
 }
