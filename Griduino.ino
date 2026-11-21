@@ -123,6 +123,8 @@
 
 #if defined(SAMD_SERIES)
   #warning ----- Compiling for Arduino Feather M4 Express -----
+#elif defined(ARDUINO_ARCH_ESP32)
+  #warning ----- Compiling for ESP32 -----
 #elif defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
   #warning ----- Compiling for Arduino RP2040 -----
 #else
@@ -497,44 +499,10 @@ void selectNewView(int cmd) {
   }
 }
 
-// ----- console Serial port helper AND animated splash screen
-void waitForSerial(int howLong) {
-  // Adafruit Feather M4 Express takes awhile to restore its USB connection to the PC
-  // and the operator takes awhile to restart the IDE console (Tools > Serial Monitor)
-  // so give them a few seconds for this to settle before sending messages to IDE
-
-  pView = &screen1View;   // select very first screen shown at startup
-  //screen1View.startScreen();   // 'screen1View' is already started, don't start it again
-  while (pView == &screen1View) {
-    screen1View.updateScreen();
-  }
-}
-
 //==============================================================
-//
-//      Controller
-//      This is MVC (model-view-controller) design pattern
-//
+//    TFT Screen Helpers
 //==============================================================
-#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
-// ----- adjust screen brightness: Feather RP2040
-const int gNumLevels               = 3;
-const int gaBrightness[gNumLevels] = {100, 50, 15};   // global array of preselected brightness
-int gCurrentBrightnessIndex        = 0;               // current brightness
-float frequency                    = 10000;
-float dutyCycle                    = 100;
 
-#include "RP2040_PWM.h"
-RP2040_PWM PWM_backlight           = RP2040_PWM(TFT_BL, frequency, dutyCycle);
-
-void adjustBrightness() {
-  // increment display brightness
-  gCurrentBrightnessIndex = (gCurrentBrightnessIndex + 1) % gNumLevels;   // incr index
-  int brightness          = gaBrightness[gCurrentBrightnessIndex];        // look up brightness
-  PWM_backlight.setPWM(TFT_BL, frequency, brightness);                    // write to hardware
-  logger.log(SCREEN, INFO, "Set brightness %d", brightness);
-}
-#else
 // ----- adjust screen brightness: Feather M4
 const int gNumLevels               = 3;
 const int gaBrightness[gNumLevels] = {255, 80, 20};   // global array of preselected brightness
@@ -547,7 +515,25 @@ void adjustBrightness() {
   analogWrite(TFT_BL, brightness);                                        // write to hardware
   logger.log(SCREEN, INFO, "Set brightness %d", brightness);
 }
-#endif
+
+void showActivityBar(int row, uint16_t foreground, uint16_t background) {
+  static int addDotX = 10;                    // current screen column, 0..319 pixels
+  static int rmvDotX = 0;
+  static int count = 0;
+  const int SCALEF = 32;                      // how much to slow it down so it becomes visible
+
+  count = (count + 1) % SCALEF;
+  if (count == 0) {
+    addDotX = (addDotX + 1) % gScreenWidth;   // advance
+    rmvDotX = (rmvDotX + 1) % gScreenWidth;   // advance
+    tft.drawPixel(addDotX, row, foreground);  // write new
+    tft.drawPixel(rmvDotX, row, background);  // erase old
+  }
+}
+
+//==============================================================
+//    Audio Announcement Helpers
+//==============================================================
 
 void sendMorseLostSignal() {
   String msg(PROSIGN_AS);             // "wait" symbol
@@ -562,10 +548,6 @@ void announceGrid(const String gridName, int length) {
   grid[length] = 0;   // null-terminate string to requested 4- or 6-character length
   logger.log(AUDIO, INFO, "Announcing grid: %s", grid);
 
-#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
-  // todo - for now, RP2040 has no DAC, no audio, no speech
-  logger.log(AUDIO, ERROR, "Unsupported audio in line ", __LINE__ );
-#else
   switch (cfgAudioType.selectedAudio) {
     case ViewCfgAudioType::MORSE: 
       logger.fencepost("Griduino.ino", __LINE__);   // debug
@@ -592,7 +574,6 @@ void announceGrid(const String gridName, int length) {
       logger.log(AUDIO, ERROR, "Internal error: unsupported audio, line ", __LINE__);
       break;
   }
-#endif
 }
 
 void sendMorseGrid4(const String gridName) {
@@ -614,28 +595,9 @@ void sendMorseGrid6(const String gridName) {
   //spkrMorse.startSending();   // would prefer non-blocking but some bug causes random dashes to be too long
 }
 
-void showActivityBar(int row, uint16_t foreground, uint16_t background) {
-  static int addDotX = 10;                    // current screen column, 0..319 pixels
-  static int rmvDotX = 0;
-  static int count = 0;
-  const int SCALEF = 32;                      // how much to slow it down so it becomes visible
-
-  count = (count + 1) % SCALEF;
-  if (count == 0) {
-    addDotX = (addDotX + 1) % gScreenWidth;   // advance
-    rmvDotX = (rmvDotX + 1) % gScreenWidth;   // advance
-    tft.drawPixel(addDotX, row, foreground);  // write new
-    tft.drawPixel(rmvDotX, row, background);  // erase old
-  }
-}
-
 void sayGrid(const char *name) {
   logger.log(AUDIO, INFO, "Say ", name);
 
-#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
-  // todo - for now, RP2040 has no DAC, no audio, no speech
-  logger.log(AUDIO, ERROR, "Unsupported audio in line ", __LINE__ );
-#else
   for (uint ii = 0; ii < strlen(name); ii++) {
     logger.fencepost("Griduino.ino", __LINE__);   // debug
 
@@ -657,13 +619,32 @@ void sayGrid(const char *name) {
       logger.log(AUDIO, ERROR, out);
     }
   }
-#endif
 }
 
 elapsedSeconds viewHelpTimer;         // timer to show Help screen for only a few seconds at startup
 uint viewHelpTimeout = 10;            // seconds to show Help screen at startup
                                       // startup: initialized to about 10 seconds
                                       // command: initialized to a long time, several minutes
+
+//==============================================================
+//
+//      Controller
+//      This is MVC (model-view-controller) design pattern
+//
+//==============================================================
+
+// ----- console Serial port helper AND animated splash screen
+void waitForSerial(int howLong) {
+  // Adafruit Feather M4 Express takes awhile to restore its USB connection to the PC
+  // and the operator takes awhile to restart the IDE console (Tools > Serial Monitor)
+  // so give them a few seconds for this to settle before sending messages to IDE
+
+  pView = &screen1View;   // select very first screen shown at startup
+  //screen1View.startScreen();   // 'screen1View' is already started, don't start it again
+  while (pView == &screen1View) {
+    screen1View.updateScreen();
+  }
+}
 
 //=========== setup ============================================
 void setup() {
@@ -845,7 +826,7 @@ void setup() {
   trail.restoreGPSBreadcrumbTrail();  // this takes noticeable time (~0.2 sec)
   model->restore();                   //
   model->gHaveGPSfix = false;         // assume no satellite signal yet
-  model->gSatellites = 0;
+  model->gSatellites = 0;             //
   trail.rememberPUP();                // log a "power up" event
   trail.saveGPSBreadcrumbTrail();     // ensure its saved for posterity
 
