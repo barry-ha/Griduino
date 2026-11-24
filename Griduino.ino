@@ -471,10 +471,10 @@ void selectNewView(int cmd) {
       case CFG_NMEA:          nextView = CFG_UNITS; break;        // 5
       case CFG_UNITS:         nextView = CFG_ROTATION; break;     // 6
       case CFG_ROTATION:      nextView = CFG_GPS_RESET; break;    // 7
-      case CFG_GPS_RESET:     nextView = CFG_REFORMAT; break;     // 8
-      case CFG_REFORMAT:      nextView = GRID_VIEW; break;        // 9 at end of settings views, return to normal view
+      case CFG_GPS_RESET:     nextView = CFG_REBOOT; break;       // 8
+      case CFG_REBOOT:        nextView = CFG_REFORMAT; break;     // 9
+      case CFG_REFORMAT:      nextView = GRID_VIEW; break;        // 10 at end of settings views, return to normal view
 
-      //case CFG_REBOOT:     nextView = GRID_VIEW; break;     // Not shown on Feather M4!
       // none of above: we must be showing some normal user view, so go to the first settings view
       default:             nextView = GRID_VIEW; break;
     }
@@ -702,6 +702,15 @@ void setup() {
 
   // ----- init GPS
   // todo: refactor GPS.begin() into new "model.begin()"
+  #if (1)
+    //=====================================================================
+    // refactor all this GPS setup into the Model class, where it belongs
+    //=====================================================================
+    modelGPS.begin();   // use real GPS hardware
+  #else
+    //=====================================================================
+    // start old code, which is being refactored into modelGPS.begin()
+    //=====================================================================
   GPS.begin(9600);   // 9600 NMEA is the default baud rate for Adafruit MTK GPS's
   delay(50);         // is delay really needed?
 
@@ -775,6 +784,10 @@ void setup() {
   logger.log(GPS_SETUP, INFO, PMTK_SENTENCE_FREQUENCIES);    // Echo command to console
   GPS.sendCommand(PMTK_SENTENCE_FREQUENCIES);   // Send command to GPS unit
   delay(50);
+  #endif   
+  //=====================================================================
+  // end of refactored GPS setup code
+  //=====================================================================
 
   // ----- report on our memory hogs
   char temp[200];

@@ -62,7 +62,7 @@ const double minLat  = gridHeightDegrees / gBoxHeight;   // latitude degrees fro
 #define FIRST_RELEASE_MONTH (12)
 #define FIRST_RELEASE_DAY   (19)
 
-#define NUM_SETTINGS_SCREENS (9)  // number of control panel screens, 0..8, used for cycling through them with the "gear" button
+#define NUM_SETTINGS_SCREENS (10)   // number of control panel screens, 0..9, used for cycling through them with the "gear" button
 
 // ----- load/save configuration using SDRAM
 // #define EXTERNAL_FLASH_USE_QSPI     // 2020-02-11 added by BarryH, since it seems to be missing from
@@ -127,6 +127,7 @@ const float BAD_BATTERY_MAXIMUM     = (2.00);   // red, if below this voltage
 #define cSTATUS        0xFC10           // 255, 128, 128 = lavender
 #define cWARN          0xF844           // brighter than ILI9341_RED but not pink
 #define cTOUCHTARGET   ILI9341_RED      // outline touch-sensitive areas
+#define cCRITICAL      ILI9341_RED      // red, for critical warnings
 
 #define cCOMPASSPOINTER ILI9341_YELLOW   // TFT_Compass.h
 #define cCOMPASSCIRCLE  ILI9341_GREEN    //

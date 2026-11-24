@@ -63,7 +63,7 @@ public:
   // Constructor - create and initialize member variables
   Model() {}
 
-  /* unused factoryReset() 
+  /* unused factoryReset()
   void factoryReset() {
 // Should never be needed, but in rare cases the GPS gets into some state
 // where it goes for days/weeks without acquiring satellites.
@@ -81,6 +81,105 @@ public:
     GPS.satellites = 0;       //
   }
   */
+
+  // ----- initialize the GPS hardware -----
+  void begin() {
+    #if (1)
+    //=====================================================================
+    // prototype GPS startup code by Claude
+    //=====================================================================
+    GPS.begin(9600);   // default baud rate is 9600, but we want 115200 for faster updates
+    GPS.sendCommand(PMTK_SET_BAUD_57600);           // faster baud rate for quicker updates
+    delay(50);
+    GPS.begin(57600);
+    delay(50);
+
+    GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);   // only output RMC and GGA sentences (less data to parse)
+    GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);      // 1 Hz update rate
+    GPS.sendCommand(PGCMD_ANTENNA);                 // request antenna status
+  #else
+    //=====================================================================
+    // start old code, which is being refactored into modelGPS.begin()
+    //=====================================================================
+  GPS.begin(9600);   // 9600 NMEA is the default baud rate for Adafruit MTK GPS's
+  delay(50);         // is delay really needed?
+
+  // baud rate for GlobalTop GPS
+  /*
+  #define PMTK_SET_BAUD_38400  "$PMTK251,38400*27"
+  logger.log(GPS_SETUP, INFO, "Set GPS baud rate to 38400: ");
+  logger.log(GPS_SETUP, INFO, PMTK_SET_BAUD_38400);
+  GPS.sendCommand(PMTK_SET_BAUD_38400);
+  delay(50);
+  GPS.begin(38400);
+  delay(50);
+  */
+
+  /* ***** 576000 is for Adafruit Ultimate GPS only */
+  logger.log(GPS_SETUP, INFO, "Set GPS baud rate to 57600: ");
+  logger.log(GPS_SETUP, INFO, PMTK_SET_BAUD_57600);
+  GPS.sendCommand(PMTK_SET_BAUD_57600);
+  delay(50);
+  GPS.begin(57600);
+  delay(50);
+  /* ***** */
+
+  /* *****
+  // init Quectel L86 chip to improve USA satellite acquisition
+  logger.log(GPS_SETUP, INFO, "$PMTK353,1,0,0,0,0*2A");
+  GPS.sendCommand("$PMTK353,1,0,0,0,0*2A");   // search American GPS satellites only (not Russian GLONASS satellites)
+  delay(50);
+  ***** */
+
+  logger.log(GPS_SETUP, INFO, "Turn on RMC (recommended minimum) and GGA (fix data) including altitude: ");
+  logger.log(GPS_SETUP, INFO, PMTK_SET_NMEA_OUTPUT_RMCGGA);
+  GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
+  delay(50);
+
+  logger.log(GPS_SETUP, INFO, "Set GPS 1 Hz update rate: ");
+  logger.log(GPS_SETUP, INFO, PMTK_SET_NMEA_UPDATE_1HZ);
+  GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);                // 1 Hz
+  //GPS.sendCommand(PMTK_SET_NMEA_UPDATE_200_MILLIHERTZ);   // Every 5 seconds
+  delay(50);
+
+  if (0) {   // this command is saved in the GPS chip NVR, so always send one of these cmds
+    logger.log(GPS_SETUP, INFO, "Request antenna status: ");
+    logger.log(GPS_SETUP, INFO, PGCMD_ANTENNA);    // echo command to console log
+    GPS.sendCommand(PGCMD_ANTENNA);   // tell GPS to send us antenna status
+                                      // expected reply: $PGTOP,11,...
+  } else {
+    logger.log(GPS_SETUP, INFO, "Request to NOT send antenna status: ");
+    logger.log(GPS_SETUP, INFO, PGCMD_NOANTENNA);    // echo command to console log
+    GPS.sendCommand(PGCMD_NOANTENNA);   // tell GPS to NOT send us antena status
+  }
+  delay(50);
+
+  // ----- query GPS firmware
+  logger.log(GPS_SETUP, INFO, "Query GPS Firmware version: ");
+  logger.log(GPS_SETUP, INFO, PMTK_Q_RELEASE);    // Echo query to console
+  GPS.sendCommand(PMTK_Q_RELEASE);   // Send query to GPS unit
+                                     // expected reply: $PMTK705,AXN_2.10...
+  delay(50);
+
+// ----- turn on additional satellite reporting to support NMEATime2
+// You can tinker with this in sandbox: \Griduino\examples\GPS_Demo_Loopback\GPS_Demo_Loopback.ino
+//                                          GPGLL           Geographic Latitude longitude
+//                                          | GPRMC         Recommended Minimum Coordinates
+//                                          | | GPVTG       Velocity Over Ground
+//                                          | | | GPGGA     GPS Fix Data
+//                                          | | | | GPGSA   GPS Satellites Active
+//                                          | | | | | GPGSV GPS Satellites in View
+#define PMTK_SENTENCE_FREQUENCIES "$PMTK314,0,1,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0*28"
+  logger.log(GPS_SETUP, INFO, "Set sentence output frequencies: ");
+  logger.log(GPS_SETUP, INFO, PMTK_SENTENCE_FREQUENCIES);    // Echo command to console
+  GPS.sendCommand(PMTK_SENTENCE_FREQUENCIES);   // Send command to GPS unit
+  delay(50);
+  #endif   
+  //=====================================================================
+  // end of refactored GPS setup code
+  //=====================================================================
+
+}
 
   // ========== load/save config setting =========================
   const char MODEL_FILE[25] = CONFIG_FOLDER "/gpsmodel.cfg";   // CONFIG_FOLDER

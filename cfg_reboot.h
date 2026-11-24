@@ -35,13 +35,6 @@
 #include "view.h"        // Base class for all views
 
 // ========== extern ===========================================
-#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
-extern "C" {
-#include <hardware/watchdog.h>
-#include <hardware/resets.h>
-#include <pico/bootrom.h>
-}
-#endif
 extern void showDefaultTouchTargets();   // Griduino.ino
 extern void selectNewView(int cmd);      // Griduino.ino
 extern int goto_next_cfg;                // Griduino.ino
@@ -96,10 +89,10 @@ protected:
   TextField txtValues[nRebootValues] = {
       //  text                                 x, y       color
       {"Firmware Update",                     -1, gyTitle,cHIGHLIGHT, ALIGNCENTER, eFONTSMALLEST},   // [TITLE] centered
-      {"This option starts bootloader mode.", -1, yRow2,  cLABEL, ALIGNCENTER, eFONTSMALLEST},       // [LINE1] centered
-      {"Do you have a UF2 file?",           left, yRow3,  cVALUE, ALIGNLEFT,   eFONTSMALL},          // [LINE2]
-      {"Do you want to install it?",        left, yRow4,  cVALUE, ALIGNLEFT,   eFONTSMALL},          // [LINE3]
-      {PROGRAM_VERDATE,                       -1, yRow9,  cFAINT, ALIGNCENTER, eFONTSMALLEST},       // [COMPILED]
+      {"This option starts bootloader mode.", -1, yRow2+4,cLABEL,     ALIGNCENTER, eFONTSMALLEST},   // [LINE1] centered
+      {"Do you have a UF2 file?",           left, yRow3,  cVALUE,     ALIGNLEFT,   eFONTSMALL},      // [LINE2]
+      {"Do you want to install it?",        left, yRow4,  cVALUE,     ALIGNLEFT,   eFONTSMALL},      // [LINE3]
+      {PROGRAM_VERDATE,                       -1, yRow9,  cFAINT,     ALIGNCENTER, eFONTSMALLEST},   // [COMPILED]
   };
 
 enum buttonID {
@@ -110,8 +103,8 @@ enum buttonID {
   FunctionButton myButtons[nRebootButtons] = {
     // label           origin      size   {   touch-target     }
     // text             x,y         w,h   {   x,y        w,h   }, radius, color,      functionID
-      {"Cancel",       32,yRow5,  110,90, {  0,yRow5,   140,110 }, radius, cBUTTONLABEL, eCANCEL},
-      {"Install UF2", 170,yRow5,  110,90, {180,yRow5,   140,110 }, radius, cBUTTONLABEL, eREBOOT},
+      {"Cancel",       32,yRow5,  110,80, {  0,yRow5-5, 140,110 }, radius, cBUTTONLABEL, eCANCEL},
+      {"Install UF2", 170,yRow5,  110,80, {180,yRow5-5, 140,110 }, radius, cBUTTONLABEL, eREBOOT},
   };
   // clang-format on
 
@@ -133,29 +126,48 @@ enum buttonID {
     setFontSize(eFONTSMALL);
     tft->setTextColor(cVALUE);
     tft->setCursor(left, yRow1 + space * 2);
-    tft->println("Check your external drives");
+    tft->println("Check your external drives;");
     tft->setCursor(left, yRow1 + space * 3);
-    tft->println("and look for RPI-RP2.");
+    tft->println("look for FEATHERBOOT.");
     tft->setCursor(left, yRow1 + space * 4);
     tft->println("Copy UF2 file to that drive.");
 
     setFontSize(eFONTSMALLEST);
     tft->setTextColor(cLABEL);
-    tft->setCursor(left, yRow1 + space * 6);
-    tft->println("To decline, press Reset button");
-    tft->setCursor(left, yRow1 + space * 6 + half);
-    tft->println("or power cycle Griduino");
-    delay(1000);
+    tft->setCursor(left, yRow1 + space * 5);
+    tft->println("To decline, power cycle Griduino.");
+    tft->setCursor(left, yRow1 + space * 7);
+    for (int ii = 10; ii >= 0; ii--) {
+      delay(1100);
+      tft->print(ii);
+      tft->print(" ");
+    }
 
-    // reboot
-#if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
-    multicore_reset_core1();
-    multicore_launch_core1(0);
-    reset_usb_boot(0, 0);
-#else
-    // todo: try to discover a way to put Feather M4 into bootloader mode
-    // todo: for now, display a message
-#endif
+    clearScreen();   // this should get their attention
+    
+    // clang-format off
+#define nBootloaderValues 5
+  TextField txtBootloader[nBootloaderValues] = {
+      //  text         x, y       color
+      {"Bootloader",  -1, gyTitle,cHIGHLIGHT, ALIGNCENTER, eFONTSMALLEST},   // [TITLE] centered
+      {"***",         -1, yRow3,  cCRITICAL,  ALIGNCENTER, eFONTSMALL},
+      {"Bootloader",  -1, yRow3+space*1,  cCRITICAL,  ALIGNCENTER, eFONTSMALL},
+      {"Mode",        -1, yRow3+space*2,  cCRITICAL,  ALIGNCENTER, eFONTSMALL},
+      {"***",         -1, yRow3+space*3,  cCRITICAL,  ALIGNCENTER, eFONTSMALL},
+  };
+  // clang-format on
+  // ----- draw text fields
+  for (int ii = 0; ii < nBootloaderValues; ii++) {
+    txtBootloader[ii].print();
+  }
+
+    // Reboot into the UF2 bootloader
+    // 1. write magic value to RAM to tell bootloader to stay in bootloader
+    // 2. reset the microcontroller, causing the bootloader to run and 
+    //    look for a UF2 file on the USB drive. This is the same as pressing 
+    //    the reset button on the Feather M4.
+    *(volatile uint32_t*)(HSRAM_ADDR + HSRAM_SIZE - 4) = 0xf01669ef;
+    NVIC_SystemReset();   
   }
   void fCancel() {
     logger.log(CONFIG, INFO, "->->-> Clicked CANCEL button.");
@@ -206,8 +218,8 @@ void ViewCfgReboot::startScreen() {
     tft->print(item.text);
   }
 
-  showProgressBar(11, NUM_SETTINGS_SCREENS);   // draw marker for advancing through settings
-  updateScreen();           // update UI immediately, don't wait for the main loop to eventually get around to it
+  showProgressBar(9, NUM_SETTINGS_SCREENS);   // draw marker for advancing through settings
+  updateScreen();                              // update UI immediately, don't wait for the main loop to eventually get around to it
 }   // end startScreen()
 
 bool ViewCfgReboot::onTouch(Point touch) {

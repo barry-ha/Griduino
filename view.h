@@ -134,7 +134,7 @@ protected:
   void showProgressBar(int screen, int numScreens) {
     // draw marker for advancing through settings, eg, 1 of 6, 2 of 6, etc.
     // we try to make it look like a filled rectangle
-    int x0 = 74;              // lhs bounding box
+    int x0 = 64;              // lhs bounding box
     int y0 = 28;              // top bounding box
     int w  = 320 - x0 - x0;   // width of bounding box
     int h  = 10;              // height bounding box
