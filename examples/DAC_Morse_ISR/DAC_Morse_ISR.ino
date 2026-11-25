@@ -32,7 +32,7 @@
 
 // ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE    "DAC Morse ISR"
-#define PROGRAM_VERSION  "v1.18"
+#define PROGRAM_VERSION  "v1.17"
 #define PROGRAM_LINE1    "Barry K7BWH"
 #define PROGRAM_LINE2    "John KM7O"
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
@@ -78,7 +78,7 @@ void waitForSerial(int howLong) {
 
 // ========== splash screen ====================================
 const int xLabel = 8;   // indent labels, slight margin on left edge of screen
-//                                  splash                tests
+//                                  splash               tests
 const int yRow1 = 20;           // title                 title
 const int yRow2 = yRow1 + 40;   // program version       test number "Test 1 of 17"
 const int yRow3 = yRow2 + 22;   // compiled date         mode "Blocking" or "Non-blocking"

@@ -8,11 +8,16 @@
  *                     generates the audio samples and the dit/dah timing while
  *                     the main loop keeps running. Poll isBusy() to know when done.
  *
- * SAMD51 (Feather M4) only. Uses timer TC4, which is not used by the
- * TFT backlight PWM (D4 = TC3) or by the Arduino core.
- *
- * NOTE: This implementation is hard-coded to DAC0 (pin A0), the Griduino speaker output.
- * Both sendBlocking() and the non-blocking ISR write to DAC0; there is no pin parameter.
+ * Note:
+ *   SAMD51 (Feather M4) only. Uses timer TC4, which is not used by 
+ *   Griduino's TFT backlight PWM (which uses timer TC3 on pin D4).
+ * Spacing:
+ *   Morse code spacing is selected by constants in morse_dac.cpp. 
+ *   Although PARIS standard is 1/3/7, we prefer 1/4/10 for better copy in a noisy vehicle cabin.
+ *   Look for constants ELEMENT_GAP, LETTER_GAP, and WORD_GAP in morse_dac.cpp.
+ * DAC Output: 
+ *   This implementation is hard-coded to DAC0 (pin A0), the Griduino speaker output pin.
+ *   Both sendBlocking() and the non-blocking ISR write to DAC0.
  *
  * All input should be lowercase.
  * Prosigns (SK, KN, etc) have special character values #defined.

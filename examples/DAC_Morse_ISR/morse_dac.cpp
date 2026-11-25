@@ -18,6 +18,7 @@
            so any audio frequency works) and also counts samples to time
            the dits, dahs and spaces. Each element fades in and out over
            5 msec to avoid key clicks.
+           We avoid timer TC3 because it is used by the TFT backlight PWM.
 
            All input should be uppercase.
            Prosigns (SK, KN, etc) have special character values #defined.
