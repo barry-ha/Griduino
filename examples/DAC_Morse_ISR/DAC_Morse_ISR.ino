@@ -4,8 +4,7 @@
 
   Version history:
             2026-11-25 added non-blocking Morse code: startSending(), isBusy(), stop()
-                       driven by a 16 kHz TC4 timer interrupt; tests moved from setup() to loop()
-            2026-11-24 adding feature to play Morse code nonblocking, so the main loop can run while Morse code is being sent
+                       driven by a 16 kHz TC4 timer interrupt
             2022-06-05 refactored pin definitions into hardware.h
             2019-12-30 created
 
@@ -78,15 +77,15 @@ void waitForSerial(int howLong) {
 }
 
 // ========== splash screen ====================================
-const int xLabel = 8;            // indent labels, slight margin on left edge of screen
-const int yRow1  = 20;           // title
-const int yRow2  = yRow1 + 40;   // program version
-const int yRow3  = yRow2 + 20;   // compiled date
-const int yRow4  = yRow3 + 40;   // author line 1
-const int yRow5  = yRow4 + 20;   // author line 2
-const int yRow6  = yRow5 + 40;   // loop counter
-const int yTest  = yRow2;        // test number (after splash screen)
-const int yMsg   = yRow3 + 20;   // test string
+const int xLabel = 8;   // indent labels, slight margin on left edge of screen
+//                                  splash                tests
+const int yRow1 = 20;           // title                 title
+const int yRow2 = yRow1 + 40;   // program version       test number "Test 1 of 17"
+const int yRow3 = yRow2 + 22;   // compiled date         mode "Blocking" or "Non-blocking"
+const int yRow4 = yRow3 + 22;   // author line 1         morse string, in quotes so leading/trailing spaces are visible
+const int yRow5 = yRow4 + 22;   // author line 2         speed "18 wpm"
+const int yRow6 = yRow5 + 22;   // loop counter          frequency "700 Hz"
+const int yRow7 = yRow6 + 22;   // unused                loop() count, to prove non-blocking operation
 
 void startSplashScreen() {
   tft.setTextSize(2);
@@ -99,7 +98,7 @@ void startSplashScreen() {
   tft.setTextColor(cLABEL);
   tft.print(PROGRAM_VERSION);
 
-  tft.setCursor(xLabel, yRow2 + 140);
+  tft.setCursor(xLabel, yRow3);
   tft.println("Compiled");
 
   tft.setCursor(xLabel, yRow2 + 160);
@@ -114,7 +113,7 @@ void startSplashScreen() {
 }
 
 void showFreqSpeed(int frequency, int wpm) {
-  tft.setCursor(xLabel, yRow4);
+  tft.setCursor(xLabel, yRow5);
   tft.setTextColor(cTEXTCOLOR, cBACKGROUND);
   tft.print("Speed ");
   tft.setTextColor(cVALUE, cBACKGROUND);
@@ -123,7 +122,7 @@ void showFreqSpeed(int frequency, int wpm) {
   Serial.print(wpm);
   Serial.println(" wpm");
 
-  tft.setCursor(xLabel, yRow5);
+  tft.setCursor(xLabel, yRow6);
   tft.setTextColor(cTEXTCOLOR, cBACKGROUND);
   tft.print("Frequency ");
   tft.setTextColor(cVALUE, cBACKGROUND);
@@ -143,7 +142,7 @@ void showMode(const char *mode) {
 void showTest(int number, int total, const char *message) {
   // ----- test number, e.g. "Test 3 of 16"
   tft.setTextSize(2);
-  tft.setCursor(xLabel, yTest);
+  tft.setCursor(xLabel, yRow2);
   tft.setTextColor(cTEXTCOLOR, cBACKGROUND);
   tft.print("Test ");
   tft.setTextColor(cVALUE, cBACKGROUND);
@@ -154,12 +153,12 @@ void showTest(int number, int total, const char *message) {
   tft.print("   ");
 
   // ----- test string, in quotes so leading/trailing spaces are visible
-  tft.fillRect(0, yMsg, tft.width(), 16, cBACKGROUND);        // erase previous string
+  tft.fillRect(0, yRow4, tft.width(), 16, cBACKGROUND);       // erase previous string
   int chars = strlen(message) + 2;                            // +2 for quotes
   int size  = (xLabel + chars * 12 <= tft.width()) ? 2 : 1;   // 12 or 6 pixels per char
   tft.setTextWrap(false);
   tft.setTextSize(size);
-  tft.setCursor(xLabel, yMsg + (size == 1 ? 4 : 0));
+  tft.setCursor(xLabel, yRow4 + (size == 1 ? 4 : 0));
   tft.setTextColor(cVALUE, cBACKGROUND);
   tft.print('"');
   tft.print(message);
@@ -169,7 +168,7 @@ void showTest(int number, int total, const char *message) {
 }
 
 void showLoopCount(int count) {
-  tft.setCursor(xLabel, yRow6);
+  tft.setCursor(xLabel, yRow7);
   tft.setTextColor(cTEXTCOLOR, cBACKGROUND);
   tft.print("loop() count ");
   tft.setTextColor(cVALUE, cBACKGROUND);
@@ -185,7 +184,7 @@ void showActivityBar(int row, uint16_t foreground, uint16_t background) {
   static int addDotX = 10;   // current screen column, 0..319 pixels
   static int rmvDotX = 0;
   static int count   = 0;
-  const int SCALEF   = 256;   // how much to slow it down so it becomes visible
+  const int SCALEF   = 4096;   // how much to slow it down so it becomes visible
 
   count = (count + 1) % SCALEF;
   if (count == 0) {
@@ -212,26 +211,29 @@ struct MorseTest {
   const char *message;
 };
 
+// clang-format off
 const MorseTest tests[] = {
     // mode,     Hz,  wpm, message
-    {UNIT_TEST, 1000, 15, ""},
-    {BLOCKING, 1000, 15, "de k7bwh es km7o"},
+    {UNIT_TEST,   1000, 15, ""},
+    {BLOCKING,    1000, 15, "de k7bwh es km7o"},
     {NONBLOCKING, 1000, 15, "de k7bwh es km7o"},   // same message, compare blocking vs non-blocking
-    {BLOCKING, 1000, 15, "tu  "},                  // thank you
-    {NONBLOCKING, 1000, 15, "ese ee"},             // shave and a haircut
-    {BLOCKING, 1000, 15, "S"},                     // PROSIGN_SK
-    {NONBLOCKING, 1000, 15, "A"},                  // PROSIGN_AS
-    {NONBLOCKING, 800, 18, "abcdefghijklmnopqrstuvwxyz"},
-    {BLOCKING, 800, 18, "01234 56789"},
-    {NONBLOCKING, 800, 18, "de k7bwh es km7o  A  "},
-    {BLOCKING, 1100, 20, "de k7bwh es km7o  A  "},
+    {NONBLOCKING,  800, 18, "abcdefghijklmnopqrstuvwxyz"},
+    {BLOCKING,     800, 18, "abcdefghijklmnopqrstuvwxyz"}, // same message, compare blocking vs non-blocking
+    {BLOCKING,     800, 18, "01234 56789"},
+    {NONBLOCKING,  800, 18, "de k7bwh es km7o  A  "},
+    {BLOCKING,    1100, 20, "de k7bwh es km7o  A  "},
     {NONBLOCKING, 1100, 20, "de k7bwh es km7o  A  "},
     {NONBLOCKING, 1200, 25, "de k7bwh es km7o  A  "},
-    {STOP_EARLY, 1200, 25, "this message is stopped early"},
-    {BLOCKING, 1300, 30, "de k7bwh es km7o  S S"},
+    {STOP_EARLY,  1200, 25, "this message is stopped early"},
+    {BLOCKING,    1300, 30, "de k7bwh es km7o  S S"},
     {NONBLOCKING, 1300, 30, "de k7bwh es km7o  S S"},
+    {NONBLOCKING, 1000, 15, "ese ee"},             // shave and a haircut
+    {BLOCKING,    1000, 15, "tu  "},               // thank you
+    {BLOCKING,    1000, 15, "S"},                  // PROSIGN_SK
+    {NONBLOCKING, 1000, 15, "A"},                  // PROSIGN_AS
 };
 const int numTests = sizeof(tests) / sizeof(tests[0]);
+// clang-format on
 
 const unsigned long PAUSE_BETWEEN_TESTS = 1000;   // msec
 const unsigned long STOP_EARLY_AFTER    = 3000;   // msec
@@ -404,7 +406,7 @@ void loop() {
     testIndex++;
   } else if (!allDone) {
     allDone = true;
-    showMode("All tests done");
+    showMode("Done. Reset to run again.");
     Serial.println("\nAll tests done. Press reset to run them again.");
   }
 }
