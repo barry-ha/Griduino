@@ -61,7 +61,7 @@ const int howLongToWait = 6;   // max number of seconds at startup waiting for S
 #define cTEXTCOLOR  ILI9341_CYAN   // 0, 255, 255
 #define cLABEL      ILI9341_GREEN
 #define cVALUE      ILI9341_YELLOW
-int gLoopCount = 0;
+unsigned long gLoopCount = 0;   // loop() passes since the current test started
 
 // ========== screen helpers ===================================
 
@@ -168,7 +168,7 @@ void showTest(int number, int total, const char *message) {
   tft.setTextWrap(true);
 }
 
-void showLoopCount(int count) {
+void showLoopCount(unsigned long count) {
   tft.setCursor(xLabel, yRow6);
   tft.setTextColor(cTEXTCOLOR, cBACKGROUND);
   tft.print("loop() count ");
@@ -363,15 +363,16 @@ void loop() {
   // a sense of how frequently the main loop is executing
   showActivityBar(tft.height() - 1, ILI9341_RED, cBACKGROUND);
 
+  // show the main loop is running: during non-blocking sends, between tests,
+  // and after all tests are done (it freezes only during blocking sends)
+  static unsigned long lastShown = 0;
+  if (millis() - lastShown >= 250) {
+    lastShown = millis();
+    showLoopCount(gLoopCount);
+  }
+
   // ----- a non-blocking test is in progress
   if (waitingForSend) {
-    // show the main loop is still running while Morse code plays
-    static unsigned long lastShown = 0;
-    if (millis() - lastShown >= 250) {
-      lastShown = millis();
-      showLoopCount(gLoopCount);
-    }
-
     if (stopEarly && millis() - testStartTime >= STOP_EARLY_AFTER) {
       Serial.println("Calling stop()");
       DACMorseSender::stop();
