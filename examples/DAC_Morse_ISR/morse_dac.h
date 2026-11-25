@@ -30,6 +30,7 @@ private:
 
   // DAC settings
   int dacPin;            // identifies DAC output port
+  int dacChannel;        // DAC channel for dacPin: 0 = DAC0 (A0), 1 = DAC1 (A1), -1 = not a DAC pin
   float fFrequency;      // Hz
   float dacSampleTime;   // microseconds to hold each waveform sample
 
@@ -53,6 +54,8 @@ public:
    */
   DACMorseSender(int outputPin, int iFreq, float fWPM) {
     dacPin     = outputPin;
+    dacChannel = (outputPin == DAC0) ? 0 : (outputPin == DAC1) ? 1
+                                                               : -1;
     fFrequency = iFreq;
     wpm        = fWPM;
   }

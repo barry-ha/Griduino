@@ -371,10 +371,13 @@ volatile uint32_t phase      = 0;       // phase accumulator: 2^32 = one full cy
 volatile uint32_t phaseStep  = 0;       // phase increment per sample = freq * 2^32 / SAMPLE_RATE
 volatile int envelope        = 0;       // 0..RAMP_SAMPLES, fades the tone in and out
 
+volatile uint8_t dacChannel = 0;   // DAC channel used by the ISR: 0 = DAC0 (A0), 1 = DAC1 (A1)
+
 inline void writeDAC(uint16_t value) {
-  while (DAC->SYNCBUSY.bit.DATA0) {
+  const uint32_t busy = dacChannel ? DAC_SYNCBUSY_DATA1 : DAC_SYNCBUSY_DATA0;
+  while (DAC->SYNCBUSY.reg & busy) {
   }   // wait for previous write (normally already done)
-  DAC->DATA[0].reg = value;
+  DAC->DATA[dacChannel].reg = value;
 }
 
 void stopTimer() {
@@ -398,9 +401,7 @@ void initTimer() {
     sineTable[ii] = (int16_t)(DAC_AMPLITUDE * sin(2.0 * PI * ii / SINE_SIZE));
   }
 
-  // let the Arduino core enable the DAC on our pin, at its idle midpoint
-  analogWriteResolution(12);
-  analogWrite(DAC0, DAC_MIDPOINT);
+  analogWriteResolution(12);   // DAC channel itself is enabled in startSending()
 
   // clock TC4 from GCLK1 (48 MHz)
   GCLK->PCHCTRL[TC4_GCLK_ID].reg = GCLK_PCHCTRL_GEN_GCLK1 | GCLK_PCHCTRL_CHEN;
@@ -512,10 +513,21 @@ void DACMorseSender::startSending() {
     initTimer();
   }
 
+  if (dacChannel < 0) {
+    Serial.print("!!! Pin ");
+    Serial.print(dacPin);
+    Serial.println(" is not a DAC pin (use DAC0 or DAC1); cannot send Morse");
+    return;
+  }
+
   // stop anything in progress (fades out over 5 msec, then the ISR stops the timer)
   DACMorseSender::stop();
   stopTimer();
-  writeDAC(DAC_MIDPOINT);
+
+  // let the Arduino core enable this DAC channel, at its idle midpoint,
+  // then point the ISR at the same channel
+  analogWrite(dacPin, DAC_MIDPOINT);
+  isr::dacChannel = dacChannel;
 
   // convert message to Morse patterns here, so the ISR never searches tables or prints
   int count = 0;
