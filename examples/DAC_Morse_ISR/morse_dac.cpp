@@ -347,6 +347,11 @@ const int DAC_AMPLITUDE     = 2040;                     // slightly less than ha
 const int MAX_MESSAGE       = 64;                       // longest message for startSending()
 const uint8_t PATTERN_SPACE = 0;                        // marker for a space between words
 
+// Spacing, in dits. Not PARIS timing (which is 1/3/7): Griduino uses longer gaps.
+const uint32_t ELEMENT_GAP = 1;    // between dits and dahs within a letter
+const uint32_t LETTER_GAP  = 4;    // between letters
+const uint32_t WORD_GAP    = 10;   // between words
+
 int16_t sineTable[SINE_SIZE];   // one cycle of sine wave, +/- DAC_AMPLITUDE
 bool timerReady = false;
 
@@ -426,8 +431,8 @@ inline void nextSegment() {
   if (afterElement) {
     afterElement = false;
     keyDown      = false;
-    // 1 dit between elements of a letter, else 3 dits between letters
-    remaining = (pattern > 1) ? ditSamples : 3 * ditSamples;
+    // gap within a letter, else gap between letters
+    remaining = (pattern > 1) ? ELEMENT_GAP * ditSamples : LETTER_GAP * ditSamples;
     return;
   }
   if (pattern <= 1) {
@@ -440,9 +445,9 @@ inline void nextSegment() {
     }
     uint8_t p = patterns[nextIndex++];
     if (p == PATTERN_SPACE) {
-      // letter space (3) already sent + 4 more = 7 dits between words
+      // letter gap already sent, add the rest to make a word gap
       keyDown   = false;
-      remaining = 4 * ditSamples;
+      remaining = (WORD_GAP - LETTER_GAP) * ditSamples;
       return;
     }
     pattern = p;

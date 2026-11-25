@@ -77,7 +77,7 @@ public:
    * Non-blocking: start sending the current message and return immediately.
    * Audio and Morse timing run at interrupt level, so the main loop keeps running.
    * If another message is already being sent, it is stopped and replaced.
-   * Uses standard PARIS timing: 1 dit between elements, 3 between letters, 7 between words.
+   * Spacing: 1 dit between elements, 4 between letters, 10 between words (not PARIS 1/3/7).
    */
   void startSending();
 
