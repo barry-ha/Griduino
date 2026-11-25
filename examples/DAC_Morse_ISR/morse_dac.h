@@ -11,6 +11,9 @@
  * SAMD51 (Feather M4) only. Uses timer TC4, which is not used by the
  * TFT backlight PWM (D4 = TC3) or by the Arduino core.
  *
+ * NOTE: This implementation is hard-coded to DAC0 (pin A0), the Griduino speaker output.
+ * Both sendBlocking() and the non-blocking ISR write to DAC0; there is no pin parameter.
+ *
  * All input should be lowercase.
  * Prosigns (SK, KN, etc) have special character values #defined.
  *
@@ -29,7 +32,6 @@ private:
   String message;
 
   // DAC settings
-  int dacPin;            // identifies DAC output port
   float fFrequency;      // Hz
   float dacSampleTime;   // microseconds to hold each waveform sample
 
@@ -49,10 +51,10 @@ private:
 
 public:
   /**
-   * Create a sender for the given DAC port, audio frequency, and sending rate.
+   * Create a sender for the given audio frequency and sending rate.
+   * Output is always DAC0 (pin A0).
    */
-  DACMorseSender(int outputPin, int iFreq, float fWPM) {
-    dacPin     = outputPin;
+  DACMorseSender(int iFreq, float fWPM) {
     fFrequency = iFreq;
     wpm        = fWPM;
   }

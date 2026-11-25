@@ -285,8 +285,9 @@ void runTest(int index) {
 
   // The sender object can be local: startSending() copies everything the ISR
   // needs, so a non-blocking message keeps playing after this function returns.
-  //                       outpin,   freq,           wpm
-  DACMorseSender dacMorse(DAC_PIN, test.frequency, test.wpm);
+  // Output is always DAC0 (hard-coded in DACMorseSender).
+  //                      freq,           wpm
+  DACMorseSender dacMorse(test.frequency, test.wpm);
   dacMorse.setup();
   showFreqSpeed(test.frequency, (int)test.wpm);
   dacMorse.setMessage(test.message);

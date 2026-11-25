@@ -10,6 +10,8 @@
            DAC (digital to analog converter) that plays a pure
            tone from a waveform table.
 
+           Hard-coded to DAC0 (pin A0) for both blocking and non-blocking output.
+
            sendBlocking() is the original blocking method.
            startSending() is non-blocking: a TC4 timer interrupt at 16 kHz
            produces each DAC sample from a sine table (phase accumulator,
@@ -187,7 +189,7 @@ void DACMorseSender::send_dit() {
     // step through one waveform
     for (int kk = 0; kk < sizeWavetable; kk++) {
       val = waveform[kk];   // lookup DAC setting from the table
-      analogWrite(dacPin, (int)val);
+      analogWrite(DAC0, (int)val);
       delayMicroseconds(dacSampleTime);
     }
   }
@@ -204,23 +206,23 @@ void DACMorseSender::send_dah() {
     // step through one waveform
     for (int kk = 0; kk < sizeWavetable; kk++) {
       val = waveform[kk];   // lookup DAC setting from the table
-      analogWrite(dacPin, (int)val);
+      analogWrite(DAC0, (int)val);
       delayMicroseconds(dacSampleTime);
     }
   }
   send_dit_space();
 }
 void DACMorseSender::send_dit_space() {
-  analogWrite(dacPin, dacOffset);
+  analogWrite(DAC0, dacOffset);
   delay(iDitDuration);
 }
 void DACMorseSender::send_letter_space() {
-  analogWrite(dacPin, dacOffset);
+  analogWrite(DAC0, dacOffset);
   int msec = (int)1000.0 * letterSpace;
   delay(msec);
 }
 void DACMorseSender::send_word_space() {
-  analogWrite(dacPin, dacOffset);
+  analogWrite(DAC0, dacOffset);
   int msec = (int)1000.0 * wordSpace;
   delay(msec);
 }
@@ -287,7 +289,7 @@ void DACMorseSender::dump() {
   }
   snprintf(msg, 256, ". DAC sizeWavetable(%d)", sizeWavetable);
   Serial.println(msg);
-  snprintf(msg, 256, ". DAC dacPin(%d)", dacPin);
+  snprintf(msg, 256, ". DAC output pin(DAC0, hard-coded)");
   Serial.println(msg);
   snprintf(msg, 256, ". DAC dacAmplitude(%d)", dacAmplitude);
   Serial.println(msg);
