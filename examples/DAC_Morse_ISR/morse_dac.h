@@ -1,7 +1,15 @@
 #pragma once
 /**
  * Send Morse Code with a sine wave using onboard DAC to a speaker.
- * This version sends in a blocking manner (does not return until message complete).
+ *
+ * Two ways to send:
+ *   sendBlocking()  - original method, does not return until message complete.
+ *   startSending()  - non-blocking, returns immediately. A TC4 timer interrupt
+ *                     generates the audio samples and the dit/dah timing while
+ *                     the main loop keeps running. Poll isBusy() to know when done.
+ *
+ * SAMD51 (Feather M4) only. Uses timer TC4, which is not used by the
+ * TFT backlight PWM (D4 = TC3) or by the Arduino core.
  *
  * All input should be lowercase.
  * Prosigns (SK, KN, etc) have special character values #defined.
@@ -64,6 +72,24 @@ public:
    * Send the entirety of the current message before returning.
    */
   void sendBlocking();
+
+  /**
+   * Non-blocking: start sending the current message and return immediately.
+   * Audio and Morse timing run at interrupt level, so the main loop keeps running.
+   * If another message is already being sent, it is stopped and replaced.
+   * Uses standard PARIS timing: 1 dit between elements, 3 between letters, 7 between words.
+   */
+  void startSending();
+
+  /**
+   * True while a non-blocking message is still being sent.
+   */
+  static bool isBusy();
+
+  /**
+   * Stop a non-blocking message immediately (with a short fade to avoid a click).
+   */
+  static void stop();
 
   /**
    * Deprecated: use these for unit test

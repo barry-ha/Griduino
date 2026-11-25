@@ -1,9 +1,11 @@
 // Please format this file with clang before check-in to GitHub
 /*
-  DAC Morse Code Generator -- refactored into DACMorseSender class
+  DAC Morse ISR -- non-blocking Morse code from a timer interrupt
 
   Version history:
-            2026-11-24 adding feature to play Morse code nonblocking, so the main loop can run while Morse code is being sent (TODO)
+            2026-11-25 added non-blocking Morse code: startSending(), isBusy(), stop()
+                       driven by a 16 kHz TC4 timer interrupt; tests moved from setup() to loop()
+            2026-11-24 adding feature to play Morse code nonblocking, so the main loop can run while Morse code is being sent
             2022-06-05 refactored pin definitions into hardware.h
             2019-12-30 created
 
@@ -15,6 +17,13 @@
             2. Synthesized audio on DAC converter
             3. Digital potentiometer to control volume
             4. LM386 audio amplifier with small speaker
+
+  What to watch:
+            The tests run once from loop(), alternating blocking and non-blocking sends.
+            The red activity bar along the bottom edge only moves while loop() is running.
+            * Blocking:     bar freezes until the message is finished.
+            * Non-blocking: bar keeps crawling and the loop counter keeps climbing.
+            The serial console reports how many times loop() ran during each non-blocking message.
 */
 
 #include <Adafruit_ILI9341.h>   // TFT color display library
@@ -24,7 +33,7 @@
 
 // ------- Identity for splash screen and console --------
 #define PROGRAM_TITLE    "DAC Morse ISR"
-#define PROGRAM_VERSION  "v1.17"
+#define PROGRAM_VERSION  "v1.18"
 #define PROGRAM_LINE1    "Barry K7BWH"
 #define PROGRAM_LINE2    "John KM7O"
 #define PROGRAM_COMPILED __DATE__ " " __TIME__
@@ -75,6 +84,7 @@ const int yRow2  = yRow1 + 40;   // program version
 const int yRow3  = yRow2 + 20;   // compiled date
 const int yRow4  = yRow3 + 40;   // author line 1
 const int yRow5  = yRow4 + 20;   // author line 2
+const int yRow6  = yRow5 + 40;   // loop counter
 
 void startSplashScreen() {
   tft.setTextSize(2);
@@ -121,6 +131,22 @@ void showFreqSpeed(int frequency, int wpm) {
   Serial.println(" Hz");
 }
 
+void showMode(const char *mode) {
+  tft.setCursor(xLabel, yRow3);
+  tft.setTextColor(cLABEL, cBACKGROUND);
+  tft.print(mode);
+  tft.print("            ");   // erase leftover text from a longer label
+}
+
+void showLoopCount(int count) {
+  tft.setCursor(xLabel, yRow6);
+  tft.setTextColor(cTEXTCOLOR, cBACKGROUND);
+  tft.print("loop() count ");
+  tft.setTextColor(cVALUE, cBACKGROUND);
+  tft.print(count);
+  tft.print("       ");
+}
+
 void clearScreen() {
   tft.fillScreen(cBACKGROUND);
 }
@@ -137,6 +163,126 @@ void showActivityBar(int row, uint16_t foreground, uint16_t background) {
     rmvDotX = (rmvDotX + 1) % tft.width();     // advance
     tft.drawPixel(addDotX, row, foreground);   // write new
     tft.drawPixel(rmvDotX, row, background);   // erase old
+  }
+}
+
+//=========== tests ============================================
+// Each test runs from loop(), one after another, with a short pause between them.
+enum TestMode {
+  UNIT_TEST,     // blocking dits and dit-dahs, using the deprecated unit test functions
+  BLOCKING,      // sendBlocking(): loop() is stalled until the message is finished
+  NONBLOCKING,   // startSending(): returns immediately, loop() keeps running
+  STOP_EARLY,    // startSending(), then stop() after a few seconds
+};
+
+struct MorseTest {
+  TestMode mode;
+  int frequency;   // Hz
+  float wpm;       // words per minute
+  const char *message;
+};
+
+const MorseTest tests[] = {
+    // mode,     Hz,  wpm, message
+    {UNIT_TEST, 1000, 15, ""},
+    {BLOCKING, 1000, 15, "de k7bwh es km7o"},
+    {NONBLOCKING, 1000, 15, "de k7bwh es km7o"},   // same message, compare blocking vs non-blocking
+    {BLOCKING, 1000, 15, "tu  "},                  // thank you
+    {NONBLOCKING, 1000, 15, "ese ee"},             // shave and a haircut
+    {BLOCKING, 1000, 15, "S"},                     // PROSIGN_SK
+    {NONBLOCKING, 1000, 15, "A"},                  // PROSIGN_AS
+    {NONBLOCKING, 800, 18, "abcdefghijklmnopqrstuvwxyz"},
+    {BLOCKING, 800, 18, "01234 56789"},
+    {NONBLOCKING, 800, 18, "de k7bwh es km7o  A  "},
+    {BLOCKING, 1100, 20, "de k7bwh es km7o  A  "},
+    {NONBLOCKING, 1100, 20, "de k7bwh es km7o  A  "},
+    {NONBLOCKING, 1200, 25, "de k7bwh es km7o  A  "},
+    {STOP_EARLY, 1200, 25, "this message is stopped early"},
+    {BLOCKING, 1300, 30, "de k7bwh es km7o  S S"},
+    {NONBLOCKING, 1300, 30, "de k7bwh es km7o  S S"},
+};
+const int numTests = sizeof(tests) / sizeof(tests[0]);
+
+const unsigned long PAUSE_BETWEEN_TESTS = 1000;   // msec
+const unsigned long STOP_EARLY_AFTER    = 3000;   // msec
+
+int testIndex                = 0;       // next test to run
+bool waitingForSend          = false;   // true while a non-blocking test is sending
+unsigned long testStartTime  = 0;       // millis() when the current test started
+unsigned long pauseStartTime = 0;       // millis() when the previous test finished
+bool stopEarly               = false;   // true if the current test calls stop()
+bool allDone                 = false;
+
+void runUnitTests(DACMorseSender &dacMorse) {
+  dacMorse.dump();   // debug
+
+  // ----- test series of dits
+  Serial.print("\nStarting dits\n");
+  for (int ii = 1; ii <= 20; ii++) {
+    Serial.print(ii);
+    Serial.print(" ");
+    if (ii % 10 == 0)
+      Serial.print("\n");
+    dacMorse.send_dit();
+  }
+  Serial.print("Finished dits\n");
+  dacMorse.send_word_space();
+
+  // ----- test dit-dah
+  Serial.print("\nStarting dit-dah\n");
+  for (int ii = 1; ii <= 10; ii++) {
+    Serial.print(ii);
+    Serial.print(" ");
+    if (ii % 10 == 0)
+      Serial.print("\n");
+    dacMorse.send_dit();
+    dacMorse.send_dah();
+  }
+  dacMorse.send_word_space();
+  Serial.print("Finished dit-dah\n");
+}
+
+void runTest(int index) {
+  const MorseTest &test = tests[index];
+
+  Serial.print("\n----- Test ");
+  Serial.print(index + 1);
+  Serial.print(" of ");
+  Serial.println(numTests);
+
+  // The sender object can be local: startSending() copies everything the ISR
+  // needs, so a non-blocking message keeps playing after this function returns.
+  //                       outpin,   freq,           wpm
+  DACMorseSender dacMorse(DAC_PIN, test.frequency, test.wpm);
+  dacMorse.setup();
+  showFreqSpeed(test.frequency, (int)test.wpm);
+  dacMorse.setMessage(test.message);
+
+  gLoopCount    = 0;
+  testStartTime = millis();
+
+  switch (test.mode) {
+  case UNIT_TEST:
+    showMode("Blocking dits");
+    runUnitTests(dacMorse);
+    showLoopCount(gLoopCount);   // still 0: loop() could not run
+    pauseStartTime = millis();
+    break;
+
+  case BLOCKING:
+    showMode("Blocking");
+    dacMorse.sendBlocking();     // loop() and the activity bar stop until this returns
+    showLoopCount(gLoopCount);   // still 0: loop() could not run
+    pauseStartTime = millis();
+    break;
+
+  case NONBLOCKING:
+  case STOP_EARLY:
+    showMode(test.mode == NONBLOCKING ? "Non-blocking" : "Non-blocking, stop");
+    dacMorse.startSending();   // returns immediately
+    waitingForSend = true;
+    stopEarly      = (test.mode == STOP_EARLY);
+    break;
   }
 }
 
@@ -172,90 +318,62 @@ void setup() {
   Serial.print("Set wiper position = ");
   Serial.println(gWiper);
 
-  // ========== TEST 1 ==========
-  //                       outpin, freq, wpm
-  DACMorseSender dacMorse(DAC_PIN, 1000, 15);
-  showFreqSpeed(1000, 15);
-  dacMorse.setup();
-  dacMorse.dump();   // debug
+  // ----- init DAC
+  analogWriteResolution(12);   // Feather M4 DAC is 12 bits (4096 levels)
 
-  // ----- test series of dits
-  Serial.print("\nStarting dits\n");
-  for (int ii = 1; ii <= 20; ii++) {
-    Serial.print(ii);
-    Serial.print(" ");
-    if (ii % 10 == 0)
-      Serial.print("\n");
-    dacMorse.send_dit();
-  }
-  Serial.print("Finished dits\n");
-  dacMorse.send_word_space();
-
-  // ----- test dit-dah
-  Serial.print("\nStarting dit-dah\n");
-  for (int ii = 1; ii <= 10; ii++) {
-    Serial.print(ii);
-    Serial.print(" ");
-    if (ii % 10 == 0)
-      Serial.print("\n");
-    dacMorse.send_dit();
-    dacMorse.send_dah();
-  }
-  dacMorse.send_word_space();
-  Serial.print("Finished dit-dah\n");
-
-  // ----- test messages
-  dacMorse.setMessage("de k7bwh es km7o");
-  dacMorse.sendBlocking();
-  dacMorse.setMessage("tu  ");   // thank you
-  dacMorse.sendBlocking();
-  dacMorse.setMessage("ese ee");   // shave and a haircut
-  dacMorse.sendBlocking();
-  dacMorse.setMessage("S");   // PROSIGN_SK
-  dacMorse.sendBlocking();
-  dacMorse.setMessage("A");   // PROSIGN_AS
-  dacMorse.sendBlocking();
-
-  // ========== TEST 2 ==========
-  //                    outpin, freq, wpm
-  DACMorseSender morse2(DAC_PIN, 800, 18);
-  showFreqSpeed(800, 18);
-  morse2.setup();
-  morse2.setMessage("abcdefghijklmnopqrstuvwxyz");
-  morse2.sendBlocking();
-  morse2.setMessage("01234 56789");
-  morse2.sendBlocking();
-  morse2.setMessage("de k7bwh es km7o  A  ");
-  morse2.sendBlocking();
-
-  // ========== TEST 3 ==========
-  DACMorseSender morse3(DAC_PIN, 1100, 20);
-  showFreqSpeed(1100, 20);
-  morse3.setup();
-  morse3.setMessage("de k7bwh es km7o  A  ");
-  morse3.sendBlocking();
-
-  // ========== TEST 4 ==========
-  Serial.println("1200 Hz");
-  DACMorseSender morse4(DAC_PIN, 1200, 25);
-  showFreqSpeed(1200, 25);
-  morse4.setup();
-  morse4.setMessage("de k7bwh es km7o  A  ");
-  morse4.sendBlocking();
-
-  // ========== TEST 5 ==========
-  Serial.println("1300 Hz");
-  DACMorseSender morse5(DAC_PIN, 1300, 30);
-  showFreqSpeed(1300, 30);
-  morse5.setup();
-  morse5.setMessage("de k7bwh es km7o  S S");
-  morse5.sendBlocking();
+  // all Morse code tests run from loop()
 }
 
 //=========== main work loop ===================================
 void loop() {
+  gLoopCount++;
 
   // small activity bar crawls along bottom edge to give
   // a sense of how frequently the main loop is executing
   showActivityBar(tft.height() - 1, ILI9341_RED, cBACKGROUND);
+
+  // ----- a non-blocking test is in progress
+  if (waitingForSend) {
+    // show the main loop is still running while Morse code plays
+    static unsigned long lastShown = 0;
+    if (millis() - lastShown >= 250) {
+      lastShown = millis();
+      showLoopCount(gLoopCount);
+    }
+
+    if (stopEarly && millis() - testStartTime >= STOP_EARLY_AFTER) {
+      Serial.println("Calling stop()");
+      DACMorseSender::stop();
+      stopEarly = false;
+    }
+
+    if (DACMorseSender::isBusy()) {
+      return;   // keep looping until the message is finished
+    }
+
+    // finished
+    waitingForSend = false;
+    showLoopCount(gLoopCount);
+    Serial.print("Finished non-blocking send in ");
+    Serial.print(millis() - testStartTime);
+    Serial.print(" msec, loop() ran ");
+    Serial.print(gLoopCount);
+    Serial.println(" times meanwhile");
+    pauseStartTime = millis();
+  }
+
+  // ----- short pause between tests (without blocking)
+  if (millis() - pauseStartTime < PAUSE_BETWEEN_TESTS) {
+    return;
+  }
+
+  // ----- start the next test
+  if (testIndex < numTests) {
+    runTest(testIndex);
+    testIndex++;
+  } else if (!allDone) {
+    allDone = true;
+    showMode("All tests done");
+    Serial.println("\nAll tests done. Press reset to run them again.");
+  }
 }

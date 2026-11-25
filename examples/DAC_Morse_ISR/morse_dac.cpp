@@ -10,6 +10,13 @@
            DAC (digital to analog converter) that plays a pure
            tone from a waveform table.
 
+           sendBlocking() is the original blocking method.
+           startSending() is non-blocking: a TC4 timer interrupt at 16 kHz
+           produces each DAC sample from a sine table (phase accumulator,
+           so any audio frequency works) and also counts samples to time
+           the dits, dahs and spaces. Each element fades in and out over
+           5 msec to avoid key clicks.
+
            All input should be uppercase.
            Prosigns (SK, KN, etc) have special character values #defined.
 
@@ -171,6 +178,7 @@ void DACMorseSender::setup() {
 }
 
 void DACMorseSender::send_dit() {
+  DACMorseSender::stop();   // don't let the ISR and blocking code both drive the DAC
   float val;
 
   // send an entire waveform over and over until the DIT time is done
@@ -187,6 +195,7 @@ void DACMorseSender::send_dit() {
 }
 
 void DACMorseSender::send_dah() {
+  DACMorseSender::stop();   // don't let the ISR and blocking code both drive the DAC
   float val;
 
   // send an entire waveform over and over until the DAH time is done
@@ -251,6 +260,7 @@ void DACMorseSender::setMessage(const String newMessage) {
 }
 
 void DACMorseSender::sendBlocking() {
+  DACMorseSender::stop();   // don't let the ISR and blocking code both drive the DAC
   Serial.print("Sending morse ");
   Serial.print(wpm, 1);
   Serial.print(" wpm: ");
@@ -313,4 +323,242 @@ void DACMorseSender::dump() {
   snprintf(msg, 256, ". Morse cyclesPerDah(%d)", cyclesPerDah);
   Serial.println(msg);
   Serial.println("End dump.");
+}
+
+// =============================================================
+//    Non-blocking sender, driven by TC4 timer interrupt
+// =============================================================
+// Everything below this line runs on SAMD51 only (Feather M4).
+// The ISR touches only the DAC and the variables in this section.
+// It never uses Serial, String, SPI, flash, or the heap.
+
+#if !defined(__SAMD51__)
+#error "Non-blocking Morse requires a SAMD51 processor (e.g. Adafruit Feather M4)"
+#endif
+
+namespace isr {
+
+const uint32_t SAMPLE_RATE  = 16000;                    // Hz, timer interrupt rate
+const uint32_t TIMER_CLOCK  = 48000000;                 // Hz, GCLK1 on Adafruit SAMD51 core
+const int SINE_SIZE         = 256;                      // entries in sine table (indexed by top 8 bits of phase)
+const int RAMP_SAMPLES      = SAMPLE_RATE * 5 / 1000;   // 5 msec fade in/out = 80 samples
+const int DAC_MIDPOINT      = 2048;                     // = exactly half of 2^12
+const int DAC_AMPLITUDE     = 2040;                     // slightly less than half of 2^12
+const int MAX_MESSAGE       = 64;                       // longest message for startSending()
+const uint8_t PATTERN_SPACE = 0;                        // marker for a space between words
+
+int16_t sineTable[SINE_SIZE];   // one cycle of sine wave, +/- DAC_AMPLITUDE
+bool timerReady = false;
+
+// ----- state shared between startSending() and the ISR
+volatile bool active      = false;   // true from startSending() until the final fade-out is done
+volatile bool keyDown     = false;   // true = tone on, false = silent
+volatile bool stopRequest = false;
+
+uint8_t patterns[MAX_MESSAGE];          // message converted to Morse patterns, read lsb-to-msb, msb is sentinel
+volatile int numPatterns     = 0;       // number of entries in patterns[]
+volatile int nextIndex       = 0;       // next entry in patterns[] to send
+volatile uint8_t pattern     = 1;       // elements remaining in current character (1 = none left)
+volatile bool afterElement   = false;   // true = an element just finished, a gap comes next
+volatile uint32_t remaining  = 0;       // samples left in the current dit, dah or space
+volatile uint32_t ditSamples = 0;       // samples per dit at the current speed
+volatile uint32_t phase      = 0;       // phase accumulator: 2^32 = one full cycle
+volatile uint32_t phaseStep  = 0;       // phase increment per sample = freq * 2^32 / SAMPLE_RATE
+volatile int envelope        = 0;       // 0..RAMP_SAMPLES, fades the tone in and out
+
+inline void writeDAC(uint16_t value) {
+  while (DAC->SYNCBUSY.bit.DATA0) {
+  }   // wait for previous write (normally already done)
+  DAC->DATA[0].reg = value;
+}
+
+void stopTimer() {
+  TC4->COUNT16.CTRLA.bit.ENABLE = 0;
+  while (TC4->COUNT16.SYNCBUSY.bit.ENABLE) {
+  }
+}
+
+void startTimer() {
+  TC4->COUNT16.COUNT.reg = 0;
+  while (TC4->COUNT16.SYNCBUSY.bit.COUNT) {
+  }
+  TC4->COUNT16.CTRLA.bit.ENABLE = 1;
+  while (TC4->COUNT16.SYNCBUSY.bit.ENABLE) {
+  }
+}
+
+void initTimer() {
+  // build sine table once
+  for (int ii = 0; ii < SINE_SIZE; ii++) {
+    sineTable[ii] = (int16_t)(DAC_AMPLITUDE * sin(2.0 * PI * ii / SINE_SIZE));
+  }
+
+  // let the Arduino core enable the DAC on our pin, at its idle midpoint
+  analogWriteResolution(12);
+  analogWrite(DAC0, DAC_MIDPOINT);
+
+  // clock TC4 from GCLK1 (48 MHz)
+  GCLK->PCHCTRL[TC4_GCLK_ID].reg = GCLK_PCHCTRL_GEN_GCLK1 | GCLK_PCHCTRL_CHEN;
+  while (!(GCLK->PCHCTRL[TC4_GCLK_ID].reg & GCLK_PCHCTRL_CHEN)) {
+  }
+  MCLK->APBCMASK.reg |= MCLK_APBCMASK_TC4;
+
+  // reset, then 16-bit counter that restarts at CC0 ("match frequency" mode)
+  TC4->COUNT16.CTRLA.bit.SWRST = 1;
+  while (TC4->COUNT16.SYNCBUSY.bit.SWRST) {
+  }
+  TC4->COUNT16.CTRLA.reg = TC_CTRLA_MODE_COUNT16 | TC_CTRLA_PRESCALER_DIV1;
+  TC4->COUNT16.WAVE.reg  = TC_WAVE_WAVEGEN_MFRQ;
+  TC4->COUNT16.CC[0].reg = TIMER_CLOCK / SAMPLE_RATE - 1;   // 2999 => 16 kHz
+  while (TC4->COUNT16.SYNCBUSY.bit.CC0) {
+  }
+  TC4->COUNT16.INTENSET.reg = TC_INTENSET_MC0;   // interrupt on each match
+
+  NVIC_SetPriority(TC4_IRQn, 2);   // 0 is highest priority; leave 0..1 for more urgent interrupts
+  NVIC_ClearPendingIRQ(TC4_IRQn);
+  NVIC_EnableIRQ(TC4_IRQn);
+
+  timerReady = true;
+}
+
+// Advance to the next dit, dah, or space. Called from ISR when "remaining" reaches zero.
+inline void nextSegment() {
+  if (afterElement) {
+    afterElement = false;
+    keyDown      = false;
+    // 1 dit between elements of a letter, else 3 dits between letters
+    remaining = (pattern > 1) ? ditSamples : 3 * ditSamples;
+    return;
+  }
+  if (pattern <= 1) {
+    // current character is finished: load the next one
+    if (nextIndex >= numPatterns) {
+      keyDown     = false;   // message done; ISR finishes after the fade-out
+      remaining   = 0;
+      numPatterns = 0;
+      return;
+    }
+    uint8_t p = patterns[nextIndex++];
+    if (p == PATTERN_SPACE) {
+      // letter space (3) already sent + 4 more = 7 dits between words
+      keyDown   = false;
+      remaining = 4 * ditSamples;
+      return;
+    }
+    pattern = p;
+  }
+  // send one element: 0=dit, 1=dah
+  keyDown      = true;
+  remaining    = (pattern & 1) ? 3 * ditSamples : ditSamples;
+  pattern      = pattern >> 1;
+  afterElement = true;
+}
+
+}   // namespace isr
+
+// ========== interrupt service routine ========================
+extern "C" void TC4_Handler(void) {
+  using namespace isr;
+  TC4->COUNT16.INTFLAG.reg = TC_INTFLAG_MC0;   // acknowledge interrupt
+
+  // ----- Morse timing
+  if (stopRequest) {
+    keyDown      = false;
+    numPatterns  = 0;
+    pattern      = 1;
+    afterElement = false;
+    remaining    = 0;
+    stopRequest  = false;
+  } else if (remaining > 0) {
+    remaining--;
+  } else if (numPatterns > 0 || pattern > 1 || afterElement) {
+    nextSegment();
+  }
+
+  // ----- envelope: fade in while key is down, fade out while key is up
+  if (keyDown) {
+    if (envelope < RAMP_SAMPLES)
+      envelope++;
+  } else {
+    if (envelope > 0)
+      envelope--;
+  }
+
+  // ----- audio sample
+  if (envelope > 0) {
+    phase += phaseStep;
+    int32_t sample = sineTable[phase >> 24];
+    writeDAC(DAC_MIDPOINT + (sample * envelope) / RAMP_SAMPLES);
+  } else {
+    phase = 0;   // start each tone at zero crossing
+    writeDAC(DAC_MIDPOINT);
+    if (!keyDown && remaining == 0 && numPatterns == 0 && pattern <= 1 && !afterElement) {
+      // finished: silence, and stop interrupting the main loop
+      active                        = false;
+      TC4->COUNT16.CTRLA.bit.ENABLE = 0;
+    }
+  }
+}
+// ========== end interrupt service routine ====================
+
+void DACMorseSender::startSending() {
+  using namespace isr;
+  if (!timerReady) {
+    initTimer();
+  }
+
+  // stop anything in progress (fades out over 5 msec, then the ISR stops the timer)
+  DACMorseSender::stop();
+  stopTimer();
+  writeDAC(DAC_MIDPOINT);
+
+  // convert message to Morse patterns here, so the ISR never searches tables or prints
+  int count = 0;
+  for (unsigned int ii = 0; ii < message.length() && count < MAX_MESSAGE; ii++) {
+    char c            = message.charAt(ii);
+    patterns[count++] = (c == ' ') ? PATTERN_SPACE : (uint8_t)getPattern(c);
+  }
+  if ((int)message.length() > MAX_MESSAGE) {
+    Serial.print("!!! Morse message truncated to ");
+    Serial.print(MAX_MESSAGE);
+    Serial.println(" characters");
+  }
+
+  Serial.print("Start sending morse ");
+  Serial.print(wpm, 1);
+  Serial.print(" wpm, ");
+  Serial.print(fFrequency, 0);
+  Serial.print(" Hz: ");
+  Serial.println(message);
+
+  // load ISR state (timer is stopped, so no race)
+  ditSamples   = (uint32_t)(SAMPLE_RATE * 1.2f / max(5.0f, wpm));   // dit = 1200/wpm msec
+  phaseStep    = (uint32_t)(fFrequency * 4294967296.0 / SAMPLE_RATE);
+  phase        = 0;
+  envelope     = 0;
+  keyDown      = false;
+  stopRequest  = false;
+  pattern      = 1;
+  afterElement = false;
+  remaining    = 0;
+  nextIndex    = 0;
+  numPatterns  = count;
+  active       = (count > 0);
+
+  if (active) {
+    startTimer();
+  }
+}
+
+bool DACMorseSender::isBusy() {
+  return isr::active;
+}
+
+void DACMorseSender::stop() {
+  if (!isr::active) {
+    return;
+  }
+  isr::stopRequest = true;   // ISR fades out (5 msec) then stops the timer
+  while (isr::active) {
+  }
 }
