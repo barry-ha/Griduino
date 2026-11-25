@@ -85,7 +85,7 @@ const int yRow3 = yRow2 + 22;   // compiled date         mode "Blocking" or "Non
 const int yRow4 = yRow3 + 22;   // author line 1         morse string, in quotes so leading/trailing spaces are visible
 const int yRow5 = yRow4 + 22;   // author line 2         speed "18 wpm"
 const int yRow6 = yRow5 + 22;   // loop counter          frequency "700 Hz"
-const int yRow7 = yRow6 + 22;   // unused                loop() count, to prove non-blocking operation
+const int yRow7 = yRow6 + 44;   // unused                loop() count, to prove non-blocking operation
 
 void startSplashScreen() {
   tft.setTextSize(2);
@@ -205,7 +205,7 @@ enum TestMode {
 };
 
 struct MorseTest {
-  TestMode mode;
+  TestMode mode;   // UNIT_TEST, BLOCKING, NONBLOCKING, STOP_EARLY
   int frequency;   // Hz
   float wpm;       // words per minute
   const char *message;
@@ -213,7 +213,7 @@ struct MorseTest {
 
 // clang-format off
 const MorseTest tests[] = {
-    // mode,     Hz,  wpm, message
+    // mode,       Hz, wpm, message
     {UNIT_TEST,   1000, 15, ""},
     {BLOCKING,    1000, 15, "de k7bwh es km7o"},
     {NONBLOCKING, 1000, 15, "de k7bwh es km7o"},   // same message, compare blocking vs non-blocking
@@ -229,8 +229,8 @@ const MorseTest tests[] = {
     {NONBLOCKING, 1300, 30, "de k7bwh es km7o  S S"},
     {NONBLOCKING, 1000, 15, "ese ee"},             // shave and a haircut
     {BLOCKING,    1000, 15, "tu  "},               // thank you
-    {BLOCKING,    1000, 15, "S"},                  // PROSIGN_SK
     {NONBLOCKING, 1000, 15, "A"},                  // PROSIGN_AS
+    {BLOCKING,    1000, 15, "S"},                  // PROSIGN_SK
 };
 const int numTests = sizeof(tests) / sizeof(tests[0]);
 // clang-format on
@@ -240,10 +240,10 @@ const unsigned long STOP_EARLY_AFTER    = 3000;   // msec
 
 int testIndex                = 0;       // next test to run
 bool waitingForSend          = false;   // true while a non-blocking test is sending
+bool stopEarly               = false;   // true if the current test calls stop()
+bool allDone                 = false;   // true when all tests have finished
 unsigned long testStartTime  = 0;       // millis() when the current test started
 unsigned long pauseStartTime = 0;       // millis() when the previous test finished
-bool stopEarly               = false;   // true if the current test calls stop()
-bool allDone                 = false;
 
 void runUnitTests(DACMorseSender &dacMorse) {
   dacMorse.dump();   // debug
@@ -297,14 +297,14 @@ void runTest(int index) {
   switch (test.mode) {
   case UNIT_TEST:
     showMode("Blocking dits");
-    runUnitTests(dacMorse);
+    runUnitTests(dacMorse);      // this stops the loop() and the activity bar stop until it returns
     showLoopCount(gLoopCount);   // still 0: loop() could not run
     pauseStartTime = millis();
     break;
 
   case BLOCKING:
     showMode("Blocking");
-    dacMorse.sendBlocking();     // loop() and the activity bar stop until this returns
+    dacMorse.sendBlocking();     // this stops the loop() and the activity bar stop until it returns
     showLoopCount(gLoopCount);   // still 0: loop() could not run
     pauseStartTime = millis();
     break;
