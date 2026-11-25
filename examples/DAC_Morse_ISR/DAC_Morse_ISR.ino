@@ -85,6 +85,8 @@ const int yRow3  = yRow2 + 20;   // compiled date
 const int yRow4  = yRow3 + 40;   // author line 1
 const int yRow5  = yRow4 + 20;   // author line 2
 const int yRow6  = yRow5 + 40;   // loop counter
+const int yTest  = yRow2;        // test number (after splash screen)
+const int yMsg   = yRow3 + 20;   // test string
 
 void startSplashScreen() {
   tft.setTextSize(2);
@@ -136,6 +138,34 @@ void showMode(const char *mode) {
   tft.setTextColor(cLABEL, cBACKGROUND);
   tft.print(mode);
   tft.print("            ");   // erase leftover text from a longer label
+}
+
+void showTest(int number, int total, const char *message) {
+  // ----- test number, e.g. "Test 3 of 16"
+  tft.setTextSize(2);
+  tft.setCursor(xLabel, yTest);
+  tft.setTextColor(cTEXTCOLOR, cBACKGROUND);
+  tft.print("Test ");
+  tft.setTextColor(cVALUE, cBACKGROUND);
+  tft.print(number);
+  tft.setTextColor(cTEXTCOLOR, cBACKGROUND);
+  tft.print(" of ");
+  tft.print(total);
+  tft.print("   ");
+
+  // ----- test string, in quotes so leading/trailing spaces are visible
+  tft.fillRect(0, yMsg, tft.width(), 16, cBACKGROUND);        // erase previous string
+  int chars = strlen(message) + 2;                            // +2 for quotes
+  int size  = (xLabel + chars * 12 <= tft.width()) ? 2 : 1;   // 12 or 6 pixels per char
+  tft.setTextWrap(false);
+  tft.setTextSize(size);
+  tft.setCursor(xLabel, yMsg + (size == 1 ? 4 : 0));
+  tft.setTextColor(cVALUE, cBACKGROUND);
+  tft.print('"');
+  tft.print(message);
+  tft.print('"');
+  tft.setTextSize(2);
+  tft.setTextWrap(true);
 }
 
 void showLoopCount(int count) {
@@ -249,6 +279,7 @@ void runTest(int index) {
   Serial.print(index + 1);
   Serial.print(" of ");
   Serial.println(numTests);
+  showTest(index + 1, numTests, test.mode == UNIT_TEST ? "dits and dit-dahs" : test.message);
 
   // The sender object can be local: startSending() copies everything the ISR
   // needs, so a non-blocking message keeps playing after this function returns.
