@@ -1,43 +1,47 @@
+// Please format this file with clang before check-in to GitHub
 /*
-  File:    morse_dac.cpp
+  File:     morse_dac.cpp
 
-  Date:    2019-12-30 created
+  Date:     2026-11-25 updated for non-blocking Morse code
+            2019-12-30 created
 
-  Authors: Barry Hansen, barry@k7bwh.com, Seattle, WA
-           John Vanderbeck, KM7O, Seattle, WA
+  Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
+  Hardware: John Vanderbeck, KM7O, Seattle, WA
 
-  Purpose: Generate Morse Code through a speaker using onboard
-           DAC (digital to analog converter) that plays a pure
-           tone from a waveform table.
+  Purpose:  Generate Morse Code through a speaker using onboard
+            DAC (digital to analog converter) that plays a pure
+            tone from a waveform table.
 
-           Hard-coded to DAC0 (pin A0) for both blocking and non-blocking output.
+            sendBlocking() is the original blocking method.
+            startSending() is non-blocking: a TC4 timer interrupt at 16 kHz
+            produces each DAC sample from a sine table (phase accumulator,
+            so any audio frequency works) and also counts samples to time
+            the dits, dahs and spaces. Each element fades in and out over
+            5 msec to avoid key clicks.
+            We avoid timer TC3 because it is used by the TFT backlight PWM.
 
-           sendBlocking() is the original blocking method.
-           startSending() is non-blocking: a TC4 timer interrupt at 16 kHz
-           produces each DAC sample from a sine table (phase accumulator,
-           so any audio frequency works) and also counts samples to time
-           the dits, dahs and spaces. Each element fades in and out over
-           5 msec to avoid key clicks.
-           We avoid timer TC3 because it is used by the TFT backlight PWM.
+            All input should be uppercase.
+            Prosigns (SK, KN, etc) have special character values #defined.
 
-           All input should be uppercase.
-           Prosigns (SK, KN, etc) have special character values #defined.
+  Hardware:
+            Hard-coded to DAC0 (pin A0) for both blocking and non-blocking output.
 
   See also:
-           Non-blocking Morse by Mark Fickett, KB3JCY
+            Non-blocking Morse by Mark Fickett, KB3JCY
                 https://github.com/markfickett/arduinomorse
-           Morse decoder (using binary tree):
+            Morse decoder (using binary tree):
                 http://www.arduino.cc/cgi-bin/yabb2/YaBB.pl?num=1289074596/15
-           Generator (on playground):
+            Generator (on playground):
                 http://www.arduino.cc/playground/Code/Morse
-           Wave Player using ISR
+            Wave Player using ISR
                 https://github.com/lrusso/ArduinoWavePlayer/tree/master/Sample
- */
+*/
 
 #include <Arduino.h>     // for max() function
 #include <stdlib.h>      // for dtostrf() function
 #include "morse_dac.h"   // Morse sending class
 
+// ------------ definitions
 #define N_MORSE (sizeof(morsetable) / sizeof(morsetable[0]))
 
 // Set granularity of waveform
@@ -117,11 +121,17 @@ struct t_mtab morsetable[] = {
     {PROSIGN_AS, 0b100010},
 };
 
+// Convert float to string
 // Replacement 'dtostrf()' so we can print floating point varables
 // From: https://forum.arduino.cc/index.php?topic=349764.15
+// input: val = floating point number to format
+//        width = minimum field width of the output string
+//        prec = precision, number of digits after the decimal point
+//        sout = output string
+// todo:  replace this "dtostrf" with "floatToCharArray" in Griduino.ino
 char *dtostrf(double val, signed char width, unsigned char prec, char *sout) {
   uint32_t iPart = (uint32_t)val;
-  sprintf(sout, "%d", iPart);
+  sprintf(sout, "%ld", iPart);
   if (prec > 0) {
     uint8_t pos    = strlen(sout);
     sout[pos++]    = '.';
@@ -213,15 +223,18 @@ void DACMorseSender::send_dah() {
   }
   send_dit_space();
 }
+
 void DACMorseSender::send_dit_space() {
   analogWrite(DAC0, dacOffset);
   delay(iDitDuration);
 }
+
 void DACMorseSender::send_letter_space() {
   analogWrite(DAC0, dacOffset);
   int msec = (int)1000.0 * letterSpace;
   delay(msec);
 }
+
 void DACMorseSender::send_word_space() {
   analogWrite(DAC0, dacOffset);
   int msec = (int)1000.0 * wordSpace;
@@ -229,7 +242,7 @@ void DACMorseSender::send_word_space() {
 }
 
 char getPattern(char c) {
-  for (int ii = 0; ii < N_MORSE; ii++) {
+  for (unsigned int ii = 0; ii < N_MORSE; ii++) {
     if (morsetable[ii].c == c) {
       return morsetable[ii].pat;
     }
@@ -273,7 +286,7 @@ void DACMorseSender::sendBlocking() {
     Serial.println("!!! DAC dacSampleTime < 1 usec. Did you call setup()?");
   }
 
-  for (int ii = 0; ii < message.length(); ii++) {
+  for (unsigned int ii = 0; ii < message.length(); ii++) {
     send(message.charAt(ii));
   }
   send_word_space();
@@ -288,42 +301,44 @@ void DACMorseSender::dump() {
     // note "delayMicroseconds()" only works reliably down to 3 usec
     Serial.println("!!! DAC dacSampleTime < 1 usec. Did you call setup()?");
   }
-  snprintf(msg, 256, ". DAC sizeWavetable(%d)", sizeWavetable);
+
+  Serial.println("Begin DAC Morse settings:");
+  snprintf(msg, sizeof(msg), ". DAC sizeWavetable(%d)", sizeWavetable);
   Serial.println(msg);
-  snprintf(msg, 256, ". DAC output pin(DAC0, hard-coded)");
+  snprintf(msg, sizeof(msg), ". DAC output pin(DAC0, hard-coded)");
   Serial.println(msg);
-  snprintf(msg, 256, ". DAC dacAmplitude(%d)", dacAmplitude);
+  snprintf(msg, sizeof(msg), ". DAC dacAmplitude(%d)", dacAmplitude);
   Serial.println(msg);
-  snprintf(msg, 256, ". DAC dacOffset(%d)", dacOffset);
+  snprintf(msg, sizeof(msg), ". DAC dacOffset(%d)", dacOffset);
   Serial.println(msg);
   dtostrf(fFrequency, 12, 1, sFloat);
-  snprintf(msg, 256, ". DAC fFrequency(%s Hz)", sFloat);
+  snprintf(msg, sizeof(msg), ". DAC fFrequency(%s Hz)", sFloat);
   Serial.println(msg);
-  snprintf(msg, 256, ". DAC sizeWavetable(%d samples)", sizeWavetable);
+  snprintf(msg, sizeof(msg), ". DAC sizeWavetable(%d samples)", sizeWavetable);
   Serial.println(msg);
   dtostrf(dacSampleTime, 12, 1, sFloat);
-  snprintf(msg, 256, ". DAC dacSampleTime(%s usec)", sFloat);
+  snprintf(msg, sizeof(msg), ". DAC dacSampleTime(%s usec)", sFloat);
   Serial.println(msg);
   dtostrf(wpm, 15, 1, sFloat);
-  snprintf(msg, 256, ". Morse WPM(%s)", sFloat);
+  snprintf(msg, sizeof(msg), ". Morse WPM(%s)", sFloat);
   Serial.println(msg);
   dtostrf(fDitDuration, 12, 5, sFloat);
-  snprintf(msg, 256, ". Morse fDitDuration(%s sec)", sFloat);
+  snprintf(msg, sizeof(msg), ". Morse fDitDuration(%s sec)", sFloat);
   Serial.println(msg);
-  snprintf(msg, 256, ". Morse iDitDuration(%d msec)", iDitDuration);
+  snprintf(msg, sizeof(msg), ". Morse iDitDuration(%d msec)", iDitDuration);
   Serial.println(msg);
   dtostrf(letterSpace, 12, 5, sFloat);
   snprintf(msg, 256, ". Morse letterSpace(%s sec)", sFloat);
   Serial.println(msg);
   dtostrf(wordSpace, 12, 3, sFloat);
-  snprintf(msg, 256, ". Morse wordSpace float(%s sec)", sFloat);
+  snprintf(msg, sizeof(msg), ". Morse wordSpace float(%s sec)", sFloat);
   Serial.println(msg);
   int msec = (int)1000.0 * wordSpace;
-  snprintf(msg, 256, ". Morse wordSpace int (%d msec)", msec);
+  snprintf(msg, sizeof(msg), ". Morse wordSpace int (%d msec)", msec);
   Serial.println(msg);
-  snprintf(msg, 256, ". Morse cyclesPerDit(%d)", cyclesPerDit);
+  snprintf(msg, sizeof(msg), ". Morse cyclesPerDit(%d)", cyclesPerDit);
   Serial.println(msg);
-  snprintf(msg, 256, ". Morse cyclesPerDah(%d)", cyclesPerDah);
+  snprintf(msg, sizeof(msg), ". Morse cyclesPerDah(%d)", cyclesPerDah);
   Serial.println(msg);
   Serial.println("End dump.");
 }

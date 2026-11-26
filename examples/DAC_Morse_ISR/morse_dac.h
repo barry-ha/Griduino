@@ -1,37 +1,47 @@
-#pragma once
-/**
- * Send Morse Code with a sine wave using onboard DAC to a speaker.
- *
- * Two ways to send:
- *   sendBlocking()  - original method, does not return until message complete.
- *   startSending()  - non-blocking, returns immediately. A TC4 timer interrupt
- *                     generates the audio samples and the dit/dah timing while
- *                     the main loop keeps running. Poll isBusy() to know when done.
- *
- * Note:
- *   SAMD51 (Feather M4) only. Uses timer TC4, which is not used by 
- *   Griduino's TFT backlight PWM (which uses timer TC3 on pin D4).
- * Spacing:
- *   Morse code spacing is selected by constants in morse_dac.cpp. 
- *   Although PARIS standard is 1/3/7, we prefer 1/4/10 for better copy in a noisy vehicle cabin.
- *   Look for constants ELEMENT_GAP, LETTER_GAP, and WORD_GAP in morse_dac.cpp.
- * DAC Output: 
- *   This implementation is hard-coded to DAC0 (pin A0), the Griduino speaker output pin.
- *   Both sendBlocking() and the non-blocking ISR write to DAC0.
- *
- * All input should be lowercase.
- * Prosigns (SK, KN, etc) have special character values #defined.
- *
- * This was inspired by the fine example by Mark Fickett, KB3JCY, morse package.
- *        https://github.com/markfickett/arduinomorse
- */
+#pragma once   // Please format this file with clang before check-in to GitHub
+/*
+  File:     morse_dac.h
+
+  Purpose:  Send Morse Code with a sine wave using onboard DAC to a speaker.
+
+  Two ways to send:
+    sendBlocking()  - original method, does not return until message complete.
+    startSending()  - non-blocking, returns immediately. A TC4 timer interrupt
+                      generates the audio samples and the dit/dah timing while
+                      the main loop keeps running. Poll isBusy() to know when done.
+  
+  Note:
+    SAMD51 (Feather M4) only. Uses timer TC4, which is not used by 
+    Griduino's TFT backlight PWM (which uses timer TC3 on pin D4).
+  Spacing:
+    Morse code spacing is selected by constants in morse_dac.cpp. 
+    Although PARIS standard is 1/3/7, we prefer 1/4/10 for better copy in a noisy vehicle cabin.
+    Look for constants ELEMENT_GAP, LETTER_GAP, and WORD_GAP in morse_dac.cpp.
+  DAC Output: 
+    This implementation is hard-coded to DAC0 (pin A0), the Griduino speaker output pin.
+    Both sendBlocking() and the non-blocking ISR write to DAC0.
+ 
+  All input should be lowercase.
+  Prosigns (SK, KN, etc) have special character values #defined.
+ 
+  This was inspired by the fine example by Mark Fickett, KB3JCY, morse package.
+         https://github.com/markfickett/arduinomorse
+
+  Software: Barry Hansen, K7BWH, barry@k7bwh.com, Seattle, WA
+  Hardware: John Vanderbeck, KM7O, Seattle, WA
+
+*/
 
 // Punctuation and Prosigns
-#define PROSIGN_SK 'S'
-#define PROSIGN_KN 'K'
-#define PROSIGN_BT 'B'
-#define PROSIGN_AS 'A'
+#define PROSIGN_SK  'S'   // end of transmission
+#define PROSIGN_KN  'K'   // slash
+#define PROSIGN_BT  'B'   // dash
+#define PROSIGN_AS  'A'   // wait
+#define PROSIGN_IMI 'Q'   // question
+#define PROSIGN_MIM 'C'   // comma
+#define PROSIGN_AAA '.'   // period
 
+// ========== class DACMorsender ==================================
 class DACMorseSender {
 private:
   String message;
@@ -44,15 +54,15 @@ private:
   const int dacOffset    = 2048;   // = exactly half of 2^12
                                    // Requirement is: dacOffset +/- dacAmplitude = voltage range of DAC
   // Morse settings
-  float wpm;   // words per minute
-
+  float wpm;            // words per minute
+                        //
   float fDitDuration;   // seconds per dit
   int iDitDuration;     // msec    per dit
-  float letterSpace;    // = ditDuration * 10 (seconds)
-  float wordSpace;      // = ditDuration * 24 (seconds)
-
-  int cyclesPerDit;   // number of waveforms to fill an entire DIT
-  int cyclesPerDah;   // number of waveforms to fill an entire DAH
+  float letterSpace;    // typically 3x ditDuration (seconds)
+  float wordSpace;      // typically 7x ditDuration (seconds)
+                        //
+  int cyclesPerDit;     // number of waveforms to fill an entire DIT
+  int cyclesPerDah;     // number of waveforms to fill an entire DAH
 
 public:
   /**
@@ -110,4 +120,4 @@ public:
 
 private:
   void send(char c);
-};
+};   // end class DACMorseSender
