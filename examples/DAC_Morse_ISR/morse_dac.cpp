@@ -190,7 +190,7 @@ void DACMorseSender::send_dit() {
     // step through one waveform
     for (int kk = 0; kk < sizeWavetable; kk++) {
       val = waveform[kk];   // lookup DAC setting from the table
-      analogWrite(dacPin, (int)val);
+      analogWrite(DAC0, (int)val);
       delayMicroseconds(dacSampleTime);
     }
   }
@@ -207,23 +207,23 @@ void DACMorseSender::send_dah() {
     // step through one waveform
     for (int kk = 0; kk < sizeWavetable; kk++) {
       val = waveform[kk];   // lookup DAC setting from the table
-      analogWrite(dacPin, (int)val);
+      analogWrite(DAC0, (int)val);
       delayMicroseconds(dacSampleTime);
     }
   }
   send_dit_space();
 }
 void DACMorseSender::send_dit_space() {
-  analogWrite(dacPin, dacOffset);
+  analogWrite(DAC0, dacOffset);
   delay(iDitDuration);
 }
 void DACMorseSender::send_letter_space() {
-  analogWrite(dacPin, dacOffset);
+  analogWrite(DAC0, dacOffset);
   int msec = (int)1000.0 * letterSpace;
   delay(msec);
 }
 void DACMorseSender::send_word_space() {
-  analogWrite(dacPin, dacOffset);
+  analogWrite(DAC0, dacOffset);
   int msec = (int)1000.0 * wordSpace;
   delay(msec);
 }
@@ -290,7 +290,7 @@ void DACMorseSender::dump() {
   }
   snprintf(msg, 256, ". DAC sizeWavetable(%d)", sizeWavetable);
   Serial.println(msg);
-  snprintf(msg, 256, ". DAC dacPin(%d)", dacPin);
+  snprintf(msg, 256, ". DAC output pin(DAC0, hard-coded)");
   Serial.println(msg);
   snprintf(msg, 256, ". DAC dacAmplitude(%d)", dacAmplitude);
   Serial.println(msg);
@@ -403,7 +403,7 @@ void initTimer() {
 
   // let the Arduino core enable the DAC on our pin, at its idle midpoint
   analogWriteResolution(12);
-  analogWrite(dacPin, DAC_MIDPOINT);
+  analogWrite(DAC0, DAC_MIDPOINT);
 
   // clock TC4 from GCLK1 (48 MHz)
   GCLK->PCHCTRL[TC4_GCLK_ID].reg = GCLK_PCHCTRL_GEN_GCLK1 | GCLK_PCHCTRL_CHEN;

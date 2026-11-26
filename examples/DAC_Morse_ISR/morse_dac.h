@@ -15,6 +15,9 @@
  *   Morse code spacing is selected by constants in morse_dac.cpp. 
  *   Although PARIS standard is 1/3/7, we prefer 1/4/10 for better copy in a noisy vehicle cabin.
  *   Look for constants ELEMENT_GAP, LETTER_GAP, and WORD_GAP in morse_dac.cpp.
+ * DAC Output: 
+ *   This implementation is hard-coded to DAC0 (pin A0), the Griduino speaker output pin.
+ *   Both sendBlocking() and the non-blocking ISR write to DAC0.
  *
  * All input should be lowercase.
  * Prosigns (SK, KN, etc) have special character values #defined.
@@ -34,7 +37,6 @@ private:
   String message;
 
   // DAC settings
-  int dacPin;            // identifies DAC output port
   float fFrequency;      // Hz
   float dacSampleTime;   // microseconds to hold each waveform sample
 
@@ -54,10 +56,10 @@ private:
 
 public:
   /**
-   * Create a sender for the given DAC port, audio frequency, and sending rate.
+   * Create a sender for the given audio frequency and sending rate.
+   * Output is always DAC0 (pin A0).
    */
-  DACMorseSender(int outputPin, int iFreq, float fWPM) {
-    dacPin     = outputPin;
+  DACMorseSender(int iFreq, float fWPM) {
     fFrequency = iFreq;
     wpm        = fWPM;
   }
