@@ -300,9 +300,9 @@ bool ViewVolume::onTouch(Point touch) {
         announceGrid(newGrid4, 4);   // announce by Morse code OR speech
 */
         /*
-        dacMorse.setMessage("hi");   // announce new volume in Morse code
-        dacMorse.sendBlocking();
-        dacSpeech.play("/audio/7.wav");  // announce new volume in Spoken Word
+        dacMorse.setMessage("hi");        // announce new volume in Morse code
+        dacMorse.startSending();          // non-blocking
+        dacSpeech.play("/audio/7.wav");   // announce new volume in Spoken Word
         dacSpeech.play("/audio/3.wav");
 */
       }

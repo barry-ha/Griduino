@@ -82,8 +82,8 @@ void ViewSplash::startScreen() {
 #ifdef USE_MORSE_CODE
   // ----- announce in Morse code, so vehicle's driver doesn't have to look at the screen
   spkrMorse.setMessage(String(" de k7bwh  "));   // lowercase is required
-  // spkrMorse.startSending();       // non-blocking (TODO: does not send evenly)
-  spkrMorse.sendBlocking();   // blocking
+  spkrMorse.startSending();     // non-blocking
+  //spkrMorse.sendBlocking();   // blocking
 #endif
 }
 

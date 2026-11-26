@@ -204,7 +204,7 @@ const int howLongToWait = 6;          // max number of seconds at startup waitin
 #if defined(ARDUINO_ADAFRUIT_FEATHER_RP2040)
   // todo - for now, RP2040 has no DAC, no speech, no audio output
 #else
-  DACMorseSender dacMorse(DAC_PIN, gFrequency, gWordsPerMinute);
+  DACMorseSender dacMorse(gFrequency, gWordsPerMinute);
 #endif
 
 // ----------- Speech PCM Audio Playback
@@ -538,7 +538,7 @@ void showActivityBar(int row, uint16_t foreground, uint16_t background) {
 void sendMorseLostSignal() {
   String msg(PROSIGN_AS);             // "wait" symbol
   dacMorse.setMessage(msg);
-  dacMorse.sendBlocking();            // TODO - use non-blocking
+  dacMorse.startSending();            // non-blocking
 }
 
 void announceGrid(const String gridName, int length) {
@@ -550,7 +550,6 @@ void announceGrid(const String gridName, int length) {
 
   switch (cfgAudioType.selectedAudio) {
     case ViewCfgAudioType::MORSE: 
-      logger.fencepost("Griduino.ino", __LINE__);   // debug
       sendMorseGrid6( grid );
       break;
     case ViewCfgAudioType::SPEECH:
@@ -578,21 +577,20 @@ void announceGrid(const String gridName, int length) {
 
 void sendMorseGrid4(const String gridName) {
   // announce new grid by Morse code
-  logger.fencepost("Griduino.ino", __LINE__);   // debug
   String grid4 = gridName.substring(0, 4);
   sendMorseGrid6( grid4 );
 }
 
 void sendMorseGrid6(const String gridName) {
   // announce new grid by Morse code
-  logger.fencepost("Griduino.ino", __LINE__);   // debug
   String grid = gridName;
   grid.toLowerCase();
 
-  dacMorse.setMessage( grid );
-  dacMorse.sendBlocking();
-  //spkrMorse.setMessage( grid );
-  //spkrMorse.startSending();   // would prefer non-blocking but some bug causes random dashes to be too long
+  //dacMorse.setMessage( grid );  // blocking
+  //dacMorse.sendBlocking();
+
+  dacMorse.setMessage( grid );   // non-blocking
+  dacMorse.startSending();
 }
 
 void sayGrid(const char *name) {

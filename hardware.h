@@ -104,7 +104,7 @@ On-board lights:
 // define PIN_NEOPIXEL 8     // already defined in Feather's board variant.h
 
 // ---------- Digital potentiometer
-// Griduino PCB v7 uses volume control DS1804 on SPI
+// Adafruit Feather M4 Express pin definitions
 #define PIN_VCS A1   // volume chip select
 #define PIN_VUD A2   // volume up/down
 #define PIN_VINC 6   // volume increment, Feather M4 Express
