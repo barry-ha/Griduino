@@ -128,7 +128,7 @@ void showActivityBar(int row, uint16_t foreground, uint16_t background) {
   static int addDotX = 10;   // current screen column, 0..319 pixels
   static int rmvDotX = 0;
   static int count   = 0;
-  const int SCALEF   = 128;   // how much to slow it down so it becomes visible
+  const int SCALEF   = 256;   // how much to slow it down so it becomes visible
 
   count = (count + 1) % SCALEF;
   if (count == 0) {
